@@ -124,6 +124,12 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                 }
               />
 
+              <AppButton
+                label="Assessment History"
+                variant="secondary"
+                onPress={() => navigation.navigate("StudentAssessmentHistory", { studentId: student.id })}
+              />
+
               {isArchived ? (
                 <AppButton
                   label={unarchiveMutation.isPending ? "Unarchiving..." : "Unarchive"}

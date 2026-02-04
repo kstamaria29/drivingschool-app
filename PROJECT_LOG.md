@@ -267,6 +267,29 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add student Assessment History screen
+- **Summary:**
+  - Added an Assessment History button on the student profile screen.
+  - Added `StudentAssessmentHistoryScreen` with assessment-type tabs, history list, and a Driving Assessment detail view with PDF re-export.
+  - Extended the Assessments API list query to support filtering by `assessment_type`.
+- **Files changed:**
+  - `src/features/assessments/api.ts`
+  - `src/features/assessments/driving-assessment/schema.ts`
+  - `src/navigation/StudentsStackNavigator.tsx`
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open a student → tap `Assessment History` → confirm you can switch tabs and see Driving Assessment history.
+  - Tap an assessment → confirm details render and `Download PDF` exports/saves successfully.
+- **Notes/TODO:**
+  - Consider adding a dedicated detail route for phones if the combined list+detail view feels too long.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Save Driving Assessment PDFs without share sheet
 - **Summary:**
   - Updated PDF export to save directly into app storage (`documentDirectory/driving-assessments/`) and skip opening the share sheet.

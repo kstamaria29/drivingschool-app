@@ -50,3 +50,16 @@ export const drivingAssessmentFormSchema = z.object({
 });
 
 export type DrivingAssessmentFormValues = z.infer<typeof drivingAssessmentFormSchema>;
+
+export const drivingAssessmentStoredDataSchema = drivingAssessmentFormSchema.extend({
+  totalScoreRaw: z.number().optional(),
+  totalScorePercentAnswered: z.number().nullable().optional(),
+  totalScorePercentOverall: z.number().nullable().optional(),
+  scoredCount: z.number().optional(),
+  totalCriteriaCount: z.number().optional(),
+  maxRaw: z.number().optional(),
+  feedbackSummary: z.string().optional(),
+  savedByUserId: z.string().optional(),
+});
+
+export type DrivingAssessmentStoredData = z.infer<typeof drivingAssessmentStoredDataSchema>;

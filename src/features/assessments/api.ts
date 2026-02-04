@@ -7,6 +7,7 @@ export type AssessmentUpdate = Database["public"]["Tables"]["assessments"]["Upda
 
 export type ListAssessmentsInput = {
   studentId?: string;
+  assessmentType?: Assessment["assessment_type"];
   limit?: number;
 };
 
@@ -18,6 +19,7 @@ export async function listAssessments(input: ListAssessmentsInput): Promise<Asse
     .order("created_at", { ascending: false });
 
   if (input.studentId) query = query.eq("student_id", input.studentId);
+  if (input.assessmentType) query = query.eq("assessment_type", input.assessmentType);
   if (input.limit) query = query.limit(input.limit);
 
   const { data, error } = await query.overrideTypes<Assessment[], { merge: false }>();
@@ -52,4 +54,3 @@ export async function updateAssessment(
   if (error) throw error;
   return data;
 }
-
