@@ -73,6 +73,29 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Refine Driving Assessment pre-test details
+- **Summary:**
+  - Merged assessment date + instructor into the pre-test details card and renamed it to `Student Assessment details`.
+  - Removed the Weather field entirely from the Driving Assessment form, history view, and PDF export.
+  - Kept the test stage focused on scoring/feedback only (details card hidden once the test starts).
+- **Files changed:**
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `src/features/assessments/driving-assessment/schema.ts`
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - In app: `Assessments` → `Start Driving Assessment` → verify `Student Assessment details` shows student info + date + instructor (no Weather).
+  - Tap `Start Test` → confirm `Student Assessment details` is hidden and scoring/feedback sections show.
+  - Export PDF from a submitted assessment and confirm Weather is not present.
+- **Notes/TODO:**
+  - Older assessments with Weather in `form_data` will ignore that field when viewing/exporting.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Delete assessments from student history
 - **Summary:**
   - Added a red delete action to the Assessment History detail view (with confirmation).

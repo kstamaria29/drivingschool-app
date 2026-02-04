@@ -374,7 +374,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
           <View className="flex-1">
             <AppText variant="heading">Assessment on {formatAssessmentDate(assessment)}</AppText>
             <AppText className="mt-1" variant="caption">
-              Instructor: {values.instructor || "—"} • Weather: {values.weather || "—"}
+              Instructor: {values.instructor || "—"}
             </AppText>
           </View>
 

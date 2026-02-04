@@ -137,7 +137,6 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
       classHeld: "",
       issueDate: "",
       expiryDate: "",
-      weather: "",
       date: dayjs().format(DISPLAY_DATE_FORMAT),
       instructor: profile.display_name,
       scores: {},
@@ -384,32 +383,56 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
           )}
         </AppCard>
 
-        <AppCard className="gap-4">
-          <AppText variant="heading">Student & licence details</AppText>
+        {stage !== "test" ? (
+          <AppCard className="gap-4">
+            <AppText variant="heading">Student Assessment details</AppText>
 
-          {!selectedStudent ? (
-            <AppText variant="caption">Select a student to view their details.</AppText>
-          ) : (
-            <AppStack gap="sm">
-              <AppText variant="body">
-                Name: {selectedStudent.first_name} {selectedStudent.last_name}
-              </AppText>
-              <AppText variant="body">Email: {selectedStudent.email ?? ""}</AppText>
-              <AppText variant="body">Phone: {selectedStudent.phone ?? ""}</AppText>
-              <AppText variant="body">Address: {selectedStudent.address ?? ""}</AppText>
-              <AppText variant="body">Licence number: {selectedStudent.license_number ?? ""}</AppText>
-              <AppText variant="body">Version: {selectedStudent.license_version ?? ""}</AppText>
-              <AppText variant="body">Class held: {selectedStudent.class_held ?? ""}</AppText>
-              <AppText variant="body">
-                Issue date: {selectedStudent.issue_date ? formatIsoDateToDisplay(selectedStudent.issue_date) : ""}
-              </AppText>
-              <AppText variant="body">
-                Expiry date:{" "}
-                {selectedStudent.expiry_date ? formatIsoDateToDisplay(selectedStudent.expiry_date) : ""}
-              </AppText>
-            </AppStack>
-          )}
-        </AppCard>
+            {!selectedStudent ? (
+              <AppText variant="caption">Select a student to view their details.</AppText>
+            ) : (
+              <AppStack gap="sm">
+                <AppText variant="body">
+                  Name: {selectedStudent.first_name} {selectedStudent.last_name}
+                </AppText>
+                <AppText variant="body">Email: {selectedStudent.email ?? ""}</AppText>
+                <AppText variant="body">Phone: {selectedStudent.phone ?? ""}</AppText>
+                <AppText variant="body">Address: {selectedStudent.address ?? ""}</AppText>
+                <AppText variant="body">Licence number: {selectedStudent.license_number ?? ""}</AppText>
+                <AppText variant="body">Version: {selectedStudent.license_version ?? ""}</AppText>
+                <AppText variant="body">Class held: {selectedStudent.class_held ?? ""}</AppText>
+                <AppText variant="body">
+                  Issue date:{" "}
+                  {selectedStudent.issue_date ? formatIsoDateToDisplay(selectedStudent.issue_date) : ""}
+                </AppText>
+                <AppText variant="body">
+                  Expiry date:{" "}
+                  {selectedStudent.expiry_date ? formatIsoDateToDisplay(selectedStudent.expiry_date) : ""}
+                </AppText>
+
+                <Controller
+                  control={form.control}
+                  name="date"
+                  render={({ field, fieldState }) => (
+                    <AppDateInput
+                      label="Date of assessment"
+                      value={field.value}
+                      onChangeText={field.onChange}
+                      error={fieldState.error?.message}
+                    />
+                  )}
+                />
+
+                <Controller
+                  control={form.control}
+                  name="instructor"
+                  render={({ field }) => (
+                    <AppInput label="Instructor" value={field.value} onChangeText={field.onChange} />
+                  )}
+                />
+              </AppStack>
+            )}
+          </AppCard>
+        ) : null}
 
         {stage === "details" ? (
           <AppButton
@@ -441,39 +464,6 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
 
         {stage === "test" ? (
           <>
-            <AppCard className="gap-4">
-              <AppText variant="heading">Assessment details</AppText>
-
-              <Controller
-                control={form.control}
-                name="weather"
-                render={({ field }) => (
-                  <AppInput label="Weather" value={field.value} onChangeText={field.onChange} />
-                )}
-              />
-
-              <Controller
-                control={form.control}
-                name="date"
-                render={({ field, fieldState }) => (
-                  <AppDateInput
-                    label="Date of assessment"
-                    value={field.value}
-                    onChangeText={field.onChange}
-                    error={fieldState.error?.message}
-                  />
-                )}
-              />
-
-              <Controller
-                control={form.control}
-                name="instructor"
-                render={({ field }) => (
-                  <AppInput label="Instructor" value={field.value} onChangeText={field.onChange} />
-                )}
-              />
-            </AppCard>
-
             <AppCard className="gap-3">
               <AppText variant="heading">Scores</AppText>
               <AppText variant="caption">

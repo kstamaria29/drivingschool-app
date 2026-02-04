@@ -36,7 +36,6 @@ export const drivingAssessmentFormSchema = z.object({
   issueDate: optionalDateString,
   expiryDate: optionalDateString,
 
-  weather: z.string().trim(),
   date: dateString,
   instructor: z.string().trim(),
 
