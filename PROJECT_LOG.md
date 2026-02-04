@@ -111,6 +111,33 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add date picker inputs
+- **Summary:**
+  - Added `AppDateInput` primitive that opens a native date picker (spinner-style where available).
+  - Replaced manual date typing with date pickers for Lessons, Students (licence dates), and Driving Assessments.
+  - Kept optional dates clearable via a quick “Clear” action.
+- **Files changed:**
+  - `src/components/AppDateInput.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `package.json`
+  - `package-lock.json`
+  - `app.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx expo install @react-native-community/datetimepicker`
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open Lesson create/edit → tap Date → picker appears → save lesson.
+  - Open Student edit → tap Issue/Expiry date → picker appears; use Clear to remove.
+  - Open Driving Assessment → tap Date fields → picker appears; submit assessment successfully.
+- **Notes/TODO:**
+  - `npm audit` reports 1 high severity vulnerability in dependencies; consider addressing separately to avoid unrelated diffs.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Save assessment PDFs to Downloads + notify
 - **Summary:**
   - Added Android Downloads-folder saving via Storage Access Framework (one-time folder picker; then saves directly).

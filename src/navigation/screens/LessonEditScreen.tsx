@@ -7,6 +7,7 @@ import { ActivityIndicator, View } from "react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
+import { AppDateInput } from "../../components/AppDateInput";
 import { AppInput } from "../../components/AppInput";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
@@ -240,12 +241,10 @@ export function LessonEditScreen({ navigation, route }: Props) {
             control={form.control}
             name="date"
             render={({ field, fieldState }) => (
-              <AppInput
-                label="Date (DD/MM/YYYY)"
-                autoCapitalize="none"
+              <AppDateInput
+                label="Date"
                 value={field.value}
                 onChangeText={field.onChange}
-                onBlur={field.onBlur}
                 error={fieldState.error?.message}
               />
             )}

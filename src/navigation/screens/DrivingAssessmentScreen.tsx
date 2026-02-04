@@ -7,6 +7,7 @@ import { ActivityIndicator, Alert, Platform, View } from "react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
+import { AppDateInput } from "../../components/AppDateInput";
 import { AppInput } from "../../components/AppInput";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
@@ -419,13 +420,22 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
             control={form.control}
             name="issueDate"
             render={({ field, fieldState }) => (
-              <AppInput
-                label="Issue date (DD/MM/YYYY)"
-                autoCapitalize="none"
-                value={field.value}
-                onChangeText={field.onChange}
-                error={fieldState.error?.message}
-              />
+              <AppStack gap="sm">
+                <AppDateInput
+                  label="Issue date"
+                  value={field.value}
+                  onChangeText={field.onChange}
+                  error={fieldState.error?.message}
+                />
+                {field.value.trim() ? (
+                  <AppButton
+                    width="auto"
+                    variant="ghost"
+                    label="Clear issue date"
+                    onPress={() => field.onChange("")}
+                  />
+                ) : null}
+              </AppStack>
             )}
           />
 
@@ -433,13 +443,22 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
             control={form.control}
             name="expiryDate"
             render={({ field, fieldState }) => (
-              <AppInput
-                label="Expiry date (DD/MM/YYYY)"
-                autoCapitalize="none"
-                value={field.value}
-                onChangeText={field.onChange}
-                error={fieldState.error?.message}
-              />
+              <AppStack gap="sm">
+                <AppDateInput
+                  label="Expiry date"
+                  value={field.value}
+                  onChangeText={field.onChange}
+                  error={fieldState.error?.message}
+                />
+                {field.value.trim() ? (
+                  <AppButton
+                    width="auto"
+                    variant="ghost"
+                    label="Clear expiry date"
+                    onPress={() => field.onChange("")}
+                  />
+                ) : null}
+              </AppStack>
             )}
           />
 
@@ -455,9 +474,8 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
             control={form.control}
             name="date"
             render={({ field, fieldState }) => (
-              <AppInput
-                label="Date of assessment (DD/MM/YYYY)"
-                autoCapitalize="none"
+              <AppDateInput
+                label="Date of assessment"
                 value={field.value}
                 onChangeText={field.onChange}
                 error={fieldState.error?.message}
