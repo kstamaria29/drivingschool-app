@@ -55,6 +55,24 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Refine mock test screen layout
+- **Summary:**
+  - Hid the `Pre-drive checks` section after the mock test has started to keep the test stage focused.
+  - Made Stage 1 and Stage 2 sections collapsible (Stage 2 remains locked until enabled).
+- **Files changed:**
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - In app: `Assessments` → `Start Mock Test` → `Start test` → confirm `Pre-drive checks` is no longer shown.
+  - Confirm Stage 1/Stage 2 can be collapsed/expanded and Stage 2 shows `Locked` until enabled.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Update Driving Assessment start flow
 - **Summary:**
   - Changed Driving Assessment to a staged flow: review student details first, confirm start, then show the scoring/test form.

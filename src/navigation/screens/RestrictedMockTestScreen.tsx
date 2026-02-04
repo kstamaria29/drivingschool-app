@@ -144,6 +144,10 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     createErrorCounts(restrictedMockTestImmediateErrors),
   );
   const [expandedTaskKey, setExpandedTaskKey] = useState<string | null>(null);
+  const [expandedStages, setExpandedStages] = useState<Record<RestrictedMockTestStageId, boolean>>({
+    stage1: true,
+    stage2: false,
+  });
   const [draftResolvedStudentId, setDraftResolvedStudentId] = useState<string | null>(null);
 
   const organizationName = organizationQuery.data?.name ?? "Driving School";
@@ -542,7 +546,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     ) : null;
 
   const preDriveCard =
-    stage === "details" || stage === "test" ? (
+    stage === "details" ? (
       <AppCard className="gap-4">
         <AppText variant="heading">Pre-drive checks</AppText>
         <AppText variant="caption">
@@ -610,97 +614,128 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     if (!stageDef) return null;
 
     const stageKey = stageDef.id;
+    const expanded = expandedStages[stageKey];
+    const stageFaults = stageKey === "stage1" ? summary.stage1Faults : summary.stage2Faults;
+    const rightText =
+      stageKey === "stage2" && !stage2Enabled
+        ? "Locked"
+        : stageFaults > 0
+          ? `${stageFaults} fault${stageFaults === 1 ? "" : "s"}`
+          : undefined;
 
     return (
-      <AppCard className="gap-3">
-        <AppText variant="heading">{stageDef.name}</AppText>
-        <AppText variant="caption">{stageDef.note}</AppText>
-
+      <AppCollapsibleCard
+        title={stageDef.name}
+        subtitle={stageDef.badge}
+        rightText={rightText}
+        expanded={expanded}
+        onToggle={() => setExpandedStages((prev) => ({ ...prev, [stageKey]: !prev[stageKey] }))}
+      >
         <AppStack gap="md">
-          {stageDef.tasks.map((taskDef) => {
-            const taskState = stagesState[stageKey]?.[taskDef.id] ?? {
-              items: createEmptyItems(),
-              location: "",
-              notes: "",
-            };
-            const faults = taskFaultCount(taskState);
-            const cardKey = `${stageKey}:${taskDef.id}`;
-            const expanded = expandedTaskKey === cardKey;
+          <AppText variant="caption">{stageDef.note}</AppText>
 
-            return (
-              <AppCollapsibleCard
-                key={taskDef.id}
-                title={taskDef.name}
-                subtitle={`Typical speed zone: ${taskDef.speed} km/h`}
-                rightText={faults > 0 ? `${faults} fault${faults === 1 ? "" : "s"}` : undefined}
-                expanded={expanded}
-                onToggle={() => setExpandedTaskKey((prev) => (prev === cardKey ? null : cardKey))}
-              >
-                <AppStack gap="md">
-                  <AppInput
-                    label="Location / reference (street, landmark, direction)"
-                    value={taskState.location}
-                    onChangeText={(next) =>
-                      setStagesState((prev) =>
-                        updateTaskState(prev, stageKey, taskDef.id, (task) => ({
-                          ...task,
-                          location: next,
-                        })),
-                      )
-                    }
-                  />
+          {stageKey === "stage2" && !stage2Enabled ? (
+            <AppStack gap="sm">
+              <AppText variant="body">
+                Stage 2 is locked. Enable it only after Stage 1 performance is safe.
+              </AppText>
+              <AppButton
+                width="auto"
+                label="Enable Stage 2"
+                onPress={() => {
+                  setStage2Enabled(true);
+                  setExpandedStages((prev) => ({ ...prev, stage2: true }));
+                }}
+              />
+            </AppStack>
+          ) : (
+            <AppStack gap="md">
+              {stageDef.tasks.map((taskDef) => {
+                const taskState = stagesState[stageKey]?.[taskDef.id] ?? {
+                  items: createEmptyItems(),
+                  location: "",
+                  notes: "",
+                };
+                const faults = taskFaultCount(taskState);
+                const cardKey = `${stageKey}:${taskDef.id}`;
+                const taskExpanded = expandedTaskKey === cardKey;
 
-                  <AppStack gap="sm">
-                    {restrictedMockTestTaskItems.map((item) => {
-                      const current = (taskState.items?.[item.id] ?? "") as FaultValue;
-                      return (
-                        <View key={item.id} className="flex-row items-center justify-between gap-3">
-                          <AppText className="flex-1" variant="body">
-                            {item.label}
-                          </AppText>
-                          <AppSegmentedControl<FaultValue>
-                            className="w-40"
-                            value={current}
-                            options={[
-                              { value: "", label: "OK / n/a" },
-                              { value: "fault", label: "Fault" },
-                            ]}
-                            onChange={(next) =>
-                              setStagesState((prev) =>
-                                updateTaskState(prev, stageKey, taskDef.id, (task) => ({
-                                  ...task,
-                                  items: { ...(task.items || {}), [item.id]: next },
-                                })),
-                              )
-                            }
-                          />
-                        </View>
-                      );
-                    })}
-                  </AppStack>
+                return (
+                  <AppCollapsibleCard
+                    key={taskDef.id}
+                    title={taskDef.name}
+                    subtitle={`Typical speed zone: ${taskDef.speed} km/h`}
+                    rightText={faults > 0 ? `${faults} fault${faults === 1 ? "" : "s"}` : undefined}
+                    expanded={taskExpanded}
+                    onToggle={() => setExpandedTaskKey((prev) => (prev === cardKey ? null : cardKey))}
+                  >
+                    <AppStack gap="md">
+                      <AppInput
+                        label="Location / reference (street, landmark, direction)"
+                        value={taskState.location}
+                        onChangeText={(next) =>
+                          setStagesState((prev) =>
+                            updateTaskState(prev, stageKey, taskDef.id, (task) => ({
+                              ...task,
+                              location: next,
+                            })),
+                          )
+                        }
+                      />
 
-                  <AppInput
-                    label="Task notes (coaching points, patterns)"
-                    value={taskState.notes}
-                    onChangeText={(next) =>
-                      setStagesState((prev) =>
-                        updateTaskState(prev, stageKey, taskDef.id, (task) => ({
-                          ...task,
-                          notes: next,
-                        })),
-                      )
-                    }
-                    multiline
-                    numberOfLines={5}
-                    textAlignVertical="top"
-                    inputClassName="h-28 py-3"
-                  />
-                </AppStack>
-              </AppCollapsibleCard>
-            );
-          })}
+                      <AppStack gap="sm">
+                        {restrictedMockTestTaskItems.map((item) => {
+                          const current = taskState.items[item.id] as FaultValue;
+                          return (
+                            <View key={item.id} className="flex-row items-center justify-between gap-3">
+                              <AppText className="flex-1" variant="body">
+                                {item.label}
+                              </AppText>
+                              <AppSegmentedControl<FaultValue>
+                                className="w-40"
+                                value={current}
+                                options={[
+                                  { value: "", label: "OK / n/a" },
+                                  { value: "fault", label: "Fault" },
+                                ]}
+                                onChange={(next) =>
+                                  setStagesState((prev) =>
+                                    updateTaskState(prev, stageKey, taskDef.id, (task) => ({
+                                      ...task,
+                                      items: { ...task.items, [item.id]: next },
+                                    })),
+                                  )
+                                }
+                              />
+                            </View>
+                          );
+                        })}
+                      </AppStack>
+
+                      <AppInput
+                        label="Task notes (coaching points, patterns)"
+                        value={taskState.notes}
+                        onChangeText={(next) =>
+                          setStagesState((prev) =>
+                            updateTaskState(prev, stageKey, taskDef.id, (task) => ({
+                              ...task,
+                              notes: next,
+                            })),
+                          )
+                        }
+                        multiline
+                        numberOfLines={5}
+                        textAlignVertical="top"
+                        inputClassName="h-28 py-3"
+                      />
+                    </AppStack>
+                  </AppCollapsibleCard>
+                );
+              })}
+            </AppStack>
+          )}
         </AppStack>
-      </AppCard>
+      </AppCollapsibleCard>
     );
   }
 
@@ -873,21 +908,10 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
         {stage === "test" ? (
           <>
             {summaryCard}
-            {preDriveCard}
 
             {renderStageTasks("stage1")}
 
-            {stage2Enabled ? (
-              renderStageTasks("stage2")
-            ) : (
-              <AppCard className="gap-3">
-                <AppText variant="heading">Stage 2 – Higher-demand tasks</AppText>
-                <AppText variant="body">
-                  Stage 2 is locked. Enable it only after Stage 1 performance is safe.
-                </AppText>
-                <AppButton width="auto" label="Enable Stage 2" onPress={() => setStage2Enabled(true)} />
-              </AppCard>
-            )}
+            {renderStageTasks("stage2")}
 
             {errorsCard}
             {stageActions}
