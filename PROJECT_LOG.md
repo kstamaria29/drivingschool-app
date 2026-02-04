@@ -73,6 +73,24 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add split view for tablet landscape Lessons
+- **Summary:**
+  - Updated Lessons screen to use a two-column layout in tablet landscape: calendar on the left, agenda on the right.
+  - Kept existing behavior on tablet portrait (calendar above agenda) and phones (single-page scroll).
+- **Files changed:**
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - On a tablet in landscape, confirm calendar renders on the left and lesson list on the right with the list scrollable.
+  - Rotate back to portrait and confirm the layout matches the previous (calendar above, agenda below).
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Fix LessonEditScreen hook order crash
 - **Summary:**
   - Fixed React hook-order runtime error when opening an existing lesson by ensuring all hooks run before any early returns.

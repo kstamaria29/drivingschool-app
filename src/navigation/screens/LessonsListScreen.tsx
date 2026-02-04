@@ -34,8 +34,9 @@ function statusLabel(status: "scheduled" | "completed" | "cancelled") {
 }
 
 export function LessonsListScreen({ navigation }: Props) {
-  const { width } = useWindowDimensions();
-  const isPhone = width < 600;
+  const { width, height } = useWindowDimensions();
+  const isCompact = Math.min(width, height) < 600;
+  const isTabletLandscape = !isCompact && width > height;
 
   const { session } = useAuthSession();
   const profileQuery = useMyProfileQuery(session?.user.id);
@@ -129,9 +130,92 @@ export function LessonsListScreen({ navigation }: Props) {
     );
   });
 
+  const agenda = (
+    <View className={cn(!isCompact && "flex-1")}>
+      <View className="mb-3">
+        <AppText variant="heading">Lessons</AppText>
+        <AppText className="mt-1" variant="caption">
+          {lessonsForSelectedDay.length} lesson{lessonsForSelectedDay.length === 1 ? "" : "s"}
+        </AppText>
+      </View>
+
+      {lessonsQuery.isPending ? (
+        <View
+          className={cn(
+            isCompact ? "items-center justify-center py-10" : "flex-1 items-center justify-center",
+            theme.text.base,
+          )}
+        >
+          <ActivityIndicator />
+          <AppText className="mt-3 text-center" variant="body">
+            Loading lessons...
+          </AppText>
+        </View>
+      ) : lessonsQuery.isError ? (
+        isCompact ? (
+          <AppStack gap="md">
+            <AppCard className="gap-2">
+              <AppText variant="heading">Couldn't load lessons</AppText>
+              <AppText variant="body">{toErrorMessage(lessonsQuery.error)}</AppText>
+            </AppCard>
+            <AppButton label="Retry" onPress={() => lessonsQuery.refetch()} />
+          </AppStack>
+        ) : (
+          <ScrollView
+            className="flex-1"
+            keyboardShouldPersistTaps="handled"
+            contentContainerClassName="gap-3 pb-24"
+          >
+            <AppCard className="gap-2">
+              <AppText variant="heading">Couldn't load lessons</AppText>
+              <AppText variant="body">{toErrorMessage(lessonsQuery.error)}</AppText>
+            </AppCard>
+            <AppButton label="Retry" onPress={() => lessonsQuery.refetch()} />
+          </ScrollView>
+        )
+      ) : lessonsForSelectedDay.length === 0 ? (
+        isCompact ? (
+          <AppCard className="gap-2">
+            <AppText variant="heading">No lessons</AppText>
+            <AppText variant="body">
+              {isInstructor
+                ? "You may not be assigned any lessons yet."
+                : "Create a lesson to plan your day."}
+            </AppText>
+          </AppCard>
+        ) : (
+          <ScrollView
+            className="flex-1"
+            keyboardShouldPersistTaps="handled"
+            contentContainerClassName="pb-24"
+          >
+            <AppCard className="gap-2">
+              <AppText variant="heading">No lessons</AppText>
+              <AppText variant="body">
+                {isInstructor
+                  ? "You may not be assigned any lessons yet."
+                  : "Create a lesson to plan your day."}
+              </AppText>
+            </AppCard>
+          </ScrollView>
+        )
+      ) : isCompact ? (
+        <AppStack gap="md">{lessonCards}</AppStack>
+      ) : (
+        <ScrollView
+          className="flex-1"
+          keyboardShouldPersistTaps="handled"
+          contentContainerClassName="gap-3 pb-24"
+        >
+          {lessonCards}
+        </ScrollView>
+      )}
+    </View>
+  );
+
   return (
-    <Screen scroll={isPhone}>
-      <AppStack gap="lg" className={cn(!isPhone && "flex-1", isPhone && "pb-24")}>
+    <Screen scroll={isCompact} className={cn(isTabletLandscape && "max-w-[1024px]")}>
+      <AppStack gap="lg" className={cn(!isCompact && "flex-1", isCompact && "pb-24")}>
         <View className="flex-row items-center justify-between gap-2">
           <AppButton
             label="Prev"
@@ -180,99 +264,43 @@ export function LessonsListScreen({ navigation }: Props) {
           />
         </View>
 
-        <CalendarMonth
-          month={month}
-          selectedDate={selectedDate}
-          onSelectDate={(date) => {
-            const next = date.startOf("day");
-            setSelectedDate(next);
-            if (!next.isSame(month, "month")) {
-              setMonth(next.startOf("month"));
-            }
-          }}
-          lessonCountByDateISO={lessonCountByDateISO}
-        />
-
-        <View className={cn(!isPhone && "flex-1")}>
-          <View className="mb-3">
-            <AppText variant="heading">Lessons</AppText>
-            <AppText className="mt-1" variant="caption">
-              {lessonsForSelectedDay.length} lesson{lessonsForSelectedDay.length === 1 ? "" : "s"}
-            </AppText>
-          </View>
-
-          {lessonsQuery.isPending ? (
-            <View
-              className={cn(
-                isPhone ? "items-center justify-center py-10" : "flex-1 items-center justify-center",
-                theme.text.base,
-              )}
-            >
-              <ActivityIndicator />
-              <AppText className="mt-3 text-center" variant="body">
-                Loading lessons...
-              </AppText>
+        {isTabletLandscape ? (
+          <View className="flex-1 flex-row gap-6">
+            <View className="flex-1">
+              <CalendarMonth
+                month={month}
+                selectedDate={selectedDate}
+                onSelectDate={(date) => {
+                  const next = date.startOf("day");
+                  setSelectedDate(next);
+                  if (!next.isSame(month, "month")) {
+                    setMonth(next.startOf("month"));
+                  }
+                }}
+                lessonCountByDateISO={lessonCountByDateISO}
+              />
             </View>
-          ) : lessonsQuery.isError ? (
-            isPhone ? (
-              <AppStack gap="md">
-                <AppCard className="gap-2">
-                  <AppText variant="heading">Couldn't load lessons</AppText>
-                  <AppText variant="body">{toErrorMessage(lessonsQuery.error)}</AppText>
-                </AppCard>
-                <AppButton label="Retry" onPress={() => lessonsQuery.refetch()} />
-              </AppStack>
-            ) : (
-              <ScrollView
-                className="flex-1"
-                keyboardShouldPersistTaps="handled"
-                contentContainerClassName="gap-3 pb-24"
-              >
-                <AppCard className="gap-2">
-                  <AppText variant="heading">Couldn't load lessons</AppText>
-                  <AppText variant="body">{toErrorMessage(lessonsQuery.error)}</AppText>
-                </AppCard>
-                <AppButton label="Retry" onPress={() => lessonsQuery.refetch()} />
-              </ScrollView>
-            )
-          ) : lessonsForSelectedDay.length === 0 ? (
-            isPhone ? (
-              <AppCard className="gap-2">
-                <AppText variant="heading">No lessons</AppText>
-                <AppText variant="body">
-                  {isInstructor
-                    ? "You may not be assigned any lessons yet."
-                    : "Create a lesson to plan your day."}
-                </AppText>
-              </AppCard>
-            ) : (
-              <ScrollView
-                className="flex-1"
-                keyboardShouldPersistTaps="handled"
-                contentContainerClassName="pb-24"
-              >
-                <AppCard className="gap-2">
-                  <AppText variant="heading">No lessons</AppText>
-                  <AppText variant="body">
-                    {isInstructor
-                      ? "You may not be assigned any lessons yet."
-                      : "Create a lesson to plan your day."}
-                  </AppText>
-                </AppCard>
-              </ScrollView>
-            )
-          ) : isPhone ? (
-            <AppStack gap="md">{lessonCards}</AppStack>
-          ) : (
-            <ScrollView
-              className="flex-1"
-              keyboardShouldPersistTaps="handled"
-              contentContainerClassName="gap-3 pb-24"
-            >
-              {lessonCards}
-            </ScrollView>
-          )}
-        </View>
+
+            {agenda}
+          </View>
+        ) : (
+          <>
+            <CalendarMonth
+              month={month}
+              selectedDate={selectedDate}
+              onSelectDate={(date) => {
+                const next = date.startOf("day");
+                setSelectedDate(next);
+                if (!next.isSame(month, "month")) {
+                  setMonth(next.startOf("month"));
+                }
+              }}
+              lessonCountByDateISO={lessonCountByDateISO}
+            />
+
+            {agenda}
+          </>
+        )}
       </AppStack>
     </Screen>
   );
