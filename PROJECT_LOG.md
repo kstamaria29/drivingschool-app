@@ -205,6 +205,41 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Worklets version mismatch (Expo runtime crash)
+- **Summary:**
+  - Pinned `react-native-worklets` to `0.5.1` (dependency + npm overrides) to match the native Worklets version bundled with the current app runtime.
+- **Files changed:**
+  - `package.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Delete `node_modules` and reinstall: `npm install`
+  - Start Metro with a clean cache: `npx expo start -c`
+  - Confirm the red Worklets mismatch screen no longer appears.
+- **Notes/TODO:**
+  - If using a custom dev client, rebuild the dev client after dependency changes.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Align AGENTS.md with new navigation UI
+- **Summary:**
+  - Updated the navigation spec to describe the responsive drawer layout (sidebar in tablet landscape, hamburger in portrait/mobile) and set `HomeScreen` as the default post-login landing screen.
+  - Clarified `Assessments` as a placeholder-only route in v1 (no assessment features).
+- **Files changed:**
+  - `AGENTS.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Open `AGENTS.md` and confirm sections 8/10/11 match the current app navigation.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Fix Lessons screen layout (no forced scrolling)
 - **Summary:**
   - Added `AppButton` `width` prop to support `auto` sizing in horizontal rows while preserving full-width by default.

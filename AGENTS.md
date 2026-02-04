@@ -305,7 +305,9 @@ This app will be used primarily on a **tablet in portrait orientation**.
 
 ### Navigation implications
 
-- Prefer a **tab-based** main navigation that works well on tablets.
+- Prefer a **responsive drawer layout** that works well on tablets:
+  - Tablet landscape: permanent left sidebar that can collapse/expand (collapsed = icons only).
+  - Tablet portrait + phones: hamburger menu (top-left) opens a left drawer.
 - Use consistent headers, generous spacing, and large touch targets suitable for tablet use.
 
 ### Implementation guidance (NativeWind)
@@ -360,17 +362,20 @@ Use the following navigation structure:
   - `LoginScreen`
   - `SignupScreen` (optional)
   - `OnboardingCreateOrgScreen` (required for first-time signup)
-- `MainTabs`
+- `MainDrawer`
+  - `HomeStack`
+    - `HomeScreen` (default)
   - `LessonsStack`
-    - `LessonsListScreen` (Today default)
+    - `LessonsListScreen`
     - `LessonEditScreen`
   - `StudentsStack`
     - `StudentsListScreen`
     - `StudentDetailScreen`
     - `StudentEditScreen`
-  - (Optional) `SettingsScreen` (v1 can place this behind a menu)
-
-> NOTE: Remove `AssessmentsStack` from navigation in v1.
+  - `AssessmentsStack`
+    - `AssessmentsComingSoonScreen` (placeholder only — no assessments features in v1)
+  - `SettingsStack`
+    - `SettingsScreen`
 
 ### Auth gate
 
@@ -378,7 +383,7 @@ On app load:
 
 - check Supabase session
 - if no session → show `AuthStack`
-- if session → show `MainTabs`
+- if session → show `MainDrawer`
 
 ---
 
@@ -386,34 +391,27 @@ On app load:
 
 ### What the user sees after login
 
-After a successful login, the user is taken to the **Main App** (`MainTabs`).
+After a successful login, the user is taken to the **Main App** (`MainDrawer`).
 
-**Default landing tab:** `Lessons`  
-**Default landing screen:** `LessonsListScreen` showing **Today’s lessons**.
+**Default landing screen:** `HomeScreen` (dashboard).
 
-### Lessons (Today) home screen requirements
+### Home (dashboard) requirements
 
 On load:
 
-- show a header: **Today** + the current date
-- show a list of today’s lessons (time, student name, location, status chip)
+- show a header and today’s date
+- show a simple summary of today’s lessons (count is fine for v1)
 - provide primary actions:
   - **+ New Lesson**
   - **+ New Student**
-- include a simple filter (optional v1):
-  - Today | This Week (start with Today if needed)
 
 #### Empty states
 
-- If there are no lessons today:
-  - show a friendly empty state message
-  - show **+ New Lesson** prominently
-- If the user is an instructor and has no assigned lessons:
-  - message should imply they may not be assigned lessons yet
+- If there are no lessons today: show a friendly empty state and keep **+ New Lesson** prominent.
 
 ### Returning users
 
-Returning users skip onboarding and go directly to `LessonsListScreen` (Today).
+Returning users skip onboarding and go directly to `HomeScreen`.
 
 ### Permissions effect
 
