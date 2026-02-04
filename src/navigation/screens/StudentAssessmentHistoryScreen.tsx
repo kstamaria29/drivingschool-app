@@ -11,7 +11,7 @@ import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
 import { type Assessment } from "../../features/assessments/api";
-import { useAssessmentsQuery } from "../../features/assessments/queries";
+import { useAssessmentsQuery, useDeleteAssessmentMutation } from "../../features/assessments/queries";
 import { ensureAndroidDownloadsDirectoryUri } from "../../features/assessments/android-downloads";
 import {
   drivingAssessmentCriteria,
@@ -92,10 +92,12 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
   const [assessmentType, setAssessmentType] = useState<AssessmentType>("driving_assessment");
   const [selectedAssessmentId, setSelectedAssessmentId] = useState<string | null>(null);
   const [downloadingAssessmentId, setDownloadingAssessmentId] = useState<string | null>(null);
+  const [deletingAssessmentId, setDeletingAssessmentId] = useState<string | null>(null);
 
   const studentQuery = useStudentQuery(studentId);
   const organizationQuery = useOrganizationQuery(profile.organization_id);
   const assessmentsQuery = useAssessmentsQuery({ studentId, assessmentType });
+  const deleteAssessmentMutation = useDeleteAssessmentMutation();
 
   const twoPane = isTablet && isLandscape;
 
@@ -114,6 +116,33 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
     if (!selectedAssessmentId) return null;
     return list.find((a) => a.id === selectedAssessmentId) ?? null;
   }, [assessmentsQuery.data, selectedAssessmentId]);
+
+  function onDeletePress(assessment: Assessment) {
+    Alert.alert(
+      "Delete assessment?",
+      "This permanently deletes the assessment and cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => void deleteAssessment(assessment),
+        },
+      ],
+    );
+  }
+
+  async function deleteAssessment(assessment: Assessment) {
+    setDeletingAssessmentId(assessment.id);
+    try {
+      await deleteAssessmentMutation.mutateAsync(assessment.id);
+      setSelectedAssessmentId(null);
+    } catch (error) {
+      Alert.alert("Couldn't delete assessment", toErrorMessage(error));
+    } finally {
+      setDeletingAssessmentId(null);
+    }
+  }
 
   async function onDownloadPdfPress(assessment: Assessment) {
     if (assessment.assessment_type !== "driving_assessment") {
@@ -297,10 +326,19 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
 
     if (assessment.assessment_type !== "driving_assessment") {
       return (
-        <AppCard className="gap-2">
-          <AppText variant="heading">Details not available</AppText>
-          <AppText variant="body">This assessment type doesn't have a detailed view yet.</AppText>
-        </AppCard>
+        <AppStack gap="md">
+          <AppCard className="gap-2">
+            <AppText variant="heading">Assessment on {formatAssessmentDate(assessment)}</AppText>
+            <AppText variant="body">This assessment type doesn't have a detailed view yet.</AppText>
+          </AppCard>
+
+          <AppButton
+            variant="danger"
+            label={deletingAssessmentId === assessment.id ? "Deleting..." : "Delete assessment"}
+            disabled={deletingAssessmentId === assessment.id}
+            onPress={() => onDeletePress(assessment)}
+          />
+        </AppStack>
       );
     }
 
@@ -339,7 +377,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         <AppButton
           width="auto"
           label={downloadingAssessmentId === assessment.id ? "Saving PDF..." : "Download PDF"}
-          disabled={downloadingAssessmentId === assessment.id}
+          disabled={downloadingAssessmentId === assessment.id || deletingAssessmentId === assessment.id}
           onPress={() => void onDownloadPdfPress(assessment)}
         />
 
@@ -409,6 +447,15 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
             </AppCard>
           );
         })}
+
+        <AppDivider />
+
+        <AppButton
+          variant="danger"
+          label={deletingAssessmentId === assessment.id ? "Deleting..." : "Delete assessment"}
+          disabled={deletingAssessmentId === assessment.id || downloadingAssessmentId === assessment.id}
+          onPress={() => onDeletePress(assessment)}
+        />
       </AppStack>
     );
   }

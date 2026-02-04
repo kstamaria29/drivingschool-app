@@ -5,7 +5,7 @@ import { cn } from "../utils/cn";
 
 import { AppText } from "./AppText";
 
-type AppButtonVariant = "primary" | "secondary" | "ghost";
+type AppButtonVariant = "primary" | "secondary" | "danger" | "ghost";
 type AppButtonSize = "md" | "lg";
 type AppButtonWidth = "full" | "auto";
 

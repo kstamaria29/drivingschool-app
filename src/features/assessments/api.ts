@@ -54,3 +54,16 @@ export async function updateAssessment(
   if (error) throw error;
   return data;
 }
+
+export async function deleteAssessment(assessmentId: string): Promise<Assessment> {
+  const { data, error } = await supabase
+    .from("assessments")
+    .delete()
+    .eq("id", assessmentId)
+    .select("*")
+    .single()
+    .overrideTypes<Assessment, { merge: false }>();
+
+  if (error) throw error;
+  return data;
+}

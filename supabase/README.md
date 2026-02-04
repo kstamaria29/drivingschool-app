@@ -12,6 +12,7 @@ In the Supabase Dashboard:
    - `supabase/migrations/004_lessons.sql`
    - `supabase/migrations/005_profile_avatars.sql`
    - `supabase/migrations/006_assessments.sql`
+   - `supabase/migrations/007_assessments_delete.sql`
 
 ## Storage buckets + policies
 

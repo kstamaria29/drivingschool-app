@@ -55,6 +55,31 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Delete assessments from student history
+- **Summary:**
+  - Added a red delete action to the Assessment History detail view (with confirmation).
+  - Added an Assessments delete mutation and API helper.
+  - Added Supabase RLS delete policy migration for `assessments`.
+- **Files changed:**
+  - `src/features/assessments/api.ts`
+  - `src/features/assessments/queries.ts`
+  - `src/components/AppButton.tsx`
+  - `src/theme/theme.ts`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `supabase/migrations/007_assessments_delete.sql`
+  - `supabase/README.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Apply migration `supabase/migrations/007_assessments_delete.sql` in Supabase SQL Editor.
+  - In app: Student → Assessment History → select an assessment → tap `Delete assessment` → confirm it disappears from the list.
+- **Notes/TODO:**
+  - Deleting is permanent (no archive) for assessments in v1.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Save assessment PDFs to Downloads + notify
 - **Summary:**
   - Added Android Downloads-folder saving via Storage Access Framework (one-time folder picker; then saves directly).
