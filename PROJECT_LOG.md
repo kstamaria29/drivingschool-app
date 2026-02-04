@@ -55,6 +55,23 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix LessonEditScreen hook order crash
+- **Summary:**
+  - Fixed React hook-order runtime error when opening an existing lesson by ensuring all hooks run before any early returns.
+  - Moved the `useMemo` for `studentOptions` above the loading/error return paths.
+- **Files changed:**
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - From Lessons, tap an existing lesson; confirm no "Rendered more hooks" error and the edit form loads.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Fix calendar week layout (7 days)
 - **Summary:**
   - Fixed month calendar grid wrapping so weeks always render 7 columns (Mon–Sun) instead of occasionally wrapping at 6.

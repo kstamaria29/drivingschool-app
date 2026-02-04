@@ -119,6 +119,21 @@ export function LessonEditScreen({ navigation, route }: Props) {
     });
   }, [form, lessonId, lessonQuery.data]);
 
+  const instructorId = form.watch("instructorId");
+
+  const studentOptions = useMemo(() => {
+    const needle = studentSearch.trim().toLowerCase();
+    const all = studentsQuery.data ?? [];
+    const filtered = instructorId ? all.filter((s) => s.assigned_instructor_id === instructorId) : all;
+    if (!needle) return filtered;
+    return filtered.filter((s) => {
+      const fullName = `${s.first_name} ${s.last_name}`.toLowerCase();
+      const email = (s.email ?? "").toLowerCase();
+      const phone = (s.phone ?? "").toLowerCase();
+      return fullName.includes(needle) || email.includes(needle) || phone.includes(needle);
+    });
+  }, [instructorId, studentSearch, studentsQuery.data]);
+
   const isLoading =
     profileQuery.isPending || (lessonId ? lessonQuery.isPending : false) || !session;
 
@@ -165,21 +180,6 @@ export function LessonEditScreen({ navigation, route }: Props) {
   const isEditing = Boolean(lessonId);
   const saving = createMutation.isPending || updateMutation.isPending;
   const mutationError = createMutation.error ?? updateMutation.error;
-
-  const instructorId = form.watch("instructorId");
-
-  const studentOptions = useMemo(() => {
-    const needle = studentSearch.trim().toLowerCase();
-    const all = studentsQuery.data ?? [];
-    const filtered = instructorId ? all.filter((s) => s.assigned_instructor_id === instructorId) : all;
-    if (!needle) return filtered;
-    return filtered.filter((s) => {
-      const fullName = `${s.first_name} ${s.last_name}`.toLowerCase();
-      const email = (s.email ?? "").toLowerCase();
-      const phone = (s.phone ?? "").toLowerCase();
-      return fullName.includes(needle) || email.includes(needle) || phone.includes(needle);
-    });
-  }, [instructorId, studentSearch, studentsQuery.data]);
 
   async function onSubmit(values: LessonFormValues) {
     const start = dayjs(`${values.date}T${values.startTime}`);
