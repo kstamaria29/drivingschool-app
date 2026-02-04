@@ -17,6 +17,7 @@ import { drivingAssessmentCriteria, drivingAssessmentFeedbackOptions } from "../
 import { exportDrivingAssessmentPdf } from "../../features/assessments/driving-assessment/pdf";
 import { calculateDrivingAssessmentScore, generateDrivingAssessmentFeedbackSummary } from "../../features/assessments/driving-assessment/scoring";
 import { drivingAssessmentFormSchema, type DrivingAssessmentFormValues } from "../../features/assessments/driving-assessment/schema";
+import { useOrganizationQuery } from "../../features/organization/queries";
 import { useStudentsQuery } from "../../features/students/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
@@ -103,6 +104,7 @@ function FeedbackField({
 export function DrivingAssessmentScreen({ navigation, route }: Props) {
   const { profile, userId } = useCurrentUser();
 
+  const organizationQuery = useOrganizationQuery(profile.organization_id);
   const studentsQuery = useStudentsQuery({ archived: false });
   const createAssessment = useCreateAssessmentMutation();
 
@@ -174,6 +176,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
   }, [scoreResult.percentAnswered]);
 
   const saving = createAssessment.isPending;
+  const organizationName = organizationQuery.data?.name ?? "Driving School";
 
   async function submitAndGeneratePdf(values: DrivingAssessmentFormValues) {
     if (!selectedStudent) {
@@ -207,6 +210,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
       try {
         await exportDrivingAssessmentPdf({
           assessmentId: assessment.id,
+          organizationName,
           criteria: drivingAssessmentCriteria,
           values: {
             ...values,

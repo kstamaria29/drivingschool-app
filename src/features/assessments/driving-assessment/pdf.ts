@@ -3,6 +3,7 @@ import { isAvailableAsync, shareAsync } from "expo-sharing";
 
 type Input = {
   assessmentId: string;
+  organizationName: string;
   criteria: Record<string, readonly string[]>;
   values: {
     clientName: string;
@@ -37,33 +38,6 @@ function escapeHtml(input: string) {
     .replaceAll("'", "&#039;");
 }
 
-function buildCriteriaHtml(criteria: Record<string, readonly string[]>, scores: Input["values"]["scores"]) {
-  const categories = Object.entries(criteria);
-  return categories
-    .map(([categoryKey, items]) => {
-      const categoryTitle = categoryKey.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase());
-      const rows = items
-        .map((label, index) => {
-          const categoryScores = scores?.[categoryKey];
-          const score =
-            (Array.isArray(categoryScores)
-              ? categoryScores[index]
-              : categoryScores?.[String(index)]) ?? "";
-          return `<tr><td class="criterion">${escapeHtml(label)}</td><td class="score">${escapeHtml(score || "N/A")}</td></tr>`;
-        })
-        .join("");
-
-      return `
-        <h3>${escapeHtml(categoryTitle)}</h3>
-        <table class="scores">
-          <thead><tr><th>Criterion</th><th class="score">Score</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
-    })
-    .join("");
-}
-
 function buildHtml(input: Input) {
   const v = input.values;
   const totalPercent = v.totalScorePercent == null ? "N/A" : `${v.totalScorePercent}%`;
@@ -73,78 +47,209 @@ function buildHtml(input: Input) {
     <head>
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; color: #0f172a; }
-        h1 { font-size: 20px; margin: 0 0 4px 0; }
-        h2 { font-size: 14px; margin: 18px 0 8px 0; }
-        h3 { font-size: 12px; margin: 14px 0 6px 0; }
-        .muted { color: #475569; font-size: 11px; }
+        @page { size: A4; margin: 16mm; }
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+          color: #0f172a;
+          font-size: 11px;
+          line-height: 1.25;
+        }
+        h1 { font-size: 18px; margin: 0; }
+        h2 { font-size: 12px; margin: 10px 0 6px 0; }
+        h3 { font-size: 11px; margin: 8px 0 4px 0; }
+        .org { font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; font-size: 12px; margin-bottom: 4px; }
+        .muted { color: #475569; font-size: 10px; }
+        .page { page-break-after: always; }
+        .page:last-child { page-break-after: auto; }
+        .box { border: 1px solid #0f172a; padding: 10px 12px; }
+        .box-soft { border: 1px solid #cbd5e1; padding: 10px 12px; border-radius: 10px; }
         .grid { width: 100%; border-collapse: collapse; }
-        .grid td { padding: 6px 0; vertical-align: top; }
-        .label { width: 34%; color: #475569; font-size: 11px; }
-        .value { width: 66%; font-size: 11px; }
-        .box { border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px 12px; }
-        .scores { width: 100%; border-collapse: collapse; font-size: 10.5px; }
-        .scores th { text-align: left; border-bottom: 1px solid #e2e8f0; padding: 6px 4px; color: #475569; }
-        .scores td { border-bottom: 1px solid #f1f5f9; padding: 6px 4px; }
-        .scores .score { width: 48px; text-align: center; }
-        .criterion { width: auto; }
-        .section { margin-top: 14px; }
-        .pre { white-space: pre-wrap; font-size: 11px; line-height: 1.35; }
+        .grid td { padding: 3px 0; vertical-align: top; }
+        .label { width: 34%; color: #334155; font-size: 10px; }
+        .value { width: 66%; font-size: 10.5px; }
+        .section { margin-top: 10px; }
+        .pre { white-space: pre-wrap; }
+        .guide-title { font-weight: 700; margin: 0 0 8px 0; }
+        .guide-lines { margin: 0; padding-left: 14px; }
+        .guide-lines li { margin: 3px 0; }
+        .ranges { margin-top: 10px; }
+        .ranges-grid { display: flex; gap: 14px; align-items: flex-start; }
+        .ranges-grid > div { flex: 1; }
+        .range { margin: 8px 0 10px 0; }
+        .range-head { font-weight: 700; font-size: 10px; margin-bottom: 3px; }
+        .range-lines { margin: 0; padding-left: 14px; }
+        .range-lines li { margin: 1px 0; }
+        .scores { width: 100%; border-collapse: collapse; font-size: 9.5px; }
+        .scores th { text-align: left; border-bottom: 1px solid #e2e8f0; padding: 5px 4px; color: #475569; }
+        .scores td { border-bottom: 1px solid #f1f5f9; padding: 5px 4px; vertical-align: top; }
+        .scores .col-cat { width: 88px; }
+        .scores .col-score { width: 42px; text-align: center; }
+        .feedback h3 { margin-top: 10px; }
       </style>
     </head>
     <body>
-      <div>
-        <h1>Driving Assessment Result Form</h1>
-        <div class="muted">Assessment ID: ${escapeHtml(input.assessmentId)}</div>
+      <div class="page">
+        <div>
+          <div class="org">${escapeHtml(input.organizationName)}</div>
+          <h1>Driving Assessment Result Form</h1>
+          <div class="muted">Generated: ${escapeHtml(v.date)}</div>
+        </div>
+
+        <div class="section box-soft">
+          <h2>Personal information</h2>
+          <table class="grid">
+            <tr><td class="label">Client name</td><td class="value">${escapeHtml(v.clientName)}</td></tr>
+            <tr><td class="label">Address</td><td class="value">${escapeHtml(v.address)}</td></tr>
+            <tr><td class="label">Contact</td><td class="value">${escapeHtml(v.contact)}</td></tr>
+            <tr><td class="label">Email</td><td class="value">${escapeHtml(v.email)}</td></tr>
+            <tr><td class="label">Licence number</td><td class="value">${escapeHtml(v.licenseNumber)}</td></tr>
+            <tr><td class="label">Version</td><td class="value">${escapeHtml(v.licenseVersion)}</td></tr>
+            <tr><td class="label">Class held</td><td class="value">${escapeHtml(v.classHeld)}</td></tr>
+            <tr><td class="label">Issue date</td><td class="value">${escapeHtml(v.issueDate)}</td></tr>
+            <tr><td class="label">Expiry date</td><td class="value">${escapeHtml(v.expiryDate)}</td></tr>
+            <tr><td class="label">Weather</td><td class="value">${escapeHtml(v.weather)}</td></tr>
+            <tr><td class="label">Date of assessment</td><td class="value">${escapeHtml(v.date)}</td></tr>
+            <tr><td class="label">Instructor</td><td class="value">${escapeHtml(v.instructor)}</td></tr>
+          </table>
+        </div>
+
+        <div class="section box">
+          <div class="guide-title">Assessment Scoring Guide:</div>
+          <ul class="guide-lines">
+            <li><strong>5 = Excellent:</strong> Consistently demonstrates mastery of the skill.</li>
+            <li><strong>4 = Good:</strong> Performs well with minor errors or areas for improvement.</li>
+            <li><strong>3 = Satisfactory:</strong> Demonstrates basic competence but needs practice.</li>
+            <li><strong>2 = Needs Improvement:</strong> Struggles with the skill and requires significant practice.</li>
+            <li><strong>1 = Unsatisfactory:</strong> Lacks understanding or ability in the skill.</li>
+          </ul>
+
+          <div class="ranges">
+            <h2 style="margin-top: 14px;">Total Score Assessment Guide</h2>
+
+            <div class="ranges-grid">
+              <div>
+                <div class="range">
+                  <div class="range-head">(90 - 100) Excellent</div>
+                  <ul class="range-lines">
+                    <li>You have demonstrated outstanding driving ability.</li>
+                    <li>Your vehicle control, observation, decision-making, and communication skills show readiness for solo driving.</li>
+                    <li>Keep maintaining this high standard.</li>
+                  </ul>
+                </div>
+
+                <div class="range">
+                  <div class="range-head">(80 - 89) Very Good</div>
+                  <ul class="range-lines">
+                    <li>You have shown strong skills in most areas.</li>
+                    <li>Minor improvements can be made in consistency or attention to specific road situations.</li>
+                    <li>You're almost ready for your driving test.</li>
+                  </ul>
+                </div>
+
+                <div class="range">
+                  <div class="range-head">(68 - 79) Competent</div>
+                  <ul class="range-lines">
+                    <li>You are developing well as a driver.</li>
+                    <li>Focus on strengthening a few weaker areas, such as observation or road rules, to build greater confidence and control.</li>
+                    <li>With more practice, you'll be test-ready.</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div>
+                <div class="range">
+                  <div class="range-head">(52 - 67) Needs Improvement</div>
+                  <ul class="range-lines">
+                    <li>Some key driving skills need more practice and development.</li>
+                    <li>Concentrate on smoother control, better decision-making, and consistent observation techniques.</li>
+                    <li>A few more lessons are recommended.</li>
+                  </ul>
+                </div>
+
+                <div class="range">
+                  <div class="range-head">(32 - 51) At Risk</div>
+                  <ul class="range-lines">
+                    <li>You're not yet ready for solo driving.</li>
+                    <li>Several critical areas need focused attention.</li>
+                    <li>A structured plan and frequent practice is essential.</li>
+                  </ul>
+                </div>
+
+                <div class="range">
+                  <div class="range-head">(0 - 31) Significant Support Needed</div>
+                  <ul class="range-lines">
+                    <li>Your driving skills are currently at a foundational level.</li>
+                    <li>It's important to revisit basic techniques and work closely with a coach to develop control, awareness, and road understanding.</li>
+                    <li>Don't be discouraged - with steady guidance and practice, you will progress.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="section box">
-        <h2>Personal information</h2>
-        <table class="grid">
-          <tr><td class="label">Client name</td><td class="value">${escapeHtml(v.clientName)}</td></tr>
-          <tr><td class="label">Address</td><td class="value">${escapeHtml(v.address)}</td></tr>
-          <tr><td class="label">Contact</td><td class="value">${escapeHtml(v.contact)}</td></tr>
-          <tr><td class="label">Email</td><td class="value">${escapeHtml(v.email)}</td></tr>
-          <tr><td class="label">Licence number</td><td class="value">${escapeHtml(v.licenseNumber)}</td></tr>
-          <tr><td class="label">Version</td><td class="value">${escapeHtml(v.licenseVersion)}</td></tr>
-          <tr><td class="label">Class held</td><td class="value">${escapeHtml(v.classHeld)}</td></tr>
-          <tr><td class="label">Issue date</td><td class="value">${escapeHtml(v.issueDate)}</td></tr>
-          <tr><td class="label">Expiry date</td><td class="value">${escapeHtml(v.expiryDate)}</td></tr>
-          <tr><td class="label">Weather</td><td class="value">${escapeHtml(v.weather)}</td></tr>
-          <tr><td class="label">Date of assessment</td><td class="value">${escapeHtml(v.date)}</td></tr>
-          <tr><td class="label">Instructor</td><td class="value">${escapeHtml(v.instructor)}</td></tr>
-        </table>
-      </div>
+      <div class="page">
+        <div>
+          <div class="org">${escapeHtml(input.organizationName)}</div>
+          <h1>Driving Assessment</h1>
+          <div class="muted">Total score: ${escapeHtml(totalPercent)} (raw: ${escapeHtml(String(v.totalScoreRaw))})</div>
+        </div>
 
-      <div class="section box">
-        <h2>Assessment scores</h2>
-        <div class="muted">Total score: ${escapeHtml(totalPercent)} (raw: ${escapeHtml(String(v.totalScoreRaw))})</div>
-        <div class="section">${buildCriteriaHtml(input.criteria, v.scores)}</div>
-      </div>
+        <div class="section box-soft">
+          <h2>Assessment scores</h2>
+          <table class="scores">
+            <thead>
+              <tr>
+                <th class="col-cat">Category</th>
+                <th>Criterion</th>
+                <th class="col-score">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${Object.entries(input.criteria)
+                .map(([categoryKey, items]) =>
+                  items
+                    .map((label, index) => {
+                      const categoryScores = v.scores?.[categoryKey];
+                      const score =
+                        (Array.isArray(categoryScores)
+                          ? categoryScores[index]
+                          : categoryScores?.[String(index)]) ?? "";
+                      const catTitle = categoryKey
+                        .replace(/([A-Z])/g, " $1")
+                        .replace(/^./, (s) => s.toUpperCase());
+                      return `<tr>
+                        <td class="col-cat">${escapeHtml(catTitle)}</td>
+                        <td>${escapeHtml(label)}</td>
+                        <td class="col-score">${escapeHtml(score || "N/A")}</td>
+                      </tr>`;
+                    })
+                    .join(""),
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
 
-      <div class="section box">
-        <h2>Feedback summary</h2>
-        <div class="pre">${escapeHtml(v.feedbackSummary || "")}</div>
-      </div>
+        <div class="section box-soft feedback">
+          <h2>Feedback</h2>
 
-      <div class="section box">
-        <h2>Strengths</h2>
-        <div class="pre">${escapeHtml(v.strengths || "N/A")}</div>
-      </div>
+          <h3>Feedback summary</h3>
+          <div class="pre">${escapeHtml(v.feedbackSummary || "")}</div>
 
-      <div class="section box">
-        <h2>Improvements</h2>
-        <div class="pre">${escapeHtml(v.improvements || "N/A")}</div>
-      </div>
+          <h3>Strengths</h3>
+          <div class="pre">${escapeHtml(v.strengths || "N/A")}</div>
 
-      <div class="section box">
-        <h2>Recommendation</h2>
-        <div class="pre">${escapeHtml(v.recommendation || "N/A")}</div>
-      </div>
+          <h3>Improvements</h3>
+          <div class="pre">${escapeHtml(v.improvements || "N/A")}</div>
 
-      <div class="section box">
-        <h2>Next steps</h2>
-        <div class="pre">${escapeHtml(v.nextSteps || "N/A")}</div>
+          <h3>Recommendation</h3>
+          <div class="pre">${escapeHtml(v.recommendation || "N/A")}</div>
+
+          <h3>Next steps</h3>
+          <div class="pre">${escapeHtml(v.nextSteps || "N/A")}</div>
+        </div>
       </div>
     </body>
   </html>

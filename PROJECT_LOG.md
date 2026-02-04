@@ -114,6 +114,24 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Update Driving Assessment PDF layout
+- **Summary:**
+  - Updated PDF output to a 2-page layout: page 1 shows Personal Information + the Total Score Assessment Guide; page 2 shows Assessment Scores + a single combined Feedback box.
+  - Removed Assessment ID from the PDF and added organization name to the header.
+- **Files changed:**
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Submit a Driving Assessment and confirm the PDF has 2 pages with the requested section layout and org name header.
+- **Notes/TODO:**
+  - If feedback text is very long, it may still overflow beyond one page (expected behavior for print-to-PDF HTML).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Add split view for tablet landscape Lessons
 - **Summary:**
   - Updated Lessons screen to use a two-column layout in tablet landscape: calendar on the left, agenda on the right.
