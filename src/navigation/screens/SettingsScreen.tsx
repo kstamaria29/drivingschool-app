@@ -87,10 +87,10 @@ export function SettingsScreen() {
               {orgSettingsQuery.data?.logo_url ? (
                 <AppImage
                   source={{ uri: orgSettingsQuery.data.logo_url }}
-                  className="h-16 w-16 rounded-2xl border border-border bg-card"
+                  className="h-16 w-16 border border-border bg-card"
                 />
               ) : (
-                <View className="h-16 w-16 rounded-2xl border border-border bg-card" />
+                <View className="h-16 w-16 border border-border bg-card" />
               )}
               <View className="flex-1">
                 <AppText variant="body">{orgQuery.data?.name ?? "Organization"}</AppText>

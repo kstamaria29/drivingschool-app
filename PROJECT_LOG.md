@@ -299,6 +299,43 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Remove org logo border radius
+- **Summary:**
+  - Made the organization logo render as a square (no rounded corners) across the drawer header, Settings, and onboarding preview.
+- **Files changed:**
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Open the drawer and Settings and confirm the org logo has sharp corners.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix nested screen name warning
+- **Summary:**
+  - Renamed stack screen route names so drawer routes don't nest screens with the same name (removes `Home, Home > Home` warning; also prevents the same issue for Settings/Assessments).
+- **Files changed:**
+  - `src/navigation/HomeStackNavigator.tsx`
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/navigation/SettingsStackNavigator.tsx`
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Start the app and confirm the terminal no longer warns about nested screens with the same name.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Fix Lessons screen layout (no forced scrolling)
 - **Summary:**
   - Added `AppButton` `width` prop to support `auto` sizing in horizontal rows while preserving full-width by default.

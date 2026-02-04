@@ -92,10 +92,10 @@ export function AppDrawerContent({
                 {logoUrl ? (
                   <AppImage
                     source={{ uri: logoUrl }}
-                    className="h-10 w-10 rounded-xl border border-border bg-card"
+                    className="h-10 w-10 border border-border bg-card"
                   />
                 ) : (
-                  <View className="h-10 w-10 rounded-xl border border-border bg-card" />
+                  <View className="h-10 w-10 border border-border bg-card" />
                 )}
                 {collapsed ? null : (
                   <View>
@@ -126,10 +126,10 @@ export function AppDrawerContent({
                 {logoUrl ? (
                   <AppImage
                     source={{ uri: logoUrl }}
-                    className="h-12 w-12 rounded-2xl border border-border bg-card"
+                    className="h-12 w-12 border border-border bg-card"
                   />
                 ) : (
-                  <View className="h-12 w-12 rounded-2xl border border-border bg-card" />
+                  <View className="h-12 w-12 border border-border bg-card" />
                 )}
                 <View className="flex-1">
                   <AppText variant="heading">{orgName}</AppText>

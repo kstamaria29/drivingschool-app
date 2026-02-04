@@ -14,7 +14,7 @@ import { toErrorMessage } from "../../utils/errors";
 
 import type { HomeStackParamList } from "../HomeStackNavigator";
 
-type Props = NativeStackScreenProps<HomeStackParamList, "Home">;
+type Props = NativeStackScreenProps<HomeStackParamList, "HomeDashboard">;
 
 export function HomeScreen({ navigation }: Props) {
   const today = dayjs();
@@ -93,4 +93,3 @@ export function HomeScreen({ navigation }: Props) {
     </Screen>
   );
 }
-

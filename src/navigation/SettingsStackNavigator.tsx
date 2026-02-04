@@ -4,7 +4,7 @@ import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButto
 import { SettingsScreen } from "./screens/SettingsScreen";
 
 export type SettingsStackParamList = {
-  Settings: undefined;
+  SettingsMain: undefined;
 };
 
 const Stack = createNativeStackNavigator<SettingsStackParamList>();
@@ -12,7 +12,7 @@ const Stack = createNativeStackNavigator<SettingsStackParamList>();
 export function SettingsStackNavigator() {
   return (
     <Stack.Navigator
-      initialRouteName="Settings"
+      initialRouteName="SettingsMain"
       screenOptions={{
         headerShadowVisible: false,
         headerTitle: "",
@@ -20,8 +20,7 @@ export function SettingsStackNavigator() {
         headerRight: () => <HeaderRightAvatar />,
       }}
     >
-      <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="SettingsMain" component={SettingsScreen} />
     </Stack.Navigator>
   );
 }
-

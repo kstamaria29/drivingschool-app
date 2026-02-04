@@ -4,7 +4,7 @@ import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButto
 import { HomeScreen } from "./screens/HomeScreen";
 
 export type HomeStackParamList = {
-  Home: undefined;
+  HomeDashboard: undefined;
 };
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
@@ -12,7 +12,7 @@ const Stack = createNativeStackNavigator<HomeStackParamList>();
 export function HomeStackNavigator() {
   return (
     <Stack.Navigator
-      initialRouteName="Home"
+      initialRouteName="HomeDashboard"
       screenOptions={{
         headerShadowVisible: false,
         headerTitle: "",
@@ -20,8 +20,7 @@ export function HomeStackNavigator() {
         headerRight: () => <HeaderRightAvatar />,
       }}
     >
-      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="HomeDashboard" component={HomeScreen} />
     </Stack.Navigator>
   );
 }
-

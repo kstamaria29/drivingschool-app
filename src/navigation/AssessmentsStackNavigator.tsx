@@ -4,7 +4,7 @@ import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButto
 import { AssessmentsComingSoonScreen } from "./screens/AssessmentsComingSoonScreen";
 
 export type AssessmentsStackParamList = {
-  Assessments: undefined;
+  AssessmentsMain: undefined;
 };
 
 const Stack = createNativeStackNavigator<AssessmentsStackParamList>();
@@ -12,7 +12,7 @@ const Stack = createNativeStackNavigator<AssessmentsStackParamList>();
 export function AssessmentsStackNavigator() {
   return (
     <Stack.Navigator
-      initialRouteName="Assessments"
+      initialRouteName="AssessmentsMain"
       screenOptions={{
         headerShadowVisible: false,
         headerTitle: "",
@@ -20,8 +20,7 @@ export function AssessmentsStackNavigator() {
         headerRight: () => <HeaderRightAvatar />,
       }}
     >
-      <Stack.Screen name="Assessments" component={AssessmentsComingSoonScreen} />
+      <Stack.Screen name="AssessmentsMain" component={AssessmentsComingSoonScreen} />
     </Stack.Navigator>
   );
 }
-
