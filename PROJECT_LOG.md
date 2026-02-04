@@ -80,6 +80,37 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Standardize date display to DD/MM/YYYY
+- **Summary:**
+  - Standardized user-facing date formatting to `DD/MM/YYYY` across Home, Lessons, Students, and Assessments.
+  - Added shared date parsing/formatting utilities to support both legacy ISO strings and new display format.
+  - Updated forms + Zod schemas to validate `DD/MM/YYYY` (while still accepting ISO inputs for backwards compatibility).
+- **Files changed:**
+  - `src/utils/dayjs.ts`
+  - `src/utils/dates.ts`
+  - `src/features/students/schemas.ts`
+  - `src/features/lessons/schemas.ts`
+  - `src/features/assessments/driving-assessment/schema.ts`
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open Home/Lessons and confirm dates render as `DD/MM/YYYY`.
+  - Create/edit a Student and Lesson and confirm date inputs accept `DD/MM/YYYY`.
+  - Create a Driving Assessment and confirm saved assessment + PDF export shows `DD/MM/YYYY`.
+- **Notes/TODO:**
+  - Lesson month header still uses `MMMM YYYY` (calendar context); only specific dates were standardized.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Save assessment PDFs to Downloads + notify
 - **Summary:**
   - Added Android Downloads-folder saving via Storage Access Framework (one-time folder picker; then saves directly).

@@ -28,6 +28,7 @@ import { useOrganizationQuery } from "../../features/organization/queries";
 import { useStudentQuery } from "../../features/students/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
+import { DISPLAY_DATE_FORMAT, parseDateInputToISODate } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
 import { openPdfUri } from "../../utils/open-pdf";
 import { useNavigationLayout } from "../useNavigationLayout";
@@ -51,7 +52,7 @@ function formatCategoryTitle(category: string) {
 function formatAssessmentDate(assessment: Assessment) {
   const raw = assessment.assessment_date ?? null;
   const parsed = raw ? dayjs(raw) : dayjs(assessment.created_at);
-  return parsed.isValid() ? parsed.format("M/D/YYYY") : "Unknown date";
+  return parsed.isValid() ? parsed.format(DISPLAY_DATE_FORMAT) : "Unknown date";
 }
 
 function getDrivingAssessmentSummary(assessment: Assessment) {
@@ -172,7 +173,10 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
       values.feedbackSummary?.trim() ||
       (totalPercent == null ? "" : generateDrivingAssessmentFeedbackSummary(totalPercent));
 
-    const fileName = `${student.first_name} ${student.last_name} ${dayjs(values.date).format("DD-MM-YY")}`;
+    const assessmentDateISO = parseDateInputToISODate(values.date) ?? values.date;
+    const issueDateISO = values.issueDate ? parseDateInputToISODate(values.issueDate) : null;
+    const expiryDateISO = values.expiryDate ? parseDateInputToISODate(values.expiryDate) : null;
+    const fileName = `${student.first_name} ${student.last_name} ${dayjs(assessmentDateISO).format("DD-MM-YY")}`;
     const organizationName = organizationQuery.data?.name ?? "Driving School";
 
     setDownloadingAssessmentId(assessment.id);
@@ -188,6 +192,9 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         criteria: drivingAssessmentCriteria,
         values: {
           ...values,
+          date: dayjs(assessmentDateISO).format(DISPLAY_DATE_FORMAT),
+          issueDate: issueDateISO ? dayjs(issueDateISO).format(DISPLAY_DATE_FORMAT) : values.issueDate,
+          expiryDate: expiryDateISO ? dayjs(expiryDateISO).format(DISPLAY_DATE_FORMAT) : values.expiryDate,
           totalScorePercent: totalPercent,
           totalScoreRaw: score.totalRaw,
           feedbackSummary,

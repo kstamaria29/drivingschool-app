@@ -23,6 +23,11 @@ import { useOrganizationQuery } from "../../features/organization/queries";
 import { useStudentsQuery } from "../../features/students/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
+import {
+  DISPLAY_DATE_FORMAT,
+  formatIsoDateToDisplay,
+  parseDateInputToISODate,
+} from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
 import { openPdfUri } from "../../utils/open-pdf";
 
@@ -52,8 +57,8 @@ function hydrateFromStudent(
   form.setValue("licenseNumber", student.license_number ?? "");
   form.setValue("licenseVersion", student.license_version ?? "");
   form.setValue("classHeld", student.class_held ?? "");
-  form.setValue("issueDate", student.issue_date ?? "");
-  form.setValue("expiryDate", student.expiry_date ?? "");
+  form.setValue("issueDate", student.issue_date ? formatIsoDateToDisplay(student.issue_date) : "");
+  form.setValue("expiryDate", student.expiry_date ? formatIsoDateToDisplay(student.expiry_date) : "");
 }
 
 function FeedbackField({
@@ -128,7 +133,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
       issueDate: "",
       expiryDate: "",
       weather: "",
-      date: dayjs().format("YYYY-MM-DD"),
+      date: dayjs().format(DISPLAY_DATE_FORMAT),
       instructor: profile.display_name,
       scores: {},
       strengths: "",
@@ -189,13 +194,18 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
 
     try {
       const score = calculateDrivingAssessmentScore(values.scores);
+      const assessmentDateISO = parseDateInputToISODate(values.date);
+      if (!assessmentDateISO) {
+        Alert.alert("Check the form", "Use DD/MM/YYYY for the assessment date.");
+        return;
+      }
 
       const assessment = await createAssessment.mutateAsync({
         organization_id: profile.organization_id,
         student_id: selectedStudent.id,
         instructor_id: selectedStudent.assigned_instructor_id,
         assessment_type: "driving_assessment",
-        assessment_date: values.date,
+        assessment_date: assessmentDateISO,
         total_score: score.percentAnswered,
         form_data: {
           ...values,
@@ -211,7 +221,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
       });
 
       try {
-        const fileName = `${selectedStudent.first_name} ${selectedStudent.last_name} ${dayjs(values.date).format("DD-MM-YY")}`;
+        const fileName = `${selectedStudent.first_name} ${selectedStudent.last_name} ${dayjs(assessmentDateISO).format("DD-MM-YY")}`;
         const androidDirectoryUri =
           Platform.OS === "android" ? await ensureAndroidDownloadsDirectoryUri() : undefined;
         const saved = await exportDrivingAssessmentPdf({
@@ -410,7 +420,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
             name="issueDate"
             render={({ field, fieldState }) => (
               <AppInput
-                label="Issue date (YYYY-MM-DD)"
+                label="Issue date (DD/MM/YYYY)"
                 autoCapitalize="none"
                 value={field.value}
                 onChangeText={field.onChange}
@@ -424,7 +434,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
             name="expiryDate"
             render={({ field, fieldState }) => (
               <AppInput
-                label="Expiry date (YYYY-MM-DD)"
+                label="Expiry date (DD/MM/YYYY)"
                 autoCapitalize="none"
                 value={field.value}
                 onChangeText={field.onChange}
@@ -446,7 +456,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
             name="date"
             render={({ field, fieldState }) => (
               <AppInput
-                label="Date of assessment (YYYY-MM-DD)"
+                label="Date of assessment (DD/MM/YYYY)"
                 autoCapitalize="none"
                 value={field.value}
                 onChangeText={field.onChange}

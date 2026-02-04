@@ -10,6 +10,7 @@ import { Screen } from "../../components/Screen";
 import { useLessonsQuery } from "../../features/lessons/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
+import { DISPLAY_DATE_FORMAT } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
 
 import type { HomeStackParamList } from "../HomeStackNavigator";
@@ -31,7 +32,7 @@ export function HomeScreen({ navigation }: Props) {
         <View>
           <AppText variant="title">Home</AppText>
           <AppText className="mt-2" variant="body">
-            {today.format("dddd, D MMMM")}
+            {today.format(`dddd, ${DISPLAY_DATE_FORMAT}`)}
           </AppText>
         </View>
 

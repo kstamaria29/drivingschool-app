@@ -15,6 +15,7 @@ import { useAuthSession } from "../../features/auth/session";
 import { useLessonsQuery } from "../../features/lessons/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
+import { DISPLAY_DATE_FORMAT } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
 
 import type { LessonsStackParamList } from "../LessonsStackNavigator";
@@ -227,7 +228,7 @@ export function LessonsListScreen({ navigation }: Props) {
           <View className="flex-1 items-center">
             <AppText variant="title">{month.format("MMMM YYYY")}</AppText>
             <AppText className="mt-1 text-center" variant="caption">
-              {selectedDate.format("dddd, D MMMM YYYY")}
+              {selectedDate.format(`dddd, ${DISPLAY_DATE_FORMAT}`)}
             </AppText>
           </View>
           <AppButton

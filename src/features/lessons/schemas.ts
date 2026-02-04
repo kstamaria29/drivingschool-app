@@ -1,11 +1,13 @@
 import dayjs from "dayjs";
 import { z } from "zod";
 
+import { parseDateInputToISODate } from "../../utils/dates";
+
 const dateString = z
   .string()
   .trim()
-  .refine((value) => /^\d{4}-\d{2}-\d{2}$/.test(value), {
-    message: "Use YYYY-MM-DD",
+  .refine((value) => parseDateInputToISODate(value) != null, {
+    message: "Use DD/MM/YYYY",
   });
 
 const timeString = z
@@ -35,7 +37,9 @@ export const lessonFormSchema = z
   })
   .refine(
     (value) => {
-      const start = dayjs(`${value.date}T${value.startTime}`);
+      const dateISO = parseDateInputToISODate(value.date);
+      if (!dateISO) return false;
+      const start = dayjs(`${dateISO}T${value.startTime}`);
       if (!start.isValid()) return false;
       const end = start.add(Number(value.durationMinutes), "minute");
       return end.isAfter(start);
