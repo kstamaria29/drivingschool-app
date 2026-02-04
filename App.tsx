@@ -2,7 +2,14 @@ import "./global.css";
 
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { LogBox } from "react-native";
+import { ActivityIndicator, LogBox, View } from "react-native";
+
+import {
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+  useFonts,
+} from "@expo-google-fonts/poppins";
 
 import { AppRoot } from "./src/app/AppRoot";
 import { AppProviders } from "./src/providers/AppProviders";
@@ -12,6 +19,20 @@ LogBox.ignoreLogs([
 ]);
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+  });
+
+  if (!fontsLoaded) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
   return (
     <>
       <StatusBar style="dark" />

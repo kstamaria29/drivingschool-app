@@ -336,6 +336,46 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Switch app font to Poppins
+- **Summary:**
+  - Added Poppins via Expo Google Fonts and block app render until fonts are loaded.
+  - Updated `AppText` and `AppInput` primitives to use Poppins weights (regular/medium/semibold) without relying on `fontWeight`.
+- **Files changed:**
+  - `App.tsx`
+  - `src/theme/fonts.ts`
+  - `src/components/AppText.tsx`
+  - `src/components/AppInput.tsx`
+  - `src/theme/theme.ts`
+  - `package.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Install deps: `npx expo install @expo-google-fonts/poppins expo-font`
+  - Start: `npx expo start -c`
+  - Confirm text + inputs render in Poppins across Home/Lessons/Students/Settings.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Poppins imports for Expo Google Fonts
+- **Summary:**
+  - Fixed `App.tsx` to import Poppins weights from `@expo-google-fonts/poppins` (the installed package exports fonts from its root, not `.../400Regular` subpaths).
+- **Files changed:**
+  - `App.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Run `npx expo start -c` and confirm Metro no longer reports `Unable to resolve "@expo-google-fonts/poppins/400Regular"`.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Fix Lessons screen layout (no forced scrolling)
 - **Summary:**
   - Added `AppButton` `width` prop to support `auto` sizing in horizontal rows while preserving full-width by default.
