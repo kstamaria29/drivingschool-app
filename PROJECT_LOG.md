@@ -55,6 +55,34 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Save assessment PDFs to Downloads + notify
+- **Summary:**
+  - Added Android Downloads-folder saving via Storage Access Framework (one-time folder picker; then saves directly).
+  - Falls back to app storage if Android folder permission is revoked.
+  - Added local “PDF saved” notification; tapping it attempts to open the saved PDF.
+  - Kept iOS saving in app storage (sandbox) but added the same notification + tap-to-open behavior.
+- **Files changed:**
+  - `src/features/assessments/android-downloads.ts`
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/features/notifications/download-notifications.ts`
+  - `src/utils/open-pdf.ts`
+  - `src/app/AppRoot.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `package.json`
+  - `package-lock.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx expo install expo-notifications expo-intent-launcher`
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Android: submit an assessment, pick Downloads when prompted, then confirm a “PDF saved” notification appears; tap it to open the PDF.
+  - iOS: submit an assessment, confirm a “PDF saved” notification appears; tap it to open the PDF.
+- **Notes/TODO:**
+  - iOS cannot save directly to a global Downloads folder due to OS sandboxing; opening from the notification is the “download complete” UX.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Make Lessons screen fully scrollable on phone
 - **Summary:**
   - Switched to a single outer scroll container on phone-sized screens so the entire Lessons screen (header + calendar + agenda) scrolls together.
@@ -128,6 +156,26 @@
   - Submit a Driving Assessment and confirm the PDF has 2 pages with the requested section layout and org name header.
 - **Notes/TODO:**
   - If feedback text is very long, it may still overflow beyond one page (expected behavior for print-to-PDF HTML).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Name Driving Assessment PDFs
+- **Summary:**
+  - Updated PDF export to copy the generated file to a named path using `expo-file-system` so the share sheet uses `First Last DD-MM-YY.pdf`.
+- **Files changed:**
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `package.json`
+  - `package-lock.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx expo install expo-file-system`
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Submit a Driving Assessment and confirm the shared PDF filename is `First Last DD-MM-YY.pdf`.
+- **Notes/TODO:**
+  - None.
 
 ---
 
@@ -215,6 +263,24 @@
   - `npx tsc --noEmit`
 - **Verification:**
   - TypeScript compile check via `npx tsc --noEmit` (local).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Save Driving Assessment PDFs without share sheet
+- **Summary:**
+  - Updated PDF export to save directly into app storage (`documentDirectory/driving-assessments/`) and skip opening the share sheet.
+  - Updated submit success alert to show the saved file URI.
+- **Files changed:**
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Submit a Driving Assessment and confirm the PDF is saved and a URI is shown in the success alert.
+- **Notes/TODO:**
+  - This saves to app sandbox storage; saving to a user-visible folder requires an explicit user action (platform limitation).
 
 ---
 

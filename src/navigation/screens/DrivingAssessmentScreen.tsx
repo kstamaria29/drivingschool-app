@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch, type FieldErrors } from "react-hook-form";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, Alert, Platform, View } from "react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -17,11 +17,14 @@ import { drivingAssessmentCriteria, drivingAssessmentFeedbackOptions } from "../
 import { exportDrivingAssessmentPdf } from "../../features/assessments/driving-assessment/pdf";
 import { calculateDrivingAssessmentScore, generateDrivingAssessmentFeedbackSummary } from "../../features/assessments/driving-assessment/scoring";
 import { drivingAssessmentFormSchema, type DrivingAssessmentFormValues } from "../../features/assessments/driving-assessment/schema";
+import { ensureAndroidDownloadsDirectoryUri } from "../../features/assessments/android-downloads";
+import { notifyPdfSaved } from "../../features/notifications/download-notifications";
 import { useOrganizationQuery } from "../../features/organization/queries";
 import { useStudentsQuery } from "../../features/students/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { toErrorMessage } from "../../utils/errors";
+import { openPdfUri } from "../../utils/open-pdf";
 
 import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
 
@@ -208,9 +211,14 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
       });
 
       try {
-        await exportDrivingAssessmentPdf({
+        const fileName = `${selectedStudent.first_name} ${selectedStudent.last_name} ${dayjs(values.date).format("DD-MM-YY")}`;
+        const androidDirectoryUri =
+          Platform.OS === "android" ? await ensureAndroidDownloadsDirectoryUri() : undefined;
+        const saved = await exportDrivingAssessmentPdf({
           assessmentId: assessment.id,
           organizationName,
+          fileName,
+          androidDirectoryUri: androidDirectoryUri ?? undefined,
           criteria: drivingAssessmentCriteria,
           values: {
             ...values,
@@ -220,8 +228,28 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
           },
         });
 
-        Alert.alert("Submitted", "Assessment saved and PDF ready to share.");
-        navigation.goBack();
+        await notifyPdfSaved({
+          fileName,
+          uri: saved.uri,
+          savedTo: saved.savedTo === "downloads" ? "Downloads" : "App storage",
+        });
+
+        Alert.alert(
+          "Submitted",
+          saved.savedTo === "downloads"
+            ? "Assessment saved and PDF saved to Downloads."
+            : "Assessment saved and PDF saved inside the app.",
+          [
+            {
+              text: "Open",
+              onPress: () => {
+                void openPdfUri(saved.uri);
+                navigation.goBack();
+              },
+            },
+            { text: "Done", onPress: () => navigation.goBack() },
+          ],
+        );
       } catch (error) {
         Alert.alert(
           "Saved, but couldn't generate the PDF",

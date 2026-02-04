@@ -1,9 +1,13 @@
+import { Platform } from "react-native";
+
+import * as FileSystem from "expo-file-system/legacy";
 import * as Print from "expo-print";
-import { isAvailableAsync, shareAsync } from "expo-sharing";
 
 type Input = {
   assessmentId: string;
   organizationName: string;
+  fileName: string;
+  androidDirectoryUri?: string;
   criteria: Record<string, readonly string[]>;
   values: {
     clientName: string;
@@ -28,6 +32,18 @@ type Input = {
     feedbackSummary: string;
   };
 };
+
+export type ExportDrivingAssessmentPdfResult = {
+  uri: string;
+  savedTo: "downloads" | "app_storage";
+};
+
+function sanitizeFileName(input: string) {
+  const withoutReserved = input.replace(/[<>:"/\\|?*\u0000-\u001F]/g, "");
+  const collapsed = withoutReserved.trim().replace(/\s+/g, "_");
+  const safe = collapsed === "" ? "driving_assessment" : collapsed;
+  return safe.slice(0, 80);
+}
 
 function escapeHtml(input: string) {
   return input
@@ -260,10 +276,45 @@ export async function exportDrivingAssessmentPdf(input: Input) {
   const html = buildHtml(input);
   const { uri } = await Print.printToFileAsync({ html });
 
-  const canShare = await isAvailableAsync();
-  if (!canShare) {
-    throw new Error("Sharing isn't available on this device.");
+  if (Platform.OS === "android" && input.androidDirectoryUri) {
+    try {
+      const baseName = sanitizeFileName(input.fileName);
+      const pdfName = `${baseName}.pdf`;
+
+      const createdUri = await FileSystem.StorageAccessFramework.createFileAsync(
+        input.androidDirectoryUri,
+        pdfName,
+        "application/pdf",
+      );
+
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      await FileSystem.writeAsStringAsync(createdUri, base64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      return { uri: createdUri, savedTo: "downloads" } satisfies ExportDrivingAssessmentPdfResult;
+    } catch {
+      // Fall back to app storage if SAF permission is missing or has been revoked.
+    }
   }
 
-  await shareAsync(uri, { UTI: ".pdf", mimeType: "application/pdf" });
+  const baseDir = FileSystem.documentDirectory ?? FileSystem.cacheDirectory;
+  if (!baseDir) {
+    throw new Error("Couldn't access a writable folder to save the PDF.");
+  }
+
+  const folderUri = `${baseDir}driving-assessments/`;
+  const folderInfo = await FileSystem.getInfoAsync(folderUri);
+  if (!folderInfo.exists) {
+    await FileSystem.makeDirectoryAsync(folderUri, { intermediates: true });
+  }
+
+  const destinationUri = `${folderUri}${sanitizeFileName(input.fileName)}.pdf`;
+  await FileSystem.deleteAsync(destinationUri, { idempotent: true });
+  await FileSystem.copyAsync({ from: uri, to: destinationUri });
+
+  return { uri: destinationUri, savedTo: "app_storage" } satisfies ExportDrivingAssessmentPdfResult;
 }
