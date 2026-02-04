@@ -391,6 +391,23 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Remove assessment start from student profile
+- **Summary:**
+  - Removed the `New Driving Assessment` button from `StudentDetailScreen` so assessments are only initiated from the Assessments screen.
+- **Files changed:**
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open a student profile and confirm there is no `New Driving Assessment` button.
+  - Go to `Assessments` and start a Driving Assessment from there.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Add student Assessment History screen
 - **Summary:**
   - Added an Assessment History button on the student profile screen.

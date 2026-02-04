@@ -29,7 +29,6 @@ export function StudentDetailScreen({ navigation, route }: Props) {
 
   const student = query.data ?? null;
   const isArchived = Boolean(student?.archived_at);
-  const parent = navigation.getParent();
 
   function onArchivePress() {
     if (!student) return;
@@ -117,16 +116,6 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                 label="Edit"
                 variant="secondary"
                 onPress={() => navigation.navigate("StudentEdit", { studentId: student.id })}
-              />
-
-              <AppButton
-                label="New Driving Assessment"
-                onPress={() =>
-                  parent?.navigate("Assessments", {
-                    screen: "DrivingAssessment",
-                    params: { studentId: student.id },
-                  })
-                }
               />
 
               <AppButton
