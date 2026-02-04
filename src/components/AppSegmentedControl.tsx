@@ -26,7 +26,12 @@ export function AppSegmentedControl<T extends string>({
   className,
 }: Props<T>) {
   return (
-    <View className={cn("flex-row overflow-hidden rounded-xl border border-border bg-background", className)}>
+    <View
+      className={cn(
+        "flex-row overflow-hidden rounded-xl border border-border bg-background dark:border-borderDark dark:bg-backgroundDark",
+        className,
+      )}
+    >
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -52,4 +57,3 @@ export function AppSegmentedControl<T extends string>({
     </View>
   );
 }
-

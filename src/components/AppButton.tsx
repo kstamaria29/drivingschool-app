@@ -1,4 +1,7 @@
-import { Pressable, type PressableProps } from "react-native";
+import type { ReactNode } from "react";
+import { Pressable, View, type PressableProps } from "react-native";
+import type { LucideIcon } from "lucide-react-native";
+import { useColorScheme } from "nativewind";
 
 import { theme } from "../theme/theme";
 import { cn } from "../utils/cn";
@@ -14,6 +17,12 @@ type Props = Omit<PressableProps, "children"> & {
   variant?: AppButtonVariant;
   size?: AppButtonSize;
   width?: AppButtonWidth;
+  icon?: LucideIcon;
+  iconPosition?: "left" | "right";
+  iconSize?: number;
+  iconColor?: string;
+  iconStrokeWidth?: number;
+  renderIcon?: (input: { size: number; color: string; strokeWidth: number }) => ReactNode;
 };
 
 export function AppButton({
@@ -21,10 +30,47 @@ export function AppButton({
   variant = "primary",
   size = "md",
   width = "full",
+  icon: Icon,
+  iconPosition = "left",
+  iconSize,
+  iconColor,
+  iconStrokeWidth = 2,
+  renderIcon,
   className,
   disabled,
   ...props
 }: Props) {
+  const { colorScheme } = useColorScheme();
+
+  const resolvedIconSize = iconSize ?? (size === "lg" ? 20 : 18);
+  const resolvedIconColor =
+    iconColor ??
+    (variant === "primary" || variant === "danger"
+      ? theme.colors.primaryForeground
+      : variant === "secondary"
+        ? colorScheme === "dark"
+          ? theme.colors.foregroundDark
+          : theme.colors.foregroundLight
+        : colorScheme === "dark"
+          ? theme.colors.primaryDark
+          : theme.colors.primary);
+
+  const iconNode = renderIcon
+    ? renderIcon({
+        size: resolvedIconSize,
+        color: resolvedIconColor,
+        strokeWidth: iconStrokeWidth,
+      })
+    : Icon
+      ? (
+          <Icon
+            size={resolvedIconSize}
+            color={resolvedIconColor}
+            strokeWidth={iconStrokeWidth}
+          />
+        )
+      : null;
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -39,12 +85,16 @@ export function AppButton({
       )}
       {...props}
     >
-      <AppText
-        variant="button"
-        className={cn(theme.button.labelBase, theme.button.labelVariant[variant])}
-      >
-        {label}
-      </AppText>
+      <View className="flex-row items-center justify-center gap-2">
+        {iconPosition === "left" ? iconNode : null}
+        <AppText
+          variant="button"
+          className={cn(theme.button.labelBase, theme.button.labelVariant[variant])}
+        >
+          {label}
+        </AppText>
+        {iconPosition === "right" ? iconNode : null}
+      </View>
     </Pressable>
   );
 }

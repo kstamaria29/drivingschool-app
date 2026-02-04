@@ -1,6 +1,7 @@
 import * as ImagePicker from "expo-image-picker";
 import { ActivityIndicator, View } from "react-native";
 import { useState } from "react";
+import { ImageUp, RefreshCw, UserCircle2 } from "lucide-react-native";
 
 import { Avatar } from "../../components/Avatar";
 import { AppButton } from "../../components/AppButton";
@@ -19,10 +20,13 @@ import { useUploadMyAvatarMutation } from "../../features/profiles/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { toErrorMessage } from "../../utils/errors";
+import { useAppColorScheme } from "../../providers/ColorSchemeProvider";
+import { AppSegmentedControl } from "../../components/AppSegmentedControl";
 
 export function SettingsScreen() {
   const { userId, profile } = useCurrentUser();
   const [pickerError, setPickerError] = useState<string | null>(null);
+  const { scheme, setScheme } = useAppColorScheme();
 
   const orgQuery = useOrganizationQuery(profile.organization_id);
   const orgSettingsQuery = useOrganizationSettingsQuery(profile.organization_id);
@@ -76,6 +80,7 @@ export function SettingsScreen() {
               <AppButton
                 label="Retry"
                 variant="secondary"
+                icon={RefreshCw}
                 onPress={() => {
                   void orgQuery.refetch();
                   void orgSettingsQuery.refetch();
@@ -87,10 +92,10 @@ export function SettingsScreen() {
               {orgSettingsQuery.data?.logo_url ? (
                 <AppImage
                   source={{ uri: orgSettingsQuery.data.logo_url }}
-                  className="h-16 w-16 border border-border bg-card"
+                  className="h-16 w-16 border border-border bg-card dark:border-borderDark dark:bg-cardDark"
                 />
               ) : (
-                <View className="h-16 w-16 border border-border bg-card" />
+                <View className="h-16 w-16 border border-border bg-card dark:border-borderDark dark:bg-cardDark" />
               )}
               <View className="flex-1">
                 <AppText variant="body">{orgQuery.data?.name ?? "Organization"}</AppText>
@@ -108,6 +113,7 @@ export function SettingsScreen() {
               uploadOrgLogoMutation.isPending ? "Uploading logo..." : "Change organization logo"
             }
             variant="secondary"
+            icon={ImageUp}
             disabled={profile.role !== "owner" || uploadOrgLogoMutation.isPending}
             onPress={async () => {
               try {
@@ -141,6 +147,7 @@ export function SettingsScreen() {
           <AppButton
             label={uploadAvatarMutation.isPending ? "Uploading photo..." : "Change profile photo"}
             variant="secondary"
+            icon={UserCircle2}
             disabled={uploadAvatarMutation.isPending}
             onPress={async () => {
               try {
@@ -158,6 +165,20 @@ export function SettingsScreen() {
             <AppText variant="error">{toErrorMessage(uploadAvatarMutation.error)}</AppText>
           ) : null}
           {pickerError ? <AppText variant="error">{pickerError}</AppText> : null}
+        </AppCard>
+
+        <AppCard className="gap-3">
+          <AppText variant="heading">Appearance</AppText>
+          <AppText variant="caption">Choose a theme.</AppText>
+
+          <AppSegmentedControl
+            value={scheme}
+            options={[
+              { value: "light", label: "Light" },
+              { value: "dark", label: "Dark" },
+            ]}
+            onChange={setScheme}
+          />
         </AppCard>
       </AppStack>
     </Screen>

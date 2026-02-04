@@ -2,6 +2,7 @@ import dayjs, { type Dayjs } from "dayjs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
+import { CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, RefreshCw, UserPlus } from "lucide-react-native";
 
 import { AppBadge } from "../../components/AppBadge";
 import { AppButton } from "../../components/AppButton";
@@ -159,7 +160,7 @@ export function LessonsListScreen({ navigation }: Props) {
               <AppText variant="heading">Couldn't load lessons</AppText>
               <AppText variant="body">{toErrorMessage(lessonsQuery.error)}</AppText>
             </AppCard>
-            <AppButton label="Retry" onPress={() => lessonsQuery.refetch()} />
+            <AppButton label="Retry" icon={RefreshCw} onPress={() => lessonsQuery.refetch()} />
           </AppStack>
         ) : (
           <ScrollView
@@ -171,7 +172,7 @@ export function LessonsListScreen({ navigation }: Props) {
               <AppText variant="heading">Couldn't load lessons</AppText>
               <AppText variant="body">{toErrorMessage(lessonsQuery.error)}</AppText>
             </AppCard>
-            <AppButton label="Retry" onPress={() => lessonsQuery.refetch()} />
+            <AppButton label="Retry" icon={RefreshCw} onPress={() => lessonsQuery.refetch()} />
           </ScrollView>
         )
       ) : lessonsForSelectedDay.length === 0 ? (
@@ -223,6 +224,7 @@ export function LessonsListScreen({ navigation }: Props) {
             variant="secondary"
             width="auto"
             className="px-4"
+            icon={ChevronLeft}
             onPress={onPrevMonth}
           />
           <View className="flex-1 items-center">
@@ -236,6 +238,8 @@ export function LessonsListScreen({ navigation }: Props) {
             variant="secondary"
             width="auto"
             className="px-4"
+            icon={ChevronRight}
+            iconPosition="right"
             onPress={onNextMonth}
           />
         </View>
@@ -246,12 +250,14 @@ export function LessonsListScreen({ navigation }: Props) {
             variant="secondary"
             width="auto"
             className="flex-1"
+            icon={CalendarDays}
             onPress={onToday}
           />
           <AppButton
             label="+ New lesson"
             width="auto"
             className="flex-1"
+            icon={CalendarPlus}
             onPress={() =>
               navigation.navigate("LessonCreate", { initialDate: selectedDate.format("YYYY-MM-DD") })
             }
@@ -261,6 +267,7 @@ export function LessonsListScreen({ navigation }: Props) {
             variant="secondary"
             width="auto"
             className="flex-1"
+            icon={UserPlus}
             onPress={onNewStudentPress}
           />
         </View>

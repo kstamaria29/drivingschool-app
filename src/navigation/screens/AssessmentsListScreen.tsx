@@ -1,5 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { View } from "react-native";
+import { ClipboardCheck, ClipboardList } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -30,6 +31,7 @@ export function AssessmentsListScreen({ navigation }: Props) {
           <AppButton
             width="auto"
             label="Start Driving Assessment"
+            icon={ClipboardCheck}
             onPress={() => navigation.navigate("DrivingAssessment")}
           />
         </AppCard>
@@ -43,6 +45,7 @@ export function AssessmentsListScreen({ navigation }: Props) {
           <AppButton
             width="auto"
             label="Start Mock Test"
+            icon={ClipboardList}
             onPress={() => navigation.navigate("RestrictedMockTest")}
           />
         </AppCard>

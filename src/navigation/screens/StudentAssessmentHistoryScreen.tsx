@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState, type ReactElement } from "react";
 import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, View } from "react-native";
+import { Download, RefreshCw, Trash2 } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -347,7 +348,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         <AppText variant="heading">Couldn't load assessments</AppText>
         <AppText variant="body">{toErrorMessage(assessmentsQuery.error)}</AppText>
       </AppCard>
-      <AppButton label="Retry" onPress={() => assessmentsQuery.refetch()} />
+      <AppButton label="Retry" icon={RefreshCw} onPress={() => assessmentsQuery.refetch()} />
     </AppStack>
   ) : (assessmentsQuery.data ?? []).length === 0 ? (
     <AppCard className="gap-2">
@@ -434,6 +435,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
             <AppButton
               variant="danger"
               label={deletingAssessmentId === assessment.id ? "Deleting..." : "Delete assessment"}
+              icon={Trash2}
               disabled={deletingAssessmentId === assessment.id}
               onPress={() => onDeletePress(assessment)}
             />
@@ -547,6 +549,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
           <AppButton
             width="auto"
             label={downloadingAssessmentId === assessment.id ? "Saving PDF..." : "Download PDF"}
+            icon={Download}
             disabled={downloadingAssessmentId === assessment.id || deletingAssessmentId === assessment.id}
             onPress={() => void onDownloadPdfPress(assessment)}
           />
@@ -607,6 +610,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
           <AppButton
             variant="danger"
             label={deletingAssessmentId === assessment.id ? "Deleting..." : "Delete assessment"}
+            icon={Trash2}
             disabled={deletingAssessmentId === assessment.id || downloadingAssessmentId === assessment.id}
             onPress={() => onDeletePress(assessment)}
           />
@@ -625,6 +629,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
           <AppButton
             variant="danger"
             label={deletingAssessmentId === assessment.id ? "Deleting..." : "Delete assessment"}
+            icon={Trash2}
             disabled={deletingAssessmentId === assessment.id}
             onPress={() => onDeletePress(assessment)}
           />
@@ -667,6 +672,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         <AppButton
           width="auto"
           label={downloadingAssessmentId === assessment.id ? "Saving PDF..." : "Download PDF"}
+          icon={Download}
           disabled={downloadingAssessmentId === assessment.id || deletingAssessmentId === assessment.id}
           onPress={() => void onDownloadPdfPress(assessment)}
         />
@@ -728,7 +734,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
                     <AppText className="flex-1" variant="body">
                       {label}
                     </AppText>
-                    <View className="min-w-9 items-center rounded-lg border border-border bg-background px-2 py-1">
+                    <View className="min-w-9 items-center rounded-lg border border-border bg-background px-2 py-1 dark:border-borderDark dark:bg-backgroundDark">
                       <AppText variant="caption">{scoreText}</AppText>
                     </View>
                   </View>
@@ -743,6 +749,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         <AppButton
           variant="danger"
           label={deletingAssessmentId === assessment.id ? "Deleting..." : "Delete assessment"}
+          icon={Trash2}
           disabled={deletingAssessmentId === assessment.id || downloadingAssessmentId === assessment.id}
           onPress={() => onDeletePress(assessment)}
         />

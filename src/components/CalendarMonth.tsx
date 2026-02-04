@@ -80,15 +80,17 @@ export function CalendarMonth({
                     onPress={() => onSelectDate(date)}
                     className={cn(
                       "rounded-xl border px-2 py-2",
-                      inMonth ? "border-border bg-card" : "border-border/50 bg-card/60",
-                      isSelected && "border-primary bg-primary/10",
+                      inMonth
+                        ? "border-border bg-card dark:border-borderDark dark:bg-cardDark"
+                        : "border-border/50 bg-card/60 dark:border-borderDark/50 dark:bg-cardDark/60",
+                      isSelected && "border-primary bg-primary/10 dark:border-primaryDark dark:bg-primaryDark/10",
                     )}
                   >
                     <AppText
                       variant="body"
                       className={cn(
                         "text-center",
-                        !inMonth && "text-muted",
+                        !inMonth && "text-muted dark:text-mutedDark",
                         isSelected && theme.text.base,
                       )}
                     >

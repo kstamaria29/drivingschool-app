@@ -1,4 +1,5 @@
 import { TextInput, View, type TextInputProps } from "react-native";
+import { useColorScheme } from "nativewind";
 
 import { fonts } from "../theme/fonts";
 import { theme } from "../theme/theme";
@@ -21,12 +22,16 @@ export function AppInput({
   style,
   ...props
 }: Props) {
+  const { colorScheme } = useColorScheme();
+  const placeholderTextColor =
+    colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
+
   return (
     <View className={cn(theme.input.wrapper, containerClassName)}>
       <AppText variant="label">{label}</AppText>
       <TextInput
         className={cn(theme.input.base, error && theme.input.error, inputClassName)}
-        placeholderTextColor={theme.colors.placeholder}
+        placeholderTextColor={placeholderTextColor}
         style={[{ fontFamily: fonts.regular }, style]}
         {...props}
       />

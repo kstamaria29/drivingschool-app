@@ -2,6 +2,21 @@ import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, View } from "react-native";
 import * as Location from "expo-location";
+import {
+  Cloud,
+  CloudDrizzle,
+  CloudFog,
+  CloudLightning,
+  CloudRain,
+  CloudSnow,
+  CloudSun,
+  LocateFixed,
+  MapPin,
+  RefreshCw,
+  Sun,
+  Wind,
+} from "lucide-react-native";
+import { useColorScheme } from "nativewind";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -23,7 +38,22 @@ function formatTemp(value: number) {
   return `${rounded}°C`;
 }
 
+function WeatherIcon({ code, size, color }: { code: number; size: number; color: string }) {
+  if (code === 0) return <Sun size={size} color={color} />;
+  if (code === 1 || code === 2) return <CloudSun size={size} color={color} />;
+  if (code === 3) return <Cloud size={size} color={color} />;
+  if (code === 45 || code === 48) return <CloudFog size={size} color={color} />;
+  if (code >= 51 && code <= 57) return <CloudDrizzle size={size} color={color} />;
+  if (code >= 61 && code <= 67) return <CloudRain size={size} color={color} />;
+  if (code >= 71 && code <= 77) return <CloudSnow size={size} color={color} />;
+  if (code >= 80 && code <= 82) return <CloudRain size={size} color={color} />;
+  if (code === 85 || code === 86) return <CloudSnow size={size} color={color} />;
+  if (code === 95 || code === 96 || code === 99) return <CloudLightning size={size} color={color} />;
+  return <Cloud size={size} color={color} />;
+}
+
 export function WeatherWidget() {
+  const { colorScheme } = useColorScheme();
   const [coords, setCoords] = useState<Coords>({
     latitude: DEFAULT_NZ_COORDS.latitude,
     longitude: DEFAULT_NZ_COORDS.longitude,
@@ -109,10 +139,15 @@ export function WeatherWidget() {
     return `${formatTemp(forecast.current.temperatureC)} · ${description}`;
   }, [forecast]);
 
+  const iconMuted = colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
+  const iconAccent = theme.colors.accent;
+
   const subtitle = useMemo(() => {
     const usingLocation = coords.source === "device";
     if (usingLocation) return `Now in ${place}`;
-    if (permissionStatus === "denied") return `Using ${DEFAULT_NZ_COORDS.label} (enable location for local weather)`;
+    if (permissionStatus === "denied") {
+      return `Using ${DEFAULT_NZ_COORDS.label} (enable location for local weather)`;
+    }
     return `Using ${DEFAULT_NZ_COORDS.label}`;
   }, [coords.source, permissionStatus, place]);
 
@@ -131,12 +166,15 @@ export function WeatherWidget() {
             width="auto"
             variant="secondary"
             label={query.isFetching ? "Refreshing..." : "Refresh"}
+            icon={RefreshCw}
             disabled={query.isFetching}
             onPress={() => query.refetch()}
           />
           <AppButton
             width="auto"
+            variant="secondary"
             label="Use my location"
+            icon={LocateFixed}
             onPress={() => void syncDeviceLocation({ request: true })}
           />
         </View>
@@ -153,7 +191,7 @@ export function WeatherWidget() {
         <AppCard className="gap-2">
           <AppText variant="heading">Couldn't load weather</AppText>
           <AppText variant="body">{toErrorMessage(query.error)}</AppText>
-          <AppButton width="auto" label="Retry" variant="secondary" onPress={() => query.refetch()} />
+          <AppButton width="auto" label="Retry" variant="secondary" icon={RefreshCw} onPress={() => query.refetch()} />
         </AppCard>
       ) : !forecast ? (
         <AppCard className="gap-2">
@@ -163,12 +201,22 @@ export function WeatherWidget() {
       ) : (
         <View className="flex-row flex-wrap gap-3">
           <AppCard className="flex-1 min-w-64 gap-2">
-            <AppText variant="heading">Right now</AppText>
+            <View className="flex-row items-center justify-between gap-3">
+              <View className="flex-row items-center gap-2">
+                <WeatherIcon code={forecast.current.weatherCode} size={22} color={iconAccent} />
+                <AppText variant="heading">Right now</AppText>
+              </View>
+              {coords.source === "device" ? <MapPin size={18} color={iconMuted} /> : null}
+            </View>
+
             <AppText variant="body">{currentText}</AppText>
-            <AppText variant="caption">
-              Wind: {Math.round(forecast.current.windSpeedKph)} km/h · Updated{" "}
-              {forecast.current.timeISO ? dayjs(forecast.current.timeISO).format("h:mm A") : "—"}
-            </AppText>
+            <View className="flex-row items-center gap-2">
+              <Wind size={16} color={iconMuted} />
+              <AppText variant="caption">
+                Wind: {Math.round(forecast.current.windSpeedKph)} km/h · Updated{" "}
+                {forecast.current.timeISO ? dayjs(forecast.current.timeISO).format("h:mm A") : "-"}
+              </AppText>
+            </View>
           </AppCard>
 
           <AppCard className="flex-1 min-w-64 gap-2">
@@ -180,10 +228,13 @@ export function WeatherWidget() {
                 {nextTwoDays.map((day) => (
                   <View
                     key={day.dateISO}
-                    className="flex-row items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2"
+                    className="flex-row items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark"
                   >
                     <View className="flex-1">
-                      <AppText variant="body">{dayjs(day.dateISO).format("ddd")}</AppText>
+                      <View className="flex-row items-center gap-2">
+                        <WeatherIcon code={day.weatherCode} size={18} color={iconMuted} />
+                        <AppText variant="body">{dayjs(day.dateISO).format("ddd")}</AppText>
+                      </View>
                       <AppText variant="caption">{describeWeatherCode(day.weatherCode)}</AppText>
                     </View>
                     <AppText variant="body">

@@ -3,6 +3,7 @@ import "./global.css";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ActivityIndicator, LogBox, View } from "react-native";
+import { useColorScheme } from "nativewind";
 
 import {
   Poppins_400Regular,
@@ -19,6 +20,7 @@ LogBox.ignoreLogs([
 ]);
 
 export default function App() {
+  const { colorScheme } = useColorScheme();
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
@@ -35,7 +37,7 @@ export default function App() {
 
   return (
     <>
-      <StatusBar style="dark" />
+      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <GestureHandlerRootView style={{ flex: 1 }}>
         <AppProviders>
           <AppRoot />

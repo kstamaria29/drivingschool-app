@@ -4,6 +4,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { ActivityIndicator, View } from "react-native";
+import { Plus, RefreshCw, Save, X } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -338,7 +339,12 @@ export function LessonEditScreen({ navigation, route }: Props) {
           ) : studentsQuery.isError ? (
             <AppStack gap="md">
               <AppText variant="error">{toErrorMessage(studentsQuery.error)}</AppText>
-              <AppButton label="Retry students" variant="secondary" onPress={() => studentsQuery.refetch()} />
+              <AppButton
+                label="Retry students"
+                icon={RefreshCw}
+                variant="secondary"
+                onPress={() => studentsQuery.refetch()}
+              />
             </AppStack>
           ) : (
             <>
@@ -447,11 +453,12 @@ export function LessonEditScreen({ navigation, route }: Props) {
 
         <AppButton
           label={saving ? "Saving..." : isEditing ? "Save changes" : "Create lesson"}
+          icon={isEditing ? Save : Plus}
           disabled={saving}
           onPress={form.handleSubmit(onSubmit)}
         />
 
-        <AppButton label="Cancel" variant="ghost" onPress={() => navigation.goBack()} />
+        <AppButton label="Cancel" icon={X} variant="ghost" onPress={() => navigation.goBack()} />
       </AppStack>
     </Screen>
   );

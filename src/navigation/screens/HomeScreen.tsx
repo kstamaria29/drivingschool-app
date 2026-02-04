@@ -1,6 +1,7 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import dayjs from "dayjs";
 import { ActivityIndicator, View } from "react-native";
+import { ArrowRight, CalendarPlus, ClipboardList, UserPlus } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -49,6 +50,7 @@ export function HomeScreen({ navigation }: Props) {
             width="auto"
             className="flex-1 min-w-48"
             label="+ New assessment"
+            icon={ClipboardList}
             onPress={() => parent?.navigate("Assessments")}
           />
           <AppButton
@@ -56,6 +58,7 @@ export function HomeScreen({ navigation }: Props) {
             className="flex-1 min-w-48"
             variant="secondary"
             label="+ New lesson"
+            icon={CalendarPlus}
             onPress={() =>
               parent?.navigate("Lessons", {
                 screen: "LessonCreate",
@@ -68,6 +71,7 @@ export function HomeScreen({ navigation }: Props) {
             className="flex-1 min-w-48"
             variant="secondary"
             label="+ New student"
+            icon={UserPlus}
             onPress={() =>
               parent?.navigate("Students", {
                 screen: "StudentCreate",
@@ -101,6 +105,8 @@ export function HomeScreen({ navigation }: Props) {
               label="Open Lessons"
               variant="ghost"
               width="auto"
+              icon={ArrowRight}
+              iconPosition="right"
               onPress={() => parent?.navigate("Lessons")}
             />
           </AppCard>

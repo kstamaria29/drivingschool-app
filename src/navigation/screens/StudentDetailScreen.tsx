@@ -1,5 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Alert, ActivityIndicator, View } from "react-native";
+import { Archive, ClipboardList, Pencil, RefreshCw, Undo2 } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -58,13 +59,13 @@ export function StudentDetailScreen({ navigation, route }: Props) {
             </AppText>
           </View>
         ) : query.isError ? (
-          <AppStack gap="md">
-            <AppCard className="gap-2">
-              <AppText variant="heading">Couldn't load student</AppText>
-              <AppText variant="body">{toErrorMessage(query.error)}</AppText>
-            </AppCard>
-            <AppButton label="Retry" onPress={() => query.refetch()} />
-          </AppStack>
+            <AppStack gap="md">
+              <AppCard className="gap-2">
+                <AppText variant="heading">Couldn't load student</AppText>
+                <AppText variant="body">{toErrorMessage(query.error)}</AppText>
+              </AppCard>
+            <AppButton label="Retry" icon={RefreshCw} onPress={() => query.refetch()} />
+            </AppStack>
         ) : !student ? (
           <AppCard className="gap-2">
             <AppText variant="heading">Student not found</AppText>
@@ -115,12 +116,14 @@ export function StudentDetailScreen({ navigation, route }: Props) {
               <AppButton
                 label="Edit"
                 variant="secondary"
+                icon={Pencil}
                 onPress={() => navigation.navigate("StudentEdit", { studentId: student.id })}
               />
 
               <AppButton
                 label="Assessment History"
                 variant="secondary"
+                icon={ClipboardList}
                 onPress={() => navigation.navigate("StudentAssessmentHistory", { studentId: student.id })}
               />
 
@@ -128,6 +131,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                 <AppButton
                   label={unarchiveMutation.isPending ? "Unarchiving..." : "Unarchive"}
                   disabled={unarchiveMutation.isPending}
+                  icon={Undo2}
                   onPress={onUnarchivePress}
                 />
               ) : (
@@ -135,6 +139,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                   label={archiveMutation.isPending ? "Archiving..." : "Archive"}
                   variant="secondary"
                   disabled={archiveMutation.isPending}
+                  icon={Archive}
                   onPress={onArchivePress}
                 />
               )}

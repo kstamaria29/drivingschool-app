@@ -88,7 +88,7 @@ export function AppDateInput({
       {Platform.OS === "ios" ? (
         <Modal visible={open} transparent animationType="fade" onRequestClose={closePicker}>
           <Pressable className="flex-1 bg-black/40 px-6 py-10" onPress={closePicker}>
-            <Pressable className="self-center w-full max-w-md rounded-2xl bg-card p-4">
+            <Pressable className="self-center w-full max-w-md rounded-2xl border border-border bg-card p-4 dark:border-borderDark dark:bg-cardDark">
               <AppStack gap="md">
                 <DateTimePicker
                   value={tempDate}

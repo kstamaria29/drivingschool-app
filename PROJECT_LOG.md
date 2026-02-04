@@ -55,6 +55,47 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add dark mode + icons + theme polish
+- **Summary:**
+  - Added persisted light/dark theme toggle and wired it into Settings.
+  - Introduced dark-mode styles across core primitives (screen, cards, buttons, inputs) and key UI surfaces (drawer/header/calendar).
+  - Added Lucide icons to key CTAs and improved the Weather widget with condition icons.
+  - Added an accent color and softer depth (shadows/borders) to reduce the “plain” look.
+- **Files changed:**
+  - `App.tsx`
+  - `tailwind.config.js`
+  - `src/theme/theme.ts`
+  - `src/providers/ColorSchemeProvider.tsx`
+  - `src/providers/AppProviders.tsx`
+  - `src/components/AppButton.tsx`
+  - `src/components/AppInput.tsx`
+  - `src/components/AppDateInput.tsx`
+  - `src/components/AppSegmentedControl.tsx`
+  - `src/components/CalendarMonth.tsx`
+  - `src/navigation/components/HeaderButtons.tsx`
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/navigation/screens/AssessmentsListScreen.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open Settings and toggle Light/Dark; confirm the whole app updates (background, cards, borders, text).
+  - Confirm Home shows weather icons and key buttons show icons.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Enhance Home screen (greeting + weather)
 - **Summary:**
   - Updated Home screen header to greet the signed-in user based on time of day.

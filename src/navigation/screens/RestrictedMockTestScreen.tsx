@@ -528,16 +528,16 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
           Stage 2 is optional: enable it only after Stage 1 is safe enough to continue.
         </AppText>
         <View className="flex-row flex-wrap gap-2">
-          <View className="rounded-xl border border-border bg-background px-3 py-2">
+          <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
             <AppText variant="caption">Stage 1 faults: {summary.stage1Faults}</AppText>
           </View>
-          <View className="rounded-xl border border-border bg-background px-3 py-2">
+          <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
             <AppText variant="caption">Stage 2 faults: {summary.stage2Faults}</AppText>
           </View>
-          <View className="rounded-xl border border-border bg-background px-3 py-2">
+          <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
             <AppText variant="caption">Critical: {summary.criticalTotal}</AppText>
           </View>
-          <View className="rounded-xl border border-border bg-background px-3 py-2">
+          <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
             <AppText variant="caption">Immediate fail: {summary.immediateTotal}</AppText>
           </View>
         </View>
@@ -758,7 +758,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   label="-"
                   onPress={() => toggleErrorCount("critical", label, -1)}
                 />
-                <View className="min-w-10 items-center rounded-xl border border-border bg-background px-3 py-2">
+                <View className="min-w-10 items-center rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
                   <AppText variant="caption">{String(critical[label] ?? 0)}</AppText>
                 </View>
                 <AppButton
@@ -806,7 +806,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   label="-"
                   onPress={() => toggleErrorCount("immediate", label, -1)}
                 />
-                <View className="min-w-10 items-center rounded-xl border border-border bg-background px-3 py-2">
+                <View className="min-w-10 items-center rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
                   <AppText variant="caption">{String(immediate[label] ?? 0)}</AppText>
                 </View>
                 <AppButton
