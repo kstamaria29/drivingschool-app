@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import { LessonsPlaceholderScreen } from "./screens/LessonsPlaceholderScreen";
-import { StudentsPlaceholderScreen } from "./screens/StudentsPlaceholderScreen";
+import { StudentsStackNavigator } from "./StudentsStackNavigator";
 
 export type MainTabsParamList = {
   Lessons: undefined;
@@ -12,10 +12,9 @@ const Tabs = createBottomTabNavigator<MainTabsParamList>();
 
 export function MainTabsNavigator() {
   return (
-    <Tabs.Navigator screenOptions={{ headerShadowVisible: false }}>
+    <Tabs.Navigator screenOptions={{ headerShown: false }}>
       <Tabs.Screen name="Lessons" component={LessonsPlaceholderScreen} />
-      <Tabs.Screen name="Students" component={StudentsPlaceholderScreen} />
+      <Tabs.Screen name="Students" component={StudentsStackNavigator} />
     </Tabs.Navigator>
   );
 }
-

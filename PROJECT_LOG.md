@@ -1,0 +1,92 @@
+# PROJECT_LOG.md
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Initialize repo documentation
+- **Summary:**
+  - Added initial `AGENTS.md` with v1 scope, stack decisions, schema, RLS rules, UI priorities, and Codex instructions.
+  - Added requirement to maintain this `PROJECT_LOG.md` after every task.
+- **Files changed:**
+  - `AGENTS.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - N/A (documentation only)
+- **Notes/TODO:**
+  - Next: run Codex task to bootstrap Expo project + Supabase migrations + auth/onboarding.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Bootstrap mobile app (Auth + Onboarding)
+- **Summary:**
+  - Initialized Expo React Native + TypeScript project structure and configured tablet portrait orientation.
+  - Added NativeWind + Tailwind setup and introduced shared UI primitives (`Screen`, `AppText`, `AppButton`, `AppInput`, `AppCard`, `AppStack`).
+  - Implemented React Navigation with `AuthStack` and `MainTabs`, plus an auth gate that checks Supabase session and routes first-time users into onboarding.
+  - Added Supabase client setup for Expo/React Native (AsyncStorage + URL polyfill) and public env var wiring via `.env`.
+  - Implemented email/password auth (sign in + sign up) and onboarding flow to create an organization + owner profile and optionally upload an org logo to Storage.
+  - Added Supabase SQL migrations for `organizations`, `profiles`, `organization_settings`, required triggers, RLS policies, and onboarding RPC.
+  - Added Storage bucket policy SQL for `org-logos` access rules (read within org; owner-only write).
+  - Updated README with step-by-step Supabase setup + running instructions.
+  - Fixed setup issues encountered during bootstrap:
+    - TypeScript JSX config error (`Cannot use JSX unless the '--jsx' flag is provided`).
+    - Metro bundling error for missing `babel-preset-expo`.
+    - Supabase `gotrue-js` lock timeout warnings (singleton client + retry); silenced third-party SafeAreaView deprecation warning.
+    - Supabase `profiles` policy recursion error (added follow-up migration to remove recursive RLS patterns).
+- **Files changed (high level):**
+  - App/config: `App.tsx`, `index.ts`, `app.json`, `package.json`, `tsconfig.json`, `.gitignore`, `.env.example`, `README.md`
+  - NativeWind: `babel.config.js`, `metro.config.js`, `tailwind.config.js`, `global.css`, `nativewind-env.d.ts`, `declarations.d.ts`
+  - UI primitives: `src/components/*`, `src/theme/theme.ts`, `src/utils/*`
+  - Navigation/auth/onboarding: `src/navigation/*`, `src/features/auth/*`, `src/features/onboarding/*`, `src/providers/*`, `src/supabase/*`
+  - Supabase SQL: `supabase/migrations/001_auth_onboarding.sql`, `supabase/migrations/002_fix_profiles_rls.sql`, `supabase/storage/org-logos.sql`
+- **Commands run (representative):**
+  - `npx create-expo-app@latest _tmp --template blank-typescript --yes --no-install`
+  - `npm install`
+  - `npm install nativewind`
+  - `npx expo install react-native-reanimated react-native-safe-area-context react-native-gesture-handler react-native-screens`
+  - `npm install @react-navigation/native @react-navigation/native-stack @react-navigation/bottom-tabs`
+  - `npm install @supabase/supabase-js @tanstack/react-query react-hook-form zod @hookform/resolvers dayjs react-native-url-polyfill`
+  - `npx expo install @react-native-async-storage/async-storage expo-image-picker`
+  - `npm install --save-dev tailwindcss prettier-plugin-tailwindcss babel-preset-expo`
+  - `npx tsc --noEmit`
+- **Verification:**
+  - TypeScript compile check via `npx tsc --noEmit` (local).
+  - Manual run verified up to login/onboarding flow; Supabase RLS recursion fixed via follow-up migration.
+- **Notes/TODO:**
+  - Students and Lessons features are intentionally not implemented yet (per v1 build order).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Implement Students feature (v1: CRUD + archive)
+- **Summary:**
+  - Added `students` table migration with RLS policies (owner: org-wide; instructor: assigned only) and updated_at trigger.
+  - Implemented typed Students data layer (`features/students/api.ts` + `features/students/queries.ts`) and Zod form schema.
+  - Added Profiles query helper for owner instructor assignment picker.
+  - Built Students stack navigation and screens:
+    - `StudentsListScreen` (active/archived toggle + create)
+    - `StudentDetailScreen` (view + archive/unarchive)
+    - `StudentEditScreen` (create/edit form with assignment rules)
+  - Wired Students stack into `MainTabs` (removed old placeholder).
+  - Updated README to include `003_students.sql` migration and mark Students as implemented.
+- **Files changed:**
+  - `supabase/migrations/003_students.sql`
+  - `src/supabase/types.ts`
+  - `src/features/students/api.ts`
+  - `src/features/students/queries.ts`
+  - `src/features/students/schemas.ts`
+  - `src/features/profiles/api.ts`
+  - `src/features/profiles/queries.ts`
+  - `src/navigation/MainTabsNavigator.tsx`
+  - `src/navigation/StudentsStackNavigator.tsx`
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `README.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - TypeScript compile check via `npx tsc --noEmit` (local).
+- **Notes/TODO:**
+  - Next: implement Lessons scheduling (Today view + edit) per v1.

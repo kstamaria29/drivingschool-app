@@ -586,6 +586,68 @@ Implement feature-by-feature:
 
 ---
 
+## Project log (mandatory)
+
+Codex MUST maintain a running project log file at:
+
+- `PROJECT_LOG.md`
+
+### Rules
+
+1. At the start of EVERY task, Codex must:
+   - open and read `PROJECT_LOG.md`
+   - use it to understand the current state before making changes
+
+2. At the end of EVERY task (after code changes), Codex must update `PROJECT_LOG.md` with:
+   - **Date/time (Pacific/Auckland)** and a short task title
+   - **What changed** (high-level summary)
+   - **Files added/edited** (list)
+   - **Commands run** (if any)
+   - **How to verify** (steps to test)
+   - **Notes / follow-ups** (any TODOs or risks)
+
+3. Keep entries short and skimmable. Prefer bullet points.
+
+### Template for each entry
+
+Append entries to the bottom using:
+
+- **Date:** YYYY-MM-DD (Pacific/Auckland)
+- **Task:** <short title>
+- **Summary:**
+  - ...
+- **Files changed:**
+  - ...
+- **Commands run:**
+  - ...
+- **Verification:**
+  - ...
+- **Notes/TODO:**
+  - ...
+
+---
+
+## Commit message suggestion (mandatory)
+
+After completing EVERY task, Codex must propose **one** high-quality git commit message.
+
+### Rules
+
+- Use **Conventional Commits** format:
+  - `feat: ...`, `fix: ...`, `chore: ...`, `refactor: ...`, `docs: ...`, `test: ...`
+- Message must be **imperative**, concise, and describe the main outcome.
+- If the task touches multiple areas, mention the primary one and keep it short.
+- Include a short optional body (2–5 bullet points) when helpful, covering the biggest changes.
+
+### Output format (always)
+
+Provide at the end of the task:
+
+**Suggested commit message:**
+`<type>: <summary>`
+
+---
+
 ## 18) Notes about future features
 
 Explicitly later (not v1):
