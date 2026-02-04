@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
+import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButtons";
 import { LessonEditScreen } from "./screens/LessonEditScreen";
 import { LessonsListScreen } from "./screens/LessonsListScreen";
 
@@ -18,9 +19,14 @@ export function LessonsStackNavigator() {
       screenOptions={{
         headerShadowVisible: false,
         headerTitle: "",
+        headerRight: () => <HeaderRightAvatar />,
       }}
     >
-      <Stack.Screen name="LessonsList" component={LessonsListScreen} />
+      <Stack.Screen
+        name="LessonsList"
+        component={LessonsListScreen}
+        options={{ headerLeft: () => <HeaderLeftHamburger /> }}
+      />
       <Stack.Screen name="LessonCreate" component={LessonEditScreen} />
       <Stack.Screen name="LessonEdit" component={LessonEditScreen} />
     </Stack.Navigator>

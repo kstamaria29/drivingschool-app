@@ -160,6 +160,222 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Redo navigation UI (sidebar + hamburger) + Home + Settings uploads
+- **Summary:**
+  - Replaced bottom tabs with a responsive drawer layout: permanent collapsible sidebar on tablet landscape, hamburger drawer on tablet portrait/phones.
+  - Added `Home` as the post-login landing screen (dashboard-style) and added an `Assessments` placeholder screen (no assessment features implemented).
+  - Added Settings options to upload organization logo (owner-only) and user profile photo (avatars bucket + RPC).
+  - Added Supabase migration + storage policies for profile avatars and created `supabase/README.md`.
+- **Files changed:**
+  - `src/navigation/RootNavigation.tsx`
+  - `src/navigation/MainDrawerNavigator.tsx`
+  - `src/navigation/HomeStackNavigator.tsx`
+  - `src/navigation/SettingsStackNavigator.tsx`
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/navigation/components/HeaderButtons.tsx`
+  - `src/navigation/useNavigationLayout.ts`
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/screens/AssessmentsComingSoonScreen.tsx`
+  - `src/components/Avatar.tsx`
+  - `src/components/AppDivider.tsx`
+  - `src/features/auth/current-user.tsx`
+  - `src/features/organization/api.ts`
+  - `src/features/organization/queries.ts`
+  - `src/features/profiles/api.ts`
+  - `src/features/profiles/queries.ts`
+  - `src/supabase/types.ts`
+  - `supabase/migrations/005_profile_avatars.sql`
+  - `supabase/storage/avatars.sql`
+  - `supabase/README.md`
+  - `README.md`
+  - `package.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None (dependencies were not installed in this environment).
+- **Verification:**
+  - Run `npm install`, then `npx tsc --noEmit`.
+  - On tablet landscape: confirm sidebar is permanent and collapsible (icons-only when collapsed).
+  - On tablet portrait/phone: confirm hamburger opens left drawer and avatar button shows on the right.
+  - In Settings: upload org logo (owner) and profile photo; confirm drawer/header reflect updates.
+- **Notes/TODO:**
+  - `Assessments` remains a placeholder only (v1 explicitly excludes assessment features).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Worklets version mismatch (Expo runtime crash)
+- **Summary:**
+  - Pinned `react-native-worklets` to `0.5.1` (dependency + npm overrides) to match the native Worklets version bundled with the current app runtime.
+- **Files changed:**
+  - `package.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Delete `node_modules` and reinstall: `npm install`
+  - Start Metro with a clean cache: `npx expo start -c`
+  - Confirm the red Worklets mismatch screen no longer appears.
+- **Notes/TODO:**
+  - If using a custom dev client, rebuild the dev client after dependency changes.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Align AGENTS.md with new navigation UI
+- **Summary:**
+  - Updated the navigation spec to describe the responsive drawer layout (sidebar in tablet landscape, hamburger in portrait/mobile) and set `HomeScreen` as the default post-login landing screen.
+  - Clarified `Assessments` as a placeholder-only route in v1 (no assessment features).
+- **Files changed:**
+  - `AGENTS.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Open `AGENTS.md` and confirm sections 8/10/11 match the current app navigation.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add top padding to drawer menus
+- **Summary:**
+  - Increased top padding for the drawer content so both the permanent sidebar and hamburger drawer menus start lower (`pt-10`).
+- **Files changed:**
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Open the drawer on phone/tablet portrait and confirm menu content starts lower.
+  - On tablet landscape, confirm the sidebar content has the same top spacing.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix image upload "Network request failed"
+- **Summary:**
+  - Switched logo/avatar uploads to use `expo-image-picker` base64 data instead of `fetch(asset.uri)`, avoiding failures with `content://` URIs on Android.
+- **Files changed:**
+  - `src/utils/base64.ts`
+  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/features/onboarding/api.ts`
+  - `src/features/organization/api.ts`
+  - `src/features/profiles/api.ts`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Open Settings and upload an organization logo + profile photo; confirm both uploads succeed and images render in the drawer/header.
+  - Complete onboarding with a logo selected; confirm the org logo uploads successfully.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Blob upload + ImagePicker deprecation
+- **Summary:**
+  - Updated Supabase Storage uploads to pass `Uint8Array` directly (avoids RN Blob limitation: “Creating blobs from ArrayBuffer…”).
+  - Switched `expo-image-picker` usage away from deprecated `ImagePicker.MediaTypeOptions`.
+- **Files changed:**
+  - `src/features/onboarding/api.ts`
+  - `src/features/organization/api.ts`
+  - `src/features/profiles/api.ts`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Upload org logo + profile photo and confirm uploads succeed without Blob errors or ImagePicker deprecation warnings.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Remove org logo border radius
+- **Summary:**
+  - Made the organization logo render as a square (no rounded corners) across the drawer header, Settings, and onboarding preview.
+- **Files changed:**
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Open the drawer and Settings and confirm the org logo has sharp corners.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix nested screen name warning
+- **Summary:**
+  - Renamed stack screen route names so drawer routes don't nest screens with the same name (removes `Home, Home > Home` warning; also prevents the same issue for Settings/Assessments).
+- **Files changed:**
+  - `src/navigation/HomeStackNavigator.tsx`
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/navigation/SettingsStackNavigator.tsx`
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Start the app and confirm the terminal no longer warns about nested screens with the same name.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Switch app font to Poppins
+- **Summary:**
+  - Added Poppins via Expo Google Fonts and block app render until fonts are loaded.
+  - Updated `AppText` and `AppInput` primitives to use Poppins weights (regular/medium/semibold) without relying on `fontWeight`.
+- **Files changed:**
+  - `App.tsx`
+  - `src/theme/fonts.ts`
+  - `src/components/AppText.tsx`
+  - `src/components/AppInput.tsx`
+  - `src/theme/theme.ts`
+  - `package.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Install deps: `npx expo install @expo-google-fonts/poppins expo-font`
+  - Start: `npx expo start -c`
+  - Confirm text + inputs render in Poppins across Home/Lessons/Students/Settings.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Poppins imports for Expo Google Fonts
+- **Summary:**
+  - Fixed `App.tsx` to import Poppins weights from `@expo-google-fonts/poppins` (the installed package exports fonts from its root, not `.../400Regular` subpaths).
+- **Files changed:**
+  - `App.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Run `npx expo start -c` and confirm Metro no longer reports `Unable to resolve "@expo-google-fonts/poppins/400Regular"`.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Fix Lessons screen layout (no forced scrolling)
 - **Summary:**
   - Added `AppButton` `width` prop to support `auto` sizing in horizontal rows while preserving full-width by default.

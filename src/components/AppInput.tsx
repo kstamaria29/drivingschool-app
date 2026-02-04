@@ -1,5 +1,6 @@
 import { TextInput, View, type TextInputProps } from "react-native";
 
+import { fonts } from "../theme/fonts";
 import { theme } from "../theme/theme";
 import { cn } from "../utils/cn";
 
@@ -17,6 +18,7 @@ export function AppInput({
   error,
   containerClassName,
   inputClassName,
+  style,
   ...props
 }: Props) {
   return (
@@ -25,6 +27,7 @@ export function AppInput({
       <TextInput
         className={cn(theme.input.base, error && theme.input.error, inputClassName)}
         placeholderTextColor={theme.colors.placeholder}
+        style={[{ fontFamily: fonts.regular }, style]}
         {...props}
       />
       {error ? (

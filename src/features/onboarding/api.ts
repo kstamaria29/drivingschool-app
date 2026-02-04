@@ -1,6 +1,7 @@
 import type { ImagePickerAsset } from "expo-image-picker";
 
 import { supabase } from "../../supabase/client";
+import { base64ToUint8Array } from "../../utils/base64";
 
 export type CompleteOnboardingInput = {
   userId: string;
@@ -41,12 +42,13 @@ export async function completeOnboarding(input: CompleteOnboardingInput) {
     const contentType = guessContentType(input.logoAsset);
     const objectPath = `${organizationId}/logo.${extension}`;
 
-    const response = await fetch(input.logoAsset.uri);
-    const blob = await response.blob();
+    if (!input.logoAsset.base64) {
+      throw new Error("Logo upload failed. Please choose the image again.");
+    }
 
     const { error: uploadError } = await supabase.storage
       .from("org-logos")
-      .upload(objectPath, blob, { contentType, upsert: true });
+      .upload(objectPath, base64ToUint8Array(input.logoAsset.base64), { contentType, upsert: true });
 
     if (uploadError) throw uploadError;
 

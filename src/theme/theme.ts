@@ -10,13 +10,13 @@ export const theme = {
   text: {
     base: "text-foreground",
     variant: {
-      title: "text-3xl font-semibold",
-      heading: "text-xl font-semibold",
+      title: "text-3xl",
+      heading: "text-xl",
       body: "text-base",
       caption: "text-sm text-muted",
-      label: "text-sm font-medium",
+      label: "text-sm",
       error: "text-sm text-danger",
-      button: "text-base font-semibold",
+      button: "text-base",
     },
   },
   button: {

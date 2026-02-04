@@ -18,13 +18,19 @@ Out of scope in this repo task: assessments, Google Calendar sync.
    - `supabase/migrations/002_fix_profiles_rls.sql`
    - `supabase/migrations/003_students.sql`
    - `supabase/migrations/004_lessons.sql`
+   - `supabase/migrations/005_profile_avatars.sql`
 3. Create the Storage bucket:
    - Go to `Storage` -> `New bucket`
    - Name: `org-logos`
    - Keep it `private`
-4. In `SQL Editor`, run the storage policies:
+4. Create the Storage bucket:
+   - Go to `Storage` -> `New bucket`
+   - Name: `avatars`
+   - Keep it `private`
+5. In `SQL Editor`, run the storage policies:
    - `supabase/storage/org-logos.sql`
-5. Get your API keys:
+   - `supabase/storage/avatars.sql`
+6. Get your API keys:
    - Go to `Project Settings` -> `API`
    - Copy the `Project URL`
    - Copy the `anon` key
@@ -51,7 +57,7 @@ Then press `a` for Android (or scan the QR code with Expo Go).
 ## 5) What's implemented
 
 - NativeWind styling + shared UI primitives (`src/components/*`)
-- React Navigation `AuthStack` + `MainTabs` with an auth gate (`src/navigation/RootNavigation.tsx`)
+- React Navigation `AuthStack` + responsive sidebar/drawer navigation with an auth gate (`src/navigation/RootNavigation.tsx`)
 - Supabase client for Expo/React Native (`src/supabase/client.ts`)
 - Email/password auth (sign in + sign up)
 - Onboarding for first-time users (creates `organizations`, `profiles`, `organization_settings`, optional logo upload to `org-logos/<org_id>/logo.<ext>`)

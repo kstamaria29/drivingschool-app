@@ -46,6 +46,8 @@ export function OnboardingCreateOrgScreen(_props: Props) {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: true,
+      aspect: [1, 1],
+      base64: true,
       quality: 1,
     });
 
@@ -109,7 +111,7 @@ export function OnboardingCreateOrgScreen(_props: Props) {
             {logoAsset ? (
               <AppImage
                 source={{ uri: logoAsset.uri }}
-                className="h-24 w-24 rounded-2xl bg-border"
+                className="h-24 w-24 bg-border"
               />
             ) : (
               <AppText variant="caption">No logo selected.</AppText>
@@ -129,4 +131,3 @@ export function OnboardingCreateOrgScreen(_props: Props) {
     </Screen>
   );
 }
-

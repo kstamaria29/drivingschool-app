@@ -40,6 +40,7 @@ export type Database = {
           organization_id: string;
           role: "owner" | "instructor";
           display_name: string;
+          avatar_url: string | null;
           created_at: string;
         };
         Insert: {
@@ -47,12 +48,14 @@ export type Database = {
           organization_id: string;
           role: "owner" | "instructor";
           display_name: string;
+          avatar_url?: string | null;
           created_at?: string;
         };
         Update: {
           organization_id?: string;
           role?: "owner" | "instructor";
           display_name?: string;
+          avatar_url?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -187,6 +190,12 @@ export type Database = {
           owner_display_name: string;
         };
         Returns: string;
+      };
+      set_my_avatar_url: {
+        Args: {
+          new_avatar_url: string;
+        };
+        Returns: null;
       };
       [key: string]: {
         Args: Record<string, unknown> | never;
