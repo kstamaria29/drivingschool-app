@@ -17,7 +17,7 @@ type Input = {
     weather: string;
     date: string;
     instructor: string;
-    scores: Record<string, Record<string, string>>;
+    scores: Record<string, Record<string, string> | string[]>;
     strengths: string;
     improvements: string;
     recommendation: string;
@@ -44,7 +44,11 @@ function buildCriteriaHtml(criteria: Record<string, readonly string[]>, scores: 
       const categoryTitle = categoryKey.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase());
       const rows = items
         .map((label, index) => {
-          const score = scores?.[categoryKey]?.[String(index)] ?? "";
+          const categoryScores = scores?.[categoryKey];
+          const score =
+            (Array.isArray(categoryScores)
+              ? categoryScores[index]
+              : categoryScores?.[String(index)]) ?? "";
           return `<tr><td class="criterion">${escapeHtml(label)}</td><td class="score">${escapeHtml(score || "N/A")}</td></tr>`;
         })
         .join("");

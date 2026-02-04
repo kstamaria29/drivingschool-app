@@ -73,6 +73,47 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Driving Assessment submit UX
+- **Summary:**
+  - Made score calculation update live as criteria are scored.
+  - Replaced the two non-responsive save buttons with a single “Submit and generate PDF” button.
+  - Added validation feedback + a confirmation prompt before saving/exporting.
+- **Files changed:**
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open a Driving Assessment, press submit with no student selected and confirm an error prompt appears.
+  - Select a student, tap scores, confirm the total/summary updates immediately.
+  - Press “Submit and generate PDF” and confirm the confirmation dialog appears and the PDF share sheet opens after submitting.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Driving Assessment validation for scores
+- **Summary:**
+  - Fixed form validation so scored criteria no longer fails submit due to array-shaped `scores` values.
+  - Improved invalid-submit alerts to use the actual validation errors from React Hook Form.
+- **Files changed:**
+  - `src/features/assessments/driving-assessment/schema.ts`
+  - `src/features/assessments/driving-assessment/scoring.ts`
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Fill the Driving Assessment scores and tap `Submit and generate PDF` → confirmation dialog should appear.
+  - If you intentionally enter an invalid date/email, the validation alert should show the specific field error.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Add split view for tablet landscape Lessons
 - **Summary:**
   - Updated Lessons screen to use a two-column layout in tablet landscape: calendar on the left, agenda on the right.
@@ -192,6 +233,23 @@
   - Tap `Save & export PDF` and confirm the share sheet appears with a generated PDF.
 - **Notes/TODO:**
   - `2nd Assessment` and `3rd Assessment` are placeholders only.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Update AGENTS.md for Assessments scope
+- **Summary:**
+  - Updated v1 spec to include Assessments (Driving Assessment implemented; other assessment types remain placeholders).
+  - Updated schema/navigation/forms sections to reflect the new Assessments stack and `assessments` table.
+- **Files changed:**
+  - `AGENTS.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Open `AGENTS.md` and confirm Assessments is listed in v1 goals, navigation, schema, and build order.
+- **Notes/TODO:**
+  - None.
 
 ---
 

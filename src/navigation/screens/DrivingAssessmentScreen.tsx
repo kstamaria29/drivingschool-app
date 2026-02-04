@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch, type FieldErrors } from "react-hook-form";
 import { ActivityIndicator, Alert, View } from "react-native";
 
 import { AppButton } from "../../components/AppButton";
@@ -133,6 +133,8 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
     },
   });
 
+  const watchedScores = useWatch({ control: form.control, name: "scores" });
+
   const selectedStudent = useMemo(() => {
     const students = studentsQuery.data ?? [];
     if (!selectedStudentId) return null;
@@ -163,9 +165,8 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
   }, [studentSearch, studentsQuery.data]);
 
   const scoreResult = useMemo(() => {
-    const scores = form.getValues("scores");
-    return calculateDrivingAssessmentScore(scores);
-  }, [form.watch("scores")]);
+    return calculateDrivingAssessmentScore(watchedScores);
+  }, [watchedScores]);
 
   const feedbackSummary = useMemo(() => {
     if (scoreResult.percentAnswered == null) return "";
@@ -174,35 +175,35 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
 
   const saving = createAssessment.isPending;
 
-  async function onSubmit(values: DrivingAssessmentFormValues, { exportPdf }: { exportPdf: boolean }) {
+  async function submitAndGeneratePdf(values: DrivingAssessmentFormValues) {
     if (!selectedStudent) {
       Alert.alert("Select a student", "Please select a student first.");
       return;
     }
 
-    const score = calculateDrivingAssessmentScore(values.scores);
+    try {
+      const score = calculateDrivingAssessmentScore(values.scores);
 
-    const assessment = await createAssessment.mutateAsync({
-      organization_id: profile.organization_id,
-      student_id: selectedStudent.id,
-      instructor_id: selectedStudent.assigned_instructor_id,
-      assessment_type: "driving_assessment",
-      assessment_date: values.date,
-      total_score: score.percentAnswered,
-      form_data: {
-        ...values,
-        totalScoreRaw: score.totalRaw,
-        totalScorePercentAnswered: score.percentAnswered,
-        totalScorePercentOverall: score.percentOverall,
-        scoredCount: score.scoredCount,
-        totalCriteriaCount: score.totalCriteriaCount,
-        maxRaw: score.maxRaw,
-        feedbackSummary,
-        savedByUserId: userId,
-      },
-    });
+      const assessment = await createAssessment.mutateAsync({
+        organization_id: profile.organization_id,
+        student_id: selectedStudent.id,
+        instructor_id: selectedStudent.assigned_instructor_id,
+        assessment_type: "driving_assessment",
+        assessment_date: values.date,
+        total_score: score.percentAnswered,
+        form_data: {
+          ...values,
+          totalScoreRaw: score.totalRaw,
+          totalScorePercentAnswered: score.percentAnswered,
+          totalScorePercentOverall: score.percentOverall,
+          scoredCount: score.scoredCount,
+          totalCriteriaCount: score.totalCriteriaCount,
+          maxRaw: score.maxRaw,
+          feedbackSummary,
+          savedByUserId: userId,
+        },
+      });
 
-    if (exportPdf) {
       try {
         await exportDrivingAssessmentPdf({
           assessmentId: assessment.id,
@@ -214,13 +215,29 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
             feedbackSummary,
           },
         });
-      } catch (error) {
-        Alert.alert("PDF export unavailable", toErrorMessage(error));
-      }
-    }
 
-    Alert.alert("Saved", "Driving Assessment saved successfully.");
-    navigation.goBack();
+        Alert.alert("Submitted", "Assessment saved and PDF ready to share.");
+        navigation.goBack();
+      } catch (error) {
+        Alert.alert(
+          "Saved, but couldn't generate the PDF",
+          `The assessment was saved successfully.\n\n${toErrorMessage(error)}`,
+        );
+      }
+    } catch (error) {
+      Alert.alert("Couldn't submit assessment", toErrorMessage(error));
+    }
+  }
+
+  function onInvalidSubmit(errors: FieldErrors<DrivingAssessmentFormValues>) {
+    const message =
+      errors.studentId?.message ||
+      errors.date?.message ||
+      errors.email?.message ||
+      errors.issueDate?.message ||
+      errors.expiryDate?.message ||
+      "Please check the form and try again.";
+    Alert.alert("Check the form", message);
   }
 
   return (
@@ -254,6 +271,10 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
             </AppStack>
           ) : (
             <>
+              {form.formState.errors.studentId?.message ? (
+                <AppText variant="error">{form.formState.errors.studentId.message}</AppText>
+              ) : null}
+
               <AppInput
                 label="Search"
                 autoCapitalize="none"
@@ -495,15 +516,21 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
         ) : null}
 
         <AppButton
-          label={saving ? "Saving..." : "Save assessment"}
+          label={saving ? "Submitting..." : "Submit and generate PDF"}
           disabled={saving}
-          onPress={form.handleSubmit((values) => onSubmit(values, { exportPdf: false }))}
-        />
-        <AppButton
-          label={saving ? "Saving..." : "Save & export PDF"}
-          disabled={saving}
-          variant="secondary"
-          onPress={form.handleSubmit((values) => onSubmit(values, { exportPdf: true }))}
+          onPress={form.handleSubmit(
+            (values) => {
+              Alert.alert(
+                "Submit assessment?",
+                "This will save the assessment and open your device share sheet to export the PDF.",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  { text: "Submit", onPress: () => void submitAndGeneratePdf(values) },
+                ],
+              );
+            },
+            (errors) => onInvalidSubmit(errors),
+          )}
         />
 
         <AppButton label="Cancel" variant="ghost" onPress={() => navigation.goBack()} />
@@ -511,4 +538,3 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
     </Screen>
   );
 }
-

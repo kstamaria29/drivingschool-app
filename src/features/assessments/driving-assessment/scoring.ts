@@ -11,7 +11,9 @@ export type DrivingAssessmentScoreResult = {
 };
 
 export function calculateDrivingAssessmentScore(
-  scores: Record<string, Record<string, string>> | undefined,
+  scores:
+    | Record<string, Record<string, string> | string[]>
+    | undefined,
 ): DrivingAssessmentScoreResult {
   let totalRaw = 0;
   let scoredCount = 0;
@@ -22,7 +24,11 @@ export function calculateDrivingAssessmentScore(
   for (const category of Object.keys(drivingAssessmentCriteria) as DrivingAssessmentCategoryKey[]) {
     const criteria = drivingAssessmentCriteria[category];
     for (let index = 0; index < criteria.length; index++) {
-      const rawValue = scores?.[category]?.[String(index)] ?? "";
+      const categoryScores = scores?.[category];
+      const rawValue =
+        (Array.isArray(categoryScores)
+          ? categoryScores[index]
+          : categoryScores?.[String(index)]) ?? "";
       const parsed = Number.parseInt(rawValue, 10);
       if (!Number.isFinite(parsed)) continue;
       if (parsed < 1 || parsed > 5) continue;
@@ -53,4 +59,3 @@ export function generateDrivingAssessmentFeedbackSummary(scorePercent: number) {
 
   return "Significant Support Needed: A foundational skill set that needs further development.";
 }
-

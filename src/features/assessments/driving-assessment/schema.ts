@@ -38,7 +38,10 @@ export const drivingAssessmentFormSchema = z.object({
   date: dateString,
   instructor: z.string().trim(),
 
-  scores: z.record(z.string(), z.record(z.string(), z.string().trim())),
+  scores: z.record(
+    z.string(),
+    z.union([z.record(z.string(), z.string().trim()), z.array(z.string().trim())]),
+  ),
 
   strengths: z.string().trim(),
   improvements: z.string().trim(),
@@ -47,4 +50,3 @@ export const drivingAssessmentFormSchema = z.object({
 });
 
 export type DrivingAssessmentFormValues = z.infer<typeof drivingAssessmentFormSchema>;
-
