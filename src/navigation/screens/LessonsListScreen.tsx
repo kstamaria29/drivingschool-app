@@ -1,7 +1,7 @@
 import dayjs, { type Dayjs } from "dayjs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 
 import { AppBadge } from "../../components/AppBadge";
 import { AppButton } from "../../components/AppButton";
@@ -49,11 +49,6 @@ export function LessonsListScreen({ navigation }: Props) {
   const lessonsQuery = useLessonsQuery({ fromISO, toISO });
   const isInstructor = profileQuery.data?.role === "instructor";
 
-  function onNewStudentPress() {
-    const parent = navigation.getParent();
-    (parent as any)?.navigate("Students", { screen: "StudentCreate" });
-  }
-
   const { lessonCountByDateISO, lessonsForSelectedDay } = useMemo(() => {
     const counts: Record<string, number> = {};
     const selectedISO = selectedDate.format("YYYY-MM-DD");
@@ -97,14 +92,20 @@ export function LessonsListScreen({ navigation }: Props) {
     setMonth(today.startOf("month"));
   }
 
+  function onNewStudentPress() {
+    const parent = navigation.getParent();
+    (parent as any)?.navigate("Students", { screen: "StudentCreate" });
+  }
+
   return (
-    <Screen scroll>
-      <AppStack gap="lg">
+    <Screen>
+      <AppStack gap="lg" className="flex-1">
         <View className="flex-row items-center justify-between gap-2">
           <AppButton
             label="Prev"
             variant="secondary"
-            className="w-auto px-4"
+            width="auto"
+            className="px-4"
             onPress={onPrevMonth}
           />
           <View className="flex-1 items-center">
@@ -116,111 +117,118 @@ export function LessonsListScreen({ navigation }: Props) {
           <AppButton
             label="Next"
             variant="secondary"
-            className="w-auto px-4"
+            width="auto"
+            className="px-4"
             onPress={onNextMonth}
           />
         </View>
 
         <View className="flex-row gap-2">
-          <AppButton label="Today" variant="secondary" className="flex-1 w-auto" onPress={onToday} />
+          <AppButton
+            label="Today"
+            variant="secondary"
+            width="auto"
+            className="flex-1"
+            onPress={onToday}
+          />
           <AppButton
             label="+ New lesson"
-            className="flex-1 w-auto"
+            width="auto"
+            className="flex-1"
             onPress={() =>
               navigation.navigate("LessonCreate", { initialDate: selectedDate.format("YYYY-MM-DD") })
             }
           />
           <AppButton
             label="+ New student"
-            className="flex-1 w-auto"
             variant="secondary"
+            width="auto"
+            className="flex-1"
             onPress={onNewStudentPress}
           />
         </View>
 
-        {lessonsQuery.isPending ? (
-          <View className={cn("items-center justify-center py-10", theme.text.base)}>
-            <ActivityIndicator />
-            <AppText className="mt-3 text-center" variant="body">
-              Loading lessons...
+        <CalendarMonth
+          month={month}
+          selectedDate={selectedDate}
+          onSelectDate={(date) => {
+            const next = date.startOf("day");
+            setSelectedDate(next);
+            if (!next.isSame(month, "month")) {
+              setMonth(next.startOf("month"));
+            }
+          }}
+          lessonCountByDateISO={lessonCountByDateISO}
+        />
+
+        <View className="flex-1">
+          <View className="mb-3">
+            <AppText variant="heading">Lessons</AppText>
+            <AppText className="mt-1" variant="caption">
+              {lessonsForSelectedDay.length} lesson{lessonsForSelectedDay.length === 1 ? "" : "s"}
             </AppText>
           </View>
-        ) : lessonsQuery.isError ? (
-          <AppStack gap="md">
-            <AppCard className="gap-2">
-              <AppText variant="heading">Couldn't load lessons</AppText>
-              <AppText variant="body">{toErrorMessage(lessonsQuery.error)}</AppText>
-            </AppCard>
-            <AppButton label="Retry" onPress={() => lessonsQuery.refetch()} />
-          </AppStack>
-        ) : (
-          <>
-            <CalendarMonth
-              month={month}
-              selectedDate={selectedDate}
-              onSelectDate={(date) => {
-                const next = date.startOf("day");
-                setSelectedDate(next);
-                if (!next.isSame(month, "month")) {
-                  setMonth(next.startOf("month"));
-                }
-              }}
-              lessonCountByDateISO={lessonCountByDateISO}
-            />
 
-            <View>
-              <AppText variant="heading">Lessons</AppText>
-              <AppText className="mt-1" variant="caption">
-                {lessonsForSelectedDay.length} lesson{lessonsForSelectedDay.length === 1 ? "" : "s"}
+          {lessonsQuery.isPending ? (
+            <View className={cn("flex-1 items-center justify-center", theme.text.base)}>
+              <ActivityIndicator />
+              <AppText className="mt-3 text-center" variant="body">
+                Loading lessons...
               </AppText>
             </View>
-
-            {lessonsForSelectedDay.length === 0 ? (
+          ) : lessonsQuery.isError ? (
+            <AppStack gap="md">
               <AppCard className="gap-2">
-                <AppText variant="heading">No lessons</AppText>
-                <AppText variant="body">
-                  {isInstructor
-                    ? "You may not be assigned any lessons yet."
-                    : "Create a lesson to plan your day."}
-                </AppText>
+                <AppText variant="heading">Couldn't load lessons</AppText>
+                <AppText variant="body">{toErrorMessage(lessonsQuery.error)}</AppText>
               </AppCard>
-            ) : (
-              <AppStack gap="md">
-                {lessonsForSelectedDay.map((lesson) => {
-                  const start = dayjs(lesson.start_time);
-                  const end = dayjs(lesson.end_time);
-                  const studentName = lesson.students
-                    ? `${lesson.students.first_name} ${lesson.students.last_name}`
-                    : "Student";
+              <AppButton label="Retry" onPress={() => lessonsQuery.refetch()} />
+            </AppStack>
+          ) : lessonsForSelectedDay.length === 0 ? (
+            <AppCard className="gap-2">
+              <AppText variant="heading">No lessons</AppText>
+              <AppText variant="body">
+                {isInstructor
+                  ? "You may not be assigned any lessons yet."
+                  : "Create a lesson to plan your day."}
+              </AppText>
+            </AppCard>
+          ) : (
+            <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="gap-3 pb-6">
+              {lessonsForSelectedDay.map((lesson) => {
+                const start = dayjs(lesson.start_time);
+                const end = dayjs(lesson.end_time);
+                const studentName = lesson.students
+                  ? `${lesson.students.first_name} ${lesson.students.last_name}`
+                  : "Student";
 
-                  return (
-                    <Pressable
-                      key={lesson.id}
-                      onPress={() => navigation.navigate("LessonEdit", { lessonId: lesson.id })}
-                    >
-                      <AppCard className="gap-2">
-                        <View className="flex-row items-start justify-between gap-3">
-                          <View className="flex-1">
-                            <AppText variant="heading">{studentName}</AppText>
+                return (
+                  <Pressable
+                    key={lesson.id}
+                    onPress={() => navigation.navigate("LessonEdit", { lessonId: lesson.id })}
+                  >
+                    <AppCard className="gap-2">
+                      <View className="flex-row items-start justify-between gap-3">
+                        <View className="flex-1">
+                          <AppText variant="heading">{studentName}</AppText>
+                          <AppText className="mt-1" variant="caption">
+                            {start.format("h:mm A")} – {end.format("h:mm A")}
+                          </AppText>
+                          {lesson.location ? (
                             <AppText className="mt-1" variant="caption">
-                              {start.format("h:mm A")} – {end.format("h:mm A")}
+                              {lesson.location}
                             </AppText>
-                            {lesson.location ? (
-                              <AppText className="mt-1" variant="caption">
-                                {lesson.location}
-                              </AppText>
-                            ) : null}
-                          </View>
-                          <AppBadge variant={lesson.status} label={statusLabel(lesson.status)} />
+                          ) : null}
                         </View>
-                      </AppCard>
-                    </Pressable>
-                  );
-                })}
-              </AppStack>
-            )}
-          </>
-        )}
+                        <AppBadge variant={lesson.status} label={statusLabel(lesson.status)} />
+                      </View>
+                    </AppCard>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          )}
+        </View>
       </AppStack>
     </Screen>
   );

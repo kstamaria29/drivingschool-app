@@ -327,19 +327,22 @@ export function StudentEditScreen({ navigation, route }: Props) {
                 <View className="flex-row gap-2">
                   <AppButton
                     label="Learner"
-                    className="flex-1 w-auto"
+                    width="auto"
+                    className="flex-1"
                     variant={field.value === "learner" ? "primary" : "secondary"}
                     onPress={() => field.onChange("learner")}
                   />
                   <AppButton
                     label="Restricted"
-                    className="flex-1 w-auto"
+                    width="auto"
+                    className="flex-1"
                     variant={field.value === "restricted" ? "primary" : "secondary"}
                     onPress={() => field.onChange("restricted")}
                   />
                   <AppButton
                     label="Full"
-                    className="flex-1 w-auto"
+                    width="auto"
+                    className="flex-1"
                     variant={field.value === "full" ? "primary" : "secondary"}
                     onPress={() => field.onChange("full")}
                   />

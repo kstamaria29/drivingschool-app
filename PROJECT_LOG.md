@@ -1,4 +1,4 @@
-# PROJECT_LOG.md
+﻿# PROJECT_LOG.md
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Initialize repo documentation
@@ -58,10 +58,31 @@
 - **Task:** Make calendar the main Lessons screen
 - **Summary:**
   - Embedded the month calendar directly into `LessonsListScreen` and removed the Today/This Week toggle and separate calendar screen.
-  - Lessons now default to showing today’s agenda under the calendar, with day selection driving the list.
+  - Lessons now default to showing today's agenda under the calendar, with day selection driving the list.
 - **Files changed:**
   - `src/navigation/LessonsStackNavigator.tsx`
   - `src/navigation/screens/LessonsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - TypeScript compile check via `npx tsc --noEmit` (local).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Lessons screen layout (no forced scrolling)
+- **Summary:**
+  - Added `AppButton` `width` prop to support `auto` sizing in horizontal rows while preserving full-width by default.
+  - Refactored `LessonsListScreen` to keep the calendar visible and make only the agenda list scrollable.
+  - Updated row button usage across Lessons/Students screens to avoid overflow and pushed-down content.
+- **Files changed:**
+  - `src/theme/theme.ts`
+  - `src/components/AppButton.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
   - `PROJECT_LOG.md`
 - **Commands run:**
   - `npx tsc --noEmit`
@@ -113,7 +134,7 @@
 - **Task:** Implement Lessons scheduling (v1: Today/Week + create/edit)
 - **Summary:**
   - Added `lessons` table migration with constraints, indexes, updated_at trigger, and RLS policies (owner: org-wide; instructor: own lessons only).
-  - Enforced lesson integrity in RLS: lesson instructor must be in org and match the student’s assigned instructor.
+  - Enforced lesson integrity in RLS: lesson instructor must be in org and match the student's assigned instructor.
   - Implemented typed Lessons data layer (`features/lessons/api.ts` + `features/lessons/queries.ts`) and Zod form schema using Day.js for time calculations.
   - Added `LessonsStack` navigation with `LessonsListScreen` (Today/This Week) and `LessonEditScreen` (create/edit).
   - Added `AppBadge` primitive for lesson status chips and wired Lessons stack into MainTabs.

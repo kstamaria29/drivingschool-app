@@ -7,17 +7,20 @@ import { AppText } from "./AppText";
 
 type AppButtonVariant = "primary" | "secondary" | "ghost";
 type AppButtonSize = "md" | "lg";
+type AppButtonWidth = "full" | "auto";
 
 type Props = Omit<PressableProps, "children"> & {
   label: string;
   variant?: AppButtonVariant;
   size?: AppButtonSize;
+  width?: AppButtonWidth;
 };
 
 export function AppButton({
   label,
   variant = "primary",
   size = "md",
+  width = "full",
   className,
   disabled,
   ...props
@@ -27,6 +30,7 @@ export function AppButton({
       accessibilityRole="button"
       disabled={disabled}
       className={cn(
+        width === "full" && "w-full",
         theme.button.base,
         theme.button.variant[variant],
         theme.button.size[size],

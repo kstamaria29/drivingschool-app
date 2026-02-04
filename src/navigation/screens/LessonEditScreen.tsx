@@ -383,19 +383,22 @@ export function LessonEditScreen({ navigation, route }: Props) {
               <View className="flex-row gap-2">
                 <AppButton
                   label="Scheduled"
-                  className="flex-1 w-auto"
+                  width="auto"
+                  className="flex-1"
                   variant={field.value === "scheduled" ? "primary" : "secondary"}
                   onPress={() => field.onChange("scheduled")}
                 />
                 <AppButton
                   label="Completed"
-                  className="flex-1 w-auto"
+                  width="auto"
+                  className="flex-1"
                   variant={field.value === "completed" ? "primary" : "secondary"}
                   onPress={() => field.onChange("completed")}
                 />
                 <AppButton
                   label="Cancelled"
-                  className="flex-1 w-auto"
+                  width="auto"
+                  className="flex-1"
                   variant={field.value === "cancelled" ? "primary" : "secondary"}
                   onPress={() => field.onChange("cancelled")}
                 />
