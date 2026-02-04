@@ -20,7 +20,7 @@ export const theme = {
     },
   },
   button: {
-    base: "w-full items-center justify-center rounded-xl border",
+    base: "items-center justify-center rounded-xl border",
     disabled: "opacity-60",
     size: {
       md: "h-12 px-4",
@@ -47,4 +47,3 @@ export const theme = {
     base: "rounded-2xl border border-border bg-card p-4",
   },
 } as const;
-

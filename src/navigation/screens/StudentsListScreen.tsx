@@ -33,13 +33,15 @@ export function StudentsListScreen({ navigation }: Props) {
         <View className="flex-row gap-2">
           <AppButton
             label="Active"
-            className="flex-1 w-auto"
+            width="auto"
+            className="flex-1"
             variant={!archived ? "primary" : "secondary"}
             onPress={() => setArchived(false)}
           />
           <AppButton
             label="Archived"
-            className="flex-1 w-auto"
+            width="auto"
+            className="flex-1"
             variant={archived ? "primary" : "secondary"}
             onPress={() => setArchived(true)}
           />
@@ -93,4 +95,3 @@ export function StudentsListScreen({ navigation }: Props) {
     </Screen>
   );
 }
-

@@ -1,4 +1,4 @@
-# PROJECT_LOG.md
+﻿# PROJECT_LOG.md
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Initialize repo documentation
@@ -51,6 +51,132 @@
   - `npx tsc --noEmit`
 - **Verification:**
   - TypeScript compile check via `npx tsc --noEmit` (local).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Make Lessons screen fully scrollable on phone
+- **Summary:**
+  - Switched to a single outer scroll container on phone-sized screens so the entire Lessons screen (header + calendar + agenda) scrolls together.
+  - Kept tablet behavior: calendar stays visible while only the agenda area scrolls.
+- **Files changed:**
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - On a phone device/simulator, swipe up anywhere on the Lessons screen and confirm the whole screen scrolls.
+  - On a tablet device/simulator, confirm the calendar stays fixed and only the lesson list scrolls.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add split view for tablet landscape Lessons
+- **Summary:**
+  - Updated Lessons screen to use a two-column layout in tablet landscape: calendar on the left, agenda on the right.
+  - Kept existing behavior on tablet portrait (calendar above agenda) and phones (single-page scroll).
+- **Files changed:**
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - On a tablet in landscape, confirm calendar renders on the left and lesson list on the right with the list scrollable.
+  - Rotate back to portrait and confirm the layout matches the previous (calendar above, agenda below).
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix LessonEditScreen hook order crash
+- **Summary:**
+  - Fixed React hook-order runtime error when opening an existing lesson by ensuring all hooks run before any early returns.
+  - Moved the `useMemo` for `studentOptions` above the loading/error return paths.
+- **Files changed:**
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - From Lessons, tap an existing lesson; confirm no "Rendered more hooks" error and the edit form loads.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Lessons screen scrolling on phone
+- **Summary:**
+  - Fixed the Lessons screen empty/error states being clipped on small screens by making the agenda area scrollable in all states.
+  - Made the agenda `ScrollView` fill remaining height (`flex-1`) so it can actually scroll when the calendar leaves limited space on phones.
+  - Added extra bottom padding to agenda scroll content so the last card isn't cut off.
+- **Files changed:**
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - On a phone-sized simulator/device, open Lessons with 0 lessons and confirm you can scroll to fully see the "No lessons" card.
+  - Confirm the lessons list also scrolls normally when lessons exist.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix calendar week layout (7 days)
+- **Summary:**
+  - Fixed month calendar grid wrapping so weeks always render 7 columns (Mon–Sun) instead of occasionally wrapping at 6.
+  - Rendered the calendar as 6 explicit week rows (7 cells each) to avoid flex-wrap rounding issues.
+- **Files changed:**
+  - `src/components/CalendarMonth.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open Lessons tab and confirm each week row shows 7 days (Mon–Sun) with correct alignment (e.g. Feb 2026 should start on Sun).
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Make calendar the main Lessons screen
+- **Summary:**
+  - Embedded the month calendar directly into `LessonsListScreen` and removed the Today/This Week toggle and separate calendar screen.
+  - Lessons now default to showing today's agenda under the calendar, with day selection driving the list.
+- **Files changed:**
+  - `src/navigation/LessonsStackNavigator.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - TypeScript compile check via `npx tsc --noEmit` (local).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Lessons screen layout (no forced scrolling)
+- **Summary:**
+  - Added `AppButton` `width` prop to support `auto` sizing in horizontal rows while preserving full-width by default.
+  - Refactored `LessonsListScreen` to keep the calendar visible and make only the agenda list scrollable.
+  - Updated row button usage across Lessons/Students screens to avoid overflow and pushed-down content.
+- **Files changed:**
+  - `src/theme/theme.ts`
+  - `src/components/AppButton.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - TypeScript compile check via `npx tsc --noEmit` (local).
   - Manual run verified up to login/onboarding flow; Supabase RLS recursion fixed via follow-up migration.
 - **Notes/TODO:**
   - Students and Lessons features are intentionally not implemented yet (per v1 build order).
@@ -90,3 +216,55 @@
   - TypeScript compile check via `npx tsc --noEmit` (local).
 - **Notes/TODO:**
   - Next: implement Lessons scheduling (Today view + edit) per v1.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Implement Lessons scheduling (v1: Today/Week + create/edit)
+- **Summary:**
+  - Added `lessons` table migration with constraints, indexes, updated_at trigger, and RLS policies (owner: org-wide; instructor: own lessons only).
+  - Enforced lesson integrity in RLS: lesson instructor must be in org and match the student's assigned instructor.
+  - Implemented typed Lessons data layer (`features/lessons/api.ts` + `features/lessons/queries.ts`) and Zod form schema using Day.js for time calculations.
+  - Added `LessonsStack` navigation with `LessonsListScreen` (Today/This Week) and `LessonEditScreen` (create/edit).
+  - Added `AppBadge` primitive for lesson status chips and wired Lessons stack into MainTabs.
+  - Updated README to include `004_lessons.sql` migration and mark Lessons as implemented.
+- **Files changed:**
+  - `supabase/migrations/004_lessons.sql`
+  - `src/supabase/types.ts`
+  - `src/features/lessons/api.ts`
+  - `src/features/lessons/queries.ts`
+  - `src/features/lessons/schemas.ts`
+  - `src/components/AppBadge.tsx`
+  - `src/navigation/LessonsStackNavigator.tsx`
+  - `src/navigation/MainTabsNavigator.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `README.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - TypeScript compile check via `npx tsc --noEmit` (local).
+- **Notes/TODO:**
+  - Next: polish lesson time input UX (date/time pickers) if needed, without adding heavy deps.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add calendar view for Lessons
+- **Summary:**
+  - Added an in-app month calendar screen for Lessons with per-day lesson counts and an agenda list for the selected day.
+  - Added navigation entry points from `LessonsListScreen` and the calendar screen to create a lesson on the selected date.
+  - Fixed mojibake in Lessons time/date separators by normalizing the en-dash character.
+- **Files changed:**
+  - `src/components/CalendarMonth.tsx`
+  - `src/navigation/LessonsStackNavigator.tsx`
+  - `src/navigation/screens/LessonsCalendarScreen.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `README.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - TypeScript compile check via `npx tsc --noEmit` (local).
