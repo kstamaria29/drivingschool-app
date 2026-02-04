@@ -13,6 +13,7 @@ import {
 } from "../../features/students/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
+import { formatIsoDateToDisplay } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
 
 import type { StudentsStackParamList } from "../StudentsStackNavigator";
@@ -28,7 +29,6 @@ export function StudentDetailScreen({ navigation, route }: Props) {
 
   const student = query.data ?? null;
   const isArchived = Boolean(student?.archived_at);
-  const parent = navigation.getParent();
 
   function onArchivePress() {
     if (!student) return;
@@ -97,8 +97,12 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                 <AppText variant="body">Number: {student.license_number ?? "—"}</AppText>
                 <AppText variant="body">Version: {student.license_version ?? "—"}</AppText>
                 <AppText variant="body">Class held: {student.class_held ?? "—"}</AppText>
-                <AppText variant="body">Issue date: {student.issue_date ?? "—"}</AppText>
-                <AppText variant="body">Expiry date: {student.expiry_date ?? "—"}</AppText>
+                <AppText variant="body">
+                  Issue date: {student.issue_date ? formatIsoDateToDisplay(student.issue_date) : "—"}
+                </AppText>
+                <AppText variant="body">
+                  Expiry date: {student.expiry_date ? formatIsoDateToDisplay(student.expiry_date) : "—"}
+                </AppText>
               </AppStack>
 
               <AppStack gap="sm">
@@ -112,16 +116,6 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                 label="Edit"
                 variant="secondary"
                 onPress={() => navigation.navigate("StudentEdit", { studentId: student.id })}
-              />
-
-              <AppButton
-                label="New Driving Assessment"
-                onPress={() =>
-                  parent?.navigate("Assessments", {
-                    screen: "DrivingAssessment",
-                    params: { studentId: student.id },
-                  })
-                }
               />
 
               <AppButton

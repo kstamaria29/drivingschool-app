@@ -1,10 +1,12 @@
 import { z } from "zod";
 
+import { parseDateInputToISODate } from "../../utils/dates";
+
 const dateString = z
   .string()
   .trim()
-  .refine((value) => value === "" || /^\d{4}-\d{2}-\d{2}$/.test(value), {
-    message: "Use YYYY-MM-DD",
+  .refine((value) => value === "" || parseDateInputToISODate(value) != null, {
+    message: "Use DD/MM/YYYY",
   });
 
 export const studentFormSchema = z.object({
@@ -29,4 +31,3 @@ export const studentFormSchema = z.object({
 });
 
 export type StudentFormValues = z.infer<typeof studentFormSchema>;
-

@@ -19,7 +19,6 @@ type Input = {
     classHeld: string;
     issueDate: string;
     expiryDate: string;
-    weather: string;
     date: string;
     instructor: string;
     scores: Record<string, Record<string, string> | string[]>;
@@ -123,7 +122,6 @@ function buildHtml(input: Input) {
             <tr><td class="label">Class held</td><td class="value">${escapeHtml(v.classHeld)}</td></tr>
             <tr><td class="label">Issue date</td><td class="value">${escapeHtml(v.issueDate)}</td></tr>
             <tr><td class="label">Expiry date</td><td class="value">${escapeHtml(v.expiryDate)}</td></tr>
-            <tr><td class="label">Weather</td><td class="value">${escapeHtml(v.weather)}</td></tr>
             <tr><td class="label">Date of assessment</td><td class="value">${escapeHtml(v.date)}</td></tr>
             <tr><td class="label">Instructor</td><td class="value">${escapeHtml(v.instructor)}</td></tr>
           </table>

@@ -7,6 +7,7 @@ import { ActivityIndicator, Alert, Platform, View } from "react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
+import { AppDateInput } from "../../components/AppDateInput";
 import { AppInput } from "../../components/AppInput";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
@@ -23,12 +24,19 @@ import { useOrganizationQuery } from "../../features/organization/queries";
 import { useStudentsQuery } from "../../features/students/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
+import {
+  DISPLAY_DATE_FORMAT,
+  formatIsoDateToDisplay,
+  parseDateInputToISODate,
+} from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
 import { openPdfUri } from "../../utils/open-pdf";
 
 import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
 
 type Props = NativeStackScreenProps<AssessmentsStackParamList, "DrivingAssessment">;
+
+type DrivingAssessmentStage = "details" | "confirm" | "test";
 
 function hydrateFromStudent(
   form: ReturnType<typeof useForm<DrivingAssessmentFormValues>>,
@@ -52,8 +60,8 @@ function hydrateFromStudent(
   form.setValue("licenseNumber", student.license_number ?? "");
   form.setValue("licenseVersion", student.license_version ?? "");
   form.setValue("classHeld", student.class_held ?? "");
-  form.setValue("issueDate", student.issue_date ?? "");
-  form.setValue("expiryDate", student.expiry_date ?? "");
+  form.setValue("issueDate", student.issue_date ? formatIsoDateToDisplay(student.issue_date) : "");
+  form.setValue("expiryDate", student.expiry_date ? formatIsoDateToDisplay(student.expiry_date) : "");
 }
 
 function FeedbackField({
@@ -111,8 +119,10 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
   const studentsQuery = useStudentsQuery({ archived: false });
   const createAssessment = useCreateAssessmentMutation();
 
+  const [stage, setStage] = useState<DrivingAssessmentStage>("details");
   const [studentSearch, setStudentSearch] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [showStudentPicker, setShowStudentPicker] = useState<boolean>(() => !route.params?.studentId);
 
   const form = useForm<DrivingAssessmentFormValues>({
     resolver: zodResolver(drivingAssessmentFormSchema),
@@ -127,8 +137,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
       classHeld: "",
       issueDate: "",
       expiryDate: "",
-      weather: "",
-      date: dayjs().format("YYYY-MM-DD"),
+      date: dayjs().format(DISPLAY_DATE_FORMAT),
       instructor: profile.display_name,
       scores: {},
       strengths: "",
@@ -153,9 +162,14 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
     const student = studentsQuery.data.find((s) => s.id === initialStudentId);
     if (!student) return;
     setSelectedStudentId(student.id);
+    setShowStudentPicker(false);
     form.setValue("studentId", student.id, { shouldValidate: true });
     hydrateFromStudent(form, student);
   }, [form, route.params?.studentId, studentsQuery.data]);
+
+  useEffect(() => {
+    setStage("details");
+  }, [selectedStudentId]);
 
   const studentOptions = useMemo(() => {
     const needle = studentSearch.trim().toLowerCase();
@@ -189,13 +203,18 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
 
     try {
       const score = calculateDrivingAssessmentScore(values.scores);
+      const assessmentDateISO = parseDateInputToISODate(values.date);
+      if (!assessmentDateISO) {
+        Alert.alert("Check the form", "Use DD/MM/YYYY for the assessment date.");
+        return;
+      }
 
       const assessment = await createAssessment.mutateAsync({
         organization_id: profile.organization_id,
         student_id: selectedStudent.id,
         instructor_id: selectedStudent.assigned_instructor_id,
         assessment_type: "driving_assessment",
-        assessment_date: values.date,
+        assessment_date: assessmentDateISO,
         total_score: score.percentAnswered,
         form_data: {
           ...values,
@@ -211,7 +230,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
       });
 
       try {
-        const fileName = `${selectedStudent.first_name} ${selectedStudent.last_name} ${dayjs(values.date).format("DD-MM-YY")}`;
+        const fileName = `${selectedStudent.first_name} ${selectedStudent.last_name} ${dayjs(assessmentDateISO).format("DD-MM-YY")}`;
         const androidDirectoryUri =
           Platform.OS === "android" ? await ensureAndroidDownloadsDirectoryUri() : undefined;
         const saved = await exportDrivingAssessmentPdf({
@@ -278,7 +297,9 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
         <View>
           <AppText variant="title">Driving Assessment</AppText>
           <AppText className="mt-2" variant="body">
-            Select a student, score criteria, and record feedback.
+            {stage === "test"
+              ? "Score criteria, record feedback, and export a PDF."
+              : "Select a student and review their details before starting the test."}
           </AppText>
         </View>
 
@@ -307,263 +328,244 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
                 <AppText variant="error">{form.formState.errors.studentId.message}</AppText>
               ) : null}
 
-              <AppInput
-                label="Search"
-                autoCapitalize="none"
-                value={studentSearch}
-                onChangeText={setStudentSearch}
-              />
-
-              {studentOptions.length === 0 ? (
-                <AppText variant="caption">No students match this search.</AppText>
-              ) : (
+              {selectedStudent ? (
                 <AppStack gap="sm">
-                  {studentOptions.slice(0, 30).map((student) => (
+                  <AppText variant="body">
+                    Selected: {selectedStudent.first_name} {selectedStudent.last_name}
+                  </AppText>
+                  {stage === "details" ? (
                     <AppButton
-                      key={student.id}
-                      variant={selectedStudentId === student.id ? "primary" : "secondary"}
-                      label={`${student.first_name} ${student.last_name}`}
-                      onPress={() => {
-                        setSelectedStudentId(student.id);
-                        form.setValue("studentId", student.id, { shouldValidate: true });
-                        hydrateFromStudent(form, student);
-                      }}
+                      width="auto"
+                      variant="ghost"
+                      label={showStudentPicker ? "Hide student list" : "Change student"}
+                      onPress={() => setShowStudentPicker((s) => !s)}
                     />
-                  ))}
+                  ) : null}
                 </AppStack>
-              )}
+              ) : null}
 
-              {studentOptions.length > 30 ? (
-                <AppText variant="caption">Refine search to see more results.</AppText>
+              {stage === "details" && (showStudentPicker || !selectedStudent) ? (
+                <>
+                  <AppInput
+                    label="Search"
+                    autoCapitalize="none"
+                    value={studentSearch}
+                    onChangeText={setStudentSearch}
+                  />
+
+                  {studentOptions.length === 0 ? (
+                    <AppText variant="caption">No students match this search.</AppText>
+                  ) : (
+                    <AppStack gap="sm">
+                      {studentOptions.slice(0, 30).map((student) => (
+                        <AppButton
+                          key={student.id}
+                          variant={selectedStudentId === student.id ? "primary" : "secondary"}
+                          label={`${student.first_name} ${student.last_name}`}
+                          onPress={() => {
+                            setSelectedStudentId(student.id);
+                            setShowStudentPicker(false);
+                            setStudentSearch("");
+                            form.setValue("studentId", student.id, { shouldValidate: true });
+                            hydrateFromStudent(form, student);
+                          }}
+                        />
+                      ))}
+                    </AppStack>
+                  )}
+
+                  {studentOptions.length > 30 ? (
+                    <AppText variant="caption">Refine search to see more results.</AppText>
+                  ) : null}
+                </>
               ) : null}
             </>
           )}
         </AppCard>
 
-        <AppCard className="gap-4">
-          <AppText variant="heading">Student & licence details</AppText>
+        {stage !== "test" ? (
+          <AppCard className="gap-4">
+            <AppText variant="heading">Student Assessment details</AppText>
 
-          <Controller
-            control={form.control}
-            name="clientName"
-            render={({ field }) => (
-              <AppInput label="Client name" value={field.value} onChangeText={field.onChange} />
-            )}
-          />
+            {!selectedStudent ? (
+              <AppText variant="caption">Select a student to view their details.</AppText>
+            ) : (
+              <AppStack gap="sm">
+                <AppText variant="body">
+                  Name: {selectedStudent.first_name} {selectedStudent.last_name}
+                </AppText>
+                <AppText variant="body">Email: {selectedStudent.email ?? ""}</AppText>
+                <AppText variant="body">Phone: {selectedStudent.phone ?? ""}</AppText>
+                <AppText variant="body">Address: {selectedStudent.address ?? ""}</AppText>
+                <AppText variant="body">Licence number: {selectedStudent.license_number ?? ""}</AppText>
+                <AppText variant="body">Version: {selectedStudent.license_version ?? ""}</AppText>
+                <AppText variant="body">Class held: {selectedStudent.class_held ?? ""}</AppText>
+                <AppText variant="body">
+                  Issue date:{" "}
+                  {selectedStudent.issue_date ? formatIsoDateToDisplay(selectedStudent.issue_date) : ""}
+                </AppText>
+                <AppText variant="body">
+                  Expiry date:{" "}
+                  {selectedStudent.expiry_date ? formatIsoDateToDisplay(selectedStudent.expiry_date) : ""}
+                </AppText>
 
-          <Controller
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <AppInput label="Address" value={field.value} onChangeText={field.onChange} />
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="contact"
-            render={({ field }) => (
-              <AppInput label="Contact" value={field.value} onChangeText={field.onChange} />
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="email"
-            render={({ field, fieldState }) => (
-              <AppInput
-                label="Email"
-                autoCapitalize="none"
-                value={field.value}
-                onChangeText={field.onChange}
-                error={fieldState.error?.message}
-              />
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="licenseNumber"
-            render={({ field }) => (
-              <AppInput label="Licence number" value={field.value} onChangeText={field.onChange} />
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="licenseVersion"
-            render={({ field }) => (
-              <AppInput label="Version" value={field.value} onChangeText={field.onChange} />
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="classHeld"
-            render={({ field }) => (
-              <AppInput label="Class held" value={field.value} onChangeText={field.onChange} />
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="issueDate"
-            render={({ field, fieldState }) => (
-              <AppInput
-                label="Issue date (YYYY-MM-DD)"
-                autoCapitalize="none"
-                value={field.value}
-                onChangeText={field.onChange}
-                error={fieldState.error?.message}
-              />
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="expiryDate"
-            render={({ field, fieldState }) => (
-              <AppInput
-                label="Expiry date (YYYY-MM-DD)"
-                autoCapitalize="none"
-                value={field.value}
-                onChangeText={field.onChange}
-                error={fieldState.error?.message}
-              />
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="weather"
-            render={({ field }) => (
-              <AppInput label="Weather" value={field.value} onChangeText={field.onChange} />
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="date"
-            render={({ field, fieldState }) => (
-              <AppInput
-                label="Date of assessment (YYYY-MM-DD)"
-                autoCapitalize="none"
-                value={field.value}
-                onChangeText={field.onChange}
-                error={fieldState.error?.message}
-              />
-            )}
-          />
-
-          <Controller
-            control={form.control}
-            name="instructor"
-            render={({ field }) => (
-              <AppInput label="Instructor" value={field.value} onChangeText={field.onChange} />
-            )}
-          />
-        </AppCard>
-
-        <AppCard className="gap-3">
-          <AppText variant="heading">Scores</AppText>
-          <AppText variant="caption">
-            Tap a number for each criterion (1 = Unsatisfactory, 5 = Excellent).
-          </AppText>
-          <AppText variant="body">
-            Total:{" "}
-            {scoreResult.percentAnswered == null
-              ? "N/A"
-              : `${scoreResult.percentAnswered}% (scored ${scoreResult.scoredCount}/${scoreResult.totalCriteriaCount})`}
-          </AppText>
-          <AppText variant="caption">
-            {feedbackSummary ? `Summary: ${feedbackSummary}` : "Add scores to generate a summary."}
-          </AppText>
-        </AppCard>
-
-        {(Object.keys(drivingAssessmentCriteria) as Array<keyof typeof drivingAssessmentCriteria>).map(
-          (category) => (
-            <AppCard key={category} className="gap-4">
-              <AppText variant="heading">
-                {category.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase())}
-              </AppText>
-
-              {drivingAssessmentCriteria[category].map((label, index) => (
                 <Controller
-                  key={`${category}-${index}`}
                   control={form.control}
-                  name={`scores.${category}.${index}` as any}
-                  render={({ field }) => (
-                    <AppStack gap="sm">
-                      <AppText variant="body">{label}</AppText>
-                      <View className="flex-row gap-2">
-                        {[1, 2, 3, 4, 5].map((value) => (
-                          <AppButton
-                            key={value}
-                            width="auto"
-                            className="h-10 flex-1 px-0"
-                            label={String(value)}
-                            variant={field.value === String(value) ? "primary" : "secondary"}
-                            onPress={() => field.onChange(String(value))}
-                          />
-                        ))}
-                      </View>
-                    </AppStack>
+                  name="date"
+                  render={({ field, fieldState }) => (
+                    <AppDateInput
+                      label="Date of assessment"
+                      value={field.value}
+                      onChangeText={field.onChange}
+                      error={fieldState.error?.message}
+                    />
                   )}
                 />
-              ))}
-            </AppCard>
-          ),
-        )}
 
-        <FeedbackField
-          label="Strengths"
-          value={form.watch("strengths")}
-          onChangeText={(next) => form.setValue("strengths", next)}
-          suggestions={drivingAssessmentFeedbackOptions.strengths}
-        />
-
-        <FeedbackField
-          label="Improvements"
-          value={form.watch("improvements")}
-          onChangeText={(next) => form.setValue("improvements", next)}
-          suggestions={drivingAssessmentFeedbackOptions.improvements}
-        />
-
-        <FeedbackField
-          label="Recommendation"
-          value={form.watch("recommendation")}
-          onChangeText={(next) => form.setValue("recommendation", next)}
-          suggestions={drivingAssessmentFeedbackOptions.recommendation}
-        />
-
-        <FeedbackField
-          label="Next steps"
-          value={form.watch("nextSteps")}
-          onChangeText={(next) => form.setValue("nextSteps", next)}
-          suggestions={drivingAssessmentFeedbackOptions.nextSteps}
-        />
-
-        {createAssessment.isError ? (
-          <AppText variant="error">{toErrorMessage(createAssessment.error)}</AppText>
+                <Controller
+                  control={form.control}
+                  name="instructor"
+                  render={({ field }) => (
+                    <AppInput label="Instructor" value={field.value} onChangeText={field.onChange} />
+                  )}
+                />
+              </AppStack>
+            )}
+          </AppCard>
         ) : null}
 
-        <AppButton
-          label={saving ? "Submitting..." : "Submit and generate PDF"}
-          disabled={saving}
-          onPress={form.handleSubmit(
-            (values) => {
-              Alert.alert(
-                "Submit assessment?",
-                "This will save the assessment and open your device share sheet to export the PDF.",
-                [
-                  { text: "Cancel", style: "cancel" },
-                  { text: "Submit", onPress: () => void submitAndGeneratePdf(values) },
-                ],
-              );
-            },
-            (errors) => onInvalidSubmit(errors),
-          )}
-        />
+        {stage === "details" ? (
+          <AppButton
+            label="Start Test"
+            disabled={!selectedStudent}
+            onPress={() => setStage("confirm")}
+          />
+        ) : null}
+
+        {stage === "confirm" ? (
+          <AppCard className="gap-3">
+            <AppText variant="heading">Start test?</AppText>
+            <AppText variant="body">
+              {selectedStudent
+                ? `You're about to start scoring ${selectedStudent.first_name} ${selectedStudent.last_name}.`
+                : "Select a student first."}
+            </AppText>
+            <AppStack gap="sm">
+              <AppButton width="auto" variant="secondary" label="Back" onPress={() => setStage("details")} />
+              <AppButton
+                width="auto"
+                label="Start"
+                disabled={!selectedStudent}
+                onPress={() => setStage("test")}
+              />
+            </AppStack>
+          </AppCard>
+        ) : null}
+
+        {stage === "test" ? (
+          <>
+            <AppCard className="gap-3">
+              <AppText variant="heading">Scores</AppText>
+              <AppText variant="caption">
+                Tap a number for each criterion (1 = Unsatisfactory, 5 = Excellent).
+              </AppText>
+              <AppText variant="body">
+                Total:{" "}
+                {scoreResult.percentAnswered == null
+                  ? "N/A"
+                  : `${scoreResult.percentAnswered}% (scored ${scoreResult.scoredCount}/${scoreResult.totalCriteriaCount})`}
+              </AppText>
+              <AppText variant="caption">
+                {feedbackSummary ? `Summary: ${feedbackSummary}` : "Add scores to generate a summary."}
+              </AppText>
+            </AppCard>
+
+            {(Object.keys(drivingAssessmentCriteria) as Array<keyof typeof drivingAssessmentCriteria>).map(
+              (category) => (
+                <AppCard key={category} className="gap-4">
+                  <AppText variant="heading">
+                    {category.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase())}
+                  </AppText>
+
+                  {drivingAssessmentCriteria[category].map((label, index) => (
+                    <Controller
+                      key={`${category}-${index}`}
+                      control={form.control}
+                      name={`scores.${category}.${index}` as any}
+                      render={({ field }) => (
+                        <AppStack gap="sm">
+                          <AppText variant="body">{label}</AppText>
+                          <View className="flex-row gap-2">
+                            {[1, 2, 3, 4, 5].map((value) => (
+                              <AppButton
+                                key={value}
+                                width="auto"
+                                className="h-10 flex-1 px-0"
+                                label={String(value)}
+                                variant={field.value === String(value) ? "primary" : "secondary"}
+                                onPress={() => field.onChange(String(value))}
+                              />
+                            ))}
+                          </View>
+                        </AppStack>
+                      )}
+                    />
+                  ))}
+                </AppCard>
+              ),
+            )}
+
+            <FeedbackField
+              label="Strengths"
+              value={form.watch("strengths")}
+              onChangeText={(next) => form.setValue("strengths", next)}
+              suggestions={drivingAssessmentFeedbackOptions.strengths}
+            />
+
+            <FeedbackField
+              label="Improvements"
+              value={form.watch("improvements")}
+              onChangeText={(next) => form.setValue("improvements", next)}
+              suggestions={drivingAssessmentFeedbackOptions.improvements}
+            />
+
+            <FeedbackField
+              label="Recommendation"
+              value={form.watch("recommendation")}
+              onChangeText={(next) => form.setValue("recommendation", next)}
+              suggestions={drivingAssessmentFeedbackOptions.recommendation}
+            />
+
+            <FeedbackField
+              label="Next steps"
+              value={form.watch("nextSteps")}
+              onChangeText={(next) => form.setValue("nextSteps", next)}
+              suggestions={drivingAssessmentFeedbackOptions.nextSteps}
+            />
+
+            {createAssessment.isError ? (
+              <AppText variant="error">{toErrorMessage(createAssessment.error)}</AppText>
+            ) : null}
+
+            <AppButton
+              label={saving ? "Submitting..." : "Submit and generate PDF"}
+              disabled={saving}
+              onPress={form.handleSubmit(
+                (values) => {
+                  Alert.alert(
+                    "Submit assessment?",
+                    "This will save the assessment and open your device share sheet to export the PDF.",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      { text: "Submit", onPress: () => void submitAndGeneratePdf(values) },
+                    ],
+                  );
+                },
+                (errors) => onInvalidSubmit(errors),
+              )}
+            />
+          </>
+        ) : null}
 
         <AppButton label="Cancel" variant="ghost" onPress={() => navigation.goBack()} />
       </AppStack>

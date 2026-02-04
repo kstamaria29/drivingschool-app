@@ -7,6 +7,7 @@ import { ActivityIndicator, View } from "react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
+import { AppDateInput } from "../../components/AppDateInput";
 import { AppInput } from "../../components/AppInput";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
@@ -19,6 +20,7 @@ import { useCreateLessonMutation, useLessonQuery, useUpdateLessonMutation } from
 import { lessonFormSchema, type LessonFormValues } from "../../features/lessons/schemas";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
+import { DISPLAY_DATE_FORMAT, parseDateInputToISODate } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
 
 import type { LessonsStackParamList } from "../LessonsStackNavigator";
@@ -60,9 +62,9 @@ export function LessonEditScreen({ navigation, route }: Props) {
   const defaultDate = useMemo(() => {
     if (initialDate) {
       const parsed = dayjs(initialDate);
-      if (parsed.isValid()) return parsed.format("YYYY-MM-DD");
+      if (parsed.isValid()) return parsed.format(DISPLAY_DATE_FORMAT);
     }
-    return dayjs().format("YYYY-MM-DD");
+    return dayjs().format(DISPLAY_DATE_FORMAT);
   }, [initialDate]);
 
   const defaultStartTime = useMemo(() => {
@@ -108,7 +110,7 @@ export function LessonEditScreen({ navigation, route }: Props) {
     const duration = Math.max(15, end.diff(start, "minute"));
 
     form.reset({
-      date: start.format("YYYY-MM-DD"),
+      date: start.format(DISPLAY_DATE_FORMAT),
       startTime: start.format("HH:mm"),
       durationMinutes: String(duration),
       studentId: lessonQuery.data.student_id,
@@ -182,7 +184,10 @@ export function LessonEditScreen({ navigation, route }: Props) {
   const mutationError = createMutation.error ?? updateMutation.error;
 
   async function onSubmit(values: LessonFormValues) {
-    const start = dayjs(`${values.date}T${values.startTime}`);
+    const dateISO = parseDateInputToISODate(values.date);
+    if (!dateISO) return;
+
+    const start = dayjs(`${dateISO}T${values.startTime}`);
     const end = start.add(Number(values.durationMinutes), "minute");
 
     const base = {
@@ -209,7 +214,8 @@ export function LessonEditScreen({ navigation, route }: Props) {
     navigation.goBack();
   }
 
-  const startPreview = dayjs(`${form.watch("date")}T${form.watch("startTime")}`);
+  const previewDateISO = parseDateInputToISODate(form.watch("date")) ?? "";
+  const startPreview = dayjs(`${previewDateISO}T${form.watch("startTime")}`);
   const durationPreview = Number(form.watch("durationMinutes")) || 60;
   const endPreview = startPreview.isValid() ? startPreview.add(durationPreview, "minute") : null;
 
@@ -220,7 +226,7 @@ export function LessonEditScreen({ navigation, route }: Props) {
           <AppText variant="title">{isEditing ? "Edit lesson" : "New lesson"}</AppText>
           {endPreview ? (
             <AppText className="mt-2" variant="body">
-              {startPreview.format("ddd, D MMM")} · {startPreview.format("h:mm A")} –{" "}
+              {startPreview.format(`ddd, ${DISPLAY_DATE_FORMAT}`)} · {startPreview.format("h:mm A")} –{" "}
               {endPreview.format("h:mm A")}
             </AppText>
           ) : (
@@ -235,12 +241,10 @@ export function LessonEditScreen({ navigation, route }: Props) {
             control={form.control}
             name="date"
             render={({ field, fieldState }) => (
-              <AppInput
-                label="Date (YYYY-MM-DD)"
-                autoCapitalize="none"
+              <AppDateInput
+                label="Date"
                 value={field.value}
                 onChangeText={field.onChange}
-                onBlur={field.onBlur}
                 error={fieldState.error?.message}
               />
             )}

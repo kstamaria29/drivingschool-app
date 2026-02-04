@@ -55,6 +55,47 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Update Driving Assessment start flow
+- **Summary:**
+  - Changed Driving Assessment to a staged flow: review student details first, confirm start, then show the scoring/test form.
+  - Kept existing PDF export + submission behavior once the test is started.
+- **Files changed:**
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - In app: `Assessments` tab → `Start Driving Assessment` → select a student → confirm details screen shows `Start Test`.
+  - Tap `Start Test` → confirm screen → `Start` → scoring + feedback sections appear.
+- **Notes/TODO:**
+  - Consider allowing editing of student/licence details in-test if needed later.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Refine Driving Assessment pre-test details
+- **Summary:**
+  - Merged assessment date + instructor into the pre-test details card and renamed it to `Student Assessment details`.
+  - Removed the Weather field entirely from the Driving Assessment form, history view, and PDF export.
+  - Kept the test stage focused on scoring/feedback only (details card hidden once the test starts).
+- **Files changed:**
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `src/features/assessments/driving-assessment/schema.ts`
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - In app: `Assessments` → `Start Driving Assessment` → verify `Student Assessment details` shows student info + date + instructor (no Weather).
+  - Tap `Start Test` → confirm `Student Assessment details` is hidden and scoring/feedback sections show.
+  - Export PDF from a submitted assessment and confirm Weather is not present.
+- **Notes/TODO:**
+  - Older assessments with Weather in `form_data` will ignore that field when viewing/exporting.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Delete assessments from student history
 - **Summary:**
   - Added a red delete action to the Assessment History detail view (with confirmation).
@@ -76,6 +117,64 @@
   - In app: Student → Assessment History → select an assessment → tap `Delete assessment` → confirm it disappears from the list.
 - **Notes/TODO:**
   - Deleting is permanent (no archive) for assessments in v1.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Standardize date display to DD/MM/YYYY
+- **Summary:**
+  - Standardized user-facing date formatting to `DD/MM/YYYY` across Home, Lessons, Students, and Assessments.
+  - Added shared date parsing/formatting utilities to support both legacy ISO strings and new display format.
+  - Updated forms + Zod schemas to validate `DD/MM/YYYY` (while still accepting ISO inputs for backwards compatibility).
+- **Files changed:**
+  - `src/utils/dayjs.ts`
+  - `src/utils/dates.ts`
+  - `src/features/students/schemas.ts`
+  - `src/features/lessons/schemas.ts`
+  - `src/features/assessments/driving-assessment/schema.ts`
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open Home/Lessons and confirm dates render as `DD/MM/YYYY`.
+  - Create/edit a Student and Lesson and confirm date inputs accept `DD/MM/YYYY`.
+  - Create a Driving Assessment and confirm saved assessment + PDF export shows `DD/MM/YYYY`.
+- **Notes/TODO:**
+  - Lesson month header still uses `MMMM YYYY` (calendar context); only specific dates were standardized.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add date picker inputs
+- **Summary:**
+  - Added `AppDateInput` primitive that opens a native date picker (spinner-style where available).
+  - Replaced manual date typing with date pickers for Lessons, Students (licence dates), and Driving Assessments.
+  - Kept optional dates clearable via a quick “Clear” action.
+- **Files changed:**
+  - `src/components/AppDateInput.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `package.json`
+  - `package-lock.json`
+  - `app.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx expo install @react-native-community/datetimepicker`
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open Lesson create/edit → tap Date → picker appears → save lesson.
+  - Open Student edit → tap Issue/Expiry date → picker appears; use Clear to remove.
+  - Open Driving Assessment → tap Date fields → picker appears; submit assessment successfully.
+- **Notes/TODO:**
+  - `npm audit` reports 1 high severity vulnerability in dependencies; consider addressing separately to avoid unrelated diffs.
 
 ---
 
@@ -288,6 +387,23 @@
   - `npx tsc --noEmit`
 - **Verification:**
   - TypeScript compile check via `npx tsc --noEmit` (local).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Remove assessment start from student profile
+- **Summary:**
+  - Removed the `New Driving Assessment` button from `StudentDetailScreen` so assessments are only initiated from the Assessments screen.
+- **Files changed:**
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open a student profile and confirm there is no `New Driving Assessment` button.
+  - Go to `Assessments` and start a Driving Assessment from there.
+- **Notes/TODO:**
+  - None.
 
 ---
 

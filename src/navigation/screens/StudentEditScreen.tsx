@@ -6,6 +6,7 @@ import { ActivityIndicator, View } from "react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
+import { AppDateInput } from "../../components/AppDateInput";
 import { AppInput } from "../../components/AppInput";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
@@ -21,6 +22,7 @@ import {
 import { studentFormSchema, type StudentFormValues } from "../../features/students/schemas";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
+import { formatIsoDateToDisplay, parseDateInputToISODate } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
 
 import type { StudentsStackParamList } from "../StudentsStackNavigator";
@@ -96,8 +98,8 @@ export function StudentEditScreen({ navigation, route }: Props) {
       licenseNumber: studentQuery.data.license_number ?? "",
       licenseVersion: studentQuery.data.license_version ?? "",
       classHeld: studentQuery.data.class_held ?? "",
-      issueDate: studentQuery.data.issue_date ?? "",
-      expiryDate: studentQuery.data.expiry_date ?? "",
+      issueDate: studentQuery.data.issue_date ? formatIsoDateToDisplay(studentQuery.data.issue_date) : "",
+      expiryDate: studentQuery.data.expiry_date ? formatIsoDateToDisplay(studentQuery.data.expiry_date) : "",
       notes: studentQuery.data.notes ?? "",
     });
   }, [form, studentId, studentQuery.data]);
@@ -162,8 +164,8 @@ export function StudentEditScreen({ navigation, route }: Props) {
       license_number: emptyToNull(values.licenseNumber),
       license_version: emptyToNull(values.licenseVersion),
       class_held: emptyToNull(values.classHeld),
-      issue_date: emptyToNull(values.issueDate),
-      expiry_date: emptyToNull(values.expiryDate),
+      issue_date: values.issueDate.trim() ? parseDateInputToISODate(values.issueDate) : null,
+      expiry_date: values.expiryDate.trim() ? parseDateInputToISODate(values.expiryDate) : null,
       notes: emptyToNull(values.notes),
     } as const;
 
@@ -400,14 +402,22 @@ export function StudentEditScreen({ navigation, route }: Props) {
             control={form.control}
             name="issueDate"
             render={({ field, fieldState }) => (
-              <AppInput
-                label="Issue date (YYYY-MM-DD)"
-                autoCapitalize="none"
-                value={field.value}
-                onChangeText={field.onChange}
-                onBlur={field.onBlur}
-                error={fieldState.error?.message}
-              />
+              <AppStack gap="sm">
+                <AppDateInput
+                  label="Issue date"
+                  value={field.value}
+                  onChangeText={field.onChange}
+                  error={fieldState.error?.message}
+                />
+                {field.value.trim() ? (
+                  <AppButton
+                    width="auto"
+                    variant="ghost"
+                    label="Clear issue date"
+                    onPress={() => field.onChange("")}
+                  />
+                ) : null}
+              </AppStack>
             )}
           />
 
@@ -415,14 +425,22 @@ export function StudentEditScreen({ navigation, route }: Props) {
             control={form.control}
             name="expiryDate"
             render={({ field, fieldState }) => (
-              <AppInput
-                label="Expiry date (YYYY-MM-DD)"
-                autoCapitalize="none"
-                value={field.value}
-                onChangeText={field.onChange}
-                onBlur={field.onBlur}
-                error={fieldState.error?.message}
-              />
+              <AppStack gap="sm">
+                <AppDateInput
+                  label="Expiry date"
+                  value={field.value}
+                  onChangeText={field.onChange}
+                  error={fieldState.error?.message}
+                />
+                {field.value.trim() ? (
+                  <AppButton
+                    width="auto"
+                    variant="ghost"
+                    label="Clear expiry date"
+                    onPress={() => field.onChange("")}
+                  />
+                ) : null}
+              </AppStack>
             )}
           />
         </AppCard>
