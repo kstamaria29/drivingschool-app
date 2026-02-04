@@ -1,7 +1,7 @@
 import dayjs, { type Dayjs } from "dayjs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
 
 import { AppBadge } from "../../components/AppBadge";
 import { AppButton } from "../../components/AppButton";
@@ -34,6 +34,9 @@ function statusLabel(status: "scheduled" | "completed" | "cancelled") {
 }
 
 export function LessonsListScreen({ navigation }: Props) {
+  const { width } = useWindowDimensions();
+  const isPhone = width < 600;
+
   const { session } = useAuthSession();
   const profileQuery = useMyProfileQuery(session?.user.id);
 
@@ -97,9 +100,38 @@ export function LessonsListScreen({ navigation }: Props) {
     (parent as any)?.navigate("Students", { screen: "StudentCreate" });
   }
 
+  const lessonCards = lessonsForSelectedDay.map((lesson) => {
+    const start = dayjs(lesson.start_time);
+    const end = dayjs(lesson.end_time);
+    const studentName = lesson.students
+      ? `${lesson.students.first_name} ${lesson.students.last_name}`
+      : "Student";
+
+    return (
+      <Pressable key={lesson.id} onPress={() => navigation.navigate("LessonEdit", { lessonId: lesson.id })}>
+        <AppCard className="gap-2">
+          <View className="flex-row items-start justify-between gap-3">
+            <View className="flex-1">
+              <AppText variant="heading">{studentName}</AppText>
+              <AppText className="mt-1" variant="caption">
+                {start.format("h:mm A")} - {end.format("h:mm A")}
+              </AppText>
+              {lesson.location ? (
+                <AppText className="mt-1" variant="caption">
+                  {lesson.location}
+                </AppText>
+              ) : null}
+            </View>
+            <AppBadge variant={lesson.status} label={statusLabel(lesson.status)} />
+          </View>
+        </AppCard>
+      </Pressable>
+    );
+  });
+
   return (
-    <Screen>
-      <AppStack gap="lg" className="flex-1">
+    <Screen scroll={isPhone}>
+      <AppStack gap="lg" className={cn(!isPhone && "flex-1", isPhone && "pb-24")}>
         <View className="flex-row items-center justify-between gap-2">
           <AppButton
             label="Prev"
@@ -161,7 +193,7 @@ export function LessonsListScreen({ navigation }: Props) {
           lessonCountByDateISO={lessonCountByDateISO}
         />
 
-        <View className="flex-1">
+        <View className={cn(!isPhone && "flex-1")}>
           <View className="mb-3">
             <AppText variant="heading">Lessons</AppText>
             <AppText className="mt-1" variant="caption">
@@ -170,62 +202,74 @@ export function LessonsListScreen({ navigation }: Props) {
           </View>
 
           {lessonsQuery.isPending ? (
-            <View className={cn("flex-1 items-center justify-center", theme.text.base)}>
+            <View
+              className={cn(
+                isPhone ? "items-center justify-center py-10" : "flex-1 items-center justify-center",
+                theme.text.base,
+              )}
+            >
               <ActivityIndicator />
               <AppText className="mt-3 text-center" variant="body">
                 Loading lessons...
               </AppText>
             </View>
           ) : lessonsQuery.isError ? (
-            <AppStack gap="md">
-              <AppCard className="gap-2">
-                <AppText variant="heading">Couldn't load lessons</AppText>
-                <AppText variant="body">{toErrorMessage(lessonsQuery.error)}</AppText>
-              </AppCard>
-              <AppButton label="Retry" onPress={() => lessonsQuery.refetch()} />
-            </AppStack>
+            isPhone ? (
+              <AppStack gap="md">
+                <AppCard className="gap-2">
+                  <AppText variant="heading">Couldn't load lessons</AppText>
+                  <AppText variant="body">{toErrorMessage(lessonsQuery.error)}</AppText>
+                </AppCard>
+                <AppButton label="Retry" onPress={() => lessonsQuery.refetch()} />
+              </AppStack>
+            ) : (
+              <ScrollView
+                className="flex-1"
+                keyboardShouldPersistTaps="handled"
+                contentContainerClassName="gap-3 pb-24"
+              >
+                <AppCard className="gap-2">
+                  <AppText variant="heading">Couldn't load lessons</AppText>
+                  <AppText variant="body">{toErrorMessage(lessonsQuery.error)}</AppText>
+                </AppCard>
+                <AppButton label="Retry" onPress={() => lessonsQuery.refetch()} />
+              </ScrollView>
+            )
           ) : lessonsForSelectedDay.length === 0 ? (
-            <AppCard className="gap-2">
-              <AppText variant="heading">No lessons</AppText>
-              <AppText variant="body">
-                {isInstructor
-                  ? "You may not be assigned any lessons yet."
-                  : "Create a lesson to plan your day."}
-              </AppText>
-            </AppCard>
+            isPhone ? (
+              <AppCard className="gap-2">
+                <AppText variant="heading">No lessons</AppText>
+                <AppText variant="body">
+                  {isInstructor
+                    ? "You may not be assigned any lessons yet."
+                    : "Create a lesson to plan your day."}
+                </AppText>
+              </AppCard>
+            ) : (
+              <ScrollView
+                className="flex-1"
+                keyboardShouldPersistTaps="handled"
+                contentContainerClassName="pb-24"
+              >
+                <AppCard className="gap-2">
+                  <AppText variant="heading">No lessons</AppText>
+                  <AppText variant="body">
+                    {isInstructor
+                      ? "You may not be assigned any lessons yet."
+                      : "Create a lesson to plan your day."}
+                  </AppText>
+                </AppCard>
+              </ScrollView>
+            )
+          ) : isPhone ? (
+            <AppStack gap="md">{lessonCards}</AppStack>
           ) : (
-            <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="gap-3 pb-6">
-              {lessonsForSelectedDay.map((lesson) => {
-                const start = dayjs(lesson.start_time);
-                const end = dayjs(lesson.end_time);
-                const studentName = lesson.students
-                  ? `${lesson.students.first_name} ${lesson.students.last_name}`
-                  : "Student";
-
-                return (
-                  <Pressable
-                    key={lesson.id}
-                    onPress={() => navigation.navigate("LessonEdit", { lessonId: lesson.id })}
-                  >
-                    <AppCard className="gap-2">
-                      <View className="flex-row items-start justify-between gap-3">
-                        <View className="flex-1">
-                          <AppText variant="heading">{studentName}</AppText>
-                          <AppText className="mt-1" variant="caption">
-                            {start.format("h:mm A")} – {end.format("h:mm A")}
-                          </AppText>
-                          {lesson.location ? (
-                            <AppText className="mt-1" variant="caption">
-                              {lesson.location}
-                            </AppText>
-                          ) : null}
-                        </View>
-                        <AppBadge variant={lesson.status} label={statusLabel(lesson.status)} />
-                      </View>
-                    </AppCard>
-                  </Pressable>
-                );
-              })}
+            <ScrollView
+              className="flex-1"
+              keyboardShouldPersistTaps="handled"
+              contentContainerClassName="gap-3 pb-24"
+            >
+              {lessonCards}
             </ScrollView>
           )}
         </View>
@@ -233,4 +277,3 @@ export function LessonsListScreen({ navigation }: Props) {
     </Screen>
   );
 }
-

@@ -55,6 +55,24 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Make Lessons screen fully scrollable on phone
+- **Summary:**
+  - Switched to a single outer scroll container on phone-sized screens so the entire Lessons screen (header + calendar + agenda) scrolls together.
+  - Kept tablet behavior: calendar stays visible while only the agenda area scrolls.
+- **Files changed:**
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - On a phone device/simulator, swipe up anywhere on the Lessons screen and confirm the whole screen scrolls.
+  - On a tablet device/simulator, confirm the calendar stays fixed and only the lesson list scrolls.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Fix LessonEditScreen hook order crash
 - **Summary:**
   - Fixed React hook-order runtime error when opening an existing lesson by ensuring all hooks run before any early returns.
@@ -66,6 +84,25 @@
   - `npx tsc --noEmit`
 - **Verification:**
   - From Lessons, tap an existing lesson; confirm no "Rendered more hooks" error and the edit form loads.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Lessons screen scrolling on phone
+- **Summary:**
+  - Fixed the Lessons screen empty/error states being clipped on small screens by making the agenda area scrollable in all states.
+  - Made the agenda `ScrollView` fill remaining height (`flex-1`) so it can actually scroll when the calendar leaves limited space on phones.
+  - Added extra bottom padding to agenda scroll content so the last card isn't cut off.
+- **Files changed:**
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - On a phone-sized simulator/device, open Lessons with 0 lessons and confirm you can scroll to fully see the "No lessons" card.
+  - Confirm the lessons list also scrolls normally when lessons exist.
 - **Notes/TODO:**
   - None.
 
