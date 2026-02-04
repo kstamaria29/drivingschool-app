@@ -11,8 +11,7 @@ Build a **mobile app (not web)** for a driving instructor to:
 1. **Authenticate**: user must sign in when app loads
 2. **Student management**: add / edit / archive (soft delete)
 3. **Lessons**: schedule lessons (date/time, location, notes, status)
-
-> NOTE: Assessments/mock tests are intentionally planned later. Do not implement any assessment features in v1.
+4. **Assessments**: create assessments and export PDFs (Driving Assessment in v1)
 
 ### Explicitly out of scope for v1
 
@@ -20,6 +19,7 @@ Build a **mobile app (not web)** for a driving instructor to:
 - No payments/subscriptions
 - No advanced analytics/reporting
 - No offline-first requirement (basic caching is fine)
+- Additional assessment templates beyond Driving Assessment (v1 ships placeholders only)
 
 ---
 
@@ -179,17 +179,36 @@ Recommended constraints:
 
 - `end_time > start_time`
 
+#### 6) `assessments`
+
+Assessments are assigned to a specific instructor (enforced by `instructor_id`) and tied to a student.
+
+In v1, only `assessment_type = 'driving_assessment'` is fully implemented. `second_assessment` and
+`third_assessment` are placeholders for later.
+
+- `id uuid primary key default gen_random_uuid()`
+- `organization_id uuid not null references organizations(id) on delete cascade`
+- `student_id uuid not null references students(id) on delete restrict`
+- `instructor_id uuid not null references profiles(id) on delete restrict`
+- `assessment_type text not null` (allowed: `'driving_assessment' | 'second_assessment' | 'third_assessment'`)
+- `assessment_date date null`
+- `total_score int null` (v1: percent score 0-100 based on answered criteria)
+- `form_data jsonb not null`
+- `created_at timestamptz not null default now()`
+- `updated_at timestamptz not null default now()`
+
 ### Indexes (minimum)
 
 - students: `(organization_id)`, `(organization_id, archived_at)`, `(assigned_instructor_id)`
 - lessons: `(organization_id, start_time)`, `(student_id)`, `(instructor_id)`
+- assessments: `(organization_id, assessment_type, assessment_date)`, `(student_id)`, `(instructor_id)`
 - profiles: `(organization_id)`
 
 ### Timestamps
 
 Use a trigger to update `updated_at` on update for:
 
-- `students`, `lessons`, `organization_settings`
+- `students`, `lessons`, `assessments`, `organization_settings`
 
 ---
 
@@ -250,7 +269,7 @@ After onboarding:
 
 Enable RLS on all tenant tables:
 
-- `profiles`, `organization_settings`, `students`, `lessons`
+- `profiles`, `organization_settings`, `students`, `lessons`, `assessments`
 
 ### Policy intent (must match roles & permissions)
 
@@ -266,6 +285,7 @@ A user with `profiles.role = 'instructor'` can:
 
 - `students`: read/write only rows where `assigned_instructor_id = auth.uid()`
 - `lessons`: read/write only rows where `instructor_id = auth.uid()`
+- `assessments`: read/write only rows where `instructor_id = auth.uid()`
 - `organization_settings`: read-only for their org
 - `profiles`: read-only for their own profile (minimum)
 
@@ -373,7 +393,8 @@ Use the following navigation structure:
     - `StudentDetailScreen`
     - `StudentEditScreen`
   - `AssessmentsStack`
-    - `AssessmentsComingSoonScreen` (placeholder only — no assessments features in v1)
+    - `AssessmentsListScreen`
+    - `DrivingAssessmentScreen`
   - `SettingsStack`
     - `SettingsScreen`
 
@@ -454,6 +475,7 @@ After mutation success, invalidate the correct keys so the UI refreshes automati
 
 - Student create/edit
 - Lesson create/edit
+- Driving assessment create (with PDF export)
 - Onboarding create org (name + logo + display name)
 
 ---
@@ -487,6 +509,7 @@ features/
 auth/
 students/
 lessons/
+assessments/
 types/
 
 ---
@@ -598,6 +621,7 @@ Implement feature-by-feature:
 1. Auth gate + login + onboarding (org + logo)
 2. Students CRUD + archive + assign instructor
 3. Lessons scheduling (Today view + edit)
+4. Assessments (Driving Assessment + PDF export)
 
 ---
 
@@ -688,7 +712,7 @@ Every task response MUST end with this exact footer format:
 
 Explicitly later (not v1):
 
-- Assessments/mock tests
+- Additional assessment templates beyond Driving Assessment
 - Google Calendar sync
 - Push notifications
 - Payments/subscriptions

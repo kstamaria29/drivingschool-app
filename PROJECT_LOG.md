@@ -55,6 +55,59 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Delete assessments from student history
+- **Summary:**
+  - Added a red delete action to the Assessment History detail view (with confirmation).
+  - Added an Assessments delete mutation and API helper.
+  - Added Supabase RLS delete policy migration for `assessments`.
+- **Files changed:**
+  - `src/features/assessments/api.ts`
+  - `src/features/assessments/queries.ts`
+  - `src/components/AppButton.tsx`
+  - `src/theme/theme.ts`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `supabase/migrations/007_assessments_delete.sql`
+  - `supabase/README.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Apply migration `supabase/migrations/007_assessments_delete.sql` in Supabase SQL Editor.
+  - In app: Student → Assessment History → select an assessment → tap `Delete assessment` → confirm it disappears from the list.
+- **Notes/TODO:**
+  - Deleting is permanent (no archive) for assessments in v1.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Save assessment PDFs to Downloads + notify
+- **Summary:**
+  - Added Android Downloads-folder saving via Storage Access Framework (one-time folder picker; then saves directly).
+  - Falls back to app storage if Android folder permission is revoked.
+  - Added local “PDF saved” notification; tapping it attempts to open the saved PDF.
+  - Kept iOS saving in app storage (sandbox) but added the same notification + tap-to-open behavior.
+- **Files changed:**
+  - `src/features/assessments/android-downloads.ts`
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/features/notifications/download-notifications.ts`
+  - `src/utils/open-pdf.ts`
+  - `src/app/AppRoot.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `package.json`
+  - `package-lock.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx expo install expo-notifications expo-intent-launcher`
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Android: submit an assessment, pick Downloads when prompted, then confirm a “PDF saved” notification appears; tap it to open the PDF.
+  - iOS: submit an assessment, confirm a “PDF saved” notification appears; tap it to open the PDF.
+- **Notes/TODO:**
+  - iOS cannot save directly to a global Downloads folder due to OS sandboxing; opening from the notification is the “download complete” UX.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Make Lessons screen fully scrollable on phone
 - **Summary:**
   - Switched to a single outer scroll container on phone-sized screens so the entire Lessons screen (header + calendar + agenda) scrolls together.
@@ -67,6 +120,85 @@
 - **Verification:**
   - On a phone device/simulator, swipe up anywhere on the Lessons screen and confirm the whole screen scrolls.
   - On a tablet device/simulator, confirm the calendar stays fixed and only the lesson list scrolls.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Driving Assessment submit UX
+- **Summary:**
+  - Made score calculation update live as criteria are scored.
+  - Replaced the two non-responsive save buttons with a single “Submit and generate PDF” button.
+  - Added validation feedback + a confirmation prompt before saving/exporting.
+- **Files changed:**
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open a Driving Assessment, press submit with no student selected and confirm an error prompt appears.
+  - Select a student, tap scores, confirm the total/summary updates immediately.
+  - Press “Submit and generate PDF” and confirm the confirmation dialog appears and the PDF share sheet opens after submitting.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Driving Assessment validation for scores
+- **Summary:**
+  - Fixed form validation so scored criteria no longer fails submit due to array-shaped `scores` values.
+  - Improved invalid-submit alerts to use the actual validation errors from React Hook Form.
+- **Files changed:**
+  - `src/features/assessments/driving-assessment/schema.ts`
+  - `src/features/assessments/driving-assessment/scoring.ts`
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Fill the Driving Assessment scores and tap `Submit and generate PDF` → confirmation dialog should appear.
+  - If you intentionally enter an invalid date/email, the validation alert should show the specific field error.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Update Driving Assessment PDF layout
+- **Summary:**
+  - Updated PDF output to a 2-page layout: page 1 shows Personal Information + the Total Score Assessment Guide; page 2 shows Assessment Scores + a single combined Feedback box.
+  - Removed Assessment ID from the PDF and added organization name to the header.
+- **Files changed:**
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Submit a Driving Assessment and confirm the PDF has 2 pages with the requested section layout and org name header.
+- **Notes/TODO:**
+  - If feedback text is very long, it may still overflow beyond one page (expected behavior for print-to-PDF HTML).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Name Driving Assessment PDFs
+- **Summary:**
+  - Updated PDF export to copy the generated file to a named path using `expo-file-system` so the share sheet uses `First Last DD-MM-YY.pdf`.
+- **Files changed:**
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `package.json`
+  - `package-lock.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx expo install expo-file-system`
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Submit a Driving Assessment and confirm the shared PDF filename is `First Last DD-MM-YY.pdf`.
 - **Notes/TODO:**
   - None.
 
@@ -156,6 +288,100 @@
   - `npx tsc --noEmit`
 - **Verification:**
   - TypeScript compile check via `npx tsc --noEmit` (local).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add student Assessment History screen
+- **Summary:**
+  - Added an Assessment History button on the student profile screen.
+  - Added `StudentAssessmentHistoryScreen` with assessment-type tabs, history list, and a Driving Assessment detail view with PDF re-export.
+  - Extended the Assessments API list query to support filtering by `assessment_type`.
+- **Files changed:**
+  - `src/features/assessments/api.ts`
+  - `src/features/assessments/driving-assessment/schema.ts`
+  - `src/navigation/StudentsStackNavigator.tsx`
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open a student → tap `Assessment History` → confirm you can switch tabs and see Driving Assessment history.
+  - Tap an assessment → confirm details render and `Download PDF` exports/saves successfully.
+- **Notes/TODO:**
+  - Consider adding a dedicated detail route for phones if the combined list+detail view feels too long.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Save Driving Assessment PDFs without share sheet
+- **Summary:**
+  - Updated PDF export to save directly into app storage (`documentDirectory/driving-assessments/`) and skip opening the share sheet.
+  - Updated submit success alert to show the saved file URI.
+- **Files changed:**
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Submit a Driving Assessment and confirm the PDF is saved and a URI is shown in the success alert.
+- **Notes/TODO:**
+  - This saves to app sandbox storage; saving to a user-visible folder requires an explicit user action (platform limitation).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Implement Driving Assessment (Assessments v1)
+- **Summary:**
+  - Added Supabase `assessments` table with RLS (owner: org-wide; instructor: own assessments) and updated_at trigger.
+  - Built Assessments screens: assessment type list + Driving Assessment form (student picker, scoring criteria, feedback fields).
+  - Added PDF export for Driving Assessment using `expo-print` + `expo-sharing`.
+  - Added entry point from `StudentDetailScreen` to start a Driving Assessment pre-filled for that student.
+- **Files changed:**
+  - `supabase/migrations/006_assessments.sql`
+  - `src/supabase/types.ts`
+  - `src/features/assessments/api.ts`
+  - `src/features/assessments/queries.ts`
+  - `src/features/assessments/driving-assessment/constants.ts`
+  - `src/features/assessments/driving-assessment/schema.ts`
+  - `src/features/assessments/driving-assessment/scoring.ts`
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `src/navigation/screens/AssessmentsListScreen.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `supabase/README.md`
+  - `README.md`
+  - `package.json`
+  - `package-lock.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx expo install expo-print expo-sharing`
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open `Assessments` from the drawer, start a Driving Assessment, pick a student, enter scores, and save.
+  - Tap `Save & export PDF` and confirm the share sheet appears with a generated PDF.
+- **Notes/TODO:**
+  - `2nd Assessment` and `3rd Assessment` are placeholders only.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Update AGENTS.md for Assessments scope
+- **Summary:**
+  - Updated v1 spec to include Assessments (Driving Assessment implemented; other assessment types remain placeholders).
+  - Updated schema/navigation/forms sections to reflect the new Assessments stack and `assessments` table.
+- **Files changed:**
+  - `AGENTS.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Open `AGENTS.md` and confirm Assessments is listed in v1 goals, navigation, schema, and build order.
+- **Notes/TODO:**
+  - None.
 
 ---
 

@@ -1,10 +1,12 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButtons";
-import { AssessmentsComingSoonScreen } from "./screens/AssessmentsComingSoonScreen";
+import { AssessmentsListScreen } from "./screens/AssessmentsListScreen";
+import { DrivingAssessmentScreen } from "./screens/DrivingAssessmentScreen";
 
 export type AssessmentsStackParamList = {
   AssessmentsMain: undefined;
+  DrivingAssessment: { studentId?: string } | undefined;
 };
 
 const Stack = createNativeStackNavigator<AssessmentsStackParamList>();
@@ -20,7 +22,8 @@ export function AssessmentsStackNavigator() {
         headerRight: () => <HeaderRightAvatar />,
       }}
     >
-      <Stack.Screen name="AssessmentsMain" component={AssessmentsComingSoonScreen} />
+      <Stack.Screen name="AssessmentsMain" component={AssessmentsListScreen} />
+      <Stack.Screen name="DrivingAssessment" component={DrivingAssessmentScreen} />
     </Stack.Navigator>
   );
 }

@@ -1,0 +1,100 @@
+export const drivingAssessmentCriteria = {
+  vehicleControl: [
+    "Smoothness of acceleration and braking",
+    "Steering control and handling of the vehicle",
+    "Ability to maintain proper lane position",
+    "Use of mirrors and signals effectively",
+    "Handling of gears (if manual transmission)",
+  ],
+  observation: [
+    "Regular use of mirrors to check surroundings",
+    "Scanning for hazards (e.g., pedestrians, cyclists, other vehicles)",
+    "Awareness of blind spots",
+    "Proper use of head checks when changing lanes, diverging, leaving the kerb or turning",
+  ],
+  roadRules: [
+    "Understanding and adherence to traffic signs and signals",
+    "Correct application of right-of-way rules",
+    "Compliance with speed limits and road markings",
+    "Awareness of local driving laws and regulations",
+  ],
+  decisionMaking: [
+    "Ability to anticipate and react to potential hazards",
+    "Appropriate judgment in complex situations (e.g., intersections)",
+    "Timely and safe decision-making under pressure",
+    "Ability to adjust driving based on road and weather conditions",
+  ],
+  communication: [
+    "Proper use of indicators and signals",
+    "Clear and timely communication with other road users",
+    "Use of horn and lights appropriately",
+    "Awareness of non-verbal cues (e.g., eye contact with pedestrians)",
+  ],
+} as const;
+
+export type DrivingAssessmentCategoryKey = keyof typeof drivingAssessmentCriteria;
+
+export const drivingAssessmentFeedbackOptions = {
+  strengths: [
+    "Good Observation Skills – Regular scanning of mirrors and surroundings; anticipates hazards early.",
+    "Safe Speed Control – Maintains appropriate speed for the conditions and follows speed limits.",
+    "Smooth Steering Control – Hands remain steady and controlled; turns are smooth and accurate.",
+    "Effective Use of Mirrors – Frequent and timely mirror checks, especially before changing lanes or turning.",
+    "Confident Gap Selection – Makes safe decisions when merging, turning, or crossing intersections.",
+    "Appropriate Signal Use – Signals intentions early and clearly at every turn or lane change.",
+    "Good Following Distance – Maintains a safe gap from the vehicle ahead to allow for reaction time.",
+    "Smooth Braking and Acceleration – Applies pedals gradually for passenger comfort and control.",
+    "Calm Under Pressure – Remains composed in challenging or high-pressure traffic situations.",
+    "Lane Discipline – Maintains correct lane position and avoids unnecessary lane changes.",
+    "Checks Blind Spots – Always checks blind spots before merging, changing lanes, or moving off.",
+    "Effective Parking Skills – Accurately and confidently completes parallel, angle, or reverse parking.",
+    "Good Road Positioning – Keeps the car centered and in the correct lane for the situation.",
+    "Understands Road Rules – Applies road signs, markings, and give-way rules correctly.",
+    "Handles Intersections Well – Makes safe and timely decisions at stop signs, give-way signs, and traffic lights.",
+  ],
+  improvements: [
+    "Earlier Hazard Detection – Needs to scan the road further ahead and respond sooner to developing situations.",
+    "Improving Gap Selection – Should practice choosing safer gaps when turning, merging, or crossing intersections.",
+    "More Consistent Mirror Checks – Needs to increase frequency of mirror use, especially before lane changes and turns.",
+    "Better Blind Spot Checks – Must remember to check blind spots every time before moving off or changing lanes.",
+    "Lane Positioning – Work on staying centered within the lane and avoiding drifting toward lane markings.",
+    "Speed Management – Needs to maintain steady, appropriate speed, especially when approaching intersections or speed limit changes.",
+    "Signal Timing – Practice signaling earlier and cancelling the signal after completing the maneuver.",
+    "Smoother Steering Control – Avoid oversteering or sudden corrections; maintain smoother handling through turns.",
+    "Judgment at Roundabouts – Needs to build confidence in choosing the right time to enter and understanding lane discipline within multi-lane roundabouts.",
+    "Parking Precision – Improve control and accuracy during parallel, angle, or reverse parking exercises.",
+    "Hill Start and Stop Control – Practice smoother control when starting or stopping on inclines to avoid rolling back.",
+    "Observation of Road Signs and Markings – Needs to pay more attention to bus lanes, stop lines, and give way markings.",
+    "Following Distance – Should maintain a safer gap from the vehicle in front to allow for proper reaction time.",
+    "Confidence Under Pressure – Work on staying calm and making clearer decisions when traffic builds or unexpected situations arise.",
+  ],
+  recommendation: [
+    "Book Additional Coaching Sessions – Focus on areas identified for improvement (e.g., gap selection, lane changes, roundabouts).",
+    "Targeted Practice on Specific Skills – Schedule sessions or private practice to strengthen specific maneuvers (e.g., parking, merging, observation techniques).",
+    "Drive in a Variety of Road Conditions – Practice in different environments (e.g., city, motorway, hills, night driving) to build adaptability.",
+    "Work on Timing and Decision-Making – Continue developing smoother and faster decision-making at intersections and during lane changes.",
+    "Review Road Code Rules – Refresh knowledge of signs, road markings, and give-way rules to reinforce legal and safe driving habits.",
+    "Simulate Full Test Conditions – Book a mock test to build confidence and evaluate readiness under real test-like conditions.",
+    "Plan Driving Routes Strategically – Include more complex roads and unfamiliar routes to improve navigation and situational awareness.",
+    "Seek Feedback Regularly – Continue receiving structured feedback from an instructor to fine-tune performance.",
+    "Set a Timeline Toward Full License Test – Work with your instructor to decide when you'll be ready to book your full license test.",
+    "Develop Independent Driving Confidence – Gradually reduce reliance on instructor input to increase independence behind the wheel.",
+    "Keep a Driving Progress Log – Record areas practiced, challenges faced, and improvements made to track development over time.",
+  ],
+  nextSteps: [
+    "Continue Regular Driving Practice – Focus on real-world situations to build confidence and reinforce safe habits.",
+    "Focus on Identified Improvement Areas – Prioritise practicing the specific skills highlighted during the assessment (e.g., observation, speed control, parking).",
+    "Review and Strengthen Road Code Knowledge – Refresh understanding of key road rules, signs, and right-of-way situations.",
+    "Practice in a Variety of Driving Environments – Include city streets, highways, roundabouts, and hilly roads to build adaptability.",
+    "Increase Independent Driving – Gradually reduce instructor prompts to build confidence in solo decision-making.",
+    "Improve Timing and Judgment – Work on smoother decision-making at intersections, merging, and lane changes.",
+    "Book a Follow-Up Coaching Session – Reassess progress and fine-tune techniques with instructor guidance.",
+    "Schedule a Mock Test – Simulate the full license test to evaluate readiness and reduce test-day anxiety.",
+    "Set a Clear Timeline for Full License Preparation – Plan and track milestones toward booking the full license test.",
+    "Repeat Challenging Maneuvers – Revisit complex tasks such as reverse parallel parking, hill starts, and roundabouts until they feel natural.",
+    "Seek Ongoing Feedback – Keep asking for and applying feedback from your instructor and trusted supervisors during practice.",
+  ],
+} as const;
+
+export type DrivingAssessmentFeedbackField = keyof typeof drivingAssessmentFeedbackOptions;
+

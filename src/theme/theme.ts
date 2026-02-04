@@ -29,12 +29,14 @@ export const theme = {
     variant: {
       primary: "bg-primary border-primary",
       secondary: "bg-card border-border",
+      danger: "bg-danger border-danger",
       ghost: "bg-transparent border-transparent",
     },
     labelBase: "",
     labelVariant: {
       primary: "text-primaryForeground",
       secondary: "text-foreground",
+      danger: "text-primaryForeground",
       ghost: "text-primary",
     },
   },

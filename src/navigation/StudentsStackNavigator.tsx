@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButtons";
+import { StudentAssessmentHistoryScreen } from "./screens/StudentAssessmentHistoryScreen";
 import { StudentDetailScreen } from "./screens/StudentDetailScreen";
 import { StudentEditScreen } from "./screens/StudentEditScreen";
 import { StudentsListScreen } from "./screens/StudentsListScreen";
@@ -8,6 +9,7 @@ import { StudentsListScreen } from "./screens/StudentsListScreen";
 export type StudentsStackParamList = {
   StudentsList: undefined;
   StudentDetail: { studentId: string };
+  StudentAssessmentHistory: { studentId: string };
   StudentCreate: undefined;
   StudentEdit: { studentId: string };
 };
@@ -30,6 +32,7 @@ export function StudentsStackNavigator() {
         options={{ headerLeft: () => <HeaderLeftHamburger /> }}
       />
       <Stack.Screen name="StudentDetail" component={StudentDetailScreen} />
+      <Stack.Screen name="StudentAssessmentHistory" component={StudentAssessmentHistoryScreen} />
       <Stack.Screen name="StudentCreate" component={StudentEditScreen} />
       <Stack.Screen name="StudentEdit" component={StudentEditScreen} />
     </Stack.Navigator>
