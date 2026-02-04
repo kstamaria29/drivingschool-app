@@ -391,6 +391,34 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Implement Mock Test – Restricted Licence assessment
+- **Summary:**
+  - Implemented the 2nd assessment as a Restricted Licence mock test (Stage 1/Stage 2 tasks, critical errors, immediate-fail errors) with auto-save draft on device.
+  - Added PDF export on submit and enabled PDF download + detailed history view in the student's assessment history.
+  - Updated Assessments list to launch the new mock test flow.
+- **Files changed:**
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `src/navigation/screens/AssessmentsListScreen.tsx`
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `src/components/AppCollapsibleCard.tsx`
+  - `src/components/AppSegmentedControl.tsx`
+  - `src/features/assessments/restricted-mock-test/constants.ts`
+  - `src/features/assessments/restricted-mock-test/pdf.ts`
+  - `src/features/assessments/restricted-mock-test/schema.ts`
+  - `src/features/assessments/restricted-mock-test/scoring.ts`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - In app: `Assessments` → `Start Mock Test` → select a student → `Start test` → fill a few faults/errors → `Submit and generate PDF`.
+  - In student profile: `Assessment History` → `Mock Test – Restricted` tab → open an entry → `Download PDF`.
+- **Notes/TODO:**
+  - Consider adding an explicit “Discard draft” action if instructors want to clear an in-progress mock test without submitting.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Remove assessment start from student profile
 - **Summary:**
   - Removed the `New Driving Assessment` button from `StudentDetailScreen` so assessments are only initiated from the Assessments screen.

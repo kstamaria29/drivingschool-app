@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactElement } from "react";
 import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, View } from "react-native";
 
 import { AppButton } from "../../components/AppButton";
@@ -23,6 +23,17 @@ import {
   generateDrivingAssessmentFeedbackSummary,
 } from "../../features/assessments/driving-assessment/scoring";
 import { drivingAssessmentStoredDataSchema } from "../../features/assessments/driving-assessment/schema";
+import {
+  restrictedMockTestCriticalErrors,
+  restrictedMockTestImmediateErrors,
+  restrictedMockTestStages,
+} from "../../features/assessments/restricted-mock-test/constants";
+import { exportRestrictedMockTestPdf } from "../../features/assessments/restricted-mock-test/pdf";
+import {
+  calculateRestrictedMockTestSummary,
+  getRestrictedMockTestTaskFaults,
+} from "../../features/assessments/restricted-mock-test/scoring";
+import { restrictedMockTestStoredDataSchema } from "../../features/assessments/restricted-mock-test/schema";
 import { notifyPdfSaved } from "../../features/notifications/download-notifications";
 import { useOrganizationQuery } from "../../features/organization/queries";
 import { useStudentQuery } from "../../features/students/queries";
@@ -41,7 +52,7 @@ type AssessmentType = Assessment["assessment_type"];
 
 const assessmentTypes: Array<{ type: AssessmentType; label: string }> = [
   { type: "driving_assessment", label: "Driving Assessment" },
-  { type: "second_assessment", label: "2nd Assessment" },
+  { type: "second_assessment", label: "Mock Test – Restricted" },
   { type: "third_assessment", label: "3rd Assessment" },
 ];
 
@@ -72,6 +83,27 @@ function getDrivingAssessmentImprovements(assessment: Assessment) {
   const parsed = drivingAssessmentStoredDataSchema.safeParse(assessment.form_data);
   if (!parsed.success) return null;
   return parsed.data.improvements?.trim() ? parsed.data.improvements.trim() : null;
+}
+
+function getRestrictedMockTestSummary(assessment: Assessment) {
+  if (assessment.assessment_type !== "second_assessment") return null;
+  const parsed = restrictedMockTestStoredDataSchema.safeParse(assessment.form_data);
+  if (!parsed.success) return null;
+
+  const values = parsed.data;
+  const summary = values.summary
+    ? values.summary
+    : calculateRestrictedMockTestSummary({
+        stagesState: values.stagesState,
+        critical: values.critical,
+        immediate: values.immediate,
+      });
+
+  const s1 = summary.stage1Faults ?? 0;
+  const s2 = summary.stage2Faults ?? 0;
+  const crit = summary.criticalTotal ?? 0;
+  const imm = summary.immediateTotal ?? 0;
+  return `Stage 1: ${s1} faults · Stage 2: ${s2} faults · Critical: ${crit} · Immediate: ${imm}`;
 }
 
 function ScoreChip({ score }: { score: number | null }) {
@@ -146,37 +178,12 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
   }
 
   async function onDownloadPdfPress(assessment: Assessment) {
-    if (assessment.assessment_type !== "driving_assessment") {
-      Alert.alert("Not available", "PDF export is only available for Driving Assessment.");
-      return;
-    }
-
     const student = studentQuery.data ?? null;
     if (!student) {
       Alert.alert("Couldn't load student", "Please try again once the student details are loaded.");
       return;
     }
 
-    const parsed = drivingAssessmentStoredDataSchema.safeParse(assessment.form_data);
-    if (!parsed.success) {
-      Alert.alert(
-        "Couldn't export PDF",
-        "This assessment is missing required data. Try creating a new assessment.",
-      );
-      return;
-    }
-
-    const values = parsed.data;
-    const score = calculateDrivingAssessmentScore(values.scores);
-    const totalPercent = assessment.total_score ?? score.percentAnswered;
-    const feedbackSummary =
-      values.feedbackSummary?.trim() ||
-      (totalPercent == null ? "" : generateDrivingAssessmentFeedbackSummary(totalPercent));
-
-    const assessmentDateISO = parseDateInputToISODate(values.date) ?? values.date;
-    const issueDateISO = values.issueDate ? parseDateInputToISODate(values.issueDate) : null;
-    const expiryDateISO = values.expiryDate ? parseDateInputToISODate(values.expiryDate) : null;
-    const fileName = `${student.first_name} ${student.last_name} ${dayjs(assessmentDateISO).format("DD-MM-YY")}`;
     const organizationName = organizationQuery.data?.name ?? "Driving School";
 
     setDownloadingAssessmentId(assessment.id);
@@ -184,36 +191,109 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
       const androidDirectoryUri =
         Platform.OS === "android" ? await ensureAndroidDownloadsDirectoryUri() : undefined;
 
-      const saved = await exportDrivingAssessmentPdf({
-        assessmentId: assessment.id,
-        organizationName,
-        fileName,
-        androidDirectoryUri: androidDirectoryUri ?? undefined,
-        criteria: drivingAssessmentCriteria,
-        values: {
-          ...values,
-          date: dayjs(assessmentDateISO).format(DISPLAY_DATE_FORMAT),
-          issueDate: issueDateISO ? dayjs(issueDateISO).format(DISPLAY_DATE_FORMAT) : values.issueDate,
-          expiryDate: expiryDateISO ? dayjs(expiryDateISO).format(DISPLAY_DATE_FORMAT) : values.expiryDate,
-          totalScorePercent: totalPercent,
-          totalScoreRaw: score.totalRaw,
-          feedbackSummary,
-        },
-      });
+      if (assessment.assessment_type === "driving_assessment") {
+        const parsed = drivingAssessmentStoredDataSchema.safeParse(assessment.form_data);
+        if (!parsed.success) {
+          Alert.alert(
+            "Couldn't export PDF",
+            "This assessment is missing required data. Try creating a new assessment.",
+          );
+          return;
+        }
 
-      await notifyPdfSaved({
-        fileName,
-        uri: saved.uri,
-        savedTo: saved.savedTo === "downloads" ? "Downloads" : "App storage",
-      });
+        const values = parsed.data;
+        const score = calculateDrivingAssessmentScore(values.scores);
+        const totalPercent = assessment.total_score ?? score.percentAnswered;
+        const feedbackSummary =
+          values.feedbackSummary?.trim() ||
+          (totalPercent == null ? "" : generateDrivingAssessmentFeedbackSummary(totalPercent));
 
-      Alert.alert(
-        "PDF saved",
-        saved.savedTo === "downloads"
-          ? "Saved to Downloads."
-          : "Saved inside the app (your device may restrict global downloads).",
-        [{ text: "Open", onPress: () => void openPdfUri(saved.uri) }, { text: "Done" }],
-      );
+        const assessmentDateISO = parseDateInputToISODate(values.date) ?? values.date;
+        const issueDateISO = values.issueDate ? parseDateInputToISODate(values.issueDate) : null;
+        const expiryDateISO = values.expiryDate ? parseDateInputToISODate(values.expiryDate) : null;
+        const fileName = `${student.first_name} ${student.last_name} ${dayjs(assessmentDateISO).format("DD-MM-YY")}`;
+
+        const saved = await exportDrivingAssessmentPdf({
+          assessmentId: assessment.id,
+          organizationName,
+          fileName,
+          androidDirectoryUri: androidDirectoryUri ?? undefined,
+          criteria: drivingAssessmentCriteria,
+          values: {
+            ...values,
+            date: dayjs(assessmentDateISO).format(DISPLAY_DATE_FORMAT),
+            issueDate: issueDateISO
+              ? dayjs(issueDateISO).format(DISPLAY_DATE_FORMAT)
+              : values.issueDate,
+            expiryDate: expiryDateISO
+              ? dayjs(expiryDateISO).format(DISPLAY_DATE_FORMAT)
+              : values.expiryDate,
+            totalScorePercent: totalPercent,
+            totalScoreRaw: score.totalRaw,
+            feedbackSummary,
+          },
+        });
+
+        await notifyPdfSaved({
+          fileName,
+          uri: saved.uri,
+          savedTo: saved.savedTo === "downloads" ? "Downloads" : "App storage",
+        });
+
+        Alert.alert(
+          "PDF saved",
+          saved.savedTo === "downloads"
+            ? "Saved to Downloads."
+            : "Saved inside the app (your device may restrict global downloads).",
+          [{ text: "Open", onPress: () => void openPdfUri(saved.uri) }, { text: "Done" }],
+        );
+
+        return;
+      }
+
+      if (assessment.assessment_type === "second_assessment") {
+        const parsed = restrictedMockTestStoredDataSchema.safeParse(assessment.form_data);
+        if (!parsed.success) {
+          Alert.alert(
+            "Couldn't export PDF",
+            "This assessment is missing required data. Try creating a new assessment.",
+          );
+          return;
+        }
+
+        const values = parsed.data;
+        const assessmentDateISO =
+          parseDateInputToISODate(values.date) ?? assessment.assessment_date ?? assessment.created_at;
+        const fileName = `Mock Test Restricted ${student.first_name} ${student.last_name} ${dayjs(assessmentDateISO).format("DD-MM-YY")}`;
+
+        const saved = await exportRestrictedMockTestPdf({
+          assessmentId: assessment.id,
+          organizationName,
+          fileName,
+          androidDirectoryUri: androidDirectoryUri ?? undefined,
+          values,
+        });
+
+        await notifyPdfSaved({
+          fileName,
+          uri: saved.uri,
+          savedTo: saved.savedTo === "downloads" ? "Downloads" : "App storage",
+        });
+
+        Alert.alert(
+          "PDF saved",
+          saved.savedTo === "downloads"
+            ? "Saved to Downloads."
+            : "Saved inside the app (your device may restrict global downloads).",
+          [{ text: "Open", onPress: () => void openPdfUri(saved.uri) }, { text: "Done" }],
+        );
+
+        return;
+      }
+
+      Alert.alert("Not available", "PDF export isn't available for this assessment type yet.");
+      return;
+
     } catch (error) {
       Alert.alert("Couldn't export PDF", toErrorMessage(error));
     } finally {
@@ -273,15 +353,17 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
     <AppCard className="gap-2">
       <AppText variant="heading">No assessments yet</AppText>
       <AppText variant="body">
-        Create a new assessment from the student profile to see it appear here.
+        Create a new assessment from the Assessments screen to see it appear here.
       </AppText>
     </AppCard>
   ) : (
     <AppStack gap="sm">
       {(assessmentsQuery.data ?? []).map((assessment) => {
         const isSelected = assessment.id === selectedAssessmentId;
-        const summary = getDrivingAssessmentSummary(assessment);
-        const improvements = getDrivingAssessmentImprovements(assessment);
+        const drivingSummary = getDrivingAssessmentSummary(assessment);
+        const drivingImprovements = getDrivingAssessmentImprovements(assessment);
+        const restrictedSummary = getRestrictedMockTestSummary(assessment);
+        const summaryText = drivingSummary ?? restrictedSummary;
 
         return (
           <Pressable
@@ -299,19 +381,25 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
             >
               <View className="flex-row items-center justify-between gap-3">
                 <AppText variant="heading">{formatAssessmentDate(assessment)}</AppText>
-                <AppText variant="caption">
-                  Score: {assessment.total_score == null ? "—" : String(assessment.total_score)}
-                </AppText>
+                {assessment.assessment_type === "driving_assessment" ? (
+                  <AppText variant="caption">
+                    Score: {assessment.total_score == null ? "" : String(assessment.total_score)}
+                  </AppText>
+                ) : assessment.assessment_type === "second_assessment" ? (
+                  <AppText variant="caption">Mock test</AppText>
+                ) : (
+                  <AppText variant="caption">Assessment</AppText>
+                )}
               </View>
 
-              {summary ? (
+              {summaryText ? (
                 <AppText numberOfLines={2} variant="caption">
-                  {summary}
+                  {summaryText}
                 </AppText>
               ) : null}
-              {improvements ? (
+              {drivingImprovements ? (
                 <AppText numberOfLines={2} variant="caption">
-                  {improvements}
+                  {drivingImprovements}
                 </AppText>
               ) : null}
             </AppCard>
@@ -328,6 +416,201 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
           <AppText variant="heading">Select an assessment</AppText>
           <AppText variant="body">Tap an entry to view details.</AppText>
         </AppCard>
+      );
+    }
+
+    if (assessment.assessment_type === "second_assessment") {
+      const parsed = restrictedMockTestStoredDataSchema.safeParse(assessment.form_data);
+      if (!parsed.success) {
+        return (
+          <AppStack gap="md">
+            <AppCard className="gap-2">
+              <AppText variant="heading">Couldn't read mock test</AppText>
+              <AppText variant="body">
+                This assessment is missing required data, so it can't be displayed.
+              </AppText>
+            </AppCard>
+
+            <AppButton
+              variant="danger"
+              label={deletingAssessmentId === assessment.id ? "Deleting..." : "Delete assessment"}
+              disabled={deletingAssessmentId === assessment.id}
+              onPress={() => onDeletePress(assessment)}
+            />
+          </AppStack>
+        );
+      }
+
+      const values = parsed.data;
+      const summary = values.summary
+        ? values.summary
+        : calculateRestrictedMockTestSummary({
+            stagesState: values.stagesState,
+            critical: values.critical,
+            immediate: values.immediate,
+          });
+
+      const criticalTotal = summary.criticalTotal ?? 0;
+      const immediateTotal = summary.immediateTotal ?? 0;
+
+      function renderRecordedTasks(stageId: "stage1" | "stage2") {
+        const stage = restrictedMockTestStages.find((s) => s.id === stageId);
+        if (!stage) return null;
+
+        const stageState = values.stagesState[stageId] || {};
+        const tasks = stage.tasks
+          .map((taskDef) => {
+            const taskState = stageState?.[taskDef.id];
+            if (!taskState) return null;
+            const faults = getRestrictedMockTestTaskFaults(taskState);
+            const hasDetails =
+              Boolean(taskState.location?.trim()) ||
+              Boolean(taskState.notes?.trim()) ||
+              faults.length > 0;
+            if (!hasDetails) return null;
+
+            return (
+              <AppCard key={taskDef.id} className="gap-2">
+                <AppText variant="heading">{taskDef.name}</AppText>
+                <AppText variant="caption">Typical speed zone: {taskDef.speed} km/h</AppText>
+                {taskState.location?.trim() ? (
+                  <AppText variant="body">Location: {taskState.location.trim()}</AppText>
+                ) : null}
+                {faults.length ? (
+                  <AppText variant="body">Faults: {faults.join(", ")}</AppText>
+                ) : null}
+                {taskState.notes?.trim() ? (
+                  <AppText variant="body">Notes: {taskState.notes.trim()}</AppText>
+                ) : null}
+              </AppCard>
+            );
+          })
+          .filter((task): task is ReactElement => task != null);
+
+        if (tasks.length === 0) {
+          return (
+            <AppCard className="gap-2">
+              <AppText variant="heading">{stage.name}</AppText>
+              <AppText variant="body">No items recorded for this stage.</AppText>
+            </AppCard>
+          );
+        }
+
+        return (
+          <AppStack gap="sm">
+            <AppText variant="heading">{stage.name}</AppText>
+            {tasks}
+          </AppStack>
+        );
+      }
+
+      function renderErrorLines(errors: readonly string[], counts: Record<string, number>) {
+        const lines = errors
+          .map((label) => {
+            const count = counts[label] ?? 0;
+            return count > 0 ? `${label}: ${count}` : null;
+          })
+          .filter((line): line is string => line != null);
+
+        return lines.length ? lines.join("\n") : "";
+      }
+
+      const criticalLines = renderErrorLines(restrictedMockTestCriticalErrors, values.critical || {});
+      const immediateLines = renderErrorLines(
+        restrictedMockTestImmediateErrors,
+        values.immediate || {},
+      );
+
+      return (
+        <AppStack gap="md">
+          <View className="flex-row items-start justify-between gap-3">
+            <View className="flex-1">
+              <AppText variant="heading">Mock Test – Restricted</AppText>
+              <AppText className="mt-1" variant="caption">
+                Assessment on {formatAssessmentDate(assessment)}
+              </AppText>
+              {values.instructor?.trim() ? (
+                <AppText className="mt-1" variant="caption">
+                  Instructor: {values.instructor.trim()}
+                </AppText>
+              ) : null}
+            </View>
+
+            <View className="items-end gap-1">
+              <AppText variant="caption">Critical: {criticalTotal}</AppText>
+              <AppText variant={immediateTotal > 0 ? "error" : "caption"}>
+                Immediate: {immediateTotal}
+              </AppText>
+            </View>
+          </View>
+
+          <AppButton
+            width="auto"
+            label={downloadingAssessmentId === assessment.id ? "Saving PDF..." : "Download PDF"}
+            disabled={downloadingAssessmentId === assessment.id || deletingAssessmentId === assessment.id}
+            onPress={() => void onDownloadPdfPress(assessment)}
+          />
+
+          <AppDivider />
+
+          <AppCard className="gap-2">
+            <AppText variant="heading">Overview</AppText>
+            <AppText variant="body">
+              Stage 1 faults: {summary.stage1Faults ?? 0} · Stage 2 faults: {summary.stage2Faults ?? 0}
+            </AppText>
+            <AppText variant="body">Critical errors: {criticalTotal}</AppText>
+            <AppText variant="body">Immediate failure errors: {immediateTotal}</AppText>
+            {summary.resultText ? <AppText variant="caption">{summary.resultText}</AppText> : null}
+          </AppCard>
+
+          <AppCard className="gap-2">
+            <AppText variant="heading">Session details</AppText>
+            <AppText variant="body">Candidate: {values.candidateName || ""}</AppText>
+            <AppText variant="body">Date: {values.date || ""}</AppText>
+            <AppText variant="body">Time: {values.time || ""}</AppText>
+            <AppText variant="body">Vehicle: {values.vehicleInfo || ""}</AppText>
+            <AppText variant="body">Route: {values.routeInfo || ""}</AppText>
+            {values.preDriveNotes?.trim() ? (
+              <AppText variant="body">Pre-drive notes: {values.preDriveNotes.trim()}</AppText>
+            ) : null}
+          </AppCard>
+
+          {renderRecordedTasks("stage1")}
+
+          {values.stage2Enabled ? renderRecordedTasks("stage2") : (
+            <AppCard className="gap-2">
+              <AppText variant="heading">Stage 2</AppText>
+              <AppText variant="body">Stage 2 not enabled.</AppText>
+            </AppCard>
+          )}
+
+          <AppDivider />
+
+          <AppCard className="gap-2">
+            <AppText variant="heading">Critical errors</AppText>
+            <AppText variant="body">{criticalLines || "None recorded."}</AppText>
+            {values.criticalNotes?.trim() ? (
+              <AppText variant="body">Notes: {values.criticalNotes.trim()}</AppText>
+            ) : null}
+          </AppCard>
+
+          <AppCard className="gap-2">
+            <AppText variant="heading">Immediate failure errors</AppText>
+            <AppText variant="body">{immediateLines || "None recorded."}</AppText>
+            {values.immediateNotes?.trim() ? (
+              <AppText variant="body">Notes: {values.immediateNotes.trim()}</AppText>
+            ) : null}
+          </AppCard>
+
+          <AppDivider />
+
+          <AppButton
+            variant="danger"
+            label={deletingAssessmentId === assessment.id ? "Deleting..." : "Delete assessment"}
+            disabled={deletingAssessmentId === assessment.id || downloadingAssessmentId === assessment.id}
+            onPress={() => onDeletePress(assessment)}
+          />
+        </AppStack>
       );
     }
 

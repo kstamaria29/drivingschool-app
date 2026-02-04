@@ -35,8 +35,16 @@ export function AssessmentsListScreen({ navigation }: Props) {
         </AppCard>
 
         <AppCard className="gap-2">
-          <AppText variant="heading">2nd Assessment</AppText>
-          <AppText variant="body">Coming soon.</AppText>
+          <AppText variant="heading">Mock Test – Restricted Licence</AppText>
+          <AppText variant="body">
+            Structured mock test with Stage 1 & Stage 2 tasks, critical errors, immediate-fail
+            errors, and PDF export.
+          </AppText>
+          <AppButton
+            width="auto"
+            label="Start Mock Test"
+            onPress={() => navigation.navigate("RestrictedMockTest")}
+          />
         </AppCard>
 
         <AppCard className="gap-2">

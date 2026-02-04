@@ -3,10 +3,12 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButtons";
 import { AssessmentsListScreen } from "./screens/AssessmentsListScreen";
 import { DrivingAssessmentScreen } from "./screens/DrivingAssessmentScreen";
+import { RestrictedMockTestScreen } from "./screens/RestrictedMockTestScreen";
 
 export type AssessmentsStackParamList = {
   AssessmentsMain: undefined;
   DrivingAssessment: { studentId?: string } | undefined;
+  RestrictedMockTest: { studentId?: string } | undefined;
 };
 
 const Stack = createNativeStackNavigator<AssessmentsStackParamList>();
@@ -24,6 +26,7 @@ export function AssessmentsStackNavigator() {
     >
       <Stack.Screen name="AssessmentsMain" component={AssessmentsListScreen} />
       <Stack.Screen name="DrivingAssessment" component={DrivingAssessmentScreen} />
+      <Stack.Screen name="RestrictedMockTest" component={RestrictedMockTestScreen} />
     </Stack.Navigator>
   );
 }
