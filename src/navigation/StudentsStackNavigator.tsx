@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
+import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButtons";
 import { StudentDetailScreen } from "./screens/StudentDetailScreen";
 import { StudentEditScreen } from "./screens/StudentEditScreen";
 import { StudentsListScreen } from "./screens/StudentsListScreen";
@@ -20,13 +21,17 @@ export function StudentsStackNavigator() {
       screenOptions={{
         headerShadowVisible: false,
         headerTitle: "",
+        headerRight: () => <HeaderRightAvatar />,
       }}
     >
-      <Stack.Screen name="StudentsList" component={StudentsListScreen} />
+      <Stack.Screen
+        name="StudentsList"
+        component={StudentsListScreen}
+        options={{ headerLeft: () => <HeaderLeftHamburger /> }}
+      />
       <Stack.Screen name="StudentDetail" component={StudentDetailScreen} />
       <Stack.Screen name="StudentCreate" component={StudentEditScreen} />
       <Stack.Screen name="StudentEdit" component={StudentEditScreen} />
     </Stack.Navigator>
   );
 }
-

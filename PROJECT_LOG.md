@@ -160,6 +160,51 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Redo navigation UI (sidebar + hamburger) + Home + Settings uploads
+- **Summary:**
+  - Replaced bottom tabs with a responsive drawer layout: permanent collapsible sidebar on tablet landscape, hamburger drawer on tablet portrait/phones.
+  - Added `Home` as the post-login landing screen (dashboard-style) and added an `Assessments` placeholder screen (no assessment features implemented).
+  - Added Settings options to upload organization logo (owner-only) and user profile photo (avatars bucket + RPC).
+  - Added Supabase migration + storage policies for profile avatars and created `supabase/README.md`.
+- **Files changed:**
+  - `src/navigation/RootNavigation.tsx`
+  - `src/navigation/MainDrawerNavigator.tsx`
+  - `src/navigation/HomeStackNavigator.tsx`
+  - `src/navigation/SettingsStackNavigator.tsx`
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/navigation/components/HeaderButtons.tsx`
+  - `src/navigation/useNavigationLayout.ts`
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/screens/AssessmentsComingSoonScreen.tsx`
+  - `src/components/Avatar.tsx`
+  - `src/components/AppDivider.tsx`
+  - `src/features/auth/current-user.tsx`
+  - `src/features/organization/api.ts`
+  - `src/features/organization/queries.ts`
+  - `src/features/profiles/api.ts`
+  - `src/features/profiles/queries.ts`
+  - `src/supabase/types.ts`
+  - `supabase/migrations/005_profile_avatars.sql`
+  - `supabase/storage/avatars.sql`
+  - `supabase/README.md`
+  - `README.md`
+  - `package.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None (dependencies were not installed in this environment).
+- **Verification:**
+  - Run `npm install`, then `npx tsc --noEmit`.
+  - On tablet landscape: confirm sidebar is permanent and collapsible (icons-only when collapsed).
+  - On tablet portrait/phone: confirm hamburger opens left drawer and avatar button shows on the right.
+  - In Settings: upload org logo (owner) and profile photo; confirm drawer/header reflect updates.
+- **Notes/TODO:**
+  - `Assessments` remains a placeholder only (v1 explicitly excludes assessment features).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Fix Lessons screen layout (no forced scrolling)
 - **Summary:**
   - Added `AppButton` `width` prop to support `auto` sizing in horizontal rows while preserving full-width by default.

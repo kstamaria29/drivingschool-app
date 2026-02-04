@@ -34,6 +34,7 @@ Build a **mobile app (not web)** for a driving instructor to:
 - Zustand for light local UI state only (filters, UI toggles)
 - React Hook Form + Zod for forms + validation
 - Day.js for date/time formatting & calculations
+- Lucide React Native for icons
 
 ### Backend
 
@@ -540,6 +541,7 @@ Whenever you are working with (or writing code involving) any of the following t
 - React Hook Form
 - Zod
 - Day.js
+- Lucide React Native
 
 #### Use **Supabase MCP** for:
 

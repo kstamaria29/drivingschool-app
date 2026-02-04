@@ -1,0 +1,195 @@
+import type { ReactNode } from "react";
+import { Pressable, View } from "react-native";
+import type { DrawerContentComponentProps } from "@react-navigation/drawer";
+import { DrawerContentScrollView } from "@react-navigation/drawer";
+import {
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  Home,
+  Settings,
+  Users,
+} from "lucide-react-native";
+
+import { Avatar } from "../../components/Avatar";
+import { AppImage } from "../../components/AppImage";
+import { AppText } from "../../components/AppText";
+import { AppDivider } from "../../components/AppDivider";
+import { theme } from "../../theme/theme";
+import { cn } from "../../utils/cn";
+import { useCurrentUser } from "../../features/auth/current-user";
+import { useOrganizationQuery, useOrganizationSettingsQuery } from "../../features/organization/queries";
+
+type DrawerRouteName = "Home" | "Lessons" | "Students" | "Assessments" | "Settings";
+
+type Props = DrawerContentComponentProps & {
+  collapsed: boolean;
+  setCollapsed: (next: boolean) => void;
+  isPermanent: boolean;
+};
+
+function DrawerRow({
+  collapsed,
+  label,
+  icon,
+  active,
+  onPress,
+  disabled,
+}: {
+  collapsed: boolean;
+  label: string;
+  icon: ReactNode;
+  active: boolean;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      className={cn(
+        "mb-1 flex-row items-center gap-3 rounded-xl border px-3 py-3",
+        active ? "border-primary bg-primary/10" : "border-transparent bg-transparent",
+        disabled ? "opacity-50" : "",
+      )}
+    >
+      <View className="w-6 items-center justify-center">{icon}</View>
+      {collapsed ? null : <AppText variant="body">{label}</AppText>}
+    </Pressable>
+  );
+}
+
+export function AppDrawerContent({ state, navigation, collapsed, setCollapsed, isPermanent }: Props) {
+  const { profile } = useCurrentUser();
+
+  const organizationQuery = useOrganizationQuery(profile.organization_id);
+  const settingsQuery = useOrganizationSettingsQuery(profile.organization_id);
+
+  const currentRouteName = state.routes[state.index]?.name as DrawerRouteName | undefined;
+
+  const orgName = organizationQuery.data?.name ?? "Organization";
+  const logoUrl = settingsQuery.data?.logo_url ?? null;
+
+  const iconColor = theme.colors.placeholder;
+
+  return (
+    <DrawerContentScrollView
+      contentContainerStyle={{ flexGrow: 1, paddingTop: 0 }}
+    >
+      <View className="flex-1 px-3 pb-4 pt-4">
+        <View className={cn("mb-4", isPermanent ? "" : "gap-3")}>
+          {isPermanent ? (
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-3">
+                {logoUrl ? (
+                  <AppImage
+                    source={{ uri: logoUrl }}
+                    className="h-10 w-10 rounded-xl border border-border bg-card"
+                  />
+                ) : (
+                  <View className="h-10 w-10 rounded-xl border border-border bg-card" />
+                )}
+                {collapsed ? null : (
+                  <View>
+                    <AppText variant="label">{orgName}</AppText>
+                    <AppText variant="caption">{profile.role}</AppText>
+                  </View>
+                )}
+              </View>
+
+              <Pressable
+                onPress={() => setCollapsed(!collapsed)}
+                accessibilityRole="button"
+                accessibilityLabel={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                hitSlop={10}
+              >
+                <View className="h-10 w-10 items-center justify-center rounded-xl border border-border bg-card">
+                  {collapsed ? (
+                    <ChevronRight color={iconColor} size={18} />
+                  ) : (
+                    <ChevronLeft color={iconColor} size={18} />
+                  )}
+                </View>
+              </Pressable>
+            </View>
+          ) : (
+            <View>
+              <View className="flex-row items-center gap-3 px-1">
+                {logoUrl ? (
+                  <AppImage
+                    source={{ uri: logoUrl }}
+                    className="h-12 w-12 rounded-2xl border border-border bg-card"
+                  />
+                ) : (
+                  <View className="h-12 w-12 rounded-2xl border border-border bg-card" />
+                )}
+                <View className="flex-1">
+                  <AppText variant="heading">{orgName}</AppText>
+                  <AppText variant="caption">{profile.display_name}</AppText>
+                </View>
+              </View>
+              <View className="mt-4">
+                <AppDivider />
+              </View>
+            </View>
+          )}
+        </View>
+
+        <View className="flex-1">
+          <DrawerRow
+            collapsed={collapsed}
+            label="Home"
+            icon={<Home color={iconColor} size={20} />}
+            active={currentRouteName === "Home"}
+            onPress={() => navigation.navigate("Home")}
+          />
+          <DrawerRow
+            collapsed={collapsed}
+            label="Lessons"
+            icon={<BookOpen color={iconColor} size={20} />}
+            active={currentRouteName === "Lessons"}
+            onPress={() => navigation.navigate("Lessons")}
+          />
+          <DrawerRow
+            collapsed={collapsed}
+            label="Students"
+            icon={<Users color={iconColor} size={20} />}
+            active={currentRouteName === "Students"}
+            onPress={() => navigation.navigate("Students")}
+          />
+          <DrawerRow
+            collapsed={collapsed}
+            label="Assessments"
+            icon={<ClipboardList color={iconColor} size={20} />}
+            active={currentRouteName === "Assessments"}
+            onPress={() => navigation.navigate("Assessments")}
+          />
+        </View>
+
+        <View className="mt-2">
+          <AppDivider />
+          <View className="mt-3">
+            <DrawerRow
+              collapsed={collapsed}
+              label="Settings"
+              icon={<Settings color={iconColor} size={20} />}
+              active={currentRouteName === "Settings"}
+              onPress={() => navigation.navigate("Settings")}
+            />
+
+            <View className={cn("mt-2 flex-row items-center gap-3 px-3", collapsed ? "py-2" : "")}>
+              <Avatar uri={profile.avatar_url} size={36} label={profile.display_name} />
+              {collapsed ? null : (
+                <View className="flex-1">
+                  <AppText variant="label">{profile.display_name}</AppText>
+                  <AppText variant="caption">{profile.role}</AppText>
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+      </View>
+    </DrawerContentScrollView>
+  );
+}

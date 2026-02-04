@@ -1,11 +1,12 @@
 import { NavigationContainer } from "@react-navigation/native";
 
 import { useMyProfileQuery, useSignOutMutation } from "../features/auth/queries";
+import { CurrentUserProvider } from "../features/auth/current-user";
 import { useAuthSession } from "../features/auth/session";
 import { toErrorMessage } from "../utils/errors";
 
 import { AuthStackNavigator } from "./AuthStackNavigator";
-import { MainTabsNavigator } from "./MainTabsNavigator";
+import { MainDrawerNavigator } from "./MainDrawerNavigator";
 import { AuthBootstrapScreen } from "./screens/AuthBootstrapScreen";
 import { AuthGateErrorScreen } from "./screens/AuthGateErrorScreen";
 
@@ -45,11 +46,12 @@ export function RootNavigation() {
   return (
     <NavigationContainer>
       {profileQuery.data ? (
-        <MainTabsNavigator />
+        <CurrentUserProvider userId={session.user.id} profile={profileQuery.data}>
+          <MainDrawerNavigator />
+        </CurrentUserProvider>
       ) : (
         <AuthStackNavigator initialRouteName="OnboardingCreateOrg" />
       )}
     </NavigationContainer>
   );
 }
-

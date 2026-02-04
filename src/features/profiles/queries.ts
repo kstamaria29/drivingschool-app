@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { listOrganizationProfiles } from "./api";
+import { uploadMyAvatar, listOrganizationProfiles, type UploadAvatarInput } from "./api";
+import { authKeys } from "../auth/queries";
 
 export const profileKeys = {
   list: () => ["profiles"] as const,
@@ -14,3 +15,14 @@ export function useOrganizationProfilesQuery(enabled: boolean) {
   });
 }
 
+export function useUploadMyAvatarMutation(userId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: Omit<UploadAvatarInput, "userId">) =>
+      uploadMyAvatar({ userId, asset: input.asset }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: authKeys.profile(userId) });
+    },
+  });
+}
