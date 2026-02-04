@@ -55,6 +55,24 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Update Driving Assessment start flow
+- **Summary:**
+  - Changed Driving Assessment to a staged flow: review student details first, confirm start, then show the scoring/test form.
+  - Kept existing PDF export + submission behavior once the test is started.
+- **Files changed:**
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - In app: `Assessments` tab → `Start Driving Assessment` → select a student → confirm details screen shows `Start Test`.
+  - Tap `Start Test` → confirm screen → `Start` → scoring + feedback sections appear.
+- **Notes/TODO:**
+  - Consider allowing editing of student/licence details in-test if needed later.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Delete assessments from student history
 - **Summary:**
   - Added a red delete action to the Assessment History detail view (with confirmation).
