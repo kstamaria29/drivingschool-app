@@ -11,6 +11,7 @@ In the Supabase Dashboard:
    - `supabase/migrations/003_students.sql`
    - `supabase/migrations/004_lessons.sql`
    - `supabase/migrations/005_profile_avatars.sql`
+   - `supabase/migrations/006_assessments.sql`
 
 ## Storage buckets + policies
 
@@ -35,7 +36,7 @@ Checks:
 
 - `owner` can read/write org data within org (students, lessons, organization_settings).
 - `instructor` can only read/write their own assigned students + lessons (per existing RLS policies).
+- `instructor` can only read/write their own assessments (assessments must match the student's assigned instructor).
 - `instructor` cannot upload/replace `org-logos/*` (Storage policy should reject).
 - Both `owner` and `instructor` can upload/update only their own `avatars/<auth.uid()>/avatar.*`.
 - Users can read avatars of other users in the same org (drawer/header avatar display).
-

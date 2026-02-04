@@ -2,7 +2,7 @@
 
 Expo React Native app with Supabase auth + onboarding (organization creation + optional logo upload).
 
-Out of scope in this repo task: assessments, Google Calendar sync.
+Out of scope in this repo task: Google Calendar sync.
 
 ## 1) Prerequisites
 
@@ -19,6 +19,7 @@ Out of scope in this repo task: assessments, Google Calendar sync.
    - `supabase/migrations/003_students.sql`
    - `supabase/migrations/004_lessons.sql`
    - `supabase/migrations/005_profile_avatars.sql`
+   - `supabase/migrations/006_assessments.sql`
 3. Create the Storage bucket:
    - Go to `Storage` -> `New bucket`
    - Name: `org-logos`
@@ -63,6 +64,7 @@ Then press `a` for Android (or scan the QR code with Expo Go).
 - Onboarding for first-time users (creates `organizations`, `profiles`, `organization_settings`, optional logo upload to `org-logos/<org_id>/logo.<ext>`)
 - Students v1 (create/edit/archive + owner/instructor permissions via RLS)
 - Lessons v1 (Today / This Week list + create/edit + calendar view)
+- Assessments v1 (Driving Assessment: score criteria + save + export PDF)
 
 ## 6) Repo notes
 

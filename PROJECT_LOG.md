@@ -160,6 +160,42 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Implement Driving Assessment (Assessments v1)
+- **Summary:**
+  - Added Supabase `assessments` table with RLS (owner: org-wide; instructor: own assessments) and updated_at trigger.
+  - Built Assessments screens: assessment type list + Driving Assessment form (student picker, scoring criteria, feedback fields).
+  - Added PDF export for Driving Assessment using `expo-print` + `expo-sharing`.
+  - Added entry point from `StudentDetailScreen` to start a Driving Assessment pre-filled for that student.
+- **Files changed:**
+  - `supabase/migrations/006_assessments.sql`
+  - `src/supabase/types.ts`
+  - `src/features/assessments/api.ts`
+  - `src/features/assessments/queries.ts`
+  - `src/features/assessments/driving-assessment/constants.ts`
+  - `src/features/assessments/driving-assessment/schema.ts`
+  - `src/features/assessments/driving-assessment/scoring.ts`
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `src/navigation/screens/AssessmentsListScreen.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `supabase/README.md`
+  - `README.md`
+  - `package.json`
+  - `package-lock.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx expo install expo-print expo-sharing`
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open `Assessments` from the drawer, start a Driving Assessment, pick a student, enter scores, and save.
+  - Tap `Save & export PDF` and confirm the share sheet appears with a generated PDF.
+- **Notes/TODO:**
+  - `2nd Assessment` and `3rd Assessment` are placeholders only.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Redo navigation UI (sidebar + hamburger) + Home + Settings uploads
 - **Summary:**
   - Replaced bottom tabs with a responsive drawer layout: permanent collapsible sidebar on tablet landscape, hamburger drawer on tablet portrait/phones.

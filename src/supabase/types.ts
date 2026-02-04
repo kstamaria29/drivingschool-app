@@ -180,6 +180,43 @@ export type Database = {
         };
         Relationships: [];
       };
+      assessments: {
+        Row: {
+          id: string;
+          organization_id: string;
+          student_id: string;
+          instructor_id: string;
+          assessment_type: "driving_assessment" | "second_assessment" | "third_assessment";
+          assessment_date: string | null;
+          total_score: number | null;
+          form_data: Record<string, unknown>;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          student_id: string;
+          instructor_id: string;
+          assessment_type: "driving_assessment" | "second_assessment" | "third_assessment";
+          assessment_date?: string | null;
+          total_score?: number | null;
+          form_data?: Record<string, unknown>;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          organization_id?: string;
+          student_id?: string;
+          instructor_id?: string;
+          assessment_type?: "driving_assessment" | "second_assessment" | "third_assessment";
+          assessment_date?: string | null;
+          total_score?: number | null;
+          form_data?: Record<string, unknown>;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       [key: string]: SupabaseTable;
     };
     Views: Record<string, never>;
