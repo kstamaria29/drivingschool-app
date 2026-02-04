@@ -1,0 +1,458 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useEffect, useMemo } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { ActivityIndicator, View } from "react-native";
+
+import { AppButton } from "../../components/AppButton";
+import { AppCard } from "../../components/AppCard";
+import { AppInput } from "../../components/AppInput";
+import { AppStack } from "../../components/AppStack";
+import { AppText } from "../../components/AppText";
+import { Screen } from "../../components/Screen";
+import { useMyProfileQuery } from "../../features/auth/queries";
+import { useAuthSession } from "../../features/auth/session";
+import { useOrganizationProfilesQuery } from "../../features/profiles/queries";
+import {
+  useCreateStudentMutation,
+  useStudentQuery,
+  useUpdateStudentMutation,
+} from "../../features/students/queries";
+import { studentFormSchema, type StudentFormValues } from "../../features/students/schemas";
+import { theme } from "../../theme/theme";
+import { cn } from "../../utils/cn";
+import { toErrorMessage } from "../../utils/errors";
+
+import type { StudentsStackParamList } from "../StudentsStackNavigator";
+
+type CreateProps = NativeStackScreenProps<StudentsStackParamList, "StudentCreate">;
+type EditProps = NativeStackScreenProps<StudentsStackParamList, "StudentEdit">;
+type Props = CreateProps | EditProps;
+
+function emptyToNull(value: string) {
+  const trimmed = value.trim();
+  return trimmed === "" ? null : trimmed;
+}
+
+export function StudentEditScreen({ navigation, route }: Props) {
+  const studentId = route.name === "StudentEdit" ? route.params.studentId : undefined;
+
+  const { session } = useAuthSession();
+  const userId = session?.user.id;
+  const profileQuery = useMyProfileQuery(userId);
+
+  const studentQuery = useStudentQuery(studentId);
+  const createMutation = useCreateStudentMutation();
+  const updateMutation = useUpdateStudentMutation();
+
+  const role = profileQuery.data?.role ?? null;
+  const isOwner = role === "owner";
+
+  const orgProfilesQuery = useOrganizationProfilesQuery(isOwner);
+
+  const defaultAssignedInstructorId = useMemo(() => {
+    if (role === "instructor") return userId ?? "";
+    if (role === "owner") return userId ?? "";
+    return "";
+  }, [role, userId]);
+
+  const form = useForm<StudentFormValues>({
+    resolver: zodResolver(studentFormSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      address: "",
+      assignedInstructorId: defaultAssignedInstructorId,
+      licenseType: "",
+      licenseNumber: "",
+      licenseVersion: "",
+      classHeld: "",
+      issueDate: "",
+      expiryDate: "",
+      notes: "",
+    },
+  });
+
+  useEffect(() => {
+    if (defaultAssignedInstructorId) {
+      form.setValue("assignedInstructorId", defaultAssignedInstructorId, { shouldValidate: true });
+    }
+  }, [defaultAssignedInstructorId, form]);
+
+  useEffect(() => {
+    if (!studentId) return;
+    if (!studentQuery.data) return;
+
+    form.reset({
+      firstName: studentQuery.data.first_name,
+      lastName: studentQuery.data.last_name,
+      email: studentQuery.data.email ?? "",
+      phone: studentQuery.data.phone ?? "",
+      address: studentQuery.data.address ?? "",
+      assignedInstructorId: studentQuery.data.assigned_instructor_id,
+      licenseType: studentQuery.data.license_type ?? "",
+      licenseNumber: studentQuery.data.license_number ?? "",
+      licenseVersion: studentQuery.data.license_version ?? "",
+      classHeld: studentQuery.data.class_held ?? "",
+      issueDate: studentQuery.data.issue_date ?? "",
+      expiryDate: studentQuery.data.expiry_date ?? "",
+      notes: studentQuery.data.notes ?? "",
+    });
+  }, [form, studentId, studentQuery.data]);
+
+  const isLoading =
+    profileQuery.isPending || (studentId ? studentQuery.isPending : false) || !session;
+
+  if (isLoading) {
+    return (
+      <Screen>
+        <View className={cn("flex-1 items-center justify-center", theme.text.base)}>
+          <ActivityIndicator />
+          <AppText className="mt-3 text-center" variant="body">
+            Loading...
+          </AppText>
+        </View>
+      </Screen>
+    );
+  }
+
+  if (profileQuery.isError) {
+    return (
+      <Screen>
+        <AppStack gap="md">
+          <AppText variant="title">Couldn't load your profile</AppText>
+          <AppCard className="gap-2">
+            <AppText variant="body">{toErrorMessage(profileQuery.error)}</AppText>
+          </AppCard>
+          <AppButton label="Retry" onPress={() => profileQuery.refetch()} />
+        </AppStack>
+      </Screen>
+    );
+  }
+
+  const profile = profileQuery.data;
+  if (!profile) {
+    return (
+      <Screen>
+        <AppCard className="gap-2">
+          <AppText variant="heading">Profile required</AppText>
+          <AppText variant="body">Complete onboarding first.</AppText>
+        </AppCard>
+      </Screen>
+    );
+  }
+
+  const organizationId = profile.organization_id;
+  const isEditing = Boolean(studentId);
+  const mutationError = createMutation.error ?? updateMutation.error;
+
+  async function onSubmit(values: StudentFormValues) {
+    if (!userId) return;
+
+    const base = {
+      assigned_instructor_id: values.assignedInstructorId,
+      first_name: values.firstName.trim(),
+      last_name: values.lastName.trim(),
+      email: emptyToNull(values.email),
+      phone: emptyToNull(values.phone),
+      address: emptyToNull(values.address),
+      license_type: values.licenseType === "" ? null : values.licenseType,
+      license_number: emptyToNull(values.licenseNumber),
+      license_version: emptyToNull(values.licenseVersion),
+      class_held: emptyToNull(values.classHeld),
+      issue_date: emptyToNull(values.issueDate),
+      expiry_date: emptyToNull(values.expiryDate),
+      notes: emptyToNull(values.notes),
+    } as const;
+
+    if (isEditing) {
+      const updated = await updateMutation.mutateAsync({ studentId: studentId!, input: base });
+      navigation.replace("StudentDetail", { studentId: updated.id });
+      return;
+    }
+
+    const created = await createMutation.mutateAsync({
+      organization_id: organizationId,
+      ...base,
+    });
+    navigation.replace("StudentDetail", { studentId: created.id });
+  }
+
+  const saving = createMutation.isPending || updateMutation.isPending;
+
+  return (
+    <Screen scroll>
+      <AppStack gap="lg">
+        <View>
+          <AppText variant="title">{isEditing ? "Edit student" : "New student"}</AppText>
+          <AppText className="mt-2" variant="body">
+            {isOwner ? "You can assign this student to an instructor." : "This student will be assigned to you."}
+          </AppText>
+        </View>
+
+        <AppCard className="gap-4">
+          <Controller
+            control={form.control}
+            name="firstName"
+            render={({ field, fieldState }) => (
+              <AppInput
+                label="First name"
+                autoCapitalize="words"
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+                error={fieldState.error?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={form.control}
+            name="lastName"
+            render={({ field, fieldState }) => (
+              <AppInput
+                label="Last name"
+                autoCapitalize="words"
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+                error={fieldState.error?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={form.control}
+            name="email"
+            render={({ field, fieldState }) => (
+              <AppInput
+                label="Email (optional)"
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                textContentType="emailAddress"
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+                error={fieldState.error?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <AppInput
+                label="Phone (optional)"
+                keyboardType="phone-pad"
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
+          />
+
+          <Controller
+            control={form.control}
+            name="address"
+            render={({ field }) => (
+              <AppInput
+                label="Address (optional)"
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
+          />
+        </AppCard>
+
+        <AppCard className="gap-4">
+          <AppText variant="heading">Assigned instructor</AppText>
+
+          <Controller
+            control={form.control}
+            name="assignedInstructorId"
+            render={({ field, fieldState }) => (
+              <AppStack gap="sm">
+                {fieldState.error?.message ? (
+                  <AppText variant="error">{fieldState.error.message}</AppText>
+                ) : null}
+
+                {isOwner ? (
+                  orgProfilesQuery.isPending ? (
+                    <AppText variant="caption">Loading instructors…</AppText>
+                  ) : orgProfilesQuery.isError ? (
+                    <AppStack gap="md">
+                      <AppText variant="error">{toErrorMessage(orgProfilesQuery.error)}</AppText>
+                      <AppButton
+                        label="Retry instructors"
+                        variant="secondary"
+                        onPress={() => orgProfilesQuery.refetch()}
+                      />
+                    </AppStack>
+                  ) : (
+                    <AppStack gap="sm">
+                      {orgProfilesQuery.data.map((profileOption) => (
+                        <AppButton
+                          key={profileOption.id}
+                          label={`${profileOption.display_name}${
+                            profileOption.role === "owner" ? " (owner)" : ""
+                          }`}
+                          variant={field.value === profileOption.id ? "primary" : "secondary"}
+                          onPress={() => field.onChange(profileOption.id)}
+                        />
+                      ))}
+                    </AppStack>
+                  )
+                ) : (
+                  <AppText variant="body">{profile.display_name}</AppText>
+                )}
+              </AppStack>
+            )}
+          />
+        </AppCard>
+
+        <AppCard className="gap-4">
+          <AppText variant="heading">Licence (optional)</AppText>
+
+          <Controller
+            control={form.control}
+            name="licenseType"
+            render={({ field }) => (
+              <AppStack gap="sm">
+                <AppText variant="label">Licence type</AppText>
+                <View className="flex-row gap-2">
+                  <AppButton
+                    label="Learner"
+                    className="flex-1 w-auto"
+                    variant={field.value === "learner" ? "primary" : "secondary"}
+                    onPress={() => field.onChange("learner")}
+                  />
+                  <AppButton
+                    label="Restricted"
+                    className="flex-1 w-auto"
+                    variant={field.value === "restricted" ? "primary" : "secondary"}
+                    onPress={() => field.onChange("restricted")}
+                  />
+                  <AppButton
+                    label="Full"
+                    className="flex-1 w-auto"
+                    variant={field.value === "full" ? "primary" : "secondary"}
+                    onPress={() => field.onChange("full")}
+                  />
+                </View>
+                <AppButton
+                  label="Clear"
+                  variant="ghost"
+                  onPress={() => field.onChange("")}
+                />
+              </AppStack>
+            )}
+          />
+
+          <Controller
+            control={form.control}
+            name="licenseNumber"
+            render={({ field }) => (
+              <AppInput
+                label="Licence number"
+                autoCapitalize="characters"
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
+          />
+
+          <Controller
+            control={form.control}
+            name="licenseVersion"
+            render={({ field }) => (
+              <AppInput
+                label="Licence version"
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
+          />
+
+          <Controller
+            control={form.control}
+            name="classHeld"
+            render={({ field }) => (
+              <AppInput
+                label="Class held"
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
+          />
+
+          <Controller
+            control={form.control}
+            name="issueDate"
+            render={({ field, fieldState }) => (
+              <AppInput
+                label="Issue date (YYYY-MM-DD)"
+                autoCapitalize="none"
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+                error={fieldState.error?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={form.control}
+            name="expiryDate"
+            render={({ field, fieldState }) => (
+              <AppInput
+                label="Expiry date (YYYY-MM-DD)"
+                autoCapitalize="none"
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+                error={fieldState.error?.message}
+              />
+            )}
+          />
+        </AppCard>
+
+        <AppCard className="gap-4">
+          <Controller
+            control={form.control}
+            name="notes"
+            render={({ field }) => (
+              <AppInput
+                label="Notes (optional)"
+                multiline
+                numberOfLines={6}
+                textAlignVertical="top"
+                inputClassName="h-28 py-3"
+                value={field.value}
+                onChangeText={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
+          />
+        </AppCard>
+
+        {mutationError ? <AppText variant="error">{toErrorMessage(mutationError)}</AppText> : null}
+
+        <AppButton
+          label={saving ? "Saving..." : "Save student"}
+          disabled={saving}
+          onPress={form.handleSubmit(onSubmit)}
+        />
+
+        <AppButton label="Cancel" variant="ghost" onPress={() => navigation.goBack()} />
+      </AppStack>
+    </Screen>
+  );
+}
