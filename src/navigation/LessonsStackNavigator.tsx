@@ -5,7 +5,7 @@ import { LessonsListScreen } from "./screens/LessonsListScreen";
 
 export type LessonsStackParamList = {
   LessonsList: undefined;
-  LessonCreate: undefined;
+  LessonCreate: { initialDate?: string } | undefined;
   LessonEdit: { lessonId: string };
 };
 
@@ -26,4 +26,3 @@ export function LessonsStackNavigator() {
     </Stack.Navigator>
   );
 }
-

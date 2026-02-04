@@ -517,6 +517,15 @@ Unit tests for:
 
 ## 17) Codex CLI instructions (how to work)
 
+### Mandatory: read project context first
+
+At the start of EVERY task, Codex MUST:
+
+1. Open and read `AGENTS.md`
+2. Open and read `PROJECT_LOG.md`
+
+Codex must use these files as the source of truth for decisions, structure, and what has already been done.
+
 ### Mandatory: use MCPs for stack-specific work
 
 Whenever you are working with (or writing code involving) any of the following technologies, you MUST use the correct MCP to fetch the most current docs and best practices **before** generating code:
@@ -544,6 +553,8 @@ Whenever you are working with (or writing code involving) any of the following t
 **Rule:** Prefer MCP guidance over assumptions.  
 **Conflict resolution:** For anything Supabase-related, **Supabase MCP wins**. For everything else, **Context7 MCP wins**.
 
+---
+
 ### Supabase migrations requirements (mandatory)
 
 When creating/editing Supabase database work:
@@ -566,6 +577,8 @@ Codex must also maintain a `/supabase/README.md` explaining exactly how to:
 - set bucket access rules/policies
 - verify RLS works for `owner` vs `instructor`
 
+---
+
 ### General coding rules
 
 When generating code:
@@ -576,6 +589,8 @@ When generating code:
 4. Add types everywhere (`any` only as a last resort)
 5. Don’t add new libraries unless necessary; propose alternatives first
 
+---
+
 ### Output expectations (build order)
 
 Implement feature-by-feature:
@@ -583,6 +598,22 @@ Implement feature-by-feature:
 1. Auth gate + login + onboarding (org + logo)
 2. Students CRUD + archive + assign instructor
 3. Lessons scheduling (Today view + edit)
+
+---
+
+### End-of-task checklist (mandatory)
+
+At the end of EVERY task, before responding, Codex MUST:
+
+1. Update `PROJECT_LOG.md` (append a new entry)
+2. Provide a suggested git commit message (Conventional Commits)
+3. Provide quick verification steps (how to test what changed)
+
+If any checklist item cannot be completed, Codex must explicitly state:
+
+- which item failed
+- why it failed
+- what is needed to complete it
 
 ---
 
@@ -637,14 +668,19 @@ After completing EVERY task, Codex must propose **one** high-quality git commit 
   - `feat: ...`, `fix: ...`, `chore: ...`, `refactor: ...`, `docs: ...`, `test: ...`
 - Message must be **imperative**, concise, and describe the main outcome.
 - If the task touches multiple areas, mention the primary one and keep it short.
-- Include a short optional body (2–5 bullet points) when helpful, covering the biggest changes.
+- Include a short optional body (2–5 bullet points) when helpful.
 
-### Output format (always)
+---
 
-Provide at the end of the task:
+## Required response footer (mandatory)
 
-**Suggested commit message:**
-`<type>: <summary>`
+Every task response MUST end with this exact footer format:
+
+**PROJECT_LOG.md:** ✅ updated (or ❌ not updated — explain why)  
+**Suggested commit message:** `<type>: <summary>`  
+**Verification:**
+
+- ...
 
 ---
 

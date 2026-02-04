@@ -51,6 +51,22 @@
   - `npx tsc --noEmit`
 - **Verification:**
   - TypeScript compile check via `npx tsc --noEmit` (local).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Make calendar the main Lessons screen
+- **Summary:**
+  - Embedded the month calendar directly into `LessonsListScreen` and removed the Today/This Week toggle and separate calendar screen.
+  - Lessons now default to showing today’s agenda under the calendar, with day selection driving the list.
+- **Files changed:**
+  - `src/navigation/LessonsStackNavigator.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - TypeScript compile check via `npx tsc --noEmit` (local).
   - Manual run verified up to login/onboarding flow; Supabase RLS recursion fixed via follow-up migration.
 - **Notes/TODO:**
   - Students and Lessons features are intentionally not implemented yet (per v1 build order).
@@ -121,3 +137,24 @@
   - TypeScript compile check via `npx tsc --noEmit` (local).
 - **Notes/TODO:**
   - Next: polish lesson time input UX (date/time pickers) if needed, without adding heavy deps.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add calendar view for Lessons
+- **Summary:**
+  - Added an in-app month calendar screen for Lessons with per-day lesson counts and an agenda list for the selected day.
+  - Added navigation entry points from `LessonsListScreen` and the calendar screen to create a lesson on the selected date.
+  - Fixed mojibake in Lessons time/date separators by normalizing the en-dash character.
+- **Files changed:**
+  - `src/components/CalendarMonth.tsx`
+  - `src/navigation/LessonsStackNavigator.tsx`
+  - `src/navigation/screens/LessonsCalendarScreen.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `README.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - TypeScript compile check via `npx tsc --noEmit` (local).

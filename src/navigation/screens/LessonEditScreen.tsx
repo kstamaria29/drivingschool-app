@@ -38,6 +38,8 @@ function pad2(value: number) {
 
 export function LessonEditScreen({ navigation, route }: Props) {
   const lessonId = route.name === "LessonEdit" ? route.params.lessonId : undefined;
+  const initialDate =
+    route.name === "LessonCreate" ? route.params?.initialDate : undefined;
 
   const { session } = useAuthSession();
   const userId = session?.user.id;
@@ -55,11 +57,22 @@ export function LessonEditScreen({ navigation, route }: Props) {
 
   const [studentSearch, setStudentSearch] = useState("");
 
-  const defaultDate = useMemo(() => dayjs().format("YYYY-MM-DD"), []);
+  const defaultDate = useMemo(() => {
+    if (initialDate) {
+      const parsed = dayjs(initialDate);
+      if (parsed.isValid()) return parsed.format("YYYY-MM-DD");
+    }
+    return dayjs().format("YYYY-MM-DD");
+  }, [initialDate]);
+
   const defaultStartTime = useMemo(() => {
+    if (initialDate) {
+      const parsed = dayjs(initialDate);
+      if (parsed.isValid() && !parsed.isSame(dayjs(), "day")) return "09:00";
+    }
     const now = dayjs();
     return `${pad2(now.hour())}:${pad2(now.minute())}`;
-  }, []);
+  }, [initialDate]);
 
   const defaultInstructorId = useMemo(() => {
     if (role === "instructor") return userId ?? "";

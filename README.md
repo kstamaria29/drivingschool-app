@@ -56,7 +56,7 @@ Then press `a` for Android (or scan the QR code with Expo Go).
 - Email/password auth (sign in + sign up)
 - Onboarding for first-time users (creates `organizations`, `profiles`, `organization_settings`, optional logo upload to `org-logos/<org_id>/logo.<ext>`)
 - Students v1 (create/edit/archive + owner/instructor permissions via RLS)
-- Lessons v1 (Today / This Week list + create/edit)
+- Lessons v1 (Today / This Week list + create/edit + calendar view)
 
 ## 6) Repo notes
 
