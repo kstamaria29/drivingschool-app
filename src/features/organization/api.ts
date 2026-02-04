@@ -2,6 +2,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 
 import { supabase } from "../../supabase/client";
 import type { Database } from "../../supabase/types";
+import { base64ToUint8Array } from "../../utils/base64";
 
 export type Organization = Database["public"]["Tables"]["organizations"]["Row"];
 export type OrganizationSettings = Database["public"]["Tables"]["organization_settings"]["Row"];
@@ -69,12 +70,13 @@ export async function uploadOrganizationLogo(input: UploadOrganizationLogoInput)
   const contentType = guessContentType(input.asset);
   const objectPath = `${input.organizationId}/logo.${extension}`;
 
-  const response = await fetch(input.asset.uri);
-  const blob = await response.blob();
+  if (!input.asset.base64) {
+    throw new Error("Logo upload failed. Please choose the image again.");
+  }
 
   const { error: uploadError } = await supabase.storage
     .from("org-logos")
-    .upload(objectPath, blob, { contentType, upsert: true });
+    .upload(objectPath, base64ToUint8Array(input.asset.base64), { contentType, upsert: true });
 
   if (uploadError) throw uploadError;
 

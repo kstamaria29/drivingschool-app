@@ -1,5 +1,6 @@
 import { supabase } from "../../supabase/client";
 import type { Database } from "../../supabase/types";
+import { base64ToUint8Array } from "../../utils/base64";
 
 export type OrgProfile = Pick<
   Database["public"]["Tables"]["profiles"]["Row"],
@@ -42,12 +43,13 @@ export async function uploadMyAvatar(input: UploadAvatarInput) {
   const contentType = guessContentType(input.asset);
   const objectPath = `${input.userId}/avatar.${extension}`;
 
-  const response = await fetch(input.asset.uri);
-  const blob = await response.blob();
+  if (!input.asset.base64) {
+    throw new Error("Avatar upload failed. Please choose the image again.");
+  }
 
   const { error: uploadError } = await supabase.storage
     .from("avatars")
-    .upload(objectPath, blob, { contentType, upsert: true });
+    .upload(objectPath, base64ToUint8Array(input.asset.base64), { contentType, upsert: true });
 
   if (uploadError) throw uploadError;
 

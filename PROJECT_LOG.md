@@ -240,6 +240,65 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add top padding to drawer menus
+- **Summary:**
+  - Increased top padding for the drawer content so both the permanent sidebar and hamburger drawer menus start lower (`pt-10`).
+- **Files changed:**
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Open the drawer on phone/tablet portrait and confirm menu content starts lower.
+  - On tablet landscape, confirm the sidebar content has the same top spacing.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix image upload "Network request failed"
+- **Summary:**
+  - Switched logo/avatar uploads to use `expo-image-picker` base64 data instead of `fetch(asset.uri)`, avoiding failures with `content://` URIs on Android.
+- **Files changed:**
+  - `src/utils/base64.ts`
+  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/features/onboarding/api.ts`
+  - `src/features/organization/api.ts`
+  - `src/features/profiles/api.ts`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Open Settings and upload an organization logo + profile photo; confirm both uploads succeed and images render in the drawer/header.
+  - Complete onboarding with a logo selected; confirm the org logo uploads successfully.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Blob upload + ImagePicker deprecation
+- **Summary:**
+  - Updated Supabase Storage uploads to pass `Uint8Array` directly (avoids RN Blob limitation: “Creating blobs from ArrayBuffer…”).
+  - Switched `expo-image-picker` usage away from deprecated `ImagePicker.MediaTypeOptions`.
+- **Files changed:**
+  - `src/features/onboarding/api.ts`
+  - `src/features/organization/api.ts`
+  - `src/features/profiles/api.ts`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Upload org logo + profile photo and confirm uploads succeed without Blob errors or ImagePicker deprecation warnings.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Fix Lessons screen layout (no forced scrolling)
 - **Summary:**
   - Added `AppButton` `width` prop to support `auto` sizing in horizontal rows while preserving full-width by default.

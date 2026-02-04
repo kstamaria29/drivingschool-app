@@ -19,7 +19,10 @@ import { AppDivider } from "../../components/AppDivider";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { useCurrentUser } from "../../features/auth/current-user";
-import { useOrganizationQuery, useOrganizationSettingsQuery } from "../../features/organization/queries";
+import {
+  useOrganizationQuery,
+  useOrganizationSettingsQuery,
+} from "../../features/organization/queries";
 
 type DrawerRouteName = "Home" | "Lessons" | "Students" | "Assessments" | "Settings";
 
@@ -60,7 +63,13 @@ function DrawerRow({
   );
 }
 
-export function AppDrawerContent({ state, navigation, collapsed, setCollapsed, isPermanent }: Props) {
+export function AppDrawerContent({
+  state,
+  navigation,
+  collapsed,
+  setCollapsed,
+  isPermanent,
+}: Props) {
   const { profile } = useCurrentUser();
 
   const organizationQuery = useOrganizationQuery(profile.organization_id);
@@ -74,10 +83,8 @@ export function AppDrawerContent({ state, navigation, collapsed, setCollapsed, i
   const iconColor = theme.colors.placeholder;
 
   return (
-    <DrawerContentScrollView
-      contentContainerStyle={{ flexGrow: 1, paddingTop: 0 }}
-    >
-      <View className="flex-1 px-3 pb-4 pt-4">
+    <DrawerContentScrollView contentContainerStyle={{ flexGrow: 1, paddingTop: 0 }}>
+      <View className="flex-1 px-3 pb-4 pt-10">
         <View className={cn("mb-4", isPermanent ? "" : "gap-3")}>
           {isPermanent ? (
             <View className="flex-row items-center justify-between">
@@ -178,7 +185,12 @@ export function AppDrawerContent({ state, navigation, collapsed, setCollapsed, i
               onPress={() => navigation.navigate("Settings")}
             />
 
-            <View className={cn("mt-2 flex-row items-center gap-3 px-3", collapsed ? "py-2" : "")}>
+            <View
+              className={cn(
+                "mt-2 flex-row items-center gap-3 px-3",
+                collapsed ? "py-2" : "",
+              )}
+            >
               <Avatar uri={profile.avatar_url} size={36} label={profile.display_name} />
               {collapsed ? null : (
                 <View className="flex-1">
