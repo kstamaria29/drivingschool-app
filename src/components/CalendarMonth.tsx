@@ -47,6 +47,10 @@ export function CalendarMonth({
   lessonCountByDateISO,
 }: Props) {
   const days = daysToRenderForMonth(month);
+  const weeks: Dayjs[][] = [];
+  for (let i = 0; i < days.length; i += 7) {
+    weeks.push(days.slice(i, i + 7));
+  }
 
   return (
     <View className="gap-3">
@@ -58,49 +62,59 @@ export function CalendarMonth({
         ))}
       </View>
 
-      <View className="flex-row flex-wrap">
-        {days.map((date) => {
-          const inMonth = date.month() === month.month();
-          const isSelected = date.isSame(selectedDate, "day");
-          const dateISO = date.format("YYYY-MM-DD");
-          const count = lessonCountByDateISO?.[dateISO] ?? 0;
+      <View className="gap-0">
+        {weeks.map((week) => (
+          <View
+            key={`${week[0]?.format("YYYY-MM-DD") ?? "week"}`}
+            className="flex-row"
+          >
+            {week.map((date) => {
+              const inMonth = date.month() === month.month();
+              const isSelected = date.isSame(selectedDate, "day");
+              const dateISO = date.format("YYYY-MM-DD");
+              const count = lessonCountByDateISO?.[dateISO] ?? 0;
 
-          return (
-            <View key={dateISO} className="w-[14.2857%] p-1">
-              <Pressable
-                onPress={() => onSelectDate(date)}
-                className={cn(
-                  "rounded-xl border px-2 py-2",
-                  inMonth ? "border-border bg-card" : "border-border/50 bg-card/60",
-                  isSelected && "border-primary bg-primary/10",
-                )}
-              >
-                <AppText
-                  variant="body"
-                  className={cn(
-                    "text-center",
-                    !inMonth && "text-muted",
-                    isSelected && theme.text.base,
-                  )}
-                >
-                  {date.date()}
-                </AppText>
+              return (
+                <View key={dateISO} className="flex-1 p-1">
+                  <Pressable
+                    onPress={() => onSelectDate(date)}
+                    className={cn(
+                      "rounded-xl border px-2 py-2",
+                      inMonth ? "border-border bg-card" : "border-border/50 bg-card/60",
+                      isSelected && "border-primary bg-primary/10",
+                    )}
+                  >
+                    <AppText
+                      variant="body"
+                      className={cn(
+                        "text-center",
+                        !inMonth && "text-muted",
+                        isSelected && theme.text.base,
+                      )}
+                    >
+                      {date.date()}
+                    </AppText>
 
-                {count > 0 ? (
-                  <View className="mt-2 items-center">
-                    <View className="min-w-5 rounded-full bg-primary px-2 py-0.5">
-                      <AppText className="text-center text-xs text-primaryForeground" variant="caption">
-                        {count > 9 ? "9+" : String(count)}
-                      </AppText>
-                    </View>
-                  </View>
-                ) : (
-                  <View className="mt-2 h-5" />
-                )}
-              </Pressable>
-            </View>
-          );
-        })}
+                    {count > 0 ? (
+                      <View className="mt-2 items-center">
+                        <View className="min-w-5 rounded-full bg-primary px-2 py-0.5">
+                          <AppText
+                            className="text-center text-xs text-primaryForeground"
+                            variant="caption"
+                          >
+                            {count > 9 ? "9+" : String(count)}
+                          </AppText>
+                        </View>
+                      </View>
+                    ) : (
+                      <View className="mt-2 h-5" />
+                    )}
+                  </Pressable>
+                </View>
+              );
+            })}
+          </View>
+        ))}
       </View>
     </View>
   );

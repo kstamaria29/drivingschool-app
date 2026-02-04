@@ -55,6 +55,23 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix calendar week layout (7 days)
+- **Summary:**
+  - Fixed month calendar grid wrapping so weeks always render 7 columns (Mon–Sun) instead of occasionally wrapping at 6.
+  - Rendered the calendar as 6 explicit week rows (7 cells each) to avoid flex-wrap rounding issues.
+- **Files changed:**
+  - `src/components/CalendarMonth.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open Lessons tab and confirm each week row shows 7 days (Mon–Sun) with correct alignment (e.g. Feb 2026 should start on Sun).
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Make calendar the main Lessons screen
 - **Summary:**
   - Embedded the month calendar directly into `LessonsListScreen` and removed the Today/This Week toggle and separate calendar screen.
