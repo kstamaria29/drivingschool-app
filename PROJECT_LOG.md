@@ -476,6 +476,23 @@
 
 ---
 
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Remove org logo white background
+- **Summary:**
+  - Updated organization logo rendering to use a transparent background so PNG transparency shows correctly in dark mode.
+  - Updated the onboarding logo preview to match (no forced light background).
+- **Files changed:**
+  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `rg -n "SettingsScreen|organization logo|logo_url|Organization" -S src`
+- **Verification:**
+  - Open Settings and confirm the org logo no longer has a white square behind it.
+
+---
+
 - **Date:** 2026-02-05 (Pacific/Auckland)
 - **Task:** Fix dark mode navigation chrome
 - **Summary:**

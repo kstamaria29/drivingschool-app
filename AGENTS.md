@@ -675,10 +675,6 @@ Append entries to the bottom using:
   - ...
 - **Commands run:**
   - ...
-- **Verification:**
-  - ...
-- **Notes/TODO:**
-  - ...
 
 ---
 
@@ -692,7 +688,10 @@ After completing EVERY task, Codex must propose **one** high-quality git commit 
   - `feat: ...`, `fix: ...`, `chore: ...`, `refactor: ...`, `docs: ...`, `test: ...`
 - Message must be **imperative**, concise, and describe the main outcome.
 - If the task touches multiple areas, mention the primary one and keep it short.
-- Give me the commit message in this format : git commit -m "commit message here"
+- Give me the Suggested commit message in this format :
+  -- git add .
+  -- git commit -m "commit message here"
+  -- git push --set-upstream origin Kenneth
 - Include a short optional body (2–5 bullet points) when helpful.
 
 ---

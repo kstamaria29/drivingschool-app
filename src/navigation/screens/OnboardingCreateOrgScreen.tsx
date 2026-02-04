@@ -111,7 +111,7 @@ export function OnboardingCreateOrgScreen(_props: Props) {
             {logoAsset ? (
               <AppImage
                 source={{ uri: logoAsset.uri }}
-                className="h-24 w-24 bg-border"
+                className="h-24 w-24 border border-border bg-transparent dark:border-borderDark"
               />
             ) : (
               <AppText variant="caption">No logo selected.</AppText>
