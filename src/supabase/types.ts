@@ -137,6 +137,46 @@ export type Database = {
         };
         Relationships: [];
       };
+      lessons: {
+        Row: {
+          id: string;
+          organization_id: string;
+          student_id: string;
+          instructor_id: string;
+          start_time: string;
+          end_time: string;
+          location: string | null;
+          status: "scheduled" | "completed" | "cancelled";
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          student_id: string;
+          instructor_id: string;
+          start_time: string;
+          end_time: string;
+          location?: string | null;
+          status: "scheduled" | "completed" | "cancelled";
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          organization_id?: string;
+          student_id?: string;
+          instructor_id?: string;
+          start_time?: string;
+          end_time?: string;
+          location?: string | null;
+          status?: "scheduled" | "completed" | "cancelled";
+          notes?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       [key: string]: SupabaseTable;
     };
     Views: Record<string, never>;

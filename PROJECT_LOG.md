@@ -90,3 +90,34 @@
   - TypeScript compile check via `npx tsc --noEmit` (local).
 - **Notes/TODO:**
   - Next: implement Lessons scheduling (Today view + edit) per v1.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Implement Lessons scheduling (v1: Today/Week + create/edit)
+- **Summary:**
+  - Added `lessons` table migration with constraints, indexes, updated_at trigger, and RLS policies (owner: org-wide; instructor: own lessons only).
+  - Enforced lesson integrity in RLS: lesson instructor must be in org and match the student’s assigned instructor.
+  - Implemented typed Lessons data layer (`features/lessons/api.ts` + `features/lessons/queries.ts`) and Zod form schema using Day.js for time calculations.
+  - Added `LessonsStack` navigation with `LessonsListScreen` (Today/This Week) and `LessonEditScreen` (create/edit).
+  - Added `AppBadge` primitive for lesson status chips and wired Lessons stack into MainTabs.
+  - Updated README to include `004_lessons.sql` migration and mark Lessons as implemented.
+- **Files changed:**
+  - `supabase/migrations/004_lessons.sql`
+  - `src/supabase/types.ts`
+  - `src/features/lessons/api.ts`
+  - `src/features/lessons/queries.ts`
+  - `src/features/lessons/schemas.ts`
+  - `src/components/AppBadge.tsx`
+  - `src/navigation/LessonsStackNavigator.tsx`
+  - `src/navigation/MainTabsNavigator.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `README.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - TypeScript compile check via `npx tsc --noEmit` (local).
+- **Notes/TODO:**
+  - Next: polish lesson time input UX (date/time pickers) if needed, without adding heavy deps.
