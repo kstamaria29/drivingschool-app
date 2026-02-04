@@ -55,6 +55,33 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Enhance Home screen (greeting + weather)
+- **Summary:**
+  - Updated Home screen header to greet the signed-in user based on time of day.
+  - Replaced quick actions with 3 buttons: New Assessment, New Lesson, New Student.
+  - Added NZ weather widget showing current conditions + 2-day forecast, and (when permitted) current city/location.
+- **Files changed:**
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/features/weather/api.ts`
+  - `src/features/weather/queries.ts`
+  - `src/features/weather/WeatherWidget.tsx`
+  - `app.json`
+  - `package.json`
+  - `package-lock.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx expo install expo-location`
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open Home and confirm it shows `Good morning/afternoon/evening <name>!` and the 3 buttons in the requested order.
+  - Tap `Use my location` and confirm it shows your NZ city and local weather (or keeps the Auckland fallback if denied).
+  - Confirm the weather section shows current conditions and the next 2 days forecast.
+- **Notes/TODO:**
+  - `npm audit` reports 1 high severity vulnerability in dependencies; review separately if needed.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Refine mock test screen layout
 - **Summary:**
   - Hid the `Pre-drive checks` section after the mock test has started to keep the test stage focused.

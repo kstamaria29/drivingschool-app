@@ -7,7 +7,9 @@ import { AppCard } from "../../components/AppCard";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
+import { useCurrentUser } from "../../features/auth/current-user";
 import { useLessonsQuery } from "../../features/lessons/queries";
+import { WeatherWidget } from "../../features/weather/WeatherWidget";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { DISPLAY_DATE_FORMAT } from "../../utils/dates";
@@ -18,6 +20,7 @@ import type { HomeStackParamList } from "../HomeStackNavigator";
 type Props = NativeStackScreenProps<HomeStackParamList, "HomeDashboard">;
 
 export function HomeScreen({ navigation }: Props) {
+  const { profile } = useCurrentUser();
   const today = dayjs();
   const fromISO = today.startOf("day").toISOString();
   const toISO = today.add(1, "day").startOf("day").toISOString();
@@ -25,21 +28,33 @@ export function HomeScreen({ navigation }: Props) {
   const lessonsQuery = useLessonsQuery({ fromISO, toISO });
 
   const parent = navigation.getParent();
+  const hour = today.hour();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const name = profile.display_name.trim() || "there";
 
   return (
     <Screen scroll>
       <AppStack gap="lg">
         <View>
-          <AppText variant="title">Home</AppText>
+          <AppText variant="title">
+            {greeting} {name}!
+          </AppText>
           <AppText className="mt-2" variant="body">
             {today.format(`dddd, ${DISPLAY_DATE_FORMAT}`)}
           </AppText>
         </View>
 
-        <View className="flex-row gap-2">
+        <View className="flex-row flex-wrap gap-2">
           <AppButton
             width="auto"
-            className="flex-1"
+            className="flex-1 min-w-48"
+            label="+ New assessment"
+            onPress={() => parent?.navigate("Assessments")}
+          />
+          <AppButton
+            width="auto"
+            className="flex-1 min-w-48"
+            variant="secondary"
             label="+ New lesson"
             onPress={() =>
               parent?.navigate("Lessons", {
@@ -50,7 +65,7 @@ export function HomeScreen({ navigation }: Props) {
           />
           <AppButton
             width="auto"
-            className="flex-1"
+            className="flex-1 min-w-48"
             variant="secondary"
             label="+ New student"
             onPress={() =>
@@ -90,6 +105,8 @@ export function HomeScreen({ navigation }: Props) {
             />
           </AppCard>
         )}
+
+        <WeatherWidget />
       </AppStack>
     </Screen>
   );
