@@ -476,6 +476,33 @@
 
 ---
 
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Fix dark mode navigation chrome
+- **Summary:**
+  - Applied React Navigation theming so headers and drawer follow the selected light/dark scheme.
+  - Explicitly styled native-stack headers and drawer background to avoid the default white surfaces in dark mode.
+- **Files changed:**
+  - `src/navigation/navigationTheme.ts`
+  - `src/navigation/RootNavigation.tsx`
+  - `src/navigation/MainDrawerNavigator.tsx`
+  - `src/navigation/AuthStackNavigator.tsx`
+  - `src/navigation/HomeStackNavigator.tsx`
+  - `src/navigation/LessonsStackNavigator.tsx`
+  - `src/navigation/StudentsStackNavigator.tsx`
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/theme/theme.ts`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Toggle Light/Dark in Settings and confirm the header + drawer background switch correctly.
+  - Open/close the drawer in dark mode and confirm all text/icons remain readable.
+- **Notes/TODO:**
+  - If you still see any white flash, we can also align screen backgrounds on transition per-navigator.
+
+---
+
 - **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Implement Mock Test – Restricted Licence assessment
 - **Summary:**

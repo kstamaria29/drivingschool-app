@@ -1,6 +1,10 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useMemo } from "react";
+
+import { useAppColorScheme } from "../providers/ColorSchemeProvider";
 
 import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButtons";
+import { getNativeStackScreenOptions } from "./navigationTheme";
 import { HomeScreen } from "./screens/HomeScreen";
 
 export type HomeStackParamList = {
@@ -10,11 +14,14 @@ export type HomeStackParamList = {
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 
 export function HomeStackNavigator() {
+  const { scheme } = useAppColorScheme();
+  const baseOptions = useMemo(() => getNativeStackScreenOptions(scheme), [scheme]);
+
   return (
     <Stack.Navigator
       initialRouteName="HomeDashboard"
       screenOptions={{
-        headerShadowVisible: false,
+        ...baseOptions,
         headerTitle: "",
         headerLeft: () => <HeaderLeftHamburger />,
         headerRight: () => <HeaderRightAvatar />,

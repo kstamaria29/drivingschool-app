@@ -1,8 +1,13 @@
 export const theme = {
   colors: {
     placeholder: "#94a3b8",
+    backgroundLight: "#f8fafc",
+    backgroundDark: "#0b1220",
     foregroundLight: "#0f172a",
     foregroundDark: "#e2e8f0",
+    cardLight: "#ffffff",
+    cardDark: "#111a2a",
+    borderLight: "#e2e8f0",
     mutedLight: "#64748b",
     mutedDark: "#94a3b8",
     primary: "#1d4ed8",
@@ -10,6 +15,7 @@ export const theme = {
     accent: "#14b8a6",
     danger: "#dc2626",
     dangerDark: "#f87171",
+    borderDark: "#23324a",
     primaryForeground: "#ffffff",
   },
   screen: {

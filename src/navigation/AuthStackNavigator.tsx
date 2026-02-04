@@ -1,8 +1,11 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useMemo } from "react";
 
 import { LoginScreen } from "./screens/LoginScreen";
 import { OnboardingCreateOrgScreen } from "./screens/OnboardingCreateOrgScreen";
 import { SignupScreen } from "./screens/SignupScreen";
+import { useAppColorScheme } from "../providers/ColorSchemeProvider";
+import { getNativeStackScreenOptions } from "./navigationTheme";
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -17,11 +20,14 @@ type Props = {
 };
 
 export function AuthStackNavigator({ initialRouteName }: Props) {
+  const { scheme } = useAppColorScheme();
+  const baseOptions = useMemo(() => getNativeStackScreenOptions(scheme), [scheme]);
+
   return (
     <Stack.Navigator
       initialRouteName={initialRouteName}
       screenOptions={{
-        headerShadowVisible: false,
+        ...baseOptions,
         headerTitle: "",
       }}
     >

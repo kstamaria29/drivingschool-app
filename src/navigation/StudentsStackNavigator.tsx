@@ -1,6 +1,10 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useMemo } from "react";
+
+import { useAppColorScheme } from "../providers/ColorSchemeProvider";
 
 import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButtons";
+import { getNativeStackScreenOptions } from "./navigationTheme";
 import { StudentAssessmentHistoryScreen } from "./screens/StudentAssessmentHistoryScreen";
 import { StudentDetailScreen } from "./screens/StudentDetailScreen";
 import { StudentEditScreen } from "./screens/StudentEditScreen";
@@ -17,11 +21,14 @@ export type StudentsStackParamList = {
 const Stack = createNativeStackNavigator<StudentsStackParamList>();
 
 export function StudentsStackNavigator() {
+  const { scheme } = useAppColorScheme();
+  const baseOptions = useMemo(() => getNativeStackScreenOptions(scheme), [scheme]);
+
   return (
     <Stack.Navigator
       initialRouteName="StudentsList"
       screenOptions={{
-        headerShadowVisible: false,
+        ...baseOptions,
         headerTitle: "",
         headerRight: () => <HeaderRightAvatar />,
       }}

@@ -11,7 +11,6 @@ import {
   Settings,
   Users,
 } from "lucide-react-native";
-import { useColorScheme } from "nativewind";
 
 import { Avatar } from "../../components/Avatar";
 import { AppImage } from "../../components/AppImage";
@@ -20,6 +19,7 @@ import { AppDivider } from "../../components/AppDivider";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { useCurrentUser } from "../../features/auth/current-user";
+import { useAppColorScheme } from "../../providers/ColorSchemeProvider";
 import {
   useOrganizationQuery,
   useOrganizationSettingsQuery,
@@ -72,7 +72,7 @@ export function AppDrawerContent({
   isPermanent,
 }: Props) {
   const { profile } = useCurrentUser();
-  const { colorScheme } = useColorScheme();
+  const { scheme } = useAppColorScheme();
 
   const organizationQuery = useOrganizationQuery(profile.organization_id);
   const settingsQuery = useOrganizationSettingsQuery(profile.organization_id);
@@ -82,10 +82,14 @@ export function AppDrawerContent({
   const orgName = organizationQuery.data?.name ?? "Organization";
   const logoUrl = settingsQuery.data?.logo_url ?? null;
 
-  const iconColor = colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
+  const iconColor = scheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
+  const backgroundColor = scheme === "dark" ? theme.colors.backgroundDark : theme.colors.backgroundLight;
 
   return (
-    <DrawerContentScrollView contentContainerStyle={{ flexGrow: 1, paddingTop: 0 }}>
+    <DrawerContentScrollView
+      style={{ backgroundColor }}
+      contentContainerStyle={{ flexGrow: 1, paddingTop: 0 }}
+    >
       <View className="flex-1 px-3 pb-4 pt-10">
         <View className={cn("mb-4", isPermanent ? "" : "gap-3")}>
           {isPermanent ? (
