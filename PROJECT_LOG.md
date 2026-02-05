@@ -1154,3 +1154,19 @@
   - In app: open `Students`, use Search, toggle Active/Archived, switch Sort, and confirm the list updates.
   - Tap a student row/card and confirm it navigates to Student details.
   - Tap `New student` and confirm it opens the create screen.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Polish students table fields
+- **Summary:**
+  - Removed address from the Students list and replaced it with email.
+  - Added phone display and a colored licence-type badge (learner/restricted/full) with Mail/Phone icons for readability.
+- **Files changed:**
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Students` and confirm email + phone render with icons and licence type shows as a colored badge.
+  - Toggle dark mode and confirm badge + icon contrast remains readable.

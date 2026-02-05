@@ -2,7 +2,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import dayjs from "dayjs";
 import { useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
-import { ChevronRight, RefreshCw, UserPlus } from "lucide-react-native";
+import { ChevronRight, Mail, Phone, RefreshCw, UserPlus } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
 import { AppButton } from "../../components/AppButton";
@@ -38,6 +38,64 @@ function formatLicenseType(type: string | null) {
   return type;
 }
 
+function licenseTypeBadgeClasses(type: string | null) {
+  if (type === "learner") {
+    return {
+      wrapper: "border-blue-500/30 bg-blue-500/15 dark:border-blue-400/30 dark:bg-blue-400/15",
+      text: "text-blue-700 dark:text-blue-300",
+    };
+  }
+  if (type === "restricted") {
+    return {
+      wrapper: "border-amber-500/30 bg-amber-500/15 dark:border-amber-400/30 dark:bg-amber-400/15",
+      text: "text-amber-800 dark:text-amber-200",
+    };
+  }
+  if (type === "full") {
+    return {
+      wrapper:
+        "border-emerald-600/30 bg-emerald-600/15 dark:border-emerald-500/30 dark:bg-emerald-500/15",
+      text: "text-emerald-800 dark:text-emerald-200",
+    };
+  }
+
+  return {
+    wrapper: "border-border bg-background dark:border-borderDark dark:bg-backgroundDark",
+    text: "text-muted dark:text-mutedDark",
+  };
+}
+
+function LicenseTypeBadge({ type }: { type: string | null }) {
+  const classes = licenseTypeBadgeClasses(type);
+  return (
+    <View className={cn("self-start rounded-full border px-3 py-1", classes.wrapper)}>
+      <AppText className={cn("text-xs font-semibold", classes.text)} variant="caption">
+        {formatLicenseType(type)}
+      </AppText>
+    </View>
+  );
+}
+
+function ContactLine({
+  icon: Icon,
+  text,
+  iconColor,
+}: {
+  icon: typeof Mail;
+  text: string;
+  iconColor: string;
+}) {
+  if (!text) return null;
+  return (
+    <View className="flex-row items-center gap-2">
+      <Icon size={14} color={iconColor} />
+      <AppText numberOfLines={1} variant="caption">
+        {text}
+      </AppText>
+    </View>
+  );
+}
+
 export function StudentsListScreen({ navigation }: Props) {
   const { width, height } = useWindowDimensions();
   const isCompact = Math.min(width, height) < 600;
@@ -48,6 +106,7 @@ export function StudentsListScreen({ navigation }: Props) {
   const [status, setStatus] = useState<StatusKey>("active");
   const archived = status === "archived";
   const query = useStudentsQuery({ archived });
+
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortKey>("name");
 
@@ -158,15 +217,13 @@ export function StudentsListScreen({ navigation }: Props) {
               <AppText variant="heading">Couldn't load students</AppText>
               <AppText variant="body">{toErrorMessage(query.error)}</AppText>
             </AppCard>
-            <AppButton label="Retry" icon={RefreshCw} onPress={() => query.refetch()} />
+            <AppButton width="auto" label="Retry" icon={RefreshCw} onPress={() => query.refetch()} />
           </AppStack>
         ) : rows.length === 0 ? (
           <AppCard className="gap-2">
             <AppText variant="heading">No students</AppText>
             <AppText variant="body">
-              {archived
-                ? "No archived students yet."
-                : "Create your first student to start scheduling lessons later."}
+              {archived ? "No archived students yet." : "Create your first student to start scheduling lessons later."}
             </AppText>
           </AppCard>
         ) : (
@@ -176,8 +233,11 @@ export function StudentsListScreen({ navigation }: Props) {
                 <AppText className="flex-[3]" variant="label">
                   Student
                 </AppText>
+                <AppText className="flex-[3]" variant="label">
+                  Email
+                </AppText>
                 <AppText className="flex-[2]" variant="label">
-                  Contact
+                  Phone
                 </AppText>
                 <AppText className="flex-[2]" variant="label">
                   Licence
@@ -194,17 +254,12 @@ export function StudentsListScreen({ navigation }: Props) {
               contentContainerClassName={cn("py-2", isCompact && "gap-2 px-2 pb-2")}
             >
               {rows.map((student) => {
-                const fullName = `${student.first_name} ${student.last_name}`.trim();
-                const contact = [student.phone, student.email].filter(Boolean).join(" • ");
-                const license = [
-                  formatLicenseType(student.license_type),
-                  student.license_number ? `#${student.license_number}` : null,
-                ]
-                  .filter(Boolean)
-                  .join(" ");
+                const fullName = `${student.first_name} ${student.last_name}`.trim() || "Student";
+                const email = student.email ?? "";
+                const phone = student.phone ?? "";
+                const licenseType = student.license_type;
 
-                const rowBase =
-                  "border-border dark:border-borderDark bg-card dark:bg-cardDark";
+                const rowBase = "border-border bg-card dark:border-borderDark dark:bg-cardDark";
 
                 return (
                   <Pressable
@@ -216,48 +271,53 @@ export function StudentsListScreen({ navigation }: Props) {
                         : `flex-row items-center border-b px-4 py-3 ${rowBase}`,
                     )}
                   >
-                    <View className={cn(isCompact ? "flex-row items-center gap-3" : "flex-[3] flex-row items-center gap-3")}>
-                      <View className="h-10 w-10 items-center justify-center rounded-full border border-border bg-background dark:border-borderDark dark:bg-backgroundDark">
-                        <AppText className="text-primary dark:text-primaryDark" variant="label">
-                          {initials(student.first_name, student.last_name)}
-                        </AppText>
-                      </View>
-                      <View className={cn(isCompact ? "flex-1" : "flex-1")}>
-                        <AppText numberOfLines={1} variant="heading" className={cn(isCompact && "text-base")}>
-                          {fullName || "Student"}
-                        </AppText>
-                        {student.address ? (
-                          <AppText numberOfLines={1} variant="caption">
-                            {student.address}
-                          </AppText>
-                        ) : null}
-                      </View>
-                    </View>
-
                     {isCompact ? (
-                      <>
-                        {contact ? (
-                          <AppText className="mt-2" variant="caption">
-                            {contact}
+                      <View className="flex-row items-start gap-3">
+                        <View className="h-10 w-10 items-center justify-center rounded-full border border-border bg-background dark:border-borderDark dark:bg-backgroundDark">
+                          <AppText className="text-primary dark:text-primaryDark" variant="label">
+                            {initials(student.first_name, student.last_name)}
                           </AppText>
-                        ) : null}
-                        <View className="mt-2 flex-row items-center justify-between gap-3">
-                          <AppText variant="caption">Licence: {license || "—"}</AppText>
-                          <ChevronRight size={18} color={iconMuted} />
                         </View>
-                      </>
+
+                        <View className="flex-1 gap-2">
+                          <View className="flex-row items-start justify-between gap-3">
+                            <AppText numberOfLines={1} variant="heading" className="flex-1 text-base">
+                              {fullName}
+                            </AppText>
+                            <LicenseTypeBadge type={licenseType} />
+                          </View>
+
+                          <ContactLine icon={Mail} text={email} iconColor={iconMuted} />
+                          <ContactLine icon={Phone} text={phone} iconColor={iconMuted} />
+                        </View>
+
+                        <ChevronRight size={18} color={iconMuted} />
+                      </View>
                     ) : (
                       <>
-                        <View className="flex-[2] pr-3">
-                          <AppText numberOfLines={1} variant="caption">
-                            {contact || "—"}
+                        <View className="flex-[3] flex-row items-center gap-3 pr-3">
+                          <View className="h-10 w-10 items-center justify-center rounded-full border border-border bg-background dark:border-borderDark dark:bg-backgroundDark">
+                            <AppText className="text-primary dark:text-primaryDark" variant="label">
+                              {initials(student.first_name, student.last_name)}
+                            </AppText>
+                          </View>
+                          <AppText numberOfLines={1} variant="heading" className="flex-1">
+                            {fullName}
                           </AppText>
                         </View>
-                        <View className="flex-[2] pr-3">
-                          <AppText numberOfLines={1} variant="caption">
-                            {license || "—"}
-                          </AppText>
+
+                        <View className="flex-[3] pr-3">
+                          <ContactLine icon={Mail} text={email || "—"} iconColor={iconMuted} />
                         </View>
+
+                        <View className="flex-[2] pr-3">
+                          <ContactLine icon={Phone} text={phone || "—"} iconColor={iconMuted} />
+                        </View>
+
+                        <View className="flex-[2] pr-3">
+                          <LicenseTypeBadge type={licenseType} />
+                        </View>
+
                         <View className="w-10 items-end">
                           <ChevronRight size={18} color={iconMuted} />
                         </View>
@@ -273,3 +333,4 @@ export function StudentsListScreen({ navigation }: Props) {
     </Screen>
   );
 }
+
