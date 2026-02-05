@@ -24,8 +24,8 @@ export function HeaderLeftHamburger() {
       onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
       hitSlop={10}
     >
-      <View className="h-10 w-10 items-center justify-center rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark">
-        <Menu color={iconColor} size={20} />
+      <View className="h-11 w-11 items-center justify-center rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark">
+        <Menu color={iconColor} size={24} />
       </View>
     </Pressable>
   );
@@ -42,7 +42,7 @@ export function HeaderRightAvatar() {
       onPress={() => navigation.getParent()?.navigate("Settings")}
       hitSlop={10}
     >
-      <Avatar uri={profile.avatar_url} size={32} label={profile.display_name} />
+      <Avatar uri={profile.avatar_url} size={44} label={profile.display_name} />
     </Pressable>
   );
 }

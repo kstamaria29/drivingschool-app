@@ -1217,3 +1217,24 @@
 - **How to verify:**
   - In app: open `Home` and confirm the Weather card top-right shows icon-only buttons for refresh and location (no text).
   - Tap each icon and confirm refresh still refetches weather and location still requests/uses device location.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Fix header safe area + enhance weather widget
+- **Summary:**
+  - Wrapped the app in `SafeAreaProvider` to restore correct top insets on edge-to-edge Android and prevent the header from overlapping the system status bar.
+  - Increased the hamburger and avatar size and aligned them to the same height for a better phone experience.
+  - Enhanced the Home Weather widget with driving-conditions guidance, a next-5-hours strip, and a next-3-days forecast to reduce empty space.
+- **Files changed:**
+  - `src/providers/AppProviders.tsx`
+  - `src/navigation/components/HeaderButtons.tsx`
+  - `src/features/weather/api.ts`
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On a phone: open the app and confirm the header no longer overlaps the status bar (time/battery icons).
+  - Confirm hamburger + avatar are larger and feel consistent in size.
+  - On `Home`: confirm Weather shows driving guidance, next 5 hours, and Next 3 days; verify layout has less blank space.

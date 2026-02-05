@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, View } from "react-native";
 import * as Location from "expo-location";
 import {
   Cloud,
@@ -36,6 +36,78 @@ type Coords = { latitude: number; longitude: number; source: "default" | "device
 function formatTemp(value: number) {
   const rounded = Math.round(value);
   return `${rounded}°C`;
+}
+
+type AdvisoryTone = "good" | "caution" | "avoid";
+
+function getDrivingAdvisory(input: {
+  weatherCode: number;
+  windSpeedKph: number;
+  precipitationProbabilityPercent: number | null;
+}): { tone: AdvisoryTone; title: string; message: string } {
+  const { weatherCode, windSpeedKph, precipitationProbabilityPercent } = input;
+
+  const precipLikely =
+    typeof precipitationProbabilityPercent === "number" && precipitationProbabilityPercent >= 60;
+  const veryWindy = windSpeedKph >= 45;
+
+  if (weatherCode === 95 || weatherCode === 96 || weatherCode === 99) {
+    return {
+      tone: "avoid",
+      title: "Not recommended",
+      message: "Thunderstorms increase risk. Consider postponing lessons and avoid exposed routes.",
+    };
+  }
+
+  if (weatherCode === 45 || weatherCode === 48) {
+    return {
+      tone: "caution",
+      title: "Low visibility",
+      message: "Fog reduces visibility. Use dipped headlights, slow down, and increase following distance.",
+    };
+  }
+
+  if (weatherCode >= 71 && weatherCode <= 86) {
+    return {
+      tone: "avoid",
+      title: "Not recommended",
+      message: "Snow/ice conditions are unsafe for lessons. Reschedule if possible.",
+    };
+  }
+
+  if (
+    (weatherCode >= 51 && weatherCode <= 57) ||
+    (weatherCode >= 61 && weatherCode <= 67) ||
+    (weatherCode >= 80 && weatherCode <= 82)
+  ) {
+    return {
+      tone: precipLikely || veryWindy ? "avoid" : "caution",
+      title: precipLikely || veryWindy ? "Not ideal" : "Use caution",
+      message: "Wet roads increase stopping distance. Drive smoothly, reduce speed, and keep extra space.",
+    };
+  }
+
+  if (veryWindy) {
+    return {
+      tone: "caution",
+      title: "Gusty",
+      message: "Strong winds can affect steering and cyclists. Keep both hands on the wheel and allow extra room.",
+    };
+  }
+
+  if (weatherCode === 0 || weatherCode === 1 || weatherCode === 2) {
+    return {
+      tone: "good",
+      title: "Good conditions",
+      message: "Great for lessons. Watch for sun glare and keep scanning for hazards.",
+    };
+  }
+
+  return {
+    tone: "good",
+    title: "OK conditions",
+    message: "Stay alert and keep a safe following distance.",
+  };
 }
 
 function WeatherIcon({
@@ -86,7 +158,7 @@ export function WeatherWidget() {
     latitude: coords.latitude,
     longitude: coords.longitude,
     timezone: "Pacific/Auckland",
-    days: 3,
+    days: 4,
     enabled: true,
   });
 
@@ -146,9 +218,9 @@ export function WeatherWidget() {
   }, []);
 
   const forecast = query.data ?? null;
-  const nextTwoDays = useMemo(() => {
+  const nextThreeDays = useMemo(() => {
     if (!forecast) return [];
-    return forecast.days.slice(1, 3);
+    return forecast.days.slice(1, 4);
   }, [forecast]);
 
   const currentText = useMemo(() => {
@@ -156,6 +228,33 @@ export function WeatherWidget() {
     const description = describeWeatherCode(forecast.current.weatherCode);
     return `${formatTemp(forecast.current.temperatureC)} • ${description}`;
   }, [forecast]);
+
+  const nextFiveHours = useMemo(() => {
+    if (!forecast) return [];
+    const now = dayjs();
+    const start = now.startOf("hour").valueOf();
+
+    const upcoming = forecast.hourly
+      .map((hour) => ({ ...hour, timeMs: dayjs(hour.timeISO).valueOf() }))
+      .filter((hour) => Number.isFinite(hour.timeMs) && hour.timeMs >= start)
+      .sort((a, b) => a.timeMs - b.timeMs);
+
+    return upcoming.slice(0, 5);
+  }, [forecast]);
+
+  const advisory = useMemo(() => {
+    if (!forecast) return null;
+    const nextHourPrecip =
+      typeof nextFiveHours[0]?.precipitationProbabilityPercent === "number"
+        ? nextFiveHours[0].precipitationProbabilityPercent
+        : null;
+
+    return getDrivingAdvisory({
+      weatherCode: forecast.current.weatherCode,
+      windSpeedKph: forecast.current.windSpeedKph,
+      precipitationProbabilityPercent: nextHourPrecip,
+    });
+  }, [forecast, nextFiveHours]);
 
   const iconMuted = colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
   const iconAccent = theme.colors.accent;
@@ -219,8 +318,8 @@ export function WeatherWidget() {
           <AppText variant="body">Try again in a moment.</AppText>
         </AppCard>
       ) : (
-        <View className="flex-row flex-wrap gap-3">
-          <AppCard className="flex-1 min-w-64 gap-2">
+        <View className="flex-row flex-wrap items-stretch gap-3">
+          <AppCard className="flex-1 min-w-64 self-stretch gap-3">
             <View className="flex-row items-start justify-between gap-4">
               <View className="flex-1">
                 <View className="flex-row items-center justify-between gap-3">
@@ -250,15 +349,58 @@ export function WeatherWidget() {
                 />
               </View>
             </View>
+
+            {advisory ? (
+              <View
+                className={cn(
+                  "rounded-xl border px-3 py-2",
+                  advisory.tone === "good" && "border-emerald-500/30 bg-emerald-500/10",
+                  advisory.tone === "caution" && "border-amber-500/30 bg-amber-500/10",
+                  advisory.tone === "avoid" && "border-red-500/30 bg-red-500/10",
+                )}
+              >
+                <AppText variant="label">{advisory.title}</AppText>
+                <AppText className="mt-1" variant="caption">
+                  {advisory.message}
+                </AppText>
+              </View>
+            ) : null}
+
+            {nextFiveHours.length > 0 ? (
+              <View className="gap-2">
+                <AppText variant="label">Next 5 hours</AppText>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View className="flex-row gap-2">
+                    {nextFiveHours.map((hour) => (
+                      <View
+                        key={hour.timeISO}
+                        className="w-24 rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark"
+                      >
+                        <AppText variant="caption">{dayjs(hour.timeISO).format("h A")}</AppText>
+                        <View className="mt-2 flex-row items-center justify-between">
+                          <WeatherIcon code={hour.weatherCode} size={18} color={iconMuted} />
+                          <AppText variant="body">{formatTemp(hour.temperatureC)}</AppText>
+                        </View>
+                        {typeof hour.precipitationProbabilityPercent === "number" ? (
+                          <AppText className="mt-1" variant="caption">
+                            {hour.precipitationProbabilityPercent}% rain
+                          </AppText>
+                        ) : null}
+                      </View>
+                    ))}
+                  </View>
+                </ScrollView>
+              </View>
+            ) : null}
           </AppCard>
 
-          <AppCard className="flex-1 min-w-64 gap-2">
-            <AppText variant="heading">Next 2 days</AppText>
-            {nextTwoDays.length === 0 ? (
+          <AppCard className="flex-1 min-w-64 self-stretch gap-2">
+            <AppText variant="heading">Next 3 days</AppText>
+            {nextThreeDays.length === 0 ? (
               <AppText variant="body">Forecast unavailable.</AppText>
             ) : (
               <AppStack gap="sm">
-                {nextTwoDays.map((day) => (
+                {nextThreeDays.map((day) => (
                   <View
                     key={day.dateISO}
                     className="flex-row items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark"
