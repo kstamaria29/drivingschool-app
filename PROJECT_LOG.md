@@ -1069,3 +1069,17 @@
   - Tap `Save task attempt`; confirm a "Saved" alert appears and the attempt shows in the list.
   - In `Mock Test - Full License` session setup, tap `Time`; confirm a native time picker appears and writes `HH:mm`.
   - In `Mock Test - Restricted License` pre-drive checks, tap `Time (optional)`; confirm a native time picker appears.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Make mock test suggestions exclusive
+- **Summary:**
+  - Updated Full License mock test so only one suggestions panel can be open at a time (hazards/actions/notes).
+- **Files changed:**
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: `Assessments` -> `Mock Test - Full License` -> open hazard suggestions, then open action suggestions; confirm hazard suggestions auto-hide (repeat for notes).

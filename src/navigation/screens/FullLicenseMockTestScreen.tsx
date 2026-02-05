@@ -158,9 +158,9 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   const [actionsSpoken, setActionsSpoken] = useState("");
   const [notes, setNotes] = useState("");
   const [locationTag, setLocationTag] = useState("");
-  const [showHazardSuggestions, setShowHazardSuggestions] = useState(false);
-  const [showActionSuggestions, setShowActionSuggestions] = useState(false);
-  const [showInstructorNotesSuggestions, setShowInstructorNotesSuggestions] = useState(false);
+  const [openSuggestions, setOpenSuggestions] = useState<"hazards" | "actions" | "notes" | null>(
+    null,
+  );
 
   const hazardSuggestions = useMemo(
     () => [
@@ -214,6 +214,10 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
 
     const trimmed = value.trimEnd();
     return trimmed ? `${trimmed}\n${suggestion}` : suggestion;
+  }
+
+  function toggleSuggestions(key: "hazards" | "actions" | "notes") {
+    setOpenSuggestions((prev) => (prev === key ? null : key));
   }
 
   const organizationName = organizationQuery.data?.name ?? "Driving School";
@@ -1204,10 +1208,10 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       <AppButton
         width="auto"
         variant="ghost"
-        label={showHazardSuggestions ? "Hide hazard suggestions" : "Show hazard suggestions"}
-        onPress={() => setShowHazardSuggestions((s) => !s)}
+        label={openSuggestions === "hazards" ? "Hide hazard suggestions" : "Show hazard suggestions"}
+        onPress={() => toggleSuggestions("hazards")}
       />
-      {showHazardSuggestions ? (
+      {openSuggestions === "hazards" ? (
         <AppStack gap="sm">
           {hazardSuggestions.map((option) => (
             <AppButton
@@ -1235,10 +1239,10 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       <AppButton
         width="auto"
         variant="ghost"
-        label={showActionSuggestions ? "Hide action suggestions" : "Show action suggestions"}
-        onPress={() => setShowActionSuggestions((s) => !s)}
+        label={openSuggestions === "actions" ? "Hide action suggestions" : "Show action suggestions"}
+        onPress={() => toggleSuggestions("actions")}
       />
-      {showActionSuggestions ? (
+      {openSuggestions === "actions" ? (
         <AppStack gap="sm">
           {actionSuggestions.map((option) => (
             <AppButton
@@ -1266,10 +1270,10 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       <AppButton
         width="auto"
         variant="ghost"
-        label={showInstructorNotesSuggestions ? "Hide note suggestions" : "Show note suggestions"}
-        onPress={() => setShowInstructorNotesSuggestions((s) => !s)}
+        label={openSuggestions === "notes" ? "Hide note suggestions" : "Show note suggestions"}
+        onPress={() => toggleSuggestions("notes")}
       />
-      {showInstructorNotesSuggestions ? (
+      {openSuggestions === "notes" ? (
         <AppStack gap="sm">
           {instructorNotesSuggestions.map((option) => (
             <AppButton
