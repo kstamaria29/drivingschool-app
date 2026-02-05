@@ -21,6 +21,27 @@ import type { StudentsStackParamList } from "../StudentsStackNavigator";
 
 type Props = NativeStackScreenProps<StudentsStackParamList, "StudentDetail">;
 
+function InlineDetailRow({
+  label,
+  value,
+  labelWidthClassName = "w-24",
+}: {
+  label: string;
+  value: string;
+  labelWidthClassName?: string;
+}) {
+  return (
+    <View className="flex-row items-baseline gap-2">
+      <AppText className={cn(labelWidthClassName, "text-muted dark:text-mutedDark")} variant="label">
+        {label}:
+      </AppText>
+      <AppText className="flex-1" variant="body">
+        {value}
+      </AppText>
+    </View>
+  );
+}
+
 export function StudentDetailScreen({ navigation, route }: Props) {
   const { studentId } = route.params;
 
@@ -30,6 +51,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
 
   const student = query.data ?? null;
   const isArchived = Boolean(student?.archived_at);
+  const notes = student?.notes?.trim() ? student.notes.trim() : "";
 
   function onArchivePress() {
     if (!student) return;
@@ -99,71 +121,67 @@ export function StudentDetailScreen({ navigation, route }: Props) {
               />
             </View>
 
-            <AppCard className="gap-3">
-              <AppStack gap="sm">
+            <AppStack gap="md">
+              <AppCard className="gap-3">
                 <AppText variant="heading">Contact</AppText>
+
                 <View className="flex-row flex-wrap gap-4">
-                  <View className="min-w-56 flex-1 gap-1">
-                    <AppText variant="label">Email</AppText>
-                    <AppText variant="body">{student.email ?? "-"}</AppText>
+                  <View className="min-w-56 flex-1 gap-2">
+                    <InlineDetailRow label="Email" value={student.email ?? "-"} />
                   </View>
-
-                  <View className="min-w-56 flex-1 gap-1">
-                    <AppText variant="label">Phone</AppText>
-                    <AppText variant="body">{student.phone ?? "-"}</AppText>
-                  </View>
-
-                  <View className="w-full gap-1">
-                    <AppText variant="label">Address</AppText>
-                    <AppText variant="body">{student.address ?? "-"}</AppText>
+                  <View className="min-w-56 flex-1 gap-2">
+                    <InlineDetailRow label="Phone" value={student.phone ?? "-"} />
                   </View>
                 </View>
-              </AppStack>
 
-              <AppStack gap="sm">
+                <AppStack gap="sm">
+                  <AppText className="text-muted dark:text-mutedDark" variant="label">
+                    Address
+                  </AppText>
+                  <AppText variant="body">{student.address ?? "-"}</AppText>
+                </AppStack>
+              </AppCard>
+
+              <AppCard className="gap-3">
                 <AppText variant="heading">Licence</AppText>
+
                 <View className="flex-row flex-wrap gap-4">
-                  <View className="min-w-56 flex-1 gap-1">
-                    <AppText variant="label">Type</AppText>
-                    <AppText variant="body">{student.license_type ?? "-"}</AppText>
+                  <View className="min-w-56 flex-1 gap-2">
+                    <InlineDetailRow label="Type" value={student.license_type ?? "-"} labelWidthClassName="w-20" />
                   </View>
-
-                  <View className="min-w-56 flex-1 gap-1">
-                    <AppText variant="label">Number</AppText>
-                    <AppText variant="body">{student.license_number ?? "-"}</AppText>
-                  </View>
-
-                  <View className="min-w-56 flex-1 gap-1">
-                    <AppText variant="label">Version</AppText>
-                    <AppText variant="body">{student.license_version ?? "-"}</AppText>
-                  </View>
-
-                  <View className="min-w-56 flex-1 gap-1">
-                    <AppText variant="label">Class held</AppText>
-                    <AppText variant="body">{student.class_held ?? "-"}</AppText>
-                  </View>
-
-                  <View className="w-full gap-1">
-                    <AppText variant="label">Issue date</AppText>
-                    <AppText variant="body">
-                      {student.issue_date ? formatIsoDateToDisplay(student.issue_date) : "-"}
-                    </AppText>
-                  </View>
-
-                  <View className="w-full gap-1">
-                    <AppText variant="label">Expiry date</AppText>
-                    <AppText variant="body">
-                      {student.expiry_date ? formatIsoDateToDisplay(student.expiry_date) : "-"}
-                    </AppText>
+                  <View className="min-w-56 flex-1 gap-2">
+                    <InlineDetailRow label="Number" value={student.license_number ?? "-"} labelWidthClassName="w-20" />
                   </View>
                 </View>
-              </AppStack>
 
-              <AppStack gap="sm">
-                <AppText variant="heading">Notes</AppText>
-                <AppText variant="body">{student.notes?.trim() ? student.notes : "-"}</AppText>
-              </AppStack>
-            </AppCard>
+                <View className="flex-row flex-wrap gap-4">
+                  <View className="min-w-56 flex-1 gap-2">
+                    <InlineDetailRow label="Version" value={student.license_version ?? "-"} labelWidthClassName="w-20" />
+                  </View>
+                  <View className="min-w-56 flex-1 gap-2">
+                    <InlineDetailRow label="Class held" value={student.class_held ?? "-"} labelWidthClassName="w-20" />
+                  </View>
+                </View>
+
+                <InlineDetailRow
+                  label="Issue date"
+                  value={student.issue_date ? formatIsoDateToDisplay(student.issue_date) : "-"}
+                  labelWidthClassName="w-24"
+                />
+                <InlineDetailRow
+                  label="Expiry date"
+                  value={student.expiry_date ? formatIsoDateToDisplay(student.expiry_date) : "-"}
+                  labelWidthClassName="w-24"
+                />
+              </AppCard>
+
+              {notes ? (
+                <AppCard className="gap-2">
+                  <AppText variant="heading">Notes</AppText>
+                  <AppText variant="body">{notes}</AppText>
+                </AppCard>
+              ) : null}
+            </AppStack>
 
             <AppStack gap="md">
               <AppButton

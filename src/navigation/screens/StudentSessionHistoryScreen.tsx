@@ -408,20 +408,14 @@ export function StudentSessionHistoryScreen({ route }: Props) {
                       <Pressable
                         accessibilityRole="button"
                         accessibilityLabel={suggestionsOpen ? "Hide task suggestions" : "Show task suggestions"}
-                        className={cn(
-                          "rounded-full border px-4 py-2",
-                          suggestionsOpen
-                            ? "border-border bg-card dark:border-borderDark dark:bg-cardDark"
-                            : "bg-emerald-600 border-emerald-700 dark:bg-amber-300 dark:border-amber-400",
-                        )}
+                        className="px-1 py-1"
                         onPress={() => setSuggestionsOpen((v) => !v)}
                       >
                         <AppText
                           variant="label"
                           className={cn(
-                            suggestionsOpen
-                              ? "text-foreground dark:text-foregroundDark"
-                              : "text-white dark:text-slate-900",
+                            "underline font-semibold",
+                            colorScheme === "dark" ? "text-amber-300" : "text-emerald-600",
                           )}
                         >
                           {suggestionsOpen ? "Hide" : "Show"}

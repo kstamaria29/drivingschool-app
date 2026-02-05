@@ -1384,3 +1384,35 @@
   - Tap `Show` to expand suggestions and confirm the button stands out (light: green; dark: yellow).
   - Tap `Save session` and confirm a confirmation prompt appears before saving.
   - In the history list, confirm Delete is a circular icon-only button and task badges are colored.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Make suggestions toggle text-only
+- **Summary:**
+  - Changed the Task suggestions Show/Hide control from a button style to underlined colored text (green in light mode; yellow in dark mode).
+- **Files changed:**
+  - `src/navigation/screens/StudentSessionHistoryScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Students` -> student -> `Session History` -> `Add new` and confirm Show/Hide is text-only, underlined, and still toggles suggestions.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Refine student profile contact/licence layout
+- **Summary:**
+  - Split Contact, Licence, and Notes into separate containers on the Student profile screen.
+  - Updated Contact/Licence details to use inline label/value rows (Address remains stacked) and paired Licence fields (Type+Number, Version+Class held).
+  - Hid the Notes container when no notes exist.
+- **Files changed:**
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open a student profile and confirm Contact, Licence, and (optional) Notes are separate cards.
+  - Confirm Address shows as a 2-row field, while other fields are label/value inline rows.
+  - Clear Notes for a student and confirm the Notes card disappears.
