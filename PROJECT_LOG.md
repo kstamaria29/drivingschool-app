@@ -1137,3 +1137,20 @@
 - **How to verify:**
   - In app: open `Lessons`, navigate months, tap different days, and confirm the agenda updates.
   - Tap a lesson row and confirm it opens edit; tap `New lesson` and confirm it pre-fills the selected date.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Redesign students list
+- **Summary:**
+  - Redesigned Students into a more professional management list with search, status filter (active/archived), and sort (name/recent).
+  - Added a tablet-friendly table layout while keeping a compact card layout for smaller screens.
+- **Files changed:**
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Students`, use Search, toggle Active/Archived, switch Sort, and confirm the list updates.
+  - Tap a student row/card and confirm it navigates to Student details.
+  - Tap `New student` and confirm it opens the create screen.
