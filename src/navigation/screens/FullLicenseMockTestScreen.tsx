@@ -732,7 +732,14 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
 
   const studentCard = (
     <AppCard className="gap-4">
-      <AppText variant="heading">Student</AppText>
+      <View className="flex-row items-center justify-between gap-3">
+        <AppText variant="heading">Student</AppText>
+        {selectedStudent ? (
+          <AppText variant="heading" className="text-right">
+            {selectedStudent.first_name} {selectedStudent.last_name}
+          </AppText>
+        ) : null}
+      </View>
 
       {studentsQuery.isPending ? (
         <View className={cn("items-center justify-center py-4", theme.text.base)}>
@@ -757,20 +764,13 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
             <AppText variant="error">{form.formState.errors.studentId.message}</AppText>
           ) : null}
 
-          {selectedStudent ? (
-            <AppStack gap="sm">
-              <AppText variant="body">
-                Selected: {selectedStudent.first_name} {selectedStudent.last_name}
-              </AppText>
-              {stage === "details" ? (
-                <AppButton
-                  width="auto"
-                  variant="ghost"
-                  label={showStudentPicker ? "Hide student list" : "Change student"}
-                  onPress={() => setShowStudentPicker((s) => !s)}
-                />
-              ) : null}
-            </AppStack>
+          {selectedStudent && stage === "details" ? (
+            <AppButton
+              width="auto"
+              variant="ghost"
+              label={showStudentPicker ? "Hide student list" : "Change student"}
+              onPress={() => setShowStudentPicker((s) => !s)}
+            />
           ) : null}
 
           {stage === "details" && (showStudentPicker || !selectedStudent) ? (
@@ -1048,9 +1048,14 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       ? "border-danger/30 bg-danger/5 dark:border-dangerDark/30 dark:bg-dangerDark/10"
       : "border-border bg-background dark:border-borderDark dark:bg-backgroundDark";
 
+  const readinessChipClasses =
+    summary.readiness.label === "IN PROGRESS"
+      ? "border-emerald-600 bg-emerald-600 dark:border-emerald-500 dark:bg-emerald-500"
+      : "border-border bg-background dark:border-borderDark dark:bg-backgroundDark";
+
   const overviewCard = (
     <AppCard className="gap-3">
-      <View className="flex-row items-start justify-between gap-3">
+      <View className="flex-row items-center justify-between gap-3">
         <View className="flex-1 gap-1">
           <AppText variant="heading">Session</AppText>
           <AppText variant="caption">Session ID: {sessionId}</AppText>
@@ -1062,10 +1067,10 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
             <Timer size={16} color={theme.colors.mutedLight} />
             <AppText variant="heading">{formatMMSS(sessionSeconds)}</AppText>
           </View>
-          <View className="rounded-full border border-border bg-background px-3 py-1 dark:border-borderDark dark:bg-backgroundDark">
+          <View className={cn("rounded-full border px-3 py-1", readinessChipClasses)}>
             <AppText
               variant={summary.readiness.label === "NOT READY" ? "error" : "caption"}
-              className="font-semibold"
+              className={cn("font-semibold", summary.readiness.label === "IN PROGRESS" && "text-white")}
             >
               {summary.readiness.label}
             </AppText>
@@ -1073,7 +1078,8 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
         </View>
       </View>
 
-      <View className="flex-row flex-wrap gap-3">
+      <View className="flex-row items-center justify-between gap-3">
+        <View className="flex-1 flex-row flex-wrap gap-3">
         <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
           <AppText variant="caption">Attempts: {summary.attemptsCount}</AppText>
         </View>
@@ -1090,14 +1096,15 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
             Immediate: {summary.immediateTotal}
           </AppText>
         </View>
-      </View>
+        </View>
 
-      <View className="flex-row flex-wrap gap-2">
         <AppButton
           width="auto"
           variant="secondary"
+          className="h-10 w-12 px-0"
           icon={timerRunning ? Pause : Play}
-          label={timerRunning ? "Pause" : "Resume"}
+          label=""
+          accessibilityLabel={timerRunning ? "Pause" : "Resume"}
           onPress={() => setTimerRunning((r) => !r)}
         />
       </View>

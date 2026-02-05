@@ -1099,3 +1099,24 @@
 - **How to verify:**
   - In app: `Assessments` -> `Mock Test - Full License` -> scroll to the task attempt section and confirm `Clear all` + `Record task attempt` are right-aligned and in that order.
   - Tap `Record task attempt`; confirm the alert text reads "Recorded" and "Task attempt recorded."
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Assessment student header + full license session controls
+- **Summary:**
+  - Updated all assessment screens to show the selected student name right-aligned in the Student card header (removed the "Selected:" line).
+  - Moved the Full License resume/pause control into the Session badges row as an icon-only button.
+  - Styled the Full License `IN PROGRESS` readiness badge with a green background and white text.
+- **Files changed:**
+  - `src/components/AppButton.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open each assessment screen, start/continue a session, and confirm the Student card header shows the student name on the right.
+  - In Full License mock test, confirm the icon-only pause/resume button sits on the right of the Attempts/Score/Critical/Immediate row.
+  - In Full License mock test, record fewer than 4 attempts and confirm the `IN PROGRESS` badge is green with white text.

@@ -305,7 +305,14 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
         </View>
 
         <AppCard className="gap-4">
-          <AppText variant="heading">Student</AppText>
+          <View className="flex-row items-center justify-between gap-3">
+            <AppText variant="heading">Student</AppText>
+            {selectedStudent ? (
+              <AppText variant="heading" className="text-right">
+                {selectedStudent.first_name} {selectedStudent.last_name}
+              </AppText>
+            ) : null}
+          </View>
 
           {studentsQuery.isPending ? (
             <View className={cn("items-center justify-center py-6", theme.text.base)}>
@@ -330,21 +337,14 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
                 <AppText variant="error">{form.formState.errors.studentId.message}</AppText>
               ) : null}
 
-              {selectedStudent ? (
-                <AppStack gap="sm">
-                  <AppText variant="body">
-                    Selected: {selectedStudent.first_name} {selectedStudent.last_name}
-                  </AppText>
-                  {stage === "details" ? (
-                    <AppButton
-                      width="auto"
-                      variant="ghost"
-                      label={showStudentPicker ? "Hide student list" : "Change student"}
-                      icon={Users}
-                      onPress={() => setShowStudentPicker((s) => !s)}
-                    />
-                  ) : null}
-                </AppStack>
+              {selectedStudent && stage === "details" ? (
+                <AppButton
+                  width="auto"
+                  variant="ghost"
+                  label={showStudentPicker ? "Hide student list" : "Change student"}
+                  icon={Users}
+                  onPress={() => setShowStudentPicker((s) => !s)}
+                />
               ) : null}
 
               {stage === "details" && (showStudentPicker || !selectedStudent) ? (
