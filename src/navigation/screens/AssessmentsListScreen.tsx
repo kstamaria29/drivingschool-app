@@ -1,6 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { View } from "react-native";
-import { ClipboardCheck, ClipboardList } from "lucide-react-native";
+import { ClipboardCheck, ClipboardList, ClipboardPen } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -44,15 +44,24 @@ export function AssessmentsListScreen({ navigation }: Props) {
           </AppText>
           <AppButton
             width="auto"
-            label="Start Mock Test"
+            label="Start Restricted Mock Test"
             icon={ClipboardList}
             onPress={() => navigation.navigate("RestrictedMockTest")}
           />
         </AppCard>
 
         <AppCard className="gap-2">
-          <AppText variant="heading">3rd Assessment</AppText>
-          <AppText variant="body">Coming soon.</AppText>
+          <AppText variant="heading">Mock Test - Full License</AppText>
+          <AppText variant="body">
+            Full License mock test with assessable tasks, hazards spoken, critical/immediate errors,
+            and PDF export.
+          </AppText>
+          <AppButton
+            width="auto"
+            label="Start Full License Mock Test"
+            icon={ClipboardPen}
+            onPress={() => navigation.navigate("FullLicenseMockTest")}
+          />
         </AppCard>
       </AppStack>
     </Screen>

@@ -984,3 +984,32 @@
   - `npx tsc --noEmit`
 - **Verification:**
   - TypeScript compile check via `npx tsc --noEmit` (local).
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Implement Mock Test - Full License (3rd assessment)
+- **Summary:**
+  - Added a new assessment flow: setup → confirm → run (timer + attempts) → summary → submit + PDF export.
+  - Implemented scoring/readiness summary from attempt item fails + critical/immediate error counts.
+  - Added PDF export + Android Downloads save support using the existing Expo Print/FileSystem pattern.
+  - Wired the new assessment into the Assessments list and the Student assessment history (detail view + PDF download).
+- **Files changed:**
+  - `src/features/assessments/full-license-mock-test/constants.ts`
+  - `src/features/assessments/full-license-mock-test/schema.ts`
+  - `src/features/assessments/full-license-mock-test/scoring.ts`
+  - `src/features/assessments/full-license-mock-test/pdf.ts`
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `src/navigation/screens/AssessmentsListScreen.tsx`
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: `Assessments` → `Mock Test - Full License` → select a student → `Review and start` → `Start session`.
+  - Record at least 1 attempt + a critical error; optionally log an immediate-fail error and confirm the timer pauses.
+  - `Finish session` → `Submit and generate PDF` → confirm a PDF is saved and can be opened.
+  - Student profile → `Assessment History` → `Mock Test - Full License` tab → confirm entry renders + `Download PDF` works.
+- **Notes/TODO:**
+  - Consider normalizing older mojibake characters (e.g., `ƒ?`, `Aú`) in legacy UI strings when convenient.

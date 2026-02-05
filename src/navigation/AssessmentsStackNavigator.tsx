@@ -7,12 +7,14 @@ import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButto
 import { getNativeStackScreenOptions } from "./navigationTheme";
 import { AssessmentsListScreen } from "./screens/AssessmentsListScreen";
 import { DrivingAssessmentScreen } from "./screens/DrivingAssessmentScreen";
+import { FullLicenseMockTestScreen } from "./screens/FullLicenseMockTestScreen";
 import { RestrictedMockTestScreen } from "./screens/RestrictedMockTestScreen";
 
 export type AssessmentsStackParamList = {
   AssessmentsMain: undefined;
   DrivingAssessment: { studentId?: string } | undefined;
   RestrictedMockTest: { studentId?: string } | undefined;
+  FullLicenseMockTest: { studentId?: string } | undefined;
 };
 
 const Stack = createNativeStackNavigator<AssessmentsStackParamList>();
@@ -34,6 +36,7 @@ export function AssessmentsStackNavigator() {
       <Stack.Screen name="AssessmentsMain" component={AssessmentsListScreen} />
       <Stack.Screen name="DrivingAssessment" component={DrivingAssessmentScreen} />
       <Stack.Screen name="RestrictedMockTest" component={RestrictedMockTestScreen} />
+      <Stack.Screen name="FullLicenseMockTest" component={FullLicenseMockTestScreen} />
     </Stack.Navigator>
   );
 }

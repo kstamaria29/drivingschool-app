@@ -25,6 +25,18 @@ import {
 } from "../../features/assessments/driving-assessment/scoring";
 import { drivingAssessmentStoredDataSchema } from "../../features/assessments/driving-assessment/schema";
 import {
+  fullLicenseMockTestAssessmentItems,
+  fullLicenseMockTestCriticalErrors,
+  fullLicenseMockTestImmediateErrors,
+} from "../../features/assessments/full-license-mock-test/constants";
+import { exportFullLicenseMockTestPdf } from "../../features/assessments/full-license-mock-test/pdf";
+import {
+  calculateFullLicenseMockTestSummary,
+  scoreFullLicenseMockTestAttempt,
+  type FullLicenseMockTestAttempt,
+} from "../../features/assessments/full-license-mock-test/scoring";
+import { fullLicenseMockTestStoredDataSchema } from "../../features/assessments/full-license-mock-test/schema";
+import {
   restrictedMockTestCriticalErrors,
   restrictedMockTestImmediateErrors,
   restrictedMockTestStages,
@@ -51,10 +63,16 @@ type Props = NativeStackScreenProps<StudentsStackParamList, "StudentAssessmentHi
 
 type AssessmentType = Assessment["assessment_type"];
 
-const assessmentTypes: Array<{ type: AssessmentType; label: string }> = [
+const assessmentTypesLegacy: Array<{ type: AssessmentType; label: string }> = [
   { type: "driving_assessment", label: "Driving Assessment" },
   { type: "second_assessment", label: "Mock Test – Restricted" },
   { type: "third_assessment", label: "3rd Assessment" },
+];
+
+const assessmentTypes: Array<{ type: AssessmentType; label: string }> = [
+  { type: "driving_assessment", label: "Driving Assessment" },
+  { type: "second_assessment", label: "Mock Test - Restricted" },
+  { type: "third_assessment", label: "Mock Test - Full License" },
 ];
 
 function formatCategoryTitle(category: string) {
@@ -105,6 +123,23 @@ function getRestrictedMockTestSummary(assessment: Assessment) {
   const crit = summary.criticalTotal ?? 0;
   const imm = summary.immediateTotal ?? 0;
   return `Stage 1: ${s1} faults · Stage 2: ${s2} faults · Critical: ${crit} · Immediate: ${imm}`;
+}
+
+function getFullLicenseMockTestSummary(assessment: Assessment) {
+  if (assessment.assessment_type !== "third_assessment") return null;
+  const parsed = fullLicenseMockTestStoredDataSchema.safeParse(assessment.form_data);
+  if (!parsed.success) return null;
+
+  const values = parsed.data;
+  const computed = calculateFullLicenseMockTestSummary({
+    attempts: (values.attempts ?? []) as unknown as FullLicenseMockTestAttempt[],
+    critical: values.critical || {},
+    immediate: values.immediate || {},
+  });
+
+  const readiness = values.summary?.readinessLabel ?? computed.readiness.label;
+  const score = computed.scorePercent == null ? "—" : `${computed.scorePercent}%`;
+  return `${readiness} - Score: ${score} - Attempts: ${computed.attemptsCount}`;
 }
 
 function ScoreChip({ score }: { score: number | null }) {
@@ -292,6 +327,48 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         return;
       }
 
+      if (assessment.assessment_type === "third_assessment") {
+        const parsed = fullLicenseMockTestStoredDataSchema.safeParse(assessment.form_data);
+        if (!parsed.success) {
+          Alert.alert(
+            "Couldn't export PDF",
+            "This assessment is missing required data. Try creating a new assessment.",
+          );
+          return;
+        }
+
+        const values = parsed.data;
+        const assessmentDateISO =
+          parseDateInputToISODate(values.date) ?? assessment.assessment_date ?? assessment.created_at;
+        const fileName = `Mock Test Full License ${student.first_name} ${student.last_name} ${dayjs(
+          assessmentDateISO,
+        ).format("DD-MM-YY")}`;
+
+        const saved = await exportFullLicenseMockTestPdf({
+          assessmentId: assessment.id,
+          organizationName,
+          fileName,
+          androidDirectoryUri: androidDirectoryUri ?? undefined,
+          values,
+        });
+
+        await notifyPdfSaved({
+          fileName,
+          uri: saved.uri,
+          savedTo: saved.savedTo === "downloads" ? "Downloads" : "App storage",
+        });
+
+        Alert.alert(
+          "PDF saved",
+          saved.savedTo === "downloads"
+            ? "Saved to Downloads."
+            : "Saved inside the app (your device may restrict global downloads).",
+          [{ text: "Open", onPress: () => void openPdfUri(saved.uri) }, { text: "Done" }],
+        );
+
+        return;
+      }
+
       Alert.alert("Not available", "PDF export isn't available for this assessment type yet.");
       return;
 
@@ -364,7 +441,8 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         const drivingSummary = getDrivingAssessmentSummary(assessment);
         const drivingImprovements = getDrivingAssessmentImprovements(assessment);
         const restrictedSummary = getRestrictedMockTestSummary(assessment);
-        const summaryText = drivingSummary ?? restrictedSummary;
+        const fullLicenseSummary = getFullLicenseMockTestSummary(assessment);
+        const summaryText = drivingSummary ?? restrictedSummary ?? fullLicenseSummary;
 
         return (
           <Pressable
@@ -386,7 +464,8 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
                   <AppText variant="caption">
                     Score: {assessment.total_score == null ? "" : String(assessment.total_score)}
                   </AppText>
-                ) : assessment.assessment_type === "second_assessment" ? (
+                ) : assessment.assessment_type === "second_assessment" ||
+                  assessment.assessment_type === "third_assessment" ? (
                   <AppText variant="caption">Mock test</AppText>
                 ) : (
                   <AppText variant="caption">Assessment</AppText>
@@ -586,6 +665,206 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
               <AppText variant="body">Stage 2 not enabled.</AppText>
             </AppCard>
           )}
+
+          <AppDivider />
+
+          <AppCard className="gap-2">
+            <AppText variant="heading">Critical errors</AppText>
+            <AppText variant="body">{criticalLines || "None recorded."}</AppText>
+            {values.criticalNotes?.trim() ? (
+              <AppText variant="body">Notes: {values.criticalNotes.trim()}</AppText>
+            ) : null}
+          </AppCard>
+
+          <AppCard className="gap-2">
+            <AppText variant="heading">Immediate failure errors</AppText>
+            <AppText variant="body">{immediateLines || "None recorded."}</AppText>
+            {values.immediateNotes?.trim() ? (
+              <AppText variant="body">Notes: {values.immediateNotes.trim()}</AppText>
+            ) : null}
+          </AppCard>
+
+          <AppDivider />
+
+          <AppButton
+            variant="danger"
+            label={deletingAssessmentId === assessment.id ? "Deleting..." : "Delete assessment"}
+            icon={Trash2}
+            disabled={deletingAssessmentId === assessment.id || downloadingAssessmentId === assessment.id}
+            onPress={() => onDeletePress(assessment)}
+          />
+        </AppStack>
+      );
+    }
+
+    if (assessment.assessment_type === "third_assessment") {
+      const parsed = fullLicenseMockTestStoredDataSchema.safeParse(assessment.form_data);
+      if (!parsed.success) {
+        return (
+          <AppStack gap="md">
+            <AppCard className="gap-2">
+              <AppText variant="heading">Couldn't read mock test</AppText>
+              <AppText variant="body">
+                This assessment is missing required data, so it can't be displayed.
+              </AppText>
+            </AppCard>
+
+            <AppButton
+              variant="danger"
+              label={deletingAssessmentId === assessment.id ? "Deleting..." : "Delete assessment"}
+              icon={Trash2}
+              disabled={deletingAssessmentId === assessment.id}
+              onPress={() => onDeletePress(assessment)}
+            />
+          </AppStack>
+        );
+      }
+
+      const values = parsed.data;
+      const computed = calculateFullLicenseMockTestSummary({
+        attempts: (values.attempts ?? []) as unknown as FullLicenseMockTestAttempt[],
+        critical: values.critical || {},
+        immediate: values.immediate || {},
+      });
+
+      const readinessLabel = values.summary?.readinessLabel ?? computed.readiness.label;
+      const readinessReason = values.summary?.readinessReason ?? computed.readiness.reason;
+
+      function renderErrorLines(errors: readonly string[], counts: Record<string, number>) {
+        const lines = errors
+          .map((label) => {
+            const count = counts[label] ?? 0;
+            return count > 0 ? `${label}: ${count}` : null;
+          })
+          .filter((line): line is string => line != null);
+
+        return lines.length ? lines.join("\n") : "";
+      }
+
+      const criticalLines = renderErrorLines(fullLicenseMockTestCriticalErrors, values.critical || {});
+      const immediateLines = renderErrorLines(fullLicenseMockTestImmediateErrors, values.immediate || {});
+
+      const coachingFocus = Object.entries(computed.failuresByItem)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([id, count]) => ({
+          id,
+          label: fullLicenseMockTestAssessmentItems.find((x) => x.id === id)?.label ?? id,
+          count,
+        }));
+
+      return (
+        <AppStack gap="md">
+          <View className="flex-row items-start justify-between gap-3">
+            <View className="flex-1">
+              <AppText variant="heading">Mock Test - Full License</AppText>
+              <AppText className="mt-1" variant="caption">
+                Assessment on {formatAssessmentDate(assessment)}
+              </AppText>
+              {values.instructor?.trim() ? (
+                <AppText className="mt-1" variant="caption">
+                  Instructor: {values.instructor.trim()}
+                </AppText>
+              ) : null}
+            </View>
+
+            <View className="items-end gap-2">
+              <ScoreChip score={computed.scorePercent} />
+              <View className="rounded-full border border-border bg-background px-3 py-1 dark:border-borderDark dark:bg-backgroundDark">
+                <AppText
+                  variant={readinessLabel === "NOT READY" ? "error" : "caption"}
+                  className="font-semibold"
+                >
+                  {readinessLabel}
+                </AppText>
+              </View>
+            </View>
+          </View>
+
+          <AppButton
+            width="auto"
+            label={downloadingAssessmentId === assessment.id ? "Saving PDF..." : "Download PDF"}
+            icon={Download}
+            disabled={downloadingAssessmentId === assessment.id || deletingAssessmentId === assessment.id}
+            onPress={() => void onDownloadPdfPress(assessment)}
+          />
+
+          <AppDivider />
+
+          <AppCard className="gap-2">
+            <AppText variant="heading">Overview</AppText>
+            <AppText variant="body">Readiness: {readinessLabel}</AppText>
+            <AppText variant="caption">{readinessReason}</AppText>
+            <AppText variant="body">Attempts: {computed.attemptsCount}</AppText>
+            <AppText variant="body">Score: {computed.scorePercent == null ? "—" : `${computed.scorePercent}%`}</AppText>
+            <AppText variant="body">Critical errors: {computed.criticalTotal}</AppText>
+            <AppText variant="body">Immediate failure errors: {computed.immediateTotal}</AppText>
+          </AppCard>
+
+          <AppCard className="gap-2">
+            <AppText variant="heading">Session details</AppText>
+            <AppText variant="body">Candidate: {values.candidateName || ""}</AppText>
+            <AppText variant="body">Date: {values.date || ""}</AppText>
+            <AppText variant="body">Time: {values.time || ""}</AppText>
+            <AppText variant="body">Area: {values.locationArea || ""}</AppText>
+            <AppText variant="body">Vehicle: {values.vehicle || ""}</AppText>
+            <AppText variant="body">Mode: {values.mode || ""}</AppText>
+            <AppText variant="body">Conditions: {values.weather || ""}</AppText>
+            {values.overallNotes?.trim() ? (
+              <AppText variant="body">Overall notes: {values.overallNotes.trim()}</AppText>
+            ) : null}
+          </AppCard>
+
+          <AppCard className="gap-2">
+            <AppText variant="heading">Coaching focus</AppText>
+            {coachingFocus.length === 0 ? (
+              <AppText variant="body">No item failures recorded.</AppText>
+            ) : (
+              <AppStack gap="sm">
+                {coachingFocus.map((item) => (
+                  <View key={item.id} className="flex-row items-center justify-between gap-3">
+                    <AppText className="flex-1" variant="body">
+                      {item.label}
+                    </AppText>
+                    <AppText variant="caption">{item.count} fail(s)</AppText>
+                  </View>
+                ))}
+              </AppStack>
+            )}
+          </AppCard>
+
+          <AppCard className="gap-3">
+            <AppText variant="heading">Attempts</AppText>
+            {(values.attempts ?? []).length === 0 ? (
+              <AppText variant="body">No attempts recorded.</AppText>
+            ) : (
+              <AppStack gap="sm">
+                {(values.attempts ?? []).slice(0, 8).map((attempt) => {
+                  const scored = scoreFullLicenseMockTestAttempt(attempt as unknown as FullLicenseMockTestAttempt);
+                  return (
+                    <View
+                      key={attempt.id}
+                      className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark"
+                    >
+                      <View className="flex-row items-start justify-between gap-3">
+                        <AppText className="flex-1" variant="body">
+                          {attempt.taskName}
+                        </AppText>
+                        <AppText variant={scored.fails > 0 ? "error" : "caption"}>
+                          {scored.fails}/{scored.total}
+                        </AppText>
+                      </View>
+                      {attempt.variant?.trim() ? (
+                        <AppText variant="caption" numberOfLines={2}>
+                          {attempt.variant.trim()}
+                        </AppText>
+                      ) : null}
+                    </View>
+                  );
+                })}
+              </AppStack>
+            )}
+          </AppCard>
 
           <AppDivider />
 
