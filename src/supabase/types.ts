@@ -217,6 +217,46 @@ export type Database = {
         };
         Relationships: [];
       };
+      student_sessions: {
+        Row: {
+          id: string;
+          organization_id: string;
+          student_id: string;
+          instructor_id: string;
+          session_at: string;
+          duration_minutes: number | null;
+          tasks: string[];
+          next_focus: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          student_id: string;
+          instructor_id: string;
+          session_at?: string;
+          duration_minutes?: number | null;
+          tasks?: string[];
+          next_focus?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          organization_id?: string;
+          student_id?: string;
+          instructor_id?: string;
+          session_at?: string;
+          duration_minutes?: number | null;
+          tasks?: string[];
+          next_focus?: string | null;
+          notes?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       [key: string]: SupabaseTable;
     };
     Views: Record<string, never>;

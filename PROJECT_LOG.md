@@ -1309,3 +1309,45 @@
 - **How to verify:**
   - Upload a PNG logo with transparency from Settings and confirm the drawer/logo renders without a white background.
   - Confirm existing avatars still upload as before.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Enlarge header controls on tablet portrait
+- **Summary:**
+  - Increased hamburger + avatar sizes slightly for tablet portrait only, keeping mobile sizing unchanged.
+- **Files changed:**
+  - `src/navigation/components/HeaderButtons.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On a tablet in portrait: confirm hamburger + avatar are slightly larger and match in size.
+  - On a phone: confirm hamburger + avatar sizing looks unchanged.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Student profile grid + session history
+- **Summary:**
+  - Updated `StudentDetailScreen` Contact/Licence sections to use a 2-column layout (Email+Phone; Type+Number; Version+Class held).
+  - Added a new `StudentSessionHistoryScreen` with a quick "New session" form (tasks multi-select with collapsible suggestions) and a session list with delete.
+  - Added a `student_sessions` Supabase table migration with RLS (owner org-wide; instructor self-only).
+- **Files changed:**
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `src/navigation/screens/StudentSessionHistoryScreen.tsx`
+  - `src/navigation/StudentsStackNavigator.tsx`
+  - `src/features/sessions/api.ts`
+  - `src/features/sessions/queries.ts`
+  - `src/features/sessions/schemas.ts`
+  - `src/supabase/types.ts`
+  - `supabase/migrations/008_student_sessions.sql`
+  - `supabase/README.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Students` -> select a student -> confirm Contact shows Email+Phone on the same row, and Licence shows Type+Number and Version+Class held on the same rows.
+  - On the student detail: tap `Add session` (top-right) or `Session History` (below Edit) -> add a session with a few tasks -> confirm it appears in the list.
+  - Delete a session and confirm it disappears from the list.
+  - (If connected to Supabase) apply migration `008_student_sessions.sql` and confirm RLS works for owner vs instructor.
