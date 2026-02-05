@@ -1170,3 +1170,50 @@
 - **How to verify:**
   - In app: open `Students` and confirm email + phone render with icons and licence type shows as a colored badge.
   - Toggle dark mode and confirm badge + icon contrast remains readable.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Refine students rows layout
+- **Summary:**
+  - Moved student email under the student name and removed the avatar/initials circle.
+  - Right-aligned the licence badge next to the chevron, and adjusted table columns accordingly.
+- **Files changed:**
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Students` and confirm each row shows name + email stacked, with licence badge right-aligned next to the chevron.
+  - Confirm there is no avatar/initials bubble in the list.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Students list phone/icon + licence circle
+- **Summary:**
+  - Moved the phone icon from each row into the Phone column header (table layout).
+  - Changed the licence type indicator into a circular icon showing only the first letter (L/R/F) with type-based coloring.
+- **Files changed:**
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Students` in tablet layout and confirm the Phone header shows the icon and rows show plain phone numbers.
+  - Confirm the licence indicator is a colored circle with a single letter next to the chevron.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Home weather actions icon-only
+- **Summary:**
+  - Made the Home Weather widget action buttons (Refresh / Use my location) icon-only while keeping accessibility labels for screen readers.
+- **Files changed:**
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Home` and confirm the Weather card top-right shows icon-only buttons for refresh and location (no text).
+  - Tap each icon and confirm refresh still refetches weather and location still requests/uses device location.

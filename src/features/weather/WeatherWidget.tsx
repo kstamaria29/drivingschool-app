@@ -183,16 +183,18 @@ export function WeatherWidget() {
           <AppButton
             width="auto"
             variant="secondary"
-            label={query.isFetching ? "Refreshing..." : "Refresh"}
+            label=""
             icon={RefreshCw}
+            accessibilityLabel={query.isFetching ? "Refreshing weather" : "Refresh weather"}
             disabled={query.isFetching}
             onPress={() => query.refetch()}
           />
           <AppButton
             width="auto"
             variant="secondary"
-            label="Use my location"
+            label=""
             icon={LocateFixed}
+            accessibilityLabel="Use my location"
             onPress={() => void syncDeviceLocation({ request: true })}
           />
         </View>

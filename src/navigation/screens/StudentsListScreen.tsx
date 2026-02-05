@@ -24,18 +24,19 @@ type Props = NativeStackScreenProps<StudentsStackParamList, "StudentsList">;
 type SortKey = "name" | "recent";
 type StatusKey = "active" | "archived";
 
-function initials(firstName: string, lastName: string) {
-  const first = firstName.trim().slice(0, 1).toUpperCase();
-  const last = lastName.trim().slice(0, 1).toUpperCase();
-  return `${first}${last}`.trim() || "S";
-}
-
 function formatLicenseType(type: string | null) {
   if (!type) return "—";
   if (type === "learner") return "Learner";
   if (type === "restricted") return "Restricted";
   if (type === "full") return "Full";
   return type;
+}
+
+function licenseTypeLetter(type: string | null) {
+  if (type === "learner") return "L";
+  if (type === "restricted") return "R";
+  if (type === "full") return "F";
+  return "—";
 }
 
 function licenseTypeBadgeClasses(type: string | null) {
@@ -65,12 +66,17 @@ function licenseTypeBadgeClasses(type: string | null) {
   };
 }
 
-function LicenseTypeBadge({ type }: { type: string | null }) {
+function LicenseTypeCircle({ type }: { type: string | null }) {
   const classes = licenseTypeBadgeClasses(type);
   return (
-    <View className={cn("self-start rounded-full border px-3 py-1", classes.wrapper)}>
+    <View
+      className={cn(
+        "h-8 w-8 items-center justify-center rounded-full border",
+        classes.wrapper,
+      )}
+    >
       <AppText className={cn("text-xs font-semibold", classes.text)} variant="caption">
-        {formatLicenseType(type)}
+        {licenseTypeLetter(type)}
       </AppText>
     </View>
   );
@@ -152,7 +158,7 @@ export function StudentsListScreen({ navigation }: Props) {
           <View className="min-w-56 flex-1">
             <AppText variant="title">Students</AppText>
             <AppText className="mt-1" variant="caption">
-              {archived ? "Archived students" : "Active students"} • {rows.length} shown
+              {archived ? "Archived students" : "Active students"} - {rows.length} shown
             </AppText>
           </View>
 
@@ -230,20 +236,15 @@ export function StudentsListScreen({ navigation }: Props) {
           <AppCard className={cn("overflow-hidden p-0", !isCompact && "flex-1")}>
             {!isCompact ? (
               <View className="flex-row border-b border-border bg-background px-4 py-3 dark:border-borderDark dark:bg-backgroundDark">
-                <AppText className="flex-[3]" variant="label">
+                <AppText className="flex-[5]" variant="label">
                   Student
                 </AppText>
-                <AppText className="flex-[3]" variant="label">
-                  Email
-                </AppText>
-                <AppText className="flex-[2]" variant="label">
-                  Phone
-                </AppText>
-                <AppText className="flex-[2]" variant="label">
+                <View className="flex-[3] flex-row items-center gap-2">
+                  <Phone size={14} color={iconMuted} />
+                  <AppText variant="label">Phone</AppText>
+                </View>
+                <AppText className="flex-[2] text-right" variant="label">
                   Licence
-                </AppText>
-                <AppText className="w-10 text-right" variant="label">
-                  {" "}
                 </AppText>
               </View>
             ) : null}
@@ -272,53 +273,41 @@ export function StudentsListScreen({ navigation }: Props) {
                     )}
                   >
                     {isCompact ? (
-                      <View className="flex-row items-start gap-3">
-                        <View className="h-10 w-10 items-center justify-center rounded-full border border-border bg-background dark:border-borderDark dark:bg-backgroundDark">
-                          <AppText className="text-primary dark:text-primaryDark" variant="label">
-                            {initials(student.first_name, student.last_name)}
-                          </AppText>
-                        </View>
-
-                        <View className="flex-1 gap-2">
-                          <View className="flex-row items-start justify-between gap-3">
-                            <AppText numberOfLines={1} variant="heading" className="flex-1 text-base">
+                      <View className="gap-3">
+                        <View className="flex-row items-start justify-between gap-3">
+                          <View className="flex-1 gap-2">
+                            <AppText numberOfLines={1} variant="heading" className="text-base">
                               {fullName}
                             </AppText>
-                            <LicenseTypeBadge type={licenseType} />
+                            <ContactLine icon={Mail} text={email} iconColor={iconMuted} />
                           </View>
-
-                          <ContactLine icon={Mail} text={email} iconColor={iconMuted} />
-                          <ContactLine icon={Phone} text={phone} iconColor={iconMuted} />
+                          <View className="flex-row items-center gap-2">
+                            <LicenseTypeCircle type={licenseType} />
+                            <ChevronRight size={18} color={iconMuted} />
+                          </View>
                         </View>
 
-                        <ChevronRight size={18} color={iconMuted} />
+                        {phone ? <AppText variant="caption">Phone: {phone}</AppText> : null}
                       </View>
                     ) : (
                       <>
-                        <View className="flex-[3] flex-row items-center gap-3 pr-3">
-                          <View className="h-10 w-10 items-center justify-center rounded-full border border-border bg-background dark:border-borderDark dark:bg-backgroundDark">
-                            <AppText className="text-primary dark:text-primaryDark" variant="label">
-                              {initials(student.first_name, student.last_name)}
-                            </AppText>
-                          </View>
-                          <AppText numberOfLines={1} variant="heading" className="flex-1">
+                        <View className="flex-[5] pr-3">
+                          <AppText numberOfLines={1} variant="heading">
                             {fullName}
                           </AppText>
+                          <View className="mt-1">
+                            <ContactLine icon={Mail} text={email || "—"} iconColor={iconMuted} />
+                          </View>
                         </View>
 
                         <View className="flex-[3] pr-3">
-                          <ContactLine icon={Mail} text={email || "—"} iconColor={iconMuted} />
+                          <AppText numberOfLines={1} variant="caption">
+                            {phone || "—"}
+                          </AppText>
                         </View>
 
-                        <View className="flex-[2] pr-3">
-                          <ContactLine icon={Phone} text={phone || "—"} iconColor={iconMuted} />
-                        </View>
-
-                        <View className="flex-[2] pr-3">
-                          <LicenseTypeBadge type={licenseType} />
-                        </View>
-
-                        <View className="w-10 items-end">
+                        <View className="flex-[2] flex-row items-center justify-end gap-2">
+                          <LicenseTypeCircle type={licenseType} />
                           <ChevronRight size={18} color={iconMuted} />
                         </View>
                       </>
@@ -333,4 +322,3 @@ export function StudentsListScreen({ navigation }: Props) {
     </Screen>
   );
 }
-
