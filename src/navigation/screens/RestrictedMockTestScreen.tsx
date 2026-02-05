@@ -14,6 +14,7 @@ import { AppInput } from "../../components/AppInput";
 import { AppSegmentedControl } from "../../components/AppSegmentedControl";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
+import { AppTimeInput } from "../../components/AppTimeInput";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
 import { ensureAndroidDownloadsDirectoryUri } from "../../features/assessments/android-downloads";
@@ -571,7 +572,11 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
           control={form.control}
           name="time"
           render={({ field }) => (
-            <AppInput label="Time (optional)" value={field.value ?? ""} onChangeText={field.onChange} />
+            <AppTimeInput
+              label="Time (optional)"
+              value={field.value ?? ""}
+              onChangeText={(next) => field.onChange(next)}
+            />
           )}
         />
 

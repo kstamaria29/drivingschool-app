@@ -1049,3 +1049,23 @@
   - Open the app -> `Home`: confirm only two buttons (`Students`, `Assessments`) show and both navigate correctly.
   - Toggle dark mode -> `Home` -> `Open Lessons`: confirm the button looks like a clean link (no ugly border/shadow box).
   - `Home` -> `Weather`: confirm the current weather image area is larger and visually balanced.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Mock test suggestions + time pickers
+- **Summary:**
+  - Added multi-select suggestion options (5 each) for Full License mock test attempt notes: hazards spoken, actions spoken, and instructor notes.
+  - Added a confirmation alert when saving a task attempt.
+  - Replaced manual time inputs with `AppTimeInput` pickers in Full License session setup and Restricted License pre-drive checks.
+- **Files changed:**
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: `Assessments` -> `Mock Test - Full License` -> start a session -> in a task card, toggle suggestions and select multiple options; confirm they add/remove lines in the text fields.
+  - Tap `Save task attempt`; confirm a "Saved" alert appears and the attempt shows in the list.
+  - In `Mock Test - Full License` session setup, tap `Time`; confirm a native time picker appears and writes `HH:mm`.
+  - In `Mock Test - Restricted License` pre-drive checks, tap `Time (optional)`; confirm a native time picker appears.

@@ -16,6 +16,7 @@ import { AppInput } from "../../components/AppInput";
 import { AppSegmentedControl } from "../../components/AppSegmentedControl";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
+import { AppTimeInput } from "../../components/AppTimeInput";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
 import { ensureAndroidDownloadsDirectoryUri } from "../../features/assessments/android-downloads";
@@ -157,6 +158,63 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   const [actionsSpoken, setActionsSpoken] = useState("");
   const [notes, setNotes] = useState("");
   const [locationTag, setLocationTag] = useState("");
+  const [showHazardSuggestions, setShowHazardSuggestions] = useState(false);
+  const [showActionSuggestions, setShowActionSuggestions] = useState(false);
+  const [showInstructorNotesSuggestions, setShowInstructorNotesSuggestions] = useState(false);
+
+  const hazardSuggestions = useMemo(
+    () => [
+      "Pedestrian near crossing",
+      "Cyclist in blind spot / shoulder",
+      "Vehicle approaching quickly from right",
+      "Oncoming traffic closing gap",
+      "Parked car door could open / vehicle pulling out",
+    ],
+    [],
+  );
+
+  const actionSuggestions = useMemo(
+    () => [
+      "Check mirrors and blind spot",
+      "Reduce speed and cover brake",
+      "Create space (3-second gap)",
+      "Indicate early and position correctly",
+      "Wait for a safe gap before proceeding",
+    ],
+    [],
+  );
+
+  const instructorNotesSuggestions = useMemo(
+    () => [
+      "Good scanning and commentary timing",
+      "Needs earlier hazard identification",
+      "Work on lane positioning through the turn",
+      "Smoother speed control (ease off earlier)",
+      "More decisive when safe (avoid hesitating)",
+    ],
+    [],
+  );
+
+  function hasSuggestionLine(value: string, suggestion: string) {
+    return value
+      .split(/\r?\n/)
+      .some((line) => line.trim().toLowerCase() === suggestion.trim().toLowerCase());
+  }
+
+  function toggleSuggestionLine(value: string, suggestion: string) {
+    const lines = value.split(/\r?\n/);
+    const index = lines.findIndex(
+      (line) => line.trim().toLowerCase() === suggestion.trim().toLowerCase(),
+    );
+
+    if (index >= 0) {
+      const next = [...lines.slice(0, index), ...lines.slice(index + 1)];
+      return next.join("\n").trimEnd();
+    }
+
+    const trimmed = value.trimEnd();
+    return trimmed ? `${trimmed}\n${suggestion}` : suggestion;
+  }
 
   const organizationName = organizationQuery.data?.name ?? "Driving School";
 
@@ -535,6 +593,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     setActionsSpoken("");
     setNotes("");
     setLocationTag("");
+    Alert.alert("Saved", "Task attempt saved.");
   }
 
   function startSession() {
@@ -766,12 +825,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
         control={form.control}
         name="time"
         render={({ field }) => (
-          <AppInput
-            label="Time"
-            value={field.value}
-            onChangeText={field.onChange}
-            placeholder="e.g., 10:15am"
-          />
+          <AppTimeInput label="Time" value={field.value} onChangeText={(next) => field.onChange(next)} />
         )}
       />
 
@@ -1147,6 +1201,26 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
         placeholder="e.g., pedestrian near crossing, vehicle approaching fast from right"
       />
 
+      <AppButton
+        width="auto"
+        variant="ghost"
+        label={showHazardSuggestions ? "Hide hazard suggestions" : "Show hazard suggestions"}
+        onPress={() => setShowHazardSuggestions((s) => !s)}
+      />
+      {showHazardSuggestions ? (
+        <AppStack gap="sm">
+          {hazardSuggestions.map((option) => (
+            <AppButton
+              key={option}
+              width="auto"
+              variant={hasSuggestionLine(hazardsSpoken, option) ? "primary" : "secondary"}
+              label={option}
+              onPress={() => setHazardsSpoken((prev) => toggleSuggestionLine(prev, option))}
+            />
+          ))}
+        </AppStack>
+      ) : null}
+
       <AppInput
         label="Action spoken (required)"
         value={actionsSpoken}
@@ -1158,6 +1232,26 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
         placeholder="e.g., I’m slowing, checking mirrors, and waiting for a safe gap"
       />
 
+      <AppButton
+        width="auto"
+        variant="ghost"
+        label={showActionSuggestions ? "Hide action suggestions" : "Show action suggestions"}
+        onPress={() => setShowActionSuggestions((s) => !s)}
+      />
+      {showActionSuggestions ? (
+        <AppStack gap="sm">
+          {actionSuggestions.map((option) => (
+            <AppButton
+              key={option}
+              width="auto"
+              variant={hasSuggestionLine(actionsSpoken, option) ? "primary" : "secondary"}
+              label={option}
+              onPress={() => setActionsSpoken((prev) => toggleSuggestionLine(prev, option))}
+            />
+          ))}
+        </AppStack>
+      ) : null}
+
       <AppInput
         label="Instructor notes (optional)"
         value={notes}
@@ -1168,6 +1262,26 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
         inputClassName="h-24 py-3"
         placeholder="Coaching cues, what to improve, what went well"
       />
+
+      <AppButton
+        width="auto"
+        variant="ghost"
+        label={showInstructorNotesSuggestions ? "Hide note suggestions" : "Show note suggestions"}
+        onPress={() => setShowInstructorNotesSuggestions((s) => !s)}
+      />
+      {showInstructorNotesSuggestions ? (
+        <AppStack gap="sm">
+          {instructorNotesSuggestions.map((option) => (
+            <AppButton
+              key={option}
+              width="auto"
+              variant={hasSuggestionLine(notes, option) ? "primary" : "secondary"}
+              label={option}
+              onPress={() => setNotes((prev) => toggleSuggestionLine(prev, option))}
+            />
+          ))}
+        </AppStack>
+      ) : null}
 
       <View className="flex-row flex-wrap gap-2">
         <AppButton width="auto" label="Save task attempt" icon={Flag} onPress={saveAttempt} />
