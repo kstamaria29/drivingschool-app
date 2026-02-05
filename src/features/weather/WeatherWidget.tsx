@@ -38,18 +38,36 @@ function formatTemp(value: number) {
   return `${rounded}°C`;
 }
 
-function WeatherIcon({ code, size, color }: { code: number; size: number; color: string }) {
-  if (code === 0) return <Sun size={size} color={color} />;
-  if (code === 1 || code === 2) return <CloudSun size={size} color={color} />;
-  if (code === 3) return <Cloud size={size} color={color} />;
-  if (code === 45 || code === 48) return <CloudFog size={size} color={color} />;
-  if (code >= 51 && code <= 57) return <CloudDrizzle size={size} color={color} />;
-  if (code >= 61 && code <= 67) return <CloudRain size={size} color={color} />;
-  if (code >= 71 && code <= 77) return <CloudSnow size={size} color={color} />;
-  if (code >= 80 && code <= 82) return <CloudRain size={size} color={color} />;
-  if (code === 85 || code === 86) return <CloudSnow size={size} color={color} />;
-  if (code === 95 || code === 96 || code === 99) return <CloudLightning size={size} color={color} />;
-  return <Cloud size={size} color={color} />;
+function WeatherIcon({
+  code,
+  size,
+  color,
+  strokeWidth = 2,
+}: {
+  code: number;
+  size: number;
+  color: string;
+  strokeWidth?: number;
+}) {
+  if (code === 0) return <Sun size={size} color={color} strokeWidth={strokeWidth} />;
+  if (code === 1 || code === 2)
+    return <CloudSun size={size} color={color} strokeWidth={strokeWidth} />;
+  if (code === 3) return <Cloud size={size} color={color} strokeWidth={strokeWidth} />;
+  if (code === 45 || code === 48)
+    return <CloudFog size={size} color={color} strokeWidth={strokeWidth} />;
+  if (code >= 51 && code <= 57)
+    return <CloudDrizzle size={size} color={color} strokeWidth={strokeWidth} />;
+  if (code >= 61 && code <= 67)
+    return <CloudRain size={size} color={color} strokeWidth={strokeWidth} />;
+  if (code >= 71 && code <= 77)
+    return <CloudSnow size={size} color={color} strokeWidth={strokeWidth} />;
+  if (code >= 80 && code <= 82)
+    return <CloudRain size={size} color={color} strokeWidth={strokeWidth} />;
+  if (code === 85 || code === 86)
+    return <CloudSnow size={size} color={color} strokeWidth={strokeWidth} />;
+  if (code === 95 || code === 96 || code === 99)
+    return <CloudLightning size={size} color={color} strokeWidth={strokeWidth} />;
+  return <Cloud size={size} color={color} strokeWidth={strokeWidth} />;
 }
 
 export function WeatherWidget() {
@@ -136,7 +154,7 @@ export function WeatherWidget() {
   const currentText = useMemo(() => {
     if (!forecast) return null;
     const description = describeWeatherCode(forecast.current.weatherCode);
-    return `${formatTemp(forecast.current.temperatureC)} · ${description}`;
+    return `${formatTemp(forecast.current.temperatureC)} • ${description}`;
   }, [forecast]);
 
   const iconMuted = colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
@@ -201,21 +219,34 @@ export function WeatherWidget() {
       ) : (
         <View className="flex-row flex-wrap gap-3">
           <AppCard className="flex-1 min-w-64 gap-2">
-            <View className="flex-row items-center justify-between gap-3">
-              <View className="flex-row items-center gap-2">
-                <WeatherIcon code={forecast.current.weatherCode} size={22} color={iconAccent} />
-                <AppText variant="heading">Right now</AppText>
-              </View>
-              {coords.source === "device" ? <MapPin size={18} color={iconMuted} /> : null}
-            </View>
+            <View className="flex-row items-start justify-between gap-4">
+              <View className="flex-1">
+                <View className="flex-row items-center justify-between gap-3">
+                  <AppText variant="heading">Right now</AppText>
+                  {coords.source === "device" ? <MapPin size={18} color={iconMuted} /> : null}
+                </View>
 
-            <AppText variant="body">{currentText}</AppText>
-            <View className="flex-row items-center gap-2">
-              <Wind size={16} color={iconMuted} />
-              <AppText variant="caption">
-                Wind: {Math.round(forecast.current.windSpeedKph)} km/h · Updated{" "}
-                {forecast.current.timeISO ? dayjs(forecast.current.timeISO).format("h:mm A") : "-"}
-              </AppText>
+                <AppText className="mt-2" variant="body">
+                  {currentText}
+                </AppText>
+                <View className="mt-2 flex-row items-center gap-2">
+                  <Wind size={16} color={iconMuted} />
+                  <AppText variant="caption">
+                    Wind: {Math.round(forecast.current.windSpeedKph)} km/h • Updated{" "}
+                    {forecast.current.timeISO ? dayjs(forecast.current.timeISO).format("h:mm A") : "-"}
+                  </AppText>
+                </View>
+              </View>
+
+              <View className="relative h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-border bg-background dark:border-borderDark dark:bg-backgroundDark">
+                <View className="absolute inset-0 bg-accent opacity-10 dark:opacity-20" />
+                <WeatherIcon
+                  code={forecast.current.weatherCode}
+                  size={56}
+                  color={iconAccent}
+                  strokeWidth={1.5}
+                />
+              </View>
             </View>
           </AppCard>
 
@@ -250,4 +281,3 @@ export function WeatherWidget() {
     </AppStack>
   );
 }
-

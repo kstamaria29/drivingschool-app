@@ -46,7 +46,7 @@ export const theme = {
       primary: "bg-primary border-primary dark:bg-primaryDark dark:border-primaryDark",
       secondary: "bg-card border-border dark:bg-cardDark dark:border-borderDark",
       danger: "bg-danger border-danger dark:bg-dangerDark dark:border-dangerDark",
-      ghost: "bg-transparent border-transparent",
+      ghost: "bg-transparent border-0 shadow-none",
     },
     labelBase: "",
     labelVariant: {

@@ -1029,3 +1029,23 @@
   - `npx tsc --noEmit`
 - **How to verify:**
   - In app: `Lessons` -> `+ New lesson` (or edit an existing one) -> tap `Start time` -> pick a time -> `OK` -> confirm the preview updates.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Home screen CTA + weather polish
+- **Summary:**
+  - Replaced Home CTAs with just `Students` and `Assessments` buttons (navigates to the respective screens).
+  - Improved `AppButton` ghost variant styling so link-style buttons don’t render a weird bordered/shadowed box in dark mode (fixes `Open Lessons` on Home).
+  - Enlarged and restyled the current weather visual to better fill whitespace and feel more like an illustration.
+- **Files changed:**
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/theme/theme.ts`
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open the app -> `Home`: confirm only two buttons (`Students`, `Assessments`) show and both navigate correctly.
+  - Toggle dark mode -> `Home` -> `Open Lessons`: confirm the button looks like a clean link (no ugly border/shadow box).
+  - `Home` -> `Weather`: confirm the current weather image area is larger and visually balanced.
