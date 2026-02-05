@@ -12,6 +12,7 @@ import { AppDateInput } from "../../components/AppDateInput";
 import { AppInput } from "../../components/AppInput";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
+import { AppTimeInput } from "../../components/AppTimeInput";
 import { Screen } from "../../components/Screen";
 import { useMyProfileQuery } from "../../features/auth/queries";
 import { useAuthSession } from "../../features/auth/session";
@@ -255,12 +256,10 @@ export function LessonEditScreen({ navigation, route }: Props) {
             control={form.control}
             name="startTime"
             render={({ field, fieldState }) => (
-              <AppInput
-                label="Start time (HH:mm)"
-                autoCapitalize="none"
+              <AppTimeInput
+                label="Start time"
                 value={field.value}
                 onChangeText={field.onChange}
-                onBlur={field.onBlur}
                 error={fieldState.error?.message}
               />
             )}

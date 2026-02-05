@@ -1013,3 +1013,19 @@
   - Student profile → `Assessment History` → `Mock Test - Full License` tab → confirm entry renders + `Download PDF` works.
 - **Notes/TODO:**
   - Consider normalizing older mojibake characters (e.g., `ƒ?`, `Aú`) in legacy UI strings when convenient.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Add time picker input for lessons
+- **Summary:**
+  - Added `AppTimeInput` primitive (same styling/UX as `AppDateInput`) using native spinner time picker.
+  - Replaced Lesson start time manual typing with `AppTimeInput`.
+- **Files changed:**
+  - `src/components/AppTimeInput.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: `Lessons` -> `+ New lesson` (or edit an existing one) -> tap `Start time` -> pick a time -> `OK` -> confirm the preview updates.
