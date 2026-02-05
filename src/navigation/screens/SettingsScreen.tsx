@@ -34,6 +34,21 @@ export function SettingsScreen() {
   const uploadOrgLogoMutation = useUploadOrganizationLogoMutation(profile.organization_id);
   const uploadAvatarMutation = useUploadMyAvatarMutation(userId);
 
+  async function pickOrgLogo() {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      throw new Error("Permission to access photos was denied.");
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: "images",
+      allowsEditing: false,
+    });
+
+    if (result.canceled) return null;
+    return result.assets[0] ?? null;
+  }
+
   async function pickImageSquare() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -119,7 +134,7 @@ export function SettingsScreen() {
             onPress={async () => {
               try {
                 setPickerError(null);
-                const asset = await pickImageSquare();
+                const asset = await pickOrgLogo();
                 if (!asset) return;
                 uploadOrgLogoMutation.mutate({ asset });
               } catch (error) {

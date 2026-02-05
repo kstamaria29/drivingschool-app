@@ -1,7 +1,7 @@
 import type { ImagePickerAsset } from "expo-image-picker";
 
 import { supabase } from "../../supabase/client";
-import { base64ToUint8Array } from "../../utils/base64";
+import { readUriAsUint8Array } from "../../utils/file-bytes";
 
 export type CompleteOnboardingInput = {
   userId: string;
@@ -15,6 +15,9 @@ function guessFileExtension(asset: ImagePickerAsset) {
   const match = /\.([a-z0-9]+)$/i.exec(fileName);
   if (match?.[1]) return match[1].toLowerCase();
 
+  const uriMatch = /\.([a-z0-9]+)(?:$|\?|#)/i.exec(asset.uri);
+  if (uriMatch?.[1]) return uriMatch[1].toLowerCase();
+
   const mimeType = asset.mimeType ?? "";
   if (mimeType === "image/png") return "png";
   if (mimeType === "image/webp") return "webp";
@@ -22,7 +25,11 @@ function guessFileExtension(asset: ImagePickerAsset) {
 }
 
 function guessContentType(asset: ImagePickerAsset) {
-  return asset.mimeType ?? "image/jpeg";
+  const extension = guessFileExtension(asset);
+  if (asset.mimeType) return asset.mimeType;
+  if (extension === "png") return "image/png";
+  if (extension === "webp") return "image/webp";
+  return "image/jpeg";
 }
 
 export async function completeOnboarding(input: CompleteOnboardingInput) {
@@ -42,13 +49,10 @@ export async function completeOnboarding(input: CompleteOnboardingInput) {
     const contentType = guessContentType(input.logoAsset);
     const objectPath = `${organizationId}/logo.${extension}`;
 
-    if (!input.logoAsset.base64) {
-      throw new Error("Logo upload failed. Please choose the image again.");
-    }
-
+    const bytes = await readUriAsUint8Array(input.logoAsset.uri);
     const { error: uploadError } = await supabase.storage
       .from("org-logos")
-      .upload(objectPath, base64ToUint8Array(input.logoAsset.base64), { contentType, upsert: true });
+      .upload(objectPath, bytes, { contentType, upsert: true });
 
     if (uploadError) throw uploadError;
 

@@ -45,10 +45,7 @@ export function OnboardingCreateOrgScreen(_props: Props) {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [1, 1],
-      base64: true,
-      quality: 1,
+      allowsEditing: false,
     });
 
     if (result.canceled) return;

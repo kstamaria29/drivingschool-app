@@ -1289,3 +1289,23 @@
 - **How to verify:**
   - In drawer/Settings/onboarding: confirm the org logo shows without a bordered box.
   - On `Students` -> `New student`: confirm Email/Phone are required, licence has no Clear button, and on phones the licence picker shows L/R/F circular colored buttons.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Preserve org logo PNG transparency
+- **Summary:**
+  - Fixed org logo uploads to use the original file bytes from `asset.uri` (instead of `ImagePickerAsset.base64`, which is JPEG), preserving PNG alpha transparency.
+  - Updated onboarding + Settings org-logo picker to disable editing to avoid platform re-encoding and keep original formats.
+- **Files changed:**
+  - `src/utils/file-bytes.ts`
+  - `src/features/onboarding/api.ts`
+  - `src/features/organization/api.ts`
+  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Upload a PNG logo with transparency from Settings and confirm the drawer/logo renders without a white background.
+  - Confirm existing avatars still upload as before.
