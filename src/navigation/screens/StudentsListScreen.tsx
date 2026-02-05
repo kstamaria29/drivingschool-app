@@ -1,6 +1,7 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, View } from "react-native";
+import { RefreshCw, UserPlus } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -47,7 +48,11 @@ export function StudentsListScreen({ navigation }: Props) {
           />
         </View>
 
-        <AppButton label="+ New student" onPress={() => navigation.navigate("StudentCreate")} />
+        <AppButton
+          label="+ New student"
+          icon={UserPlus}
+          onPress={() => navigation.navigate("StudentCreate")}
+        />
 
         {query.isPending ? (
           <View className={cn("items-center justify-center py-10", theme.text.base)}>
@@ -57,13 +62,13 @@ export function StudentsListScreen({ navigation }: Props) {
             </AppText>
           </View>
         ) : query.isError ? (
-          <AppStack gap="md">
-            <AppCard className="gap-2">
-              <AppText variant="heading">Couldn't load students</AppText>
-              <AppText variant="body">{toErrorMessage(query.error)}</AppText>
-            </AppCard>
-            <AppButton label="Retry" onPress={() => query.refetch()} />
-          </AppStack>
+            <AppStack gap="md">
+              <AppCard className="gap-2">
+                <AppText variant="heading">Couldn't load students</AppText>
+                <AppText variant="body">{toErrorMessage(query.error)}</AppText>
+              </AppCard>
+            <AppButton label="Retry" icon={RefreshCw} onPress={() => query.refetch()} />
+            </AppStack>
         ) : query.data.length === 0 ? (
           <AppCard className="gap-2">
             <AppText variant="heading">No students</AppText>

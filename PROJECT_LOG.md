@@ -55,6 +55,92 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add dark mode + icons + theme polish
+- **Summary:**
+  - Added persisted light/dark theme toggle and wired it into Settings.
+  - Introduced dark-mode styles across core primitives (screen, cards, buttons, inputs) and key UI surfaces (drawer/header/calendar).
+  - Added Lucide icons to key CTAs and improved the Weather widget with condition icons.
+  - Added an accent color and softer depth (shadows/borders) to reduce the “plain” look.
+- **Files changed:**
+  - `App.tsx`
+  - `tailwind.config.js`
+  - `src/theme/theme.ts`
+  - `src/providers/ColorSchemeProvider.tsx`
+  - `src/providers/AppProviders.tsx`
+  - `src/components/AppButton.tsx`
+  - `src/components/AppInput.tsx`
+  - `src/components/AppDateInput.tsx`
+  - `src/components/AppSegmentedControl.tsx`
+  - `src/components/CalendarMonth.tsx`
+  - `src/navigation/components/HeaderButtons.tsx`
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/navigation/screens/AssessmentsListScreen.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open Settings and toggle Light/Dark; confirm the whole app updates (background, cards, borders, text).
+  - Confirm Home shows weather icons and key buttons show icons.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Enhance Home screen (greeting + weather)
+- **Summary:**
+  - Updated Home screen header to greet the signed-in user based on time of day.
+  - Replaced quick actions with 3 buttons: New Assessment, New Lesson, New Student.
+  - Added NZ weather widget showing current conditions + 2-day forecast, and (when permitted) current city/location.
+- **Files changed:**
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/features/weather/api.ts`
+  - `src/features/weather/queries.ts`
+  - `src/features/weather/WeatherWidget.tsx`
+  - `app.json`
+  - `package.json`
+  - `package-lock.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx expo install expo-location`
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open Home and confirm it shows `Good morning/afternoon/evening <name>!` and the 3 buttons in the requested order.
+  - Tap `Use my location` and confirm it shows your NZ city and local weather (or keeps the Auckland fallback if denied).
+  - Confirm the weather section shows current conditions and the next 2 days forecast.
+- **Notes/TODO:**
+  - `npm audit` reports 1 high severity vulnerability in dependencies; review separately if needed.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Refine mock test screen layout
+- **Summary:**
+  - Hid the `Pre-drive checks` section after the mock test has started to keep the test stage focused.
+  - Made Stage 1 and Stage 2 sections collapsible (Stage 2 remains locked until enabled).
+- **Files changed:**
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - In app: `Assessments` → `Start Mock Test` → `Start test` → confirm `Pre-drive checks` is no longer shown.
+  - Confirm Stage 1/Stage 2 can be collapsed/expanded and Stage 2 shows `Locked` until enabled.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Update Driving Assessment start flow
 - **Summary:**
   - Changed Driving Assessment to a staged flow: review student details first, confirm start, then show the scoring/test form.
@@ -387,6 +473,78 @@
   - `npx tsc --noEmit`
 - **Verification:**
   - TypeScript compile check via `npx tsc --noEmit` (local).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Remove org logo white background
+- **Summary:**
+  - Updated organization logo rendering to use a transparent background so PNG transparency shows correctly in dark mode.
+  - Updated the onboarding logo preview to match (no forced light background).
+- **Files changed:**
+  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `rg -n "SettingsScreen|organization logo|logo_url|Organization" -S src`
+- **Verification:**
+  - Open Settings and confirm the org logo no longer has a white square behind it.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Fix dark mode navigation chrome
+- **Summary:**
+  - Applied React Navigation theming so headers and drawer follow the selected light/dark scheme.
+  - Explicitly styled native-stack headers and drawer background to avoid the default white surfaces in dark mode.
+- **Files changed:**
+  - `src/navigation/navigationTheme.ts`
+  - `src/navigation/RootNavigation.tsx`
+  - `src/navigation/MainDrawerNavigator.tsx`
+  - `src/navigation/AuthStackNavigator.tsx`
+  - `src/navigation/HomeStackNavigator.tsx`
+  - `src/navigation/LessonsStackNavigator.tsx`
+  - `src/navigation/StudentsStackNavigator.tsx`
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/theme/theme.ts`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Toggle Light/Dark in Settings and confirm the header + drawer background switch correctly.
+  - Open/close the drawer in dark mode and confirm all text/icons remain readable.
+- **Notes/TODO:**
+  - If you still see any white flash, we can also align screen backgrounds on transition per-navigator.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Implement Mock Test – Restricted Licence assessment
+- **Summary:**
+  - Implemented the 2nd assessment as a Restricted Licence mock test (Stage 1/Stage 2 tasks, critical errors, immediate-fail errors) with auto-save draft on device.
+  - Added PDF export on submit and enabled PDF download + detailed history view in the student's assessment history.
+  - Updated Assessments list to launch the new mock test flow.
+- **Files changed:**
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `src/navigation/screens/AssessmentsListScreen.tsx`
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `src/components/AppCollapsibleCard.tsx`
+  - `src/components/AppSegmentedControl.tsx`
+  - `src/features/assessments/restricted-mock-test/constants.ts`
+  - `src/features/assessments/restricted-mock-test/pdf.ts`
+  - `src/features/assessments/restricted-mock-test/schema.ts`
+  - `src/features/assessments/restricted-mock-test/scoring.ts`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - In app: `Assessments` → `Start Mock Test` → select a student → `Start test` → fill a few faults/errors → `Submit and generate PDF`.
+  - In student profile: `Assessment History` → `Mock Test – Restricted` tab → open an entry → `Download PDF`.
+- **Notes/TODO:**
+  - Consider adding an explicit “Discard draft” action if instructors want to clear an in-progress mock test without submitting.
 
 ---
 
@@ -826,3 +984,68 @@
   - `npx tsc --noEmit`
 - **Verification:**
   - TypeScript compile check via `npx tsc --noEmit` (local).
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Implement Mock Test - Full License (3rd assessment)
+- **Summary:**
+  - Added a new assessment flow: setup → confirm → run (timer + attempts) → summary → submit + PDF export.
+  - Implemented scoring/readiness summary from attempt item fails + critical/immediate error counts.
+  - Added PDF export + Android Downloads save support using the existing Expo Print/FileSystem pattern.
+  - Wired the new assessment into the Assessments list and the Student assessment history (detail view + PDF download).
+- **Files changed:**
+  - `src/features/assessments/full-license-mock-test/constants.ts`
+  - `src/features/assessments/full-license-mock-test/schema.ts`
+  - `src/features/assessments/full-license-mock-test/scoring.ts`
+  - `src/features/assessments/full-license-mock-test/pdf.ts`
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `src/navigation/screens/AssessmentsListScreen.tsx`
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: `Assessments` → `Mock Test - Full License` → select a student → `Review and start` → `Start session`.
+  - Record at least 1 attempt + a critical error; optionally log an immediate-fail error and confirm the timer pauses.
+  - `Finish session` → `Submit and generate PDF` → confirm a PDF is saved and can be opened.
+  - Student profile → `Assessment History` → `Mock Test - Full License` tab → confirm entry renders + `Download PDF` works.
+- **Notes/TODO:**
+  - Consider normalizing older mojibake characters (e.g., `ƒ?`, `Aú`) in legacy UI strings when convenient.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Add time picker input for lessons
+- **Summary:**
+  - Added `AppTimeInput` primitive (same styling/UX as `AppDateInput`) using native spinner time picker.
+  - Replaced Lesson start time manual typing with `AppTimeInput`.
+- **Files changed:**
+  - `src/components/AppTimeInput.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: `Lessons` -> `+ New lesson` (or edit an existing one) -> tap `Start time` -> pick a time -> `OK` -> confirm the preview updates.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Home screen CTA + weather polish
+- **Summary:**
+  - Replaced Home CTAs with just `Students` and `Assessments` buttons (navigates to the respective screens).
+  - Improved `AppButton` ghost variant styling so link-style buttons don’t render a weird bordered/shadowed box in dark mode (fixes `Open Lessons` on Home).
+  - Enlarged and restyled the current weather visual to better fill whitespace and feel more like an illustration.
+- **Files changed:**
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/theme/theme.ts`
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open the app -> `Home`: confirm only two buttons (`Students`, `Assessments`) show and both navigate correctly.
+  - Toggle dark mode -> `Home` -> `Open Lessons`: confirm the button looks like a clean link (no ugly border/shadow box).
+  - `Home` -> `Weather`: confirm the current weather image area is larger and visually balanced.

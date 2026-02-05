@@ -28,7 +28,13 @@
     },
     "plugins": [
       "expo-font",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location to show local New Zealand weather."
+        }
+      ]
     ]
   }
 }

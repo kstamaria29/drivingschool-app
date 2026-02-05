@@ -4,6 +4,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch, type FieldErrors } from "react-hook-form";
 import { ActivityIndicator, Alert, Platform, View } from "react-native";
+import { ArrowLeft, FileDown, Play, RefreshCw, Users, X } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -319,6 +320,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
               <AppButton
                 label="Retry students"
                 variant="secondary"
+                icon={RefreshCw}
                 onPress={() => studentsQuery.refetch()}
               />
             </AppStack>
@@ -338,6 +340,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
                       width="auto"
                       variant="ghost"
                       label={showStudentPicker ? "Hide student list" : "Change student"}
+                      icon={Users}
                       onPress={() => setShowStudentPicker((s) => !s)}
                     />
                   ) : null}
@@ -438,6 +441,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
           <AppButton
             label="Start Test"
             disabled={!selectedStudent}
+            icon={Play}
             onPress={() => setStage("confirm")}
           />
         ) : null}
@@ -451,10 +455,17 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
                 : "Select a student first."}
             </AppText>
             <AppStack gap="sm">
-              <AppButton width="auto" variant="secondary" label="Back" onPress={() => setStage("details")} />
+              <AppButton
+                width="auto"
+                variant="secondary"
+                label="Back"
+                icon={ArrowLeft}
+                onPress={() => setStage("details")}
+              />
               <AppButton
                 width="auto"
                 label="Start"
+                icon={Play}
                 disabled={!selectedStudent}
                 onPress={() => setStage("test")}
               />
@@ -550,6 +561,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
             <AppButton
               label={saving ? "Submitting..." : "Submit and generate PDF"}
               disabled={saving}
+              icon={FileDown}
               onPress={form.handleSubmit(
                 (values) => {
                   Alert.alert(
@@ -567,7 +579,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
           </>
         ) : null}
 
-        <AppButton label="Cancel" variant="ghost" onPress={() => navigation.goBack()} />
+        <AppButton label="Cancel" icon={X} variant="ghost" onPress={() => navigation.goBack()} />
       </AppStack>
     </Screen>
   );

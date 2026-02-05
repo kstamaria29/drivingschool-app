@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import type { NavigatorScreenParams } from "@react-navigation/native";
 
+import { useAppColorScheme } from "../providers/ColorSchemeProvider";
+
 import type { HomeStackParamList } from "./HomeStackNavigator";
 import { HomeStackNavigator } from "./HomeStackNavigator";
 import type { LessonsStackParamList } from "./LessonsStackNavigator";
@@ -13,6 +15,7 @@ import { SettingsStackNavigator } from "./SettingsStackNavigator";
 import type { AssessmentsStackParamList } from "./AssessmentsStackNavigator";
 import { AssessmentsStackNavigator } from "./AssessmentsStackNavigator";
 import { AppDrawerContent } from "./components/AppDrawerContent";
+import { getDrawerScreenOptions } from "./navigationTheme";
 import { useNavigationLayout } from "./useNavigationLayout";
 
 export type MainDrawerParamList = {
@@ -31,11 +34,17 @@ const SIDEBAR_COLLAPSED_WIDTH = 88;
 export function MainDrawerNavigator() {
   const { isSidebar } = useNavigationLayout();
   const [collapsed, setCollapsed] = useState(false);
+  const { scheme } = useAppColorScheme();
 
   const drawerWidth = useMemo(() => {
     if (!isSidebar) return undefined;
     return collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
   }, [collapsed, isSidebar]);
+
+  const drawerThemeOptions = useMemo(
+    () => getDrawerScreenOptions(scheme, drawerWidth),
+    [drawerWidth, scheme],
+  );
 
   return (
     <Drawer.Navigator
@@ -43,7 +52,7 @@ export function MainDrawerNavigator() {
       screenOptions={{
         headerShown: false,
         drawerType: isSidebar ? "permanent" : "front",
-        drawerStyle: drawerWidth ? { width: drawerWidth } : undefined,
+        ...drawerThemeOptions,
         swipeEnabled: !isSidebar,
       }}
       drawerContent={(props) => (
@@ -63,4 +72,3 @@ export function MainDrawerNavigator() {
     </Drawer.Navigator>
   );
 }
-

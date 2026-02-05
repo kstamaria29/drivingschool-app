@@ -1,6 +1,10 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useMemo } from "react";
+
+import { useAppColorScheme } from "../providers/ColorSchemeProvider";
 
 import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButtons";
+import { getNativeStackScreenOptions } from "./navigationTheme";
 import { LessonEditScreen } from "./screens/LessonEditScreen";
 import { LessonsListScreen } from "./screens/LessonsListScreen";
 
@@ -13,11 +17,14 @@ export type LessonsStackParamList = {
 const Stack = createNativeStackNavigator<LessonsStackParamList>();
 
 export function LessonsStackNavigator() {
+  const { scheme } = useAppColorScheme();
+  const baseOptions = useMemo(() => getNativeStackScreenOptions(scheme), [scheme]);
+
   return (
     <Stack.Navigator
       initialRouteName="LessonsList"
       screenOptions={{
-        headerShadowVisible: false,
+        ...baseOptions,
         headerTitle: "",
         headerRight: () => <HeaderRightAvatar />,
       }}

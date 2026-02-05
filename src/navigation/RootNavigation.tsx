@@ -1,16 +1,21 @@
 import { NavigationContainer } from "@react-navigation/native";
+import { useMemo } from "react";
 
 import { useMyProfileQuery, useSignOutMutation } from "../features/auth/queries";
 import { CurrentUserProvider } from "../features/auth/current-user";
 import { useAuthSession } from "../features/auth/session";
+import { useAppColorScheme } from "../providers/ColorSchemeProvider";
 import { toErrorMessage } from "../utils/errors";
 
 import { AuthStackNavigator } from "./AuthStackNavigator";
 import { MainDrawerNavigator } from "./MainDrawerNavigator";
+import { getNavigationTheme } from "./navigationTheme";
 import { AuthBootstrapScreen } from "./screens/AuthBootstrapScreen";
 import { AuthGateErrorScreen } from "./screens/AuthGateErrorScreen";
 
 export function RootNavigation() {
+  const { scheme } = useAppColorScheme();
+  const navigationTheme = useMemo(() => getNavigationTheme(scheme), [scheme]);
   const { session, isLoading } = useAuthSession();
   const profileQuery = useMyProfileQuery(session?.user.id);
   const signOutMutation = useSignOutMutation();
@@ -21,7 +26,7 @@ export function RootNavigation() {
 
   if (!session) {
     return (
-      <NavigationContainer>
+      <NavigationContainer theme={navigationTheme}>
         <AuthStackNavigator initialRouteName="Login" />
       </NavigationContainer>
     );
@@ -44,7 +49,7 @@ export function RootNavigation() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navigationTheme}>
       {profileQuery.data ? (
         <CurrentUserProvider userId={session.user.id} profile={profileQuery.data}>
           <MainDrawerNavigator />

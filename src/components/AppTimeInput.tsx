@@ -3,11 +3,11 @@ import DateTimePicker, { type DateTimePickerEvent } from "@react-native-communit
 import { useMemo, useState } from "react";
 import { Modal, Platform, Pressable, View } from "react-native";
 
-import { DISPLAY_DATE_FORMAT, parseDateInputToISODate } from "../utils/dates";
-
 import { AppButton } from "./AppButton";
 import { AppInput } from "./AppInput";
 import { AppStack } from "./AppStack";
+
+const DISPLAY_TIME_FORMAT = "HH:mm";
 
 type Props = {
   label: string;
@@ -15,25 +15,17 @@ type Props = {
   onChangeText: (next: string) => void;
   error?: string;
   disabled?: boolean;
-  minimumDate?: Date;
-  maximumDate?: Date;
+  minuteInterval?: number;
 };
 
 function parseToDate(value: string) {
-  const iso = parseDateInputToISODate(value);
-  const parsed = iso ? dayjs(iso) : dayjs(value);
-  return parsed.isValid() ? parsed.toDate() : new Date();
+  const parsed = dayjs(value, DISPLAY_TIME_FORMAT, true);
+  if (parsed.isValid()) return parsed.toDate();
+  const fallback = dayjs(value);
+  return fallback.isValid() ? fallback.toDate() : new Date();
 }
 
-export function AppDateInput({
-  label,
-  value,
-  onChangeText,
-  error,
-  disabled,
-  minimumDate,
-  maximumDate,
-}: Props) {
+export function AppTimeInput({ label, value, onChangeText, error, disabled, minuteInterval }: Props) {
   const [open, setOpen] = useState(false);
   const initialDate = useMemo(() => parseToDate(value), [value]);
   const [tempDate, setTempDate] = useState<Date>(initialDate);
@@ -52,7 +44,7 @@ export function AppDateInput({
     closePicker();
     if (event.type !== "set") return;
     if (!selected) return;
-    onChangeText(dayjs(selected).format(DISPLAY_DATE_FORMAT));
+    onChangeText(dayjs(selected).format(DISPLAY_TIME_FORMAT));
   }
 
   function onIOSChange(_event: DateTimePickerEvent, selected?: Date) {
@@ -67,7 +59,7 @@ export function AppDateInput({
           <AppInput
             label={label}
             value={value}
-            placeholder={DISPLAY_DATE_FORMAT}
+            placeholder={DISPLAY_TIME_FORMAT}
             editable={false}
             error={error}
           />
@@ -77,11 +69,10 @@ export function AppDateInput({
       {Platform.OS === "android" && open ? (
         <DateTimePicker
           value={tempDate}
-          mode="date"
+          mode="time"
           display="spinner"
           onChange={onAndroidChange}
-          minimumDate={minimumDate}
-          maximumDate={maximumDate}
+          minuteInterval={minuteInterval}
         />
       ) : null}
 
@@ -92,11 +83,10 @@ export function AppDateInput({
               <AppStack gap="md">
                 <DateTimePicker
                   value={tempDate}
-                  mode="date"
+                  mode="time"
                   display="spinner"
                   onChange={onIOSChange}
-                  minimumDate={minimumDate}
-                  maximumDate={maximumDate}
+                  minuteInterval={minuteInterval}
                 />
 
                 <View className="flex-row gap-2">
@@ -112,7 +102,7 @@ export function AppDateInput({
                     className="flex-1"
                     label="OK"
                     onPress={() => {
-                      onChangeText(dayjs(tempDate).format(DISPLAY_DATE_FORMAT));
+                      onChangeText(dayjs(tempDate).format(DISPLAY_TIME_FORMAT));
                       closePicker();
                     }}
                   />
@@ -125,3 +115,4 @@ export function AppDateInput({
     </>
   );
 }
+

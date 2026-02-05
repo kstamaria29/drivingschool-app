@@ -19,6 +19,7 @@ import { AppDivider } from "../../components/AppDivider";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { useCurrentUser } from "../../features/auth/current-user";
+import { useAppColorScheme } from "../../providers/ColorSchemeProvider";
 import {
   useOrganizationQuery,
   useOrganizationSettingsQuery,
@@ -53,7 +54,7 @@ function DrawerRow({
       disabled={disabled}
       className={cn(
         "mb-1 flex-row items-center gap-3 rounded-xl border px-3 py-3",
-        active ? "border-primary bg-primary/10" : "border-transparent bg-transparent",
+        active ? "border-primary bg-primary/10 dark:border-primaryDark dark:bg-primaryDark/10" : "border-transparent bg-transparent",
         disabled ? "opacity-50" : "",
       )}
     >
@@ -71,6 +72,7 @@ export function AppDrawerContent({
   isPermanent,
 }: Props) {
   const { profile } = useCurrentUser();
+  const { scheme } = useAppColorScheme();
 
   const organizationQuery = useOrganizationQuery(profile.organization_id);
   const settingsQuery = useOrganizationSettingsQuery(profile.organization_id);
@@ -80,10 +82,14 @@ export function AppDrawerContent({
   const orgName = organizationQuery.data?.name ?? "Organization";
   const logoUrl = settingsQuery.data?.logo_url ?? null;
 
-  const iconColor = theme.colors.placeholder;
+  const iconColor = scheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
+  const backgroundColor = scheme === "dark" ? theme.colors.backgroundDark : theme.colors.backgroundLight;
 
   return (
-    <DrawerContentScrollView contentContainerStyle={{ flexGrow: 1, paddingTop: 0 }}>
+    <DrawerContentScrollView
+      style={{ backgroundColor }}
+      contentContainerStyle={{ flexGrow: 1, paddingTop: 0 }}
+    >
       <View className="flex-1 px-3 pb-4 pt-10">
         <View className={cn("mb-4", isPermanent ? "" : "gap-3")}>
           {isPermanent ? (
@@ -92,10 +98,10 @@ export function AppDrawerContent({
                 {logoUrl ? (
                   <AppImage
                     source={{ uri: logoUrl }}
-                    className="h-10 w-10 border border-border bg-card"
+                    className="h-10 w-10 border border-border bg-transparent dark:border-borderDark"
                   />
                 ) : (
-                  <View className="h-10 w-10 border border-border bg-card" />
+                  <View className="h-10 w-10 border border-border bg-card dark:border-borderDark dark:bg-cardDark" />
                 )}
                 {collapsed ? null : (
                   <View>
@@ -111,7 +117,7 @@ export function AppDrawerContent({
                 accessibilityLabel={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                 hitSlop={10}
               >
-                <View className="h-10 w-10 items-center justify-center rounded-xl border border-border bg-card">
+                <View className="h-10 w-10 items-center justify-center rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark">
                   {collapsed ? (
                     <ChevronRight color={iconColor} size={18} />
                   ) : (
@@ -126,10 +132,10 @@ export function AppDrawerContent({
                 {logoUrl ? (
                   <AppImage
                     source={{ uri: logoUrl }}
-                    className="h-12 w-12 border border-border bg-card"
+                    className="h-12 w-12 border border-border bg-transparent dark:border-borderDark"
                   />
                 ) : (
-                  <View className="h-12 w-12 border border-border bg-card" />
+                  <View className="h-12 w-12 border border-border bg-card dark:border-borderDark dark:bg-cardDark" />
                 )}
                 <View className="flex-1">
                   <AppText variant="heading">{orgName}</AppText>
