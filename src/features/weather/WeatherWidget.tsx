@@ -158,7 +158,7 @@ export function WeatherWidget() {
     latitude: coords.latitude,
     longitude: coords.longitude,
     timezone: "Pacific/Auckland",
-    days: 4,
+    days: 5,
     enabled: true,
   });
 
@@ -218,9 +218,9 @@ export function WeatherWidget() {
   }, []);
 
   const forecast = query.data ?? null;
-  const nextThreeDays = useMemo(() => {
+  const nextFourDays = useMemo(() => {
     if (!forecast) return [];
-    return forecast.days.slice(1, 4);
+    return forecast.days.slice(1, 5);
   }, [forecast]);
 
   const currentText = useMemo(() => {
@@ -228,6 +228,11 @@ export function WeatherWidget() {
     const description = describeWeatherCode(forecast.current.weatherCode);
     return `${formatTemp(forecast.current.temperatureC)} • ${description}`;
   }, [forecast]);
+
+  const updatedAtText = useMemo(() => {
+    if (!forecast?.current.timeISO) return null;
+    return `Updated ${dayjs(forecast.current.timeISO).format("h:mm A")}`;
+  }, [forecast?.current.timeISO]);
 
   const nextFiveHours = useMemo(() => {
     if (!forecast) return [];
@@ -327,14 +332,19 @@ export function WeatherWidget() {
                   {coords.source === "device" ? <MapPin size={18} color={iconMuted} /> : null}
                 </View>
 
+                {updatedAtText ? (
+                  <AppText className="mt-1" variant="caption">
+                    {updatedAtText}
+                  </AppText>
+                ) : null}
+
                 <AppText className="mt-2" variant="body">
                   {currentText}
                 </AppText>
                 <View className="mt-2 flex-row items-center gap-2">
                   <Wind size={16} color={iconMuted} />
                   <AppText variant="caption">
-                    Wind: {Math.round(forecast.current.windSpeedKph)} km/h • Updated{" "}
-                    {forecast.current.timeISO ? dayjs(forecast.current.timeISO).format("h:mm A") : "-"}
+                    Wind: {Math.round(forecast.current.windSpeedKph)} km/h
                   </AppText>
                 </View>
               </View>
@@ -395,12 +405,12 @@ export function WeatherWidget() {
           </AppCard>
 
           <AppCard className="flex-1 min-w-64 self-stretch gap-2">
-            <AppText variant="heading">Next 3 days</AppText>
-            {nextThreeDays.length === 0 ? (
+            <AppText variant="heading">Next 4 days</AppText>
+            {nextFourDays.length === 0 ? (
               <AppText variant="body">Forecast unavailable.</AppText>
             ) : (
               <AppStack gap="sm">
-                {nextThreeDays.map((day) => (
+                {nextFourDays.map((day) => (
                   <View
                     key={day.dateISO}
                     className="flex-row items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark"

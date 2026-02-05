@@ -1238,3 +1238,19 @@
   - On a phone: open the app and confirm the header no longer overlaps the status bar (time/battery icons).
   - Confirm hamburger + avatar are larger and feel consistent in size.
   - On `Home`: confirm Weather shows driving guidance, next 5 hours, and Next 3 days; verify layout has less blank space.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Tweak weather layout + 4-day forecast
+- **Summary:**
+  - Moved the Weather “Updated …” line directly under “Right now” and removed it from the wind row.
+  - Expanded the forecast list to show the next 4 days (fetching 5 total days including today).
+- **Files changed:**
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On `Home` -> Weather: confirm “Updated …” appears under “Right now”, and wind line no longer includes “Updated”.
+  - Confirm the forecast card shows 4 rows under “Next 4 days”.
