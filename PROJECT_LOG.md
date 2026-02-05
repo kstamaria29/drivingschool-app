@@ -1351,3 +1351,17 @@
   - On the student detail: tap `Add session` (top-right) or `Session History` (below Edit) -> add a session with a few tasks -> confirm it appears in the list.
   - Delete a session and confirm it disappears from the list.
   - (If connected to Supabase) apply migration `008_student_sessions.sql` and confirm RLS works for owner vs instructor.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Fix new session time/duration validation
+- **Summary:**
+  - Fixed Zod regex escaping so `Time` (`HH:mm`) and `Duration (min)` accept valid values and the session can be saved.
+- **Files changed:**
+  - `src/features/sessions/schemas.ts`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Students` -> student -> `Session History` -> `Add new` -> set a time like `17:46` and duration like `60` -> confirm `Save session` works without validation errors.

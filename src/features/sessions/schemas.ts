@@ -12,7 +12,7 @@ const dateString = z
 const timeString = z
   .string()
   .trim()
-  .refine((value) => /^([01]\\d|2[0-3]):[0-5]\\d$/.test(value), {
+  .refine((value) => /^([01]\d|2[0-3]):[0-5]\d$/.test(value), {
     message: "Use HH:mm",
   });
 
@@ -22,7 +22,7 @@ export const studentSessionFormSchema = z.object({
   durationMinutes: z
     .string()
     .trim()
-    .refine((value) => value === "" || /^\\d+$/.test(value), { message: "Enter minutes" })
+    .refine((value) => value === "" || /^\d+$/.test(value), { message: "Enter minutes" })
     .refine((value) => {
       if (value === "") return true;
       const minutes = Number(value);
@@ -34,4 +34,3 @@ export const studentSessionFormSchema = z.object({
 });
 
 export type StudentSessionFormValues = z.infer<typeof studentSessionFormSchema>;
-
