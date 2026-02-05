@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Pressable, View } from "react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -26,6 +26,7 @@ import { formatIsoDateToDisplay, parseDateInputToISODate } from "../../utils/dat
 import { toErrorMessage } from "../../utils/errors";
 
 import type { StudentsStackParamList } from "../StudentsStackNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 type CreateProps = NativeStackScreenProps<StudentsStackParamList, "StudentCreate">;
 type EditProps = NativeStackScreenProps<StudentsStackParamList, "StudentEdit">;
@@ -36,8 +37,47 @@ function emptyToNull(value: string) {
   return trimmed === "" ? null : trimmed;
 }
 
+type LicenseType = StudentFormValues["licenseType"];
+
+function LicenseTypeCircleButton({
+  value,
+  selected,
+  letter,
+  accessibilityLabel,
+  unselectedClassName,
+  selectedClassName,
+  textClassName,
+  onPress,
+}: {
+  value: LicenseType;
+  selected: boolean;
+  letter: string;
+  accessibilityLabel: string;
+  unselectedClassName: string;
+  selectedClassName: string;
+  textClassName: string;
+  onPress: (value: LicenseType) => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      className={cn(
+        "h-12 w-12 items-center justify-center rounded-full border",
+        selected ? selectedClassName : unselectedClassName,
+      )}
+      onPress={() => onPress(value)}
+    >
+      <AppText variant="label" className={textClassName}>
+        {letter}
+      </AppText>
+    </Pressable>
+  );
+}
+
 export function StudentEditScreen({ navigation, route }: Props) {
   const studentId = route.name === "StudentEdit" ? route.params.studentId : undefined;
+  const { isTablet } = useNavigationLayout();
 
   const { session } = useAuthSession();
   const userId = session?.user.id;
@@ -67,7 +107,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
       phone: "",
       address: "",
       assignedInstructorId: defaultAssignedInstructorId,
-      licenseType: "",
+      licenseType: "learner",
       licenseNumber: "",
       licenseVersion: "",
       classHeld: "",
@@ -94,7 +134,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
       phone: studentQuery.data.phone ?? "",
       address: studentQuery.data.address ?? "",
       assignedInstructorId: studentQuery.data.assigned_instructor_id,
-      licenseType: studentQuery.data.license_type ?? "",
+      licenseType: studentQuery.data.license_type ?? "learner",
       licenseNumber: studentQuery.data.license_number ?? "",
       licenseVersion: studentQuery.data.license_version ?? "",
       classHeld: studentQuery.data.class_held ?? "",
@@ -157,10 +197,10 @@ export function StudentEditScreen({ navigation, route }: Props) {
       assigned_instructor_id: values.assignedInstructorId,
       first_name: values.firstName.trim(),
       last_name: values.lastName.trim(),
-      email: emptyToNull(values.email),
-      phone: emptyToNull(values.phone),
+      email: values.email.trim(),
+      phone: values.phone.trim(),
       address: emptyToNull(values.address),
-      license_type: values.licenseType === "" ? null : values.licenseType,
+      license_type: values.licenseType,
       license_number: emptyToNull(values.licenseNumber),
       license_version: emptyToNull(values.licenseVersion),
       class_held: emptyToNull(values.classHeld),
@@ -230,7 +270,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
             name="email"
             render={({ field, fieldState }) => (
               <AppInput
-                label="Email (optional)"
+                label="Email"
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="email-address"
@@ -246,13 +286,14 @@ export function StudentEditScreen({ navigation, route }: Props) {
           <Controller
             control={form.control}
             name="phone"
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <AppInput
-                label="Phone (optional)"
+                label="Phone"
                 keyboardType="phone-pad"
                 value={field.value}
                 onChangeText={field.onChange}
                 onBlur={field.onBlur}
+                error={fieldState.error?.message}
               />
             )}
           />
@@ -318,42 +359,76 @@ export function StudentEditScreen({ navigation, route }: Props) {
         </AppCard>
 
         <AppCard className="gap-4">
-          <AppText variant="heading">Licence (optional)</AppText>
+          <AppText variant="heading">Licence</AppText>
 
           <Controller
             control={form.control}
             name="licenseType"
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <AppStack gap="sm">
                 <AppText variant="label">Licence type</AppText>
-                <View className="flex-row gap-2">
-                  <AppButton
-                    label="Learner"
-                    width="auto"
-                    className="flex-1"
-                    variant={field.value === "learner" ? "primary" : "secondary"}
-                    onPress={() => field.onChange("learner")}
-                  />
-                  <AppButton
-                    label="Restricted"
-                    width="auto"
-                    className="flex-1"
-                    variant={field.value === "restricted" ? "primary" : "secondary"}
-                    onPress={() => field.onChange("restricted")}
-                  />
-                  <AppButton
-                    label="Full"
-                    width="auto"
-                    className="flex-1"
-                    variant={field.value === "full" ? "primary" : "secondary"}
-                    onPress={() => field.onChange("full")}
-                  />
-                </View>
-                <AppButton
-                  label="Clear"
-                  variant="ghost"
-                  onPress={() => field.onChange("")}
-                />
+                {fieldState.error?.message ? (
+                  <AppText variant="error">{fieldState.error.message}</AppText>
+                ) : null}
+
+                {isTablet ? (
+                  <View className="flex-row gap-2">
+                    <AppButton
+                      label="Learner"
+                      width="auto"
+                      className="flex-1"
+                      variant={field.value === "learner" ? "primary" : "secondary"}
+                      onPress={() => field.onChange("learner")}
+                    />
+                    <AppButton
+                      label="Restricted"
+                      width="auto"
+                      className="flex-1"
+                      variant={field.value === "restricted" ? "primary" : "secondary"}
+                      onPress={() => field.onChange("restricted")}
+                    />
+                    <AppButton
+                      label="Full"
+                      width="auto"
+                      className="flex-1"
+                      variant={field.value === "full" ? "primary" : "secondary"}
+                      onPress={() => field.onChange("full")}
+                    />
+                  </View>
+                ) : (
+                  <View className="flex-row gap-3">
+                    <LicenseTypeCircleButton
+                      value="learner"
+                      selected={field.value === "learner"}
+                      letter="L"
+                      accessibilityLabel="Learner licence"
+                      unselectedClassName="border-amber-500/30 bg-amber-500/10"
+                      selectedClassName="border-amber-500/40 bg-amber-500/20"
+                      textClassName="text-amber-700 dark:text-amber-300"
+                      onPress={field.onChange}
+                    />
+                    <LicenseTypeCircleButton
+                      value="restricted"
+                      selected={field.value === "restricted"}
+                      letter="R"
+                      accessibilityLabel="Restricted licence"
+                      unselectedClassName="border-blue-500/30 bg-blue-500/10"
+                      selectedClassName="border-blue-500/40 bg-blue-500/20"
+                      textClassName="text-blue-700 dark:text-blue-300"
+                      onPress={field.onChange}
+                    />
+                    <LicenseTypeCircleButton
+                      value="full"
+                      selected={field.value === "full"}
+                      letter="F"
+                      accessibilityLabel="Full licence"
+                      unselectedClassName="border-emerald-500/30 bg-emerald-500/10"
+                      selectedClassName="border-emerald-500/40 bg-emerald-500/20"
+                      textClassName="text-emerald-700 dark:text-emerald-300"
+                      onPress={field.onChange}
+                    />
+                  </View>
+                )}
               </AppStack>
             )}
           />

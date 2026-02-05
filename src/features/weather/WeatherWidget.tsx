@@ -349,8 +349,7 @@ export function WeatherWidget() {
                 </View>
               </View>
 
-              <View className="relative h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-border bg-background dark:border-borderDark dark:bg-backgroundDark">
-                <View className="absolute inset-0 bg-accent opacity-10 dark:opacity-20" />
+              <View className="h-20 w-20 items-center justify-center">
                 <WeatherIcon
                   code={forecast.current.weatherCode}
                   size={56}

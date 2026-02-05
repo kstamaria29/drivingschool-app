@@ -92,7 +92,8 @@ export function SettingsScreen() {
               {orgSettingsQuery.data?.logo_url ? (
                 <AppImage
                   source={{ uri: orgSettingsQuery.data.logo_url }}
-                  className="h-16 w-16 border border-border bg-transparent dark:border-borderDark"
+                  resizeMode="contain"
+                  className="h-16 w-16 bg-transparent"
                 />
               ) : (
                 <View className="h-16 w-16 border border-border bg-card dark:border-borderDark dark:bg-cardDark" />

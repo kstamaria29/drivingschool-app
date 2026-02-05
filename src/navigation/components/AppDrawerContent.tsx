@@ -98,7 +98,8 @@ export function AppDrawerContent({
                 {logoUrl ? (
                   <AppImage
                     source={{ uri: logoUrl }}
-                    className="h-10 w-10 border border-border bg-transparent dark:border-borderDark"
+                    resizeMode="contain"
+                    className="h-10 w-10 bg-transparent"
                   />
                 ) : (
                   <View className="h-10 w-10 border border-border bg-card dark:border-borderDark dark:bg-cardDark" />
@@ -132,7 +133,8 @@ export function AppDrawerContent({
                 {logoUrl ? (
                   <AppImage
                     source={{ uri: logoUrl }}
-                    className="h-12 w-12 border border-border bg-transparent dark:border-borderDark"
+                    resizeMode="contain"
+                    className="h-12 w-12 bg-transparent"
                   />
                 ) : (
                   <View className="h-12 w-12 border border-border bg-card dark:border-borderDark dark:bg-cardDark" />

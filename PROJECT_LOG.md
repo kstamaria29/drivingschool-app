@@ -1254,3 +1254,38 @@
 - **How to verify:**
   - On `Home` -> Weather: confirm “Updated …” appears under “Right now”, and wind line no longer includes “Updated”.
   - Confirm the forecast card shows 4 rows under “Next 4 days”.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Remove current weather icon box
+- **Summary:**
+  - Removed the bordered/rounded container behind the current-condition icon so the icon renders on its own.
+- **Files changed:**
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On `Home` -> Weather: confirm the current weather icon no longer has a rounded box/background behind it.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Org logo styling + student form requirements
+- **Summary:**
+  - Removed bordered “box” styling around the organization logo in the drawer, onboarding logo preview, and Settings.
+  - Updated New/Edit Student form to require email, phone, and licence type; removed licence clear action.
+  - On mobile, switched licence type picker to colored circular letter buttons (L/R/F).
+- **Files changed:**
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `src/features/students/schemas.ts`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In drawer/Settings/onboarding: confirm the org logo shows without a bordered box.
+  - On `Students` -> `New student`: confirm Email/Phone are required, licence has no Clear button, and on phones the licence picker shows L/R/F circular colored buttons.
