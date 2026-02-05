@@ -24,18 +24,16 @@ type Props = NativeStackScreenProps<StudentsStackParamList, "StudentDetail">;
 function InlineDetailRow({
   label,
   value,
-  labelWidthClassName = "w-24",
 }: {
   label: string;
   value: string;
-  labelWidthClassName?: string;
 }) {
   return (
-    <View className="flex-row items-baseline gap-2">
-      <AppText className={cn(labelWidthClassName, "text-muted dark:text-mutedDark")} variant="label">
+    <View className="flex-row flex-wrap items-baseline">
+      <AppText className="text-muted dark:text-mutedDark" variant="label">
         {label}:
       </AppText>
-      <AppText className="flex-1" variant="body">
+      <AppText className="ml-1 flex-1" variant="body">
         {value}
       </AppText>
     </View>
@@ -147,31 +145,29 @@ export function StudentDetailScreen({ navigation, route }: Props) {
 
                 <View className="flex-row flex-wrap gap-4">
                   <View className="min-w-56 flex-1 gap-2">
-                    <InlineDetailRow label="Type" value={student.license_type ?? "-"} labelWidthClassName="w-20" />
+                    <InlineDetailRow label="Type" value={student.license_type ?? "-"} />
                   </View>
                   <View className="min-w-56 flex-1 gap-2">
-                    <InlineDetailRow label="Number" value={student.license_number ?? "-"} labelWidthClassName="w-20" />
+                    <InlineDetailRow label="Number" value={student.license_number ?? "-"} />
                   </View>
                 </View>
 
                 <View className="flex-row flex-wrap gap-4">
                   <View className="min-w-56 flex-1 gap-2">
-                    <InlineDetailRow label="Version" value={student.license_version ?? "-"} labelWidthClassName="w-20" />
+                    <InlineDetailRow label="Version" value={student.license_version ?? "-"} />
                   </View>
                   <View className="min-w-56 flex-1 gap-2">
-                    <InlineDetailRow label="Class held" value={student.class_held ?? "-"} labelWidthClassName="w-20" />
+                    <InlineDetailRow label="Class held" value={student.class_held ?? "-"} />
                   </View>
                 </View>
 
                 <InlineDetailRow
                   label="Issue date"
                   value={student.issue_date ? formatIsoDateToDisplay(student.issue_date) : "-"}
-                  labelWidthClassName="w-24"
                 />
                 <InlineDetailRow
                   label="Expiry date"
                   value={student.expiry_date ? formatIsoDateToDisplay(student.expiry_date) : "-"}
-                  labelWidthClassName="w-24"
                 />
               </AppCard>
 

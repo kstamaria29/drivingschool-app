@@ -1416,3 +1416,45 @@
   - Open a student profile and confirm Contact, Licence, and (optional) Notes are separate cards.
   - Confirm Address shows as a 2-row field, while other fields are label/value inline rows.
   - Clear Notes for a student and confirm the Notes card disappears.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Tighten contact row spacing
+- **Summary:**
+  - Reduced the spacing between inline labels (e.g. `Email:`) and values on the Student profile screen.
+- **Files changed:**
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open a student profile and confirm `Email:` sits close to the email value (no large gap).
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Tighten licence inline spacing
+- **Summary:**
+  - Adjusted inline detail rows to keep the space after `:` tight while keeping Licence rows neatly aligned.
+- **Files changed:**
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open a student profile and confirm `Type:`, `Version:`, `Issue date:` etc have only a small space after `:` and the right-column values (Number/Class held) align neatly.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Left-align inline contact/licence rows
+- **Summary:**
+  - Updated inline detail rows to render as `Label: value` with minimal spacing and consistent left alignment (no right-justified label column).
+- **Files changed:**
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open a student profile and confirm Contact + Licence rows start flush-left like Address, while still keeping just a small space after `:`.
