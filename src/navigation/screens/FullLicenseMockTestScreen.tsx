@@ -595,9 +595,9 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     setItems(createFullLicenseMockTestEmptyItems());
     setHazardsSpoken("");
     setActionsSpoken("");
-    setNotes("");
-    setLocationTag("");
-    Alert.alert("Saved", "Task attempt saved.");
+      setNotes("");
+      setLocationTag("");
+    Alert.alert("Recorded", "Task attempt recorded.");
   }
 
   function startSession() {
@@ -1287,12 +1287,11 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
         </AppStack>
       ) : null}
 
-      <View className="flex-row flex-wrap gap-2">
-        <AppButton width="auto" label="Save task attempt" icon={Flag} onPress={saveAttempt} />
+      <View className="w-full flex-row flex-wrap justify-end gap-2">
         <AppButton
           width="auto"
           variant="secondary"
-          label="Reset fields"
+          label="Clear all"
           icon={RotateCcw}
           onPress={() => {
             setItems(createFullLicenseMockTestEmptyItems());
@@ -1302,6 +1301,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
             setLocationTag("");
           }}
         />
+        <AppButton width="auto" label="Record task attempt" icon={Flag} onPress={saveAttempt} />
       </View>
     </AppCard>
   );

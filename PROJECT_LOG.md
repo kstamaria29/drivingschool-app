@@ -1083,3 +1083,19 @@
   - `npx tsc --noEmit`
 - **How to verify:**
   - In app: `Assessments` -> `Mock Test - Full License` -> open hazard suggestions, then open action suggestions; confirm hazard suggestions auto-hide (repeat for notes).
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Adjust mock test attempt actions
+- **Summary:**
+  - Right-aligned the attempt action buttons, swapped order, and renamed them to `Clear all` and `Record task attempt`.
+  - Updated the save confirmation copy to "Recorded" / "Task attempt recorded."
+- **Files changed:**
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: `Assessments` -> `Mock Test - Full License` -> scroll to the task attempt section and confirm `Clear all` + `Record task attempt` are right-aligned and in that order.
+  - Tap `Record task attempt`; confirm the alert text reads "Recorded" and "Task attempt recorded."
