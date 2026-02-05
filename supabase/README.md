@@ -14,6 +14,22 @@ In the Supabase Dashboard:
    - `supabase/migrations/006_assessments.sql`
    - `supabase/migrations/007_assessments_delete.sql`
    - `supabase/migrations/008_student_sessions.sql`
+   - `supabase/migrations/009_account_settings.sql`
+
+## Edge Functions
+
+### `create-instructor` (owner-only)
+
+This Edge Function allows an `owner` to create an instructor login and a matching `profiles` row in
+their organization. It generates a temporary password and sets `profiles.must_change_password = true`
+so the instructor is required to change it on first sign-in.
+
+Deploy (requires Supabase CLI):
+
+- `supabase functions deploy create-instructor`
+- Set secrets (Dashboard or CLI):
+  - `SUPABASE_URL`
+  - `SUPABASE_SERVICE_ROLE_KEY`
 
 ## Storage buckets + policies
 

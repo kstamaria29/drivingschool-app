@@ -24,6 +24,7 @@ import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { DISPLAY_DATE_FORMAT, parseDateInputToISODate } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
+import { getProfileFullName } from "../../utils/profileName";
 
 import type { LessonsStackParamList } from "../LessonsStackNavigator";
 
@@ -323,7 +324,7 @@ export function LessonEditScreen({ navigation, route }: Props) {
                     </AppStack>
                   )
                 ) : (
-                  <AppText variant="body">{profile.display_name}</AppText>
+                  <AppText variant="body">{getProfileFullName(profile)}</AppText>
                 )}
               </AppStack>
             )}

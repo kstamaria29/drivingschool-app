@@ -6,6 +6,7 @@ import { useColorScheme } from "nativewind";
 import { Avatar } from "../../components/Avatar";
 import { theme } from "../../theme/theme";
 import { useCurrentUser } from "../../features/auth/current-user";
+import { getProfileFullName } from "../../utils/profileName";
 import { useNavigationLayout } from "../useNavigationLayout";
 
 export function HeaderLeftHamburger() {
@@ -50,7 +51,7 @@ export function HeaderRightAvatar() {
       onPress={() => navigation.getParent()?.navigate("Settings")}
       hitSlop={10}
     >
-      <Avatar uri={profile.avatar_url} size={avatarSize} label={profile.display_name} />
+      <Avatar uri={profile.avatar_url} size={avatarSize} label={getProfileFullName(profile)} />
     </Pressable>
   );
 }

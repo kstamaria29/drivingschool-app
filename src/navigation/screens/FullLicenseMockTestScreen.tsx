@@ -52,6 +52,7 @@ import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { DISPLAY_DATE_FORMAT, parseDateInputToISODate } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
+import { getProfileFullName } from "../../utils/profileName";
 import { openPdfUri } from "../../utils/open-pdf";
 import { useNavigationLayout } from "../useNavigationLayout";
 
@@ -457,7 +458,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
         ...values,
         version: DRAFT_VERSION,
         candidateName: `${selectedStudent.first_name} ${selectedStudent.last_name}`,
-        instructor: profile.display_name,
+        instructor: getProfileFullName(profile),
         drillLeftTarget,
         drillRightTarget,
         startTimeISO,
@@ -493,7 +494,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     endTimeISO,
     form,
     immediate,
-    profile.display_name,
+    getProfileFullName(profile),
     selectedStudent,
     sessionSeconds,
     stage,
@@ -632,7 +633,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
         ...values,
         version: DRAFT_VERSION,
         candidateName: `${selectedStudent.first_name} ${selectedStudent.last_name}`,
-        instructor: profile.display_name,
+        instructor: getProfileFullName(profile),
         drillLeftTarget,
         drillRightTarget,
         startTimeISO,

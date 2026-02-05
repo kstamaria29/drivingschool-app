@@ -5,9 +5,11 @@
     "jsx": "react-native"
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     "**/*.d.ts",
+    "App.tsx",
+    "index.ts",
     "nativewind-env.d.ts"
   ]
 }

@@ -1458,3 +1458,111 @@
   - `npx tsc --noEmit`
 - **How to verify:**
   - Open a student profile and confirm Contact + Licence rows start flush-left like Address, while still keeping just a small space after `:`.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Show upcoming lessons on Home
+- **Summary:**
+  - Updated the Home "Today" card to list each lesson (student full name + start/end time) instead of a count.
+  - Added an "Next 3 days" section showing upcoming lessons grouped by day.
+- **Files changed:**
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On `Home`: confirm Today's lessons list shows names + time ranges.
+  - Confirm lessons for the next 3 days appear under "Next 3 days" and days with no lessons are hidden.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Use 12h time format on Home
+- **Summary:**
+  - Updated lesson time ranges on Home to use 12-hour format (e.g. `10:15 am - 10:30 am`).
+- **Files changed:**
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On `Home`: confirm lesson time ranges show in 12-hour format with am/pm.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Rename Today heading on Home
+- **Summary:**
+  - Renamed the Home lessons card heading from "Today" to "Upcoming Lessons Today".
+- **Files changed:**
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On `Home`: confirm the lessons card heading reads "Upcoming Lessons Today".
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Underline next-days date headers
+- **Summary:**
+  - Underlined the day/date headers in the "Next 3 days" section and matched the font size to student rows.
+- **Files changed:**
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On `Home`: confirm each day/date header in "Next 3 days" is underlined and uses the same text size as the student names.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Settings: Account settings + instructor creation
+- **Summary:**
+  - Renamed Settings "Profile" section to "Account Settings" and displays full name (first + last) when available.
+  - Added profile photo actions (take photo, choose from library, remove photo).
+  - Added Change Name and Change Password flows (with current/new/confirm fields).
+  - Enforced first-login password change via `profiles.must_change_password` (instructors created by owner are gated until password is updated).
+  - Implemented owner-only "Add Instructor" flow backed by a Supabase Edge Function that generates a temporary password.
+- **Files changed:**
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/SettingsStackNavigator.tsx`
+  - `src/navigation/RootNavigation.tsx`
+  - `src/navigation/ForcedPasswordChangeStackNavigator.tsx`
+  - `src/navigation/screens/EditNameScreen.tsx`
+  - `src/navigation/screens/ChangePasswordScreen.tsx`
+  - `src/navigation/screens/ForcePasswordChangeScreen.tsx`
+  - `src/navigation/screens/AddInstructorScreen.tsx`
+  - `src/navigation/components/HeaderButtons.tsx`
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/features/account/api.ts`
+  - `src/features/account/queries.ts`
+  - `src/features/account/schemas.ts`
+  - `src/features/account/ChangePasswordForm.tsx`
+  - `src/features/instructors/api.ts`
+  - `src/features/instructors/queries.ts`
+  - `src/features/instructors/schemas.ts`
+  - `src/utils/profileName.ts`
+  - `src/supabase/types.ts`
+  - `supabase/migrations/009_account_settings.sql`
+  - `supabase/functions/create-instructor/index.ts`
+  - `supabase/README.md`
+  - `app.json`
+  - `tsconfig.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Settings -> confirm "Account Settings" heading, full name display, Change name/password buttons.
+  - Settings -> Change profile photo -> confirm Take/Choose/Remove options.
+  - Owner: Settings -> Instructors -> Add instructor -> create an instructor and confirm credentials are returned.
+  - Sign in as the new instructor -> confirm you are forced to the password change screen until you update it.

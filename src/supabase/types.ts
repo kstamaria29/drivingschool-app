@@ -40,7 +40,11 @@ export type Database = {
           organization_id: string;
           role: "owner" | "instructor";
           display_name: string;
+          first_name: string | null;
+          last_name: string | null;
           avatar_url: string | null;
+          must_change_password: boolean;
+          password_changed_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -48,14 +52,22 @@ export type Database = {
           organization_id: string;
           role: "owner" | "instructor";
           display_name: string;
+          first_name?: string | null;
+          last_name?: string | null;
           avatar_url?: string | null;
+          must_change_password?: boolean;
+          password_changed_at?: string | null;
           created_at?: string;
         };
         Update: {
           organization_id?: string;
           role?: "owner" | "instructor";
           display_name?: string;
+          first_name?: string | null;
+          last_name?: string | null;
           avatar_url?: string | null;
+          must_change_password?: boolean;
+          password_changed_at?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -268,9 +280,24 @@ export type Database = {
         };
         Returns: string;
       };
+      clear_my_avatar_url: {
+        Args: Record<string, never>;
+        Returns: null;
+      };
+      clear_my_must_change_password: {
+        Args: Record<string, never>;
+        Returns: null;
+      };
       set_my_avatar_url: {
         Args: {
           new_avatar_url: string;
+        };
+        Returns: null;
+      };
+      set_my_name: {
+        Args: {
+          first_name: string;
+          last_name: string;
         };
         Returns: null;
       };

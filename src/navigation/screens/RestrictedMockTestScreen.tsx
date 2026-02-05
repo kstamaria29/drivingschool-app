@@ -48,6 +48,7 @@ import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { parseDateInputToISODate } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
+import { getProfileFullName } from "../../utils/profileName";
 import { openPdfUri } from "../../utils/open-pdf";
 
 import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
@@ -300,7 +301,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
       const data: RestrictedMockTestStoredData = {
         ...values,
         candidateName,
-        instructor: profile.display_name,
+        instructor: getProfileFullName(profile),
         stage2Enabled,
         stagesState,
         critical,
@@ -320,7 +321,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     critical,
     form,
     immediate,
-    profile.display_name,
+    getProfileFullName(profile),
     selectedStudent,
     stage,
     stage2Enabled,
@@ -347,7 +348,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
       const storedData: RestrictedMockTestStoredData = {
         ...values,
         candidateName,
-        instructor: profile.display_name,
+        instructor: getProfileFullName(profile),
         stage2Enabled,
         stagesState,
         critical,

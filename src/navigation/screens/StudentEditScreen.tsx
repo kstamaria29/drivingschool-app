@@ -24,6 +24,7 @@ import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { formatIsoDateToDisplay, parseDateInputToISODate } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
+import { getProfileFullName } from "../../utils/profileName";
 
 import type { StudentsStackParamList } from "../StudentsStackNavigator";
 import { useNavigationLayout } from "../useNavigationLayout";
@@ -351,7 +352,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
                     </AppStack>
                   )
                 ) : (
-                  <AppText variant="body">{profile.display_name}</AppText>
+                  <AppText variant="body">{getProfileFullName(profile)}</AppText>
                 )}
               </AppStack>
             )}

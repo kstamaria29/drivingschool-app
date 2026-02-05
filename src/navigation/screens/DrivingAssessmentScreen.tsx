@@ -31,6 +31,7 @@ import {
   parseDateInputToISODate,
 } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
+import { getProfileFullName } from "../../utils/profileName";
 import { openPdfUri } from "../../utils/open-pdf";
 
 import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
@@ -139,7 +140,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
       issueDate: "",
       expiryDate: "",
       date: dayjs().format(DISPLAY_DATE_FORMAT),
-      instructor: profile.display_name,
+      instructor: getProfileFullName(profile),
       scores: {},
       strengths: "",
       improvements: "",
