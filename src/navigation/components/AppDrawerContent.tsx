@@ -18,6 +18,7 @@ import { AppText } from "../../components/AppText";
 import { AppDivider } from "../../components/AppDivider";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
+import { getProfileFullName } from "../../utils/profileName";
 import { useCurrentUser } from "../../features/auth/current-user";
 import { useAppColorScheme } from "../../providers/ColorSchemeProvider";
 import {
@@ -98,7 +99,8 @@ export function AppDrawerContent({
                 {logoUrl ? (
                   <AppImage
                     source={{ uri: logoUrl }}
-                    className="h-10 w-10 border border-border bg-transparent dark:border-borderDark"
+                    resizeMode="contain"
+                    className="h-10 w-10 bg-transparent"
                   />
                 ) : (
                   <View className="h-10 w-10 border border-border bg-card dark:border-borderDark dark:bg-cardDark" />
@@ -132,14 +134,15 @@ export function AppDrawerContent({
                 {logoUrl ? (
                   <AppImage
                     source={{ uri: logoUrl }}
-                    className="h-12 w-12 border border-border bg-transparent dark:border-borderDark"
+                    resizeMode="contain"
+                    className="h-12 w-12 bg-transparent"
                   />
                 ) : (
                   <View className="h-12 w-12 border border-border bg-card dark:border-borderDark dark:bg-cardDark" />
                 )}
                 <View className="flex-1">
                   <AppText variant="heading">{orgName}</AppText>
-                  <AppText variant="caption">{profile.display_name}</AppText>
+                  <AppText variant="caption">{getProfileFullName(profile)}</AppText>
                 </View>
               </View>
               <View className="mt-4">
@@ -197,10 +200,10 @@ export function AppDrawerContent({
                 collapsed ? "py-2" : "",
               )}
             >
-              <Avatar uri={profile.avatar_url} size={36} label={profile.display_name} />
+              <Avatar uri={profile.avatar_url} size={36} label={getProfileFullName(profile)} />
               {collapsed ? null : (
                 <View className="flex-1">
-                  <AppText variant="label">{profile.display_name}</AppText>
+                  <AppText variant="label">{getProfileFullName(profile)}</AppText>
                   <AppText variant="caption">{profile.role}</AppText>
                 </View>
               )}

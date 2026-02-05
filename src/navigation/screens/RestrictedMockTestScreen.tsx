@@ -14,6 +14,7 @@ import { AppInput } from "../../components/AppInput";
 import { AppSegmentedControl } from "../../components/AppSegmentedControl";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
+import { AppTimeInput } from "../../components/AppTimeInput";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
 import { ensureAndroidDownloadsDirectoryUri } from "../../features/assessments/android-downloads";
@@ -47,6 +48,7 @@ import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { parseDateInputToISODate } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
+import { getProfileFullName } from "../../utils/profileName";
 import { openPdfUri } from "../../utils/open-pdf";
 
 import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
@@ -299,7 +301,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
       const data: RestrictedMockTestStoredData = {
         ...values,
         candidateName,
-        instructor: profile.display_name,
+        instructor: getProfileFullName(profile),
         stage2Enabled,
         stagesState,
         critical,
@@ -319,7 +321,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     critical,
     form,
     immediate,
-    profile.display_name,
+    getProfileFullName(profile),
     selectedStudent,
     stage,
     stage2Enabled,
@@ -346,7 +348,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
       const storedData: RestrictedMockTestStoredData = {
         ...values,
         candidateName,
-        instructor: profile.display_name,
+        instructor: getProfileFullName(profile),
         stage2Enabled,
         stagesState,
         critical,
@@ -440,7 +442,14 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   const studentCard = (
     <AppCard className="gap-4">
-      <AppText variant="heading">Student</AppText>
+      <View className="flex-row items-center justify-between gap-3">
+        <AppText variant="heading">Student</AppText>
+        {selectedStudent ? (
+          <AppText variant="heading" className="text-right">
+            {selectedStudent.first_name} {selectedStudent.last_name}
+          </AppText>
+        ) : null}
+      </View>
 
       {studentsQuery.isPending ? (
         <View className={cn("items-center justify-center py-4", theme.text.base)}>
@@ -465,20 +474,13 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             <AppText variant="error">{form.formState.errors.studentId.message}</AppText>
           ) : null}
 
-          {selectedStudent ? (
-            <AppStack gap="sm">
-              <AppText variant="body">
-                Selected: {selectedStudent.first_name} {selectedStudent.last_name}
-              </AppText>
-              {stage === "details" ? (
-                <AppButton
-                  width="auto"
-                  variant="ghost"
-                  label={showStudentPicker ? "Hide student list" : "Change student"}
-                  onPress={() => setShowStudentPicker((s) => !s)}
-                />
-              ) : null}
-            </AppStack>
+          {selectedStudent && stage === "details" ? (
+            <AppButton
+              width="auto"
+              variant="ghost"
+              label={showStudentPicker ? "Hide student list" : "Change student"}
+              onPress={() => setShowStudentPicker((s) => !s)}
+            />
           ) : null}
 
           {stage === "details" && (showStudentPicker || !selectedStudent) ? (
@@ -571,7 +573,11 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
           control={form.control}
           name="time"
           render={({ field }) => (
-            <AppInput label="Time (optional)" value={field.value ?? ""} onChangeText={field.onChange} />
+            <AppTimeInput
+              label="Time (optional)"
+              value={field.value ?? ""}
+              onChangeText={(next) => field.onChange(next)}
+            />
           )}
         />
 

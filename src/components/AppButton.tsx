@@ -87,12 +87,14 @@ export function AppButton({
     >
       <View className="flex-row items-center justify-center gap-2">
         {iconPosition === "left" ? iconNode : null}
-        <AppText
-          variant="button"
-          className={cn(theme.button.labelBase, theme.button.labelVariant[variant])}
-        >
-          {label}
-        </AppText>
+        {label ? (
+          <AppText
+            variant="button"
+            className={cn(theme.button.labelBase, theme.button.labelVariant[variant])}
+          >
+            {label}
+          </AppText>
+        ) : null}
         {iconPosition === "right" ? iconNode : null}
       </View>
     </Pressable>

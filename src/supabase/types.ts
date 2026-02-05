@@ -40,7 +40,11 @@ export type Database = {
           organization_id: string;
           role: "owner" | "instructor";
           display_name: string;
+          first_name: string | null;
+          last_name: string | null;
           avatar_url: string | null;
+          must_change_password: boolean;
+          password_changed_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -48,14 +52,22 @@ export type Database = {
           organization_id: string;
           role: "owner" | "instructor";
           display_name: string;
+          first_name?: string | null;
+          last_name?: string | null;
           avatar_url?: string | null;
+          must_change_password?: boolean;
+          password_changed_at?: string | null;
           created_at?: string;
         };
         Update: {
           organization_id?: string;
           role?: "owner" | "instructor";
           display_name?: string;
+          first_name?: string | null;
+          last_name?: string | null;
           avatar_url?: string | null;
+          must_change_password?: boolean;
+          password_changed_at?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -217,6 +229,46 @@ export type Database = {
         };
         Relationships: [];
       };
+      student_sessions: {
+        Row: {
+          id: string;
+          organization_id: string;
+          student_id: string;
+          instructor_id: string;
+          session_at: string;
+          duration_minutes: number | null;
+          tasks: string[];
+          next_focus: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          student_id: string;
+          instructor_id: string;
+          session_at?: string;
+          duration_minutes?: number | null;
+          tasks?: string[];
+          next_focus?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          organization_id?: string;
+          student_id?: string;
+          instructor_id?: string;
+          session_at?: string;
+          duration_minutes?: number | null;
+          tasks?: string[];
+          next_focus?: string | null;
+          notes?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       [key: string]: SupabaseTable;
     };
     Views: Record<string, never>;
@@ -228,9 +280,24 @@ export type Database = {
         };
         Returns: string;
       };
+      clear_my_avatar_url: {
+        Args: Record<string, never>;
+        Returns: null;
+      };
+      clear_my_must_change_password: {
+        Args: Record<string, never>;
+        Returns: null;
+      };
       set_my_avatar_url: {
         Args: {
           new_avatar_url: string;
+        };
+        Returns: null;
+      };
+      set_my_name: {
+        Args: {
+          first_name: string;
+          last_name: string;
         };
         Returns: null;
       };

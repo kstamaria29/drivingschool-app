@@ -12,16 +12,17 @@ const dateString = z
 export const studentFormSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required"),
   lastName: z.string().trim().min(1, "Last name is required"),
-  email: z
+  email: z.string().trim().min(1, "Email is required").email("Enter a valid email"),
+  phone: z
     .string()
     .trim()
-    .refine((value) => value === "" || z.string().email().safeParse(value).success, {
-      message: "Enter a valid email",
+    .min(1, "Phone is required")
+    .refine((value) => value.replace(/\D/g, "").length >= 7, {
+      message: "Enter a valid phone",
     }),
-  phone: z.string().trim(),
   address: z.string().trim(),
   assignedInstructorId: z.string().uuid("Select an instructor"),
-  licenseType: z.enum(["learner", "restricted", "full"]).or(z.literal("")),
+  licenseType: z.enum(["learner", "restricted", "full"], "Select a licence type"),
   licenseNumber: z.string().trim(),
   licenseVersion: z.string().trim(),
   classHeld: z.string().trim(),

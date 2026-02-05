@@ -8,6 +8,7 @@ import { useAppColorScheme } from "../providers/ColorSchemeProvider";
 import { toErrorMessage } from "../utils/errors";
 
 import { AuthStackNavigator } from "./AuthStackNavigator";
+import { ForcedPasswordChangeStackNavigator } from "./ForcedPasswordChangeStackNavigator";
 import { MainDrawerNavigator } from "./MainDrawerNavigator";
 import { getNavigationTheme } from "./navigationTheme";
 import { AuthBootstrapScreen } from "./screens/AuthBootstrapScreen";
@@ -52,7 +53,11 @@ export function RootNavigation() {
     <NavigationContainer theme={navigationTheme}>
       {profileQuery.data ? (
         <CurrentUserProvider userId={session.user.id} profile={profileQuery.data}>
-          <MainDrawerNavigator />
+          {profileQuery.data.must_change_password ? (
+            <ForcedPasswordChangeStackNavigator />
+          ) : (
+            <MainDrawerNavigator />
+          )}
         </CurrentUserProvider>
       ) : (
         <AuthStackNavigator initialRouteName="OnboardingCreateOrg" />

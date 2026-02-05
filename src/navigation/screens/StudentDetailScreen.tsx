@@ -1,6 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Alert, ActivityIndicator, View } from "react-native";
-import { Archive, ClipboardList, Pencil, RefreshCw, Undo2 } from "lucide-react-native";
+import { Archive, ClipboardList, Clock, Pencil, Plus, RefreshCw, Undo2 } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -21,6 +21,25 @@ import type { StudentsStackParamList } from "../StudentsStackNavigator";
 
 type Props = NativeStackScreenProps<StudentsStackParamList, "StudentDetail">;
 
+function InlineDetailRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <View className="flex-row flex-wrap items-baseline">
+      <AppText className="text-muted dark:text-mutedDark" variant="label">
+        {label}:
+      </AppText>
+      <AppText className="ml-1 flex-1" variant="body">
+        {value}
+      </AppText>
+    </View>
+  );
+}
+
 export function StudentDetailScreen({ navigation, route }: Props) {
   const { studentId } = route.params;
 
@@ -30,6 +49,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
 
   const student = query.data ?? null;
   const isArchived = Boolean(student?.archived_at);
+  const notes = student?.notes?.trim() ? student.notes.trim() : "";
 
   function onArchivePress() {
     if (!student) return;
@@ -73,44 +93,91 @@ export function StudentDetailScreen({ navigation, route }: Props) {
           </AppCard>
         ) : (
           <>
-            <View>
-              <AppText variant="title">
-                {student.first_name} {student.last_name}
-              </AppText>
-              {isArchived ? (
-                <AppText className="mt-2" variant="caption">
-                  Archived
+            <View className="flex-row items-start justify-between gap-3">
+              <View className="flex-1">
+                <AppText variant="title">
+                  {student.first_name} {student.last_name}
                 </AppText>
-              ) : null}
+                {isArchived ? (
+                  <AppText className="mt-2" variant="caption">
+                    Archived
+                  </AppText>
+                ) : null}
+              </View>
+
+              <AppButton
+                width="auto"
+                variant="secondary"
+                label="Add session"
+                icon={Plus}
+                onPress={() =>
+                  navigation.navigate("StudentSessionHistory", {
+                    studentId: student.id,
+                    openNewSession: true,
+                  })
+                }
+              />
             </View>
 
-            <AppCard className="gap-3">
-              <AppStack gap="sm">
+            <AppStack gap="md">
+              <AppCard className="gap-3">
                 <AppText variant="heading">Contact</AppText>
-                <AppText variant="body">Email: {student.email ?? "—"}</AppText>
-                <AppText variant="body">Phone: {student.phone ?? "—"}</AppText>
-                <AppText variant="body">Address: {student.address ?? "—"}</AppText>
-              </AppStack>
 
-              <AppStack gap="sm">
+                <View className="flex-row flex-wrap gap-4">
+                  <View className="min-w-56 flex-1 gap-2">
+                    <InlineDetailRow label="Email" value={student.email ?? "-"} />
+                  </View>
+                  <View className="min-w-56 flex-1 gap-2">
+                    <InlineDetailRow label="Phone" value={student.phone ?? "-"} />
+                  </View>
+                </View>
+
+                <AppStack gap="sm">
+                  <AppText className="text-muted dark:text-mutedDark" variant="label">
+                    Address
+                  </AppText>
+                  <AppText variant="body">{student.address ?? "-"}</AppText>
+                </AppStack>
+              </AppCard>
+
+              <AppCard className="gap-3">
                 <AppText variant="heading">Licence</AppText>
-                <AppText variant="body">Type: {student.license_type ?? "—"}</AppText>
-                <AppText variant="body">Number: {student.license_number ?? "—"}</AppText>
-                <AppText variant="body">Version: {student.license_version ?? "—"}</AppText>
-                <AppText variant="body">Class held: {student.class_held ?? "—"}</AppText>
-                <AppText variant="body">
-                  Issue date: {student.issue_date ? formatIsoDateToDisplay(student.issue_date) : "—"}
-                </AppText>
-                <AppText variant="body">
-                  Expiry date: {student.expiry_date ? formatIsoDateToDisplay(student.expiry_date) : "—"}
-                </AppText>
-              </AppStack>
 
-              <AppStack gap="sm">
-                <AppText variant="heading">Notes</AppText>
-                <AppText variant="body">{student.notes?.trim() ? student.notes : "—"}</AppText>
-              </AppStack>
-            </AppCard>
+                <View className="flex-row flex-wrap gap-4">
+                  <View className="min-w-56 flex-1 gap-2">
+                    <InlineDetailRow label="Type" value={student.license_type ?? "-"} />
+                  </View>
+                  <View className="min-w-56 flex-1 gap-2">
+                    <InlineDetailRow label="Number" value={student.license_number ?? "-"} />
+                  </View>
+                </View>
+
+                <View className="flex-row flex-wrap gap-4">
+                  <View className="min-w-56 flex-1 gap-2">
+                    <InlineDetailRow label="Version" value={student.license_version ?? "-"} />
+                  </View>
+                  <View className="min-w-56 flex-1 gap-2">
+                    <InlineDetailRow label="Class held" value={student.class_held ?? "-"} />
+                  </View>
+                </View>
+
+                <InlineDetailRow
+                  label="Issue date"
+                  value={student.issue_date ? formatIsoDateToDisplay(student.issue_date) : "-"}
+                />
+                <InlineDetailRow
+                  label="Expiry date"
+                  value={student.expiry_date ? formatIsoDateToDisplay(student.expiry_date) : "-"}
+                />
+              </AppCard>
+
+              {notes ? (
+                <AppCard className="gap-2">
+                  <AppText variant="heading">Notes</AppText>
+                  <AppText variant="body">{notes}</AppText>
+                </AppCard>
+              ) : null}
+            </AppStack>
 
             <AppStack gap="md">
               <AppButton
@@ -118,6 +185,13 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                 variant="secondary"
                 icon={Pencil}
                 onPress={() => navigation.navigate("StudentEdit", { studentId: student.id })}
+              />
+
+              <AppButton
+                label="Session History"
+                variant="secondary"
+                icon={Clock}
+                onPress={() => navigation.navigate("StudentSessionHistory", { studentId: student.id })}
               />
 
               <AppButton

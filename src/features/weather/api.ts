@@ -5,6 +5,12 @@ export type OpenMeteoForecast = {
     weatherCode: number;
     timeISO: string;
   };
+  hourly: Array<{
+    timeISO: string;
+    temperatureC: number;
+    weatherCode: number;
+    precipitationProbabilityPercent: number | null;
+  }>;
   days: Array<{
     dateISO: string;
     weatherCode: number;
@@ -42,6 +48,7 @@ export async function fetchOpenMeteoForecast(input: {
   url.searchParams.set("latitude", String(input.latitude));
   url.searchParams.set("longitude", String(input.longitude));
   url.searchParams.set("current_weather", "true");
+  url.searchParams.set("hourly", "temperature_2m,weathercode,precipitation_probability");
   url.searchParams.set("daily", "weathercode,temperature_2m_max,temperature_2m_min");
   url.searchParams.set("timezone", timezone);
   url.searchParams.set("forecast_days", String(days));
@@ -53,6 +60,7 @@ export async function fetchOpenMeteoForecast(input: {
 
   const json: any = await response.json();
   const current = json?.current_weather;
+  const hourly = json?.hourly;
   const daily = json?.daily;
 
   if (
@@ -70,6 +78,24 @@ export async function fetchOpenMeteoForecast(input: {
   const dailyMax: number[] = Array.isArray(daily?.temperature_2m_max) ? daily.temperature_2m_max : [];
   const dailyMin: number[] = Array.isArray(daily?.temperature_2m_min) ? daily.temperature_2m_min : [];
 
+  const hourlyTimes: string[] = Array.isArray(hourly?.time) ? hourly.time : [];
+  const hourlyTemps: number[] = Array.isArray(hourly?.temperature_2m) ? hourly.temperature_2m : [];
+  const hourlyCodes: number[] = Array.isArray(hourly?.weathercode) ? hourly.weathercode : [];
+  const hourlyPrecipProb: number[] = Array.isArray(hourly?.precipitation_probability)
+    ? hourly.precipitation_probability
+    : [];
+
+  const hourlyOut: OpenMeteoForecast["hourly"] = hourlyTimes.map((timeISO, index) => {
+    const probability = hourlyPrecipProb[index];
+    return {
+      timeISO,
+      temperatureC: Number(hourlyTemps[index] ?? 0),
+      weatherCode: Number(hourlyCodes[index] ?? 0),
+      precipitationProbabilityPercent:
+        typeof probability === "number" && Number.isFinite(probability) ? Math.round(probability) : null,
+    };
+  });
+
   const daysOut: OpenMeteoForecast["days"] = dailyTimes.map((dateISO, index) => ({
     dateISO,
     weatherCode: Number(dailyCodes[index] ?? 0),
@@ -84,7 +110,7 @@ export async function fetchOpenMeteoForecast(input: {
       weatherCode: current.weathercode,
       timeISO,
     },
+    hourly: hourlyOut,
     days: daysOut,
   };
 }
-

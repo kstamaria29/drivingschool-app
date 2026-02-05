@@ -1,7 +1,9 @@
 import * as ImagePicker from "expo-image-picker";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Alert, View } from "react-native";
 import { useState } from "react";
-import { ImageUp, RefreshCw, UserCircle2 } from "lucide-react-native";
+import { ImageUp, KeyRound, RefreshCw, UserCircle2, UserPlus, UserRoundPen } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 import { Avatar } from "../../components/Avatar";
 import { AppButton } from "../../components/AppButton";
@@ -22,25 +24,63 @@ import { cn } from "../../utils/cn";
 import { toErrorMessage } from "../../utils/errors";
 import { useAppColorScheme } from "../../providers/ColorSchemeProvider";
 import { AppSegmentedControl } from "../../components/AppSegmentedControl";
+import { useClearMyAvatarMutation } from "../../features/account/queries";
+import { getProfileFullName } from "../../utils/profileName";
+import type { SettingsStackParamList } from "../SettingsStackNavigator";
 
 export function SettingsScreen() {
   const { userId, profile } = useCurrentUser();
   const [pickerError, setPickerError] = useState<string | null>(null);
   const { scheme, setScheme } = useAppColorScheme();
+  const navigation = useNavigation<NativeStackNavigationProp<SettingsStackParamList>>();
 
   const orgQuery = useOrganizationQuery(profile.organization_id);
   const orgSettingsQuery = useOrganizationSettingsQuery(profile.organization_id);
 
   const uploadOrgLogoMutation = useUploadOrganizationLogoMutation(profile.organization_id);
   const uploadAvatarMutation = useUploadMyAvatarMutation(userId);
+  const clearAvatarMutation = useClearMyAvatarMutation(userId);
 
-  async function pickImageSquare() {
+  async function pickOrgLogo() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       throw new Error("Permission to access photos was denied.");
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: "images",
+      allowsEditing: false,
+    });
+
+    if (result.canceled) return null;
+    return result.assets[0] ?? null;
+  }
+
+  async function pickAvatarFromLibrary() {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      throw new Error("Permission to access photos was denied.");
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: "images",
+      allowsEditing: true,
+      aspect: [1, 1],
+      base64: true,
+      quality: 0.85,
+    });
+
+    if (result.canceled) return null;
+    return result.assets[0] ?? null;
+  }
+
+  async function pickAvatarFromCamera() {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      throw new Error("Permission to access the camera was denied.");
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
       mediaTypes: "images",
       allowsEditing: true,
       aspect: [1, 1],
@@ -92,7 +132,8 @@ export function SettingsScreen() {
               {orgSettingsQuery.data?.logo_url ? (
                 <AppImage
                   source={{ uri: orgSettingsQuery.data.logo_url }}
-                  className="h-16 w-16 border border-border bg-transparent dark:border-borderDark"
+                  resizeMode="contain"
+                  className="h-16 w-16 bg-transparent"
                 />
               ) : (
                 <View className="h-16 w-16 border border-border bg-card dark:border-borderDark dark:bg-cardDark" />
@@ -118,7 +159,7 @@ export function SettingsScreen() {
             onPress={async () => {
               try {
                 setPickerError(null);
-                const asset = await pickImageSquare();
+                const asset = await pickOrgLogo();
                 if (!asset) return;
                 uploadOrgLogoMutation.mutate({ asset });
               } catch (error) {
@@ -134,12 +175,12 @@ export function SettingsScreen() {
         </AppCard>
 
         <AppCard className="gap-3">
-          <AppText variant="heading">Profile</AppText>
+          <AppText variant="heading">Account Settings</AppText>
 
           <View className="flex-row items-center gap-4">
-            <Avatar uri={profile.avatar_url} size={64} label={profile.display_name} />
+            <Avatar uri={profile.avatar_url} size={64} label={getProfileFullName(profile)} />
             <View className="flex-1">
-              <AppText variant="body">{profile.display_name}</AppText>
+              <AppText variant="body">{getProfileFullName(profile) || profile.display_name}</AppText>
               <AppText variant="caption">{profile.role}</AppText>
             </View>
           </View>
@@ -148,24 +189,107 @@ export function SettingsScreen() {
             label={uploadAvatarMutation.isPending ? "Uploading photo..." : "Change profile photo"}
             variant="secondary"
             icon={UserCircle2}
-            disabled={uploadAvatarMutation.isPending}
-            onPress={async () => {
-              try {
-                setPickerError(null);
-                const asset = await pickImageSquare();
-                if (!asset) return;
-                uploadAvatarMutation.mutate({ asset });
-              } catch (error) {
-                setPickerError(toErrorMessage(error));
+            disabled={uploadAvatarMutation.isPending || clearAvatarMutation.isPending}
+            onPress={() => {
+              const actions: Parameters<typeof Alert.alert>[2] = [
+                {
+                  text: "Take photo",
+                  onPress: () => {
+                    void (async () => {
+                      try {
+                        setPickerError(null);
+                        const asset = await pickAvatarFromCamera();
+                        if (!asset) return;
+                        uploadAvatarMutation.mutate({ asset });
+                      } catch (error) {
+                        setPickerError(toErrorMessage(error));
+                      }
+                    })();
+                  },
+                },
+                {
+                  text: "Choose from library",
+                  onPress: () => {
+                    void (async () => {
+                      try {
+                        setPickerError(null);
+                        const asset = await pickAvatarFromLibrary();
+                        if (!asset) return;
+                        uploadAvatarMutation.mutate({ asset });
+                      } catch (error) {
+                        setPickerError(toErrorMessage(error));
+                      }
+                    })();
+                  },
+                },
+              ];
+
+              if (profile.avatar_url) {
+                actions.push({
+                  text: "Remove photo",
+                  style: "destructive",
+                  onPress: () => {
+                    Alert.alert(
+                      "Remove photo",
+                      "Remove your profile photo?",
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                          text: "Remove",
+                          style: "destructive",
+                          onPress: () => clearAvatarMutation.mutate(),
+                        },
+                      ],
+                      { cancelable: true },
+                    );
+                  },
+                });
               }
+
+              actions.push({ text: "Cancel", style: "cancel" });
+
+              Alert.alert("Profile photo", "Choose an option", actions);
             }}
           />
 
           {uploadAvatarMutation.isError ? (
             <AppText variant="error">{toErrorMessage(uploadAvatarMutation.error)}</AppText>
           ) : null}
+          {clearAvatarMutation.isError ? (
+            <AppText variant="error">{toErrorMessage(clearAvatarMutation.error)}</AppText>
+          ) : null}
           {pickerError ? <AppText variant="error">{pickerError}</AppText> : null}
+
+          <AppButton
+            label="Change name"
+            variant="secondary"
+            icon={UserRoundPen}
+            onPress={() => navigation.navigate("EditName")}
+          />
+
+          <AppButton
+            label="Change password"
+            variant="secondary"
+            icon={KeyRound}
+            onPress={() => navigation.navigate("ChangePassword")}
+          />
         </AppCard>
+
+        {profile.role === "owner" ? (
+          <AppCard className="gap-3">
+            <AppText variant="heading">Instructors</AppText>
+            <AppText variant="caption">
+              Create logins for instructors. They will be required to change their password on first
+              sign-in.
+            </AppText>
+            <AppButton
+              label="Add instructor"
+              variant="secondary"
+              icon={UserPlus}
+              onPress={() => navigation.navigate("AddInstructor")}
+            />
+          </AppCard>
+        ) : null}
 
         <AppCard className="gap-3">
           <AppText variant="heading">Appearance</AppText>

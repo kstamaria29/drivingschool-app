@@ -1049,3 +1049,520 @@
   - Open the app -> `Home`: confirm only two buttons (`Students`, `Assessments`) show and both navigate correctly.
   - Toggle dark mode -> `Home` -> `Open Lessons`: confirm the button looks like a clean link (no ugly border/shadow box).
   - `Home` -> `Weather`: confirm the current weather image area is larger and visually balanced.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Mock test suggestions + time pickers
+- **Summary:**
+  - Added multi-select suggestion options (5 each) for Full License mock test attempt notes: hazards spoken, actions spoken, and instructor notes.
+  - Added a confirmation alert when saving a task attempt.
+  - Replaced manual time inputs with `AppTimeInput` pickers in Full License session setup and Restricted License pre-drive checks.
+- **Files changed:**
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: `Assessments` -> `Mock Test - Full License` -> start a session -> in a task card, toggle suggestions and select multiple options; confirm they add/remove lines in the text fields.
+  - Tap `Save task attempt`; confirm a "Saved" alert appears and the attempt shows in the list.
+  - In `Mock Test - Full License` session setup, tap `Time`; confirm a native time picker appears and writes `HH:mm`.
+  - In `Mock Test - Restricted License` pre-drive checks, tap `Time (optional)`; confirm a native time picker appears.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Make mock test suggestions exclusive
+- **Summary:**
+  - Updated Full License mock test so only one suggestions panel can be open at a time (hazards/actions/notes).
+- **Files changed:**
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: `Assessments` -> `Mock Test - Full License` -> open hazard suggestions, then open action suggestions; confirm hazard suggestions auto-hide (repeat for notes).
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Adjust mock test attempt actions
+- **Summary:**
+  - Right-aligned the attempt action buttons, swapped order, and renamed them to `Clear all` and `Record task attempt`.
+  - Updated the save confirmation copy to "Recorded" / "Task attempt recorded."
+- **Files changed:**
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: `Assessments` -> `Mock Test - Full License` -> scroll to the task attempt section and confirm `Clear all` + `Record task attempt` are right-aligned and in that order.
+  - Tap `Record task attempt`; confirm the alert text reads "Recorded" and "Task attempt recorded."
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Assessment student header + full license session controls
+- **Summary:**
+  - Updated all assessment screens to show the selected student name right-aligned in the Student card header (removed the "Selected:" line).
+  - Moved the Full License resume/pause control into the Session badges row as an icon-only button.
+  - Styled the Full License `IN PROGRESS` readiness badge with a green background and white text.
+- **Files changed:**
+  - `src/components/AppButton.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open each assessment screen, start/continue a session, and confirm the Student card header shows the student name on the right.
+  - In Full License mock test, confirm the icon-only pause/resume button sits on the right of the Attempts/Score/Critical/Immediate row.
+  - In Full License mock test, record fewer than 4 attempts and confirm the `IN PROGRESS` badge is green with white text.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Redesign lessons calendar
+- **Summary:**
+  - Redesigned the Lessons screen into a cleaner scheduler layout: header actions, month calendar in a card, and a day agenda card with a week strip.
+  - Updated month cells to use subtle lesson indicators (dots) and a clear today/selected treatment.
+- **Files changed:**
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/components/CalendarMonth.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Lessons`, navigate months, tap different days, and confirm the agenda updates.
+  - Tap a lesson row and confirm it opens edit; tap `New lesson` and confirm it pre-fills the selected date.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Redesign students list
+- **Summary:**
+  - Redesigned Students into a more professional management list with search, status filter (active/archived), and sort (name/recent).
+  - Added a tablet-friendly table layout while keeping a compact card layout for smaller screens.
+- **Files changed:**
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Students`, use Search, toggle Active/Archived, switch Sort, and confirm the list updates.
+  - Tap a student row/card and confirm it navigates to Student details.
+  - Tap `New student` and confirm it opens the create screen.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Polish students table fields
+- **Summary:**
+  - Removed address from the Students list and replaced it with email.
+  - Added phone display and a colored licence-type badge (learner/restricted/full) with Mail/Phone icons for readability.
+- **Files changed:**
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Students` and confirm email + phone render with icons and licence type shows as a colored badge.
+  - Toggle dark mode and confirm badge + icon contrast remains readable.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Refine students rows layout
+- **Summary:**
+  - Moved student email under the student name and removed the avatar/initials circle.
+  - Right-aligned the licence badge next to the chevron, and adjusted table columns accordingly.
+- **Files changed:**
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Students` and confirm each row shows name + email stacked, with licence badge right-aligned next to the chevron.
+  - Confirm there is no avatar/initials bubble in the list.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Students list phone/icon + licence circle
+- **Summary:**
+  - Moved the phone icon from each row into the Phone column header (table layout).
+  - Changed the licence type indicator into a circular icon showing only the first letter (L/R/F) with type-based coloring.
+- **Files changed:**
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Students` in tablet layout and confirm the Phone header shows the icon and rows show plain phone numbers.
+  - Confirm the licence indicator is a colored circle with a single letter next to the chevron.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Home weather actions icon-only
+- **Summary:**
+  - Made the Home Weather widget action buttons (Refresh / Use my location) icon-only while keeping accessibility labels for screen readers.
+- **Files changed:**
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Home` and confirm the Weather card top-right shows icon-only buttons for refresh and location (no text).
+  - Tap each icon and confirm refresh still refetches weather and location still requests/uses device location.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Fix header safe area + enhance weather widget
+- **Summary:**
+  - Wrapped the app in `SafeAreaProvider` to restore correct top insets on edge-to-edge Android and prevent the header from overlapping the system status bar.
+  - Increased the hamburger and avatar size and aligned them to the same height for a better phone experience.
+  - Enhanced the Home Weather widget with driving-conditions guidance, a next-5-hours strip, and a next-3-days forecast to reduce empty space.
+- **Files changed:**
+  - `src/providers/AppProviders.tsx`
+  - `src/navigation/components/HeaderButtons.tsx`
+  - `src/features/weather/api.ts`
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On a phone: open the app and confirm the header no longer overlaps the status bar (time/battery icons).
+  - Confirm hamburger + avatar are larger and feel consistent in size.
+  - On `Home`: confirm Weather shows driving guidance, next 5 hours, and Next 3 days; verify layout has less blank space.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Tweak weather layout + 4-day forecast
+- **Summary:**
+  - Moved the Weather “Updated …” line directly under “Right now” and removed it from the wind row.
+  - Expanded the forecast list to show the next 4 days (fetching 5 total days including today).
+- **Files changed:**
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On `Home` -> Weather: confirm “Updated …” appears under “Right now”, and wind line no longer includes “Updated”.
+  - Confirm the forecast card shows 4 rows under “Next 4 days”.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Remove current weather icon box
+- **Summary:**
+  - Removed the bordered/rounded container behind the current-condition icon so the icon renders on its own.
+- **Files changed:**
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On `Home` -> Weather: confirm the current weather icon no longer has a rounded box/background behind it.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Org logo styling + student form requirements
+- **Summary:**
+  - Removed bordered “box” styling around the organization logo in the drawer, onboarding logo preview, and Settings.
+  - Updated New/Edit Student form to require email, phone, and licence type; removed licence clear action.
+  - On mobile, switched licence type picker to colored circular letter buttons (L/R/F).
+- **Files changed:**
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `src/features/students/schemas.ts`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In drawer/Settings/onboarding: confirm the org logo shows without a bordered box.
+  - On `Students` -> `New student`: confirm Email/Phone are required, licence has no Clear button, and on phones the licence picker shows L/R/F circular colored buttons.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Preserve org logo PNG transparency
+- **Summary:**
+  - Fixed org logo uploads to use the original file bytes from `asset.uri` (instead of `ImagePickerAsset.base64`, which is JPEG), preserving PNG alpha transparency.
+  - Updated onboarding + Settings org-logo picker to disable editing to avoid platform re-encoding and keep original formats.
+- **Files changed:**
+  - `src/utils/file-bytes.ts`
+  - `src/features/onboarding/api.ts`
+  - `src/features/organization/api.ts`
+  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Upload a PNG logo with transparency from Settings and confirm the drawer/logo renders without a white background.
+  - Confirm existing avatars still upload as before.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Enlarge header controls on tablet portrait
+- **Summary:**
+  - Increased hamburger + avatar sizes slightly for tablet portrait only, keeping mobile sizing unchanged.
+- **Files changed:**
+  - `src/navigation/components/HeaderButtons.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On a tablet in portrait: confirm hamburger + avatar are slightly larger and match in size.
+  - On a phone: confirm hamburger + avatar sizing looks unchanged.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Student profile grid + session history
+- **Summary:**
+  - Updated `StudentDetailScreen` Contact/Licence sections to use a 2-column layout (Email+Phone; Type+Number; Version+Class held).
+  - Added a new `StudentSessionHistoryScreen` with a quick "New session" form (tasks multi-select with collapsible suggestions) and a session list with delete.
+  - Added a `student_sessions` Supabase table migration with RLS (owner org-wide; instructor self-only).
+- **Files changed:**
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `src/navigation/screens/StudentSessionHistoryScreen.tsx`
+  - `src/navigation/StudentsStackNavigator.tsx`
+  - `src/features/sessions/api.ts`
+  - `src/features/sessions/queries.ts`
+  - `src/features/sessions/schemas.ts`
+  - `src/supabase/types.ts`
+  - `supabase/migrations/008_student_sessions.sql`
+  - `supabase/README.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Students` -> select a student -> confirm Contact shows Email+Phone on the same row, and Licence shows Type+Number and Version+Class held on the same rows.
+  - On the student detail: tap `Add session` (top-right) or `Session History` (below Edit) -> add a session with a few tasks -> confirm it appears in the list.
+  - Delete a session and confirm it disappears from the list.
+  - (If connected to Supabase) apply migration `008_student_sessions.sql` and confirm RLS works for owner vs instructor.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Fix new session time/duration validation
+- **Summary:**
+  - Fixed Zod regex escaping so `Time` (`HH:mm`) and `Duration (min)` accept valid values and the session can be saved.
+- **Files changed:**
+  - `src/features/sessions/schemas.ts`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Students` -> student -> `Session History` -> `Add new` -> set a time like `17:46` and duration like `60` -> confirm `Save session` works without validation errors.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Polish new session suggestions + confirm save
+- **Summary:**
+  - Moved Task suggestions above custom-task input and added a high-visibility Show/Hide toggle (green in light mode, yellow in dark mode).
+  - Added a save confirmation dialog before creating a new session.
+  - Updated session list delete to an icon-only circular button and made task badges use colored backgrounds (green/orange).
+- **Files changed:**
+  - `src/navigation/screens/StudentSessionHistoryScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Students` -> student -> `Session History` -> `Add new` and confirm Task suggestions sits above Add custom task.
+  - Tap `Show` to expand suggestions and confirm the button stands out (light: green; dark: yellow).
+  - Tap `Save session` and confirm a confirmation prompt appears before saving.
+  - In the history list, confirm Delete is a circular icon-only button and task badges are colored.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Make suggestions toggle text-only
+- **Summary:**
+  - Changed the Task suggestions Show/Hide control from a button style to underlined colored text (green in light mode; yellow in dark mode).
+- **Files changed:**
+  - `src/navigation/screens/StudentSessionHistoryScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Students` -> student -> `Session History` -> `Add new` and confirm Show/Hide is text-only, underlined, and still toggles suggestions.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Refine student profile contact/licence layout
+- **Summary:**
+  - Split Contact, Licence, and Notes into separate containers on the Student profile screen.
+  - Updated Contact/Licence details to use inline label/value rows (Address remains stacked) and paired Licence fields (Type+Number, Version+Class held).
+  - Hid the Notes container when no notes exist.
+- **Files changed:**
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open a student profile and confirm Contact, Licence, and (optional) Notes are separate cards.
+  - Confirm Address shows as a 2-row field, while other fields are label/value inline rows.
+  - Clear Notes for a student and confirm the Notes card disappears.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Tighten contact row spacing
+- **Summary:**
+  - Reduced the spacing between inline labels (e.g. `Email:`) and values on the Student profile screen.
+- **Files changed:**
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open a student profile and confirm `Email:` sits close to the email value (no large gap).
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Tighten licence inline spacing
+- **Summary:**
+  - Adjusted inline detail rows to keep the space after `:` tight while keeping Licence rows neatly aligned.
+- **Files changed:**
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open a student profile and confirm `Type:`, `Version:`, `Issue date:` etc have only a small space after `:` and the right-column values (Number/Class held) align neatly.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Left-align inline contact/licence rows
+- **Summary:**
+  - Updated inline detail rows to render as `Label: value` with minimal spacing and consistent left alignment (no right-justified label column).
+- **Files changed:**
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open a student profile and confirm Contact + Licence rows start flush-left like Address, while still keeping just a small space after `:`.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Show upcoming lessons on Home
+- **Summary:**
+  - Updated the Home "Today" card to list each lesson (student full name + start/end time) instead of a count.
+  - Added an "Next 3 days" section showing upcoming lessons grouped by day.
+- **Files changed:**
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On `Home`: confirm Today's lessons list shows names + time ranges.
+  - Confirm lessons for the next 3 days appear under "Next 3 days" and days with no lessons are hidden.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Use 12h time format on Home
+- **Summary:**
+  - Updated lesson time ranges on Home to use 12-hour format (e.g. `10:15 am - 10:30 am`).
+- **Files changed:**
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On `Home`: confirm lesson time ranges show in 12-hour format with am/pm.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Rename Today heading on Home
+- **Summary:**
+  - Renamed the Home lessons card heading from "Today" to "Upcoming Lessons Today".
+- **Files changed:**
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On `Home`: confirm the lessons card heading reads "Upcoming Lessons Today".
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Underline next-days date headers
+- **Summary:**
+  - Underlined the day/date headers in the "Next 3 days" section and matched the font size to student rows.
+- **Files changed:**
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On `Home`: confirm each day/date header in "Next 3 days" is underlined and uses the same text size as the student names.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Settings: Account settings + instructor creation
+- **Summary:**
+  - Renamed Settings "Profile" section to "Account Settings" and displays full name (first + last) when available.
+  - Added profile photo actions (take photo, choose from library, remove photo).
+  - Added Change Name and Change Password flows (with current/new/confirm fields).
+  - Enforced first-login password change via `profiles.must_change_password` (instructors created by owner are gated until password is updated).
+  - Implemented owner-only "Add Instructor" flow backed by a Supabase Edge Function that generates a temporary password.
+- **Files changed:**
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/SettingsStackNavigator.tsx`
+  - `src/navigation/RootNavigation.tsx`
+  - `src/navigation/ForcedPasswordChangeStackNavigator.tsx`
+  - `src/navigation/screens/EditNameScreen.tsx`
+  - `src/navigation/screens/ChangePasswordScreen.tsx`
+  - `src/navigation/screens/ForcePasswordChangeScreen.tsx`
+  - `src/navigation/screens/AddInstructorScreen.tsx`
+  - `src/navigation/components/HeaderButtons.tsx`
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/features/account/api.ts`
+  - `src/features/account/queries.ts`
+  - `src/features/account/schemas.ts`
+  - `src/features/account/ChangePasswordForm.tsx`
+  - `src/features/instructors/api.ts`
+  - `src/features/instructors/queries.ts`
+  - `src/features/instructors/schemas.ts`
+  - `src/utils/profileName.ts`
+  - `src/supabase/types.ts`
+  - `supabase/migrations/009_account_settings.sql`
+  - `supabase/functions/create-instructor/index.ts`
+  - `supabase/README.md`
+  - `app.json`
+  - `tsconfig.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Settings -> confirm "Account Settings" heading, full name display, Change name/password buttons.
+  - Settings -> Change profile photo -> confirm Take/Choose/Remove options.
+  - Owner: Settings -> Instructors -> Add instructor -> create an instructor and confirm credentials are returned.
+  - Sign in as the new instructor -> confirm you are forced to the password change screen until you update it.

@@ -16,6 +16,7 @@ import { AppInput } from "../../components/AppInput";
 import { AppSegmentedControl } from "../../components/AppSegmentedControl";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
+import { AppTimeInput } from "../../components/AppTimeInput";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
 import { ensureAndroidDownloadsDirectoryUri } from "../../features/assessments/android-downloads";
@@ -51,6 +52,7 @@ import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { DISPLAY_DATE_FORMAT, parseDateInputToISODate } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
+import { getProfileFullName } from "../../utils/profileName";
 import { openPdfUri } from "../../utils/open-pdf";
 import { useNavigationLayout } from "../useNavigationLayout";
 
@@ -157,6 +159,67 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   const [actionsSpoken, setActionsSpoken] = useState("");
   const [notes, setNotes] = useState("");
   const [locationTag, setLocationTag] = useState("");
+  const [openSuggestions, setOpenSuggestions] = useState<"hazards" | "actions" | "notes" | null>(
+    null,
+  );
+
+  const hazardSuggestions = useMemo(
+    () => [
+      "Pedestrian near crossing",
+      "Cyclist in blind spot / shoulder",
+      "Vehicle approaching quickly from right",
+      "Oncoming traffic closing gap",
+      "Parked car door could open / vehicle pulling out",
+    ],
+    [],
+  );
+
+  const actionSuggestions = useMemo(
+    () => [
+      "Check mirrors and blind spot",
+      "Reduce speed and cover brake",
+      "Create space (3-second gap)",
+      "Indicate early and position correctly",
+      "Wait for a safe gap before proceeding",
+    ],
+    [],
+  );
+
+  const instructorNotesSuggestions = useMemo(
+    () => [
+      "Good scanning and commentary timing",
+      "Needs earlier hazard identification",
+      "Work on lane positioning through the turn",
+      "Smoother speed control (ease off earlier)",
+      "More decisive when safe (avoid hesitating)",
+    ],
+    [],
+  );
+
+  function hasSuggestionLine(value: string, suggestion: string) {
+    return value
+      .split(/\r?\n/)
+      .some((line) => line.trim().toLowerCase() === suggestion.trim().toLowerCase());
+  }
+
+  function toggleSuggestionLine(value: string, suggestion: string) {
+    const lines = value.split(/\r?\n/);
+    const index = lines.findIndex(
+      (line) => line.trim().toLowerCase() === suggestion.trim().toLowerCase(),
+    );
+
+    if (index >= 0) {
+      const next = [...lines.slice(0, index), ...lines.slice(index + 1)];
+      return next.join("\n").trimEnd();
+    }
+
+    const trimmed = value.trimEnd();
+    return trimmed ? `${trimmed}\n${suggestion}` : suggestion;
+  }
+
+  function toggleSuggestions(key: "hazards" | "actions" | "notes") {
+    setOpenSuggestions((prev) => (prev === key ? null : key));
+  }
 
   const organizationName = organizationQuery.data?.name ?? "Driving School";
 
@@ -395,7 +458,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
         ...values,
         version: DRAFT_VERSION,
         candidateName: `${selectedStudent.first_name} ${selectedStudent.last_name}`,
-        instructor: profile.display_name,
+        instructor: getProfileFullName(profile),
         drillLeftTarget,
         drillRightTarget,
         startTimeISO,
@@ -431,7 +494,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     endTimeISO,
     form,
     immediate,
-    profile.display_name,
+    getProfileFullName(profile),
     selectedStudent,
     sessionSeconds,
     stage,
@@ -533,8 +596,9 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     setItems(createFullLicenseMockTestEmptyItems());
     setHazardsSpoken("");
     setActionsSpoken("");
-    setNotes("");
-    setLocationTag("");
+      setNotes("");
+      setLocationTag("");
+    Alert.alert("Recorded", "Task attempt recorded.");
   }
 
   function startSession() {
@@ -569,7 +633,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
         ...values,
         version: DRAFT_VERSION,
         candidateName: `${selectedStudent.first_name} ${selectedStudent.last_name}`,
-        instructor: profile.display_name,
+        instructor: getProfileFullName(profile),
         drillLeftTarget,
         drillRightTarget,
         startTimeISO,
@@ -669,7 +733,14 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
 
   const studentCard = (
     <AppCard className="gap-4">
-      <AppText variant="heading">Student</AppText>
+      <View className="flex-row items-center justify-between gap-3">
+        <AppText variant="heading">Student</AppText>
+        {selectedStudent ? (
+          <AppText variant="heading" className="text-right">
+            {selectedStudent.first_name} {selectedStudent.last_name}
+          </AppText>
+        ) : null}
+      </View>
 
       {studentsQuery.isPending ? (
         <View className={cn("items-center justify-center py-4", theme.text.base)}>
@@ -694,20 +765,13 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
             <AppText variant="error">{form.formState.errors.studentId.message}</AppText>
           ) : null}
 
-          {selectedStudent ? (
-            <AppStack gap="sm">
-              <AppText variant="body">
-                Selected: {selectedStudent.first_name} {selectedStudent.last_name}
-              </AppText>
-              {stage === "details" ? (
-                <AppButton
-                  width="auto"
-                  variant="ghost"
-                  label={showStudentPicker ? "Hide student list" : "Change student"}
-                  onPress={() => setShowStudentPicker((s) => !s)}
-                />
-              ) : null}
-            </AppStack>
+          {selectedStudent && stage === "details" ? (
+            <AppButton
+              width="auto"
+              variant="ghost"
+              label={showStudentPicker ? "Hide student list" : "Change student"}
+              onPress={() => setShowStudentPicker((s) => !s)}
+            />
           ) : null}
 
           {stage === "details" && (showStudentPicker || !selectedStudent) ? (
@@ -766,12 +830,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
         control={form.control}
         name="time"
         render={({ field }) => (
-          <AppInput
-            label="Time"
-            value={field.value}
-            onChangeText={field.onChange}
-            placeholder="e.g., 10:15am"
-          />
+          <AppTimeInput label="Time" value={field.value} onChangeText={(next) => field.onChange(next)} />
         )}
       />
 
@@ -990,9 +1049,14 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       ? "border-danger/30 bg-danger/5 dark:border-dangerDark/30 dark:bg-dangerDark/10"
       : "border-border bg-background dark:border-borderDark dark:bg-backgroundDark";
 
+  const readinessChipClasses =
+    summary.readiness.label === "IN PROGRESS"
+      ? "border-emerald-600 bg-emerald-600 dark:border-emerald-500 dark:bg-emerald-500"
+      : "border-border bg-background dark:border-borderDark dark:bg-backgroundDark";
+
   const overviewCard = (
     <AppCard className="gap-3">
-      <View className="flex-row items-start justify-between gap-3">
+      <View className="flex-row items-center justify-between gap-3">
         <View className="flex-1 gap-1">
           <AppText variant="heading">Session</AppText>
           <AppText variant="caption">Session ID: {sessionId}</AppText>
@@ -1004,10 +1068,10 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
             <Timer size={16} color={theme.colors.mutedLight} />
             <AppText variant="heading">{formatMMSS(sessionSeconds)}</AppText>
           </View>
-          <View className="rounded-full border border-border bg-background px-3 py-1 dark:border-borderDark dark:bg-backgroundDark">
+          <View className={cn("rounded-full border px-3 py-1", readinessChipClasses)}>
             <AppText
               variant={summary.readiness.label === "NOT READY" ? "error" : "caption"}
-              className="font-semibold"
+              className={cn("font-semibold", summary.readiness.label === "IN PROGRESS" && "text-white")}
             >
               {summary.readiness.label}
             </AppText>
@@ -1015,7 +1079,8 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
         </View>
       </View>
 
-      <View className="flex-row flex-wrap gap-3">
+      <View className="flex-row items-center justify-between gap-3">
+        <View className="flex-1 flex-row flex-wrap gap-3">
         <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
           <AppText variant="caption">Attempts: {summary.attemptsCount}</AppText>
         </View>
@@ -1032,14 +1097,15 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
             Immediate: {summary.immediateTotal}
           </AppText>
         </View>
-      </View>
+        </View>
 
-      <View className="flex-row flex-wrap gap-2">
         <AppButton
           width="auto"
           variant="secondary"
+          className="h-10 w-12 px-0"
           icon={timerRunning ? Pause : Play}
-          label={timerRunning ? "Pause" : "Resume"}
+          label=""
+          accessibilityLabel={timerRunning ? "Pause" : "Resume"}
           onPress={() => setTimerRunning((r) => !r)}
         />
       </View>
@@ -1147,6 +1213,26 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
         placeholder="e.g., pedestrian near crossing, vehicle approaching fast from right"
       />
 
+      <AppButton
+        width="auto"
+        variant="ghost"
+        label={openSuggestions === "hazards" ? "Hide hazard suggestions" : "Show hazard suggestions"}
+        onPress={() => toggleSuggestions("hazards")}
+      />
+      {openSuggestions === "hazards" ? (
+        <AppStack gap="sm">
+          {hazardSuggestions.map((option) => (
+            <AppButton
+              key={option}
+              width="auto"
+              variant={hasSuggestionLine(hazardsSpoken, option) ? "primary" : "secondary"}
+              label={option}
+              onPress={() => setHazardsSpoken((prev) => toggleSuggestionLine(prev, option))}
+            />
+          ))}
+        </AppStack>
+      ) : null}
+
       <AppInput
         label="Action spoken (required)"
         value={actionsSpoken}
@@ -1157,6 +1243,26 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
         inputClassName="h-20 py-3"
         placeholder="e.g., I’m slowing, checking mirrors, and waiting for a safe gap"
       />
+
+      <AppButton
+        width="auto"
+        variant="ghost"
+        label={openSuggestions === "actions" ? "Hide action suggestions" : "Show action suggestions"}
+        onPress={() => toggleSuggestions("actions")}
+      />
+      {openSuggestions === "actions" ? (
+        <AppStack gap="sm">
+          {actionSuggestions.map((option) => (
+            <AppButton
+              key={option}
+              width="auto"
+              variant={hasSuggestionLine(actionsSpoken, option) ? "primary" : "secondary"}
+              label={option}
+              onPress={() => setActionsSpoken((prev) => toggleSuggestionLine(prev, option))}
+            />
+          ))}
+        </AppStack>
+      ) : null}
 
       <AppInput
         label="Instructor notes (optional)"
@@ -1169,12 +1275,31 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
         placeholder="Coaching cues, what to improve, what went well"
       />
 
-      <View className="flex-row flex-wrap gap-2">
-        <AppButton width="auto" label="Save task attempt" icon={Flag} onPress={saveAttempt} />
+      <AppButton
+        width="auto"
+        variant="ghost"
+        label={openSuggestions === "notes" ? "Hide note suggestions" : "Show note suggestions"}
+        onPress={() => toggleSuggestions("notes")}
+      />
+      {openSuggestions === "notes" ? (
+        <AppStack gap="sm">
+          {instructorNotesSuggestions.map((option) => (
+            <AppButton
+              key={option}
+              width="auto"
+              variant={hasSuggestionLine(notes, option) ? "primary" : "secondary"}
+              label={option}
+              onPress={() => setNotes((prev) => toggleSuggestionLine(prev, option))}
+            />
+          ))}
+        </AppStack>
+      ) : null}
+
+      <View className="w-full flex-row flex-wrap justify-end gap-2">
         <AppButton
           width="auto"
           variant="secondary"
-          label="Reset fields"
+          label="Clear all"
           icon={RotateCcw}
           onPress={() => {
             setItems(createFullLicenseMockTestEmptyItems());
@@ -1184,6 +1309,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
             setLocationTag("");
           }}
         />
+        <AppButton width="auto" label="Record task attempt" icon={Flag} onPress={saveAttempt} />
       </View>
     </AppCard>
   );

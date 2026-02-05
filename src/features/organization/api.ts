@@ -2,7 +2,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 
 import { supabase } from "../../supabase/client";
 import type { Database } from "../../supabase/types";
-import { base64ToUint8Array } from "../../utils/base64";
+import { readUriAsUint8Array } from "../../utils/file-bytes";
 
 export type Organization = Database["public"]["Tables"]["organizations"]["Row"];
 export type OrganizationSettings = Database["public"]["Tables"]["organization_settings"]["Row"];
@@ -17,6 +17,9 @@ function guessFileExtension(asset: UploadOrganizationLogoInput["asset"]) {
   const match = /\.([a-z0-9]+)$/i.exec(fileName);
   if (match?.[1]) return match[1].toLowerCase();
 
+  const uriMatch = /\.([a-z0-9]+)(?:$|\?|#)/i.exec(asset.uri);
+  if (uriMatch?.[1]) return uriMatch[1].toLowerCase();
+
   const mimeType = asset.mimeType ?? "";
   if (mimeType === "image/png") return "png";
   if (mimeType === "image/webp") return "webp";
@@ -24,7 +27,11 @@ function guessFileExtension(asset: UploadOrganizationLogoInput["asset"]) {
 }
 
 function guessContentType(asset: UploadOrganizationLogoInput["asset"]) {
-  return asset.mimeType ?? "image/jpeg";
+  const extension = guessFileExtension(asset);
+  if (asset.mimeType) return asset.mimeType;
+  if (extension === "png") return "image/png";
+  if (extension === "webp") return "image/webp";
+  return "image/jpeg";
 }
 
 export async function getOrganization(organizationId: string): Promise<Organization | null> {
@@ -70,13 +77,10 @@ export async function uploadOrganizationLogo(input: UploadOrganizationLogoInput)
   const contentType = guessContentType(input.asset);
   const objectPath = `${input.organizationId}/logo.${extension}`;
 
-  if (!input.asset.base64) {
-    throw new Error("Logo upload failed. Please choose the image again.");
-  }
-
+  const bytes = await readUriAsUint8Array(input.asset.uri);
   const { error: uploadError } = await supabase.storage
     .from("org-logos")
-    .upload(objectPath, base64ToUint8Array(input.asset.base64), { contentType, upsert: true });
+    .upload(objectPath, bytes, { contentType, upsert: true });
 
   if (uploadError) throw uploadError;
 

@@ -1,4 +1,5 @@
 import type { PropsWithChildren } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AuthSessionProvider } from "../features/auth/session";
 
@@ -7,10 +8,12 @@ import { QueryProvider } from "./QueryProvider";
 
 export function AppProviders({ children }: PropsWithChildren) {
   return (
-    <ColorSchemeProvider>
-      <QueryProvider>
-        <AuthSessionProvider>{children}</AuthSessionProvider>
-      </QueryProvider>
-    </ColorSchemeProvider>
+    <SafeAreaProvider>
+      <ColorSchemeProvider>
+        <QueryProvider>
+          <AuthSessionProvider>{children}</AuthSessionProvider>
+        </QueryProvider>
+      </ColorSchemeProvider>
+    </SafeAreaProvider>
   );
 }

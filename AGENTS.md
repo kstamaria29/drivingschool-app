@@ -688,7 +688,7 @@ After completing EVERY task, Codex must propose **one** high-quality git commit 
   - `feat: ...`, `fix: ...`, `chore: ...`, `refactor: ...`, `docs: ...`, `test: ...`
 - Message must be **imperative**, concise, and describe the main outcome.
 - If the task touches multiple areas, mention the primary one and keep it short.
-- Give me the Suggested commit message in this format : git commit -m "commit message here"
+- Give me the Suggested commit message in this format(important) : git commit -m "commit message here"
 - Include a short optional body (2–5 bullet points) when helpful.
 
 ---
@@ -698,7 +698,6 @@ After completing EVERY task, Codex must propose **one** high-quality git commit 
 Every task response MUST end with this exact footer format:
 
 **PROJECT_LOG.md:** ✅ updated (or ❌ not updated — explain why)  
-**Suggested commit message:** `<type>: <summary>`  
 **Verification:**
 
 - ...
