@@ -1365,3 +1365,22 @@
   - `npx tsc --noEmit`
 - **How to verify:**
   - Open `Students` -> student -> `Session History` -> `Add new` -> set a time like `17:46` and duration like `60` -> confirm `Save session` works without validation errors.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Polish new session suggestions + confirm save
+- **Summary:**
+  - Moved Task suggestions above custom-task input and added a high-visibility Show/Hide toggle (green in light mode, yellow in dark mode).
+  - Added a save confirmation dialog before creating a new session.
+  - Updated session list delete to an icon-only circular button and made task badges use colored backgrounds (green/orange).
+- **Files changed:**
+  - `src/navigation/screens/StudentSessionHistoryScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Students` -> student -> `Session History` -> `Add new` and confirm Task suggestions sits above Add custom task.
+  - Tap `Show` to expand suggestions and confirm the button stands out (light: green; dark: yellow).
+  - Tap `Save session` and confirm a confirmation prompt appears before saving.
+  - In the history list, confirm Delete is a circular icon-only button and task badges are colored.

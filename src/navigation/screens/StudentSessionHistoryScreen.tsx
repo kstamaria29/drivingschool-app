@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 import { RefreshCw, Trash2 } from "lucide-react-native";
 import { Controller, useForm } from "react-hook-form";
+import { useColorScheme } from "nativewind";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -24,6 +25,7 @@ import {
 } from "../../features/sessions/queries";
 import { studentSessionFormSchema, type StudentSessionFormValues } from "../../features/sessions/schemas";
 import { useStudentQuery } from "../../features/students/queries";
+import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { DISPLAY_DATE_FORMAT, parseDateInputToISODate } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
@@ -49,9 +51,44 @@ function normalizeTaskLabel(value: string) {
   return value.trim().replace(/\s+/g, " ");
 }
 
+function hashString(value: string) {
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash * 31 + value.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+const taskPalettes = [
+  {
+    wrapper: "border-emerald-500/30 bg-emerald-500/15 dark:border-emerald-400/30 dark:bg-emerald-400/15",
+    text: "text-emerald-700 dark:text-emerald-300",
+  },
+  {
+    wrapper: "border-orange-500/30 bg-orange-500/15 dark:border-orange-400/30 dark:bg-orange-400/15",
+    text: "text-orange-700 dark:text-orange-300",
+  },
+] as const;
+
+function getTaskPalette(task: string) {
+  return taskPalettes[hashString(task) % taskPalettes.length];
+}
+
 function toggleTask(list: string[], task: string) {
   if (list.includes(task)) return list.filter((x) => x !== task);
   return [...list, task];
+}
+
+function TaskBadge({ task, rightText }: { task: string; rightText?: string }) {
+  const palette = getTaskPalette(task);
+  return (
+    <View className={cn("rounded-full border px-3 py-1", palette.wrapper)}>
+      <AppText className={cn("text-xs font-semibold", palette.text)} variant="caption">
+        {task}
+        {rightText ? ` - ${rightText}` : ""}
+      </AppText>
+    </View>
+  );
 }
 
 function TaskChip({
@@ -63,6 +100,8 @@ function TaskChip({
   selected: boolean;
   onPress: () => void;
 }) {
+  const palette = getTaskPalette(label);
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -70,11 +109,17 @@ function TaskChip({
       className={cn(
         "rounded-full border px-3 py-2",
         selected
-          ? "border-primary/30 bg-primary/15"
+          ? palette.wrapper
           : "border-border bg-card dark:border-borderDark dark:bg-cardDark",
       )}
     >
-      <AppText className={cn(selected ? "text-primary" : "text-muted dark:text-mutedDark")} variant="caption">
+      <AppText
+        className={cn(
+          selected ? palette.text : "text-muted dark:text-mutedDark",
+          selected && "font-semibold",
+        )}
+        variant="caption"
+      >
         {label}
       </AppText>
     </Pressable>
@@ -84,6 +129,9 @@ function TaskChip({
 export function StudentSessionHistoryScreen({ route }: Props) {
   const { studentId, openNewSession } = route.params;
   const { userId, profile } = useCurrentUser();
+  const { colorScheme } = useColorScheme();
+
+  const trashColor = colorScheme === "dark" ? theme.colors.dangerDark : theme.colors.danger;
 
   const studentQuery = useStudentQuery(studentId);
   const sessionsQuery = useStudentSessionsQuery({ studentId });
@@ -129,6 +177,13 @@ export function StudentSessionHistoryScreen({ route }: Props) {
       .slice(0, 3)
       .map(([task, count]) => ({ task, count }));
   }, [sessions]);
+
+  const confirmSave = form.handleSubmit((values) => {
+    Alert.alert("Save session?", "Add this session to the student's history?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Save", onPress: () => void onSubmit(values) },
+    ]);
+  });
 
   async function onSubmit(values: StudentSessionFormValues) {
     const student = studentQuery.data ?? null;
@@ -235,14 +290,7 @@ export function StudentSessionHistoryScreen({ route }: Props) {
               {topTasks.length ? (
                 <View className="flex-row flex-wrap gap-2">
                   {topTasks.map(({ task, count }) => (
-                    <View
-                      key={task}
-                      className="rounded-full border border-border bg-card px-3 py-1 dark:border-borderDark dark:bg-cardDark"
-                    >
-                      <AppText variant="caption">
-                        {task} · {count}
-                      </AppText>
-                    </View>
+                    <TaskBadge key={task} task={task} rightText={String(count)} />
                   ))}
                 </View>
               ) : (
@@ -349,6 +397,51 @@ export function StudentSessionHistoryScreen({ route }: Props) {
                       <AppText variant="caption">No tasks selected yet.</AppText>
                     )}
 
+                    <View className="flex-row items-start justify-between gap-3">
+                      <View className="flex-1">
+                        <AppText variant="label">Task suggestions</AppText>
+                        <AppText className="mt-1" variant="caption">
+                          10 quick picks (multiple choice)
+                        </AppText>
+                      </View>
+
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={suggestionsOpen ? "Hide task suggestions" : "Show task suggestions"}
+                        className={cn(
+                          "rounded-full border px-4 py-2",
+                          suggestionsOpen
+                            ? "border-border bg-card dark:border-borderDark dark:bg-cardDark"
+                            : "bg-emerald-600 border-emerald-700 dark:bg-amber-300 dark:border-amber-400",
+                        )}
+                        onPress={() => setSuggestionsOpen((v) => !v)}
+                      >
+                        <AppText
+                          variant="label"
+                          className={cn(
+                            suggestionsOpen
+                              ? "text-foreground dark:text-foregroundDark"
+                              : "text-white dark:text-slate-900",
+                          )}
+                        >
+                          {suggestionsOpen ? "Hide" : "Show"}
+                        </AppText>
+                      </Pressable>
+                    </View>
+
+                    {suggestionsOpen ? (
+                      <View className="flex-row flex-wrap gap-2">
+                        {taskSuggestions.map((task) => (
+                          <TaskChip
+                            key={task}
+                            label={task}
+                            selected={field.value.includes(task)}
+                            onPress={() => field.onChange(toggleTask(field.value, task))}
+                          />
+                        ))}
+                      </View>
+                    ) : null}
+
                     <View className="flex-row items-end gap-2">
                       <AppInput
                         label="Add custom task"
@@ -383,25 +476,6 @@ export function StudentSessionHistoryScreen({ route }: Props) {
                         onPress={() => field.onChange(lastSession.tasks)}
                       />
                     ) : null}
-
-                    <AppCollapsibleCard
-                      title="Task suggestions"
-                      subtitle="10 quick picks (multiple choice)"
-                      rightText={`${taskSuggestions.length}`}
-                      expanded={suggestionsOpen}
-                      onToggle={() => setSuggestionsOpen((v) => !v)}
-                    >
-                      <View className="flex-row flex-wrap gap-2">
-                        {taskSuggestions.map((task) => (
-                          <TaskChip
-                            key={task}
-                            label={task}
-                            selected={field.value.includes(task)}
-                            onPress={() => field.onChange(toggleTask(field.value, task))}
-                          />
-                        ))}
-                      </View>
-                    </AppCollapsibleCard>
                   </AppStack>
                 )}
               />
@@ -444,7 +518,7 @@ export function StudentSessionHistoryScreen({ route }: Props) {
               <AppButton
                 label={createMutation.isPending ? "Saving..." : "Save session"}
                 disabled={createMutation.isPending || studentQuery.isPending || !studentQuery.data}
-                onPress={form.handleSubmit(onSubmit)}
+                onPress={confirmSave}
               />
             </AppStack>
           </AppCollapsibleCard>
@@ -496,29 +570,29 @@ export function StudentSessionHistoryScreen({ route }: Props) {
                     <View className="flex-1">
                       <AppText variant="heading">Session on {when}</AppText>
                       <AppText className="mt-1" variant="caption">
-                        {subtitleParts.length ? subtitleParts.join(" · ") : "-"}
+                        {subtitleParts.length ? subtitleParts.join(" - ") : "-"}
                       </AppText>
                     </View>
 
-                    <AppButton
-                      width="auto"
-                      variant="danger"
-                      label={deletingSessionId === session.id ? "Deleting..." : "Delete"}
-                      icon={Trash2}
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel="Delete session"
                       disabled={deletingSessionId === session.id}
                       onPress={() => onDeletePress(session.id)}
-                    />
+                      className={cn(
+                        "h-10 w-10 items-center justify-center rounded-full border",
+                        "border-red-500/30 bg-red-500/10 dark:border-red-400/30 dark:bg-red-400/10",
+                        deletingSessionId === session.id && "opacity-60",
+                      )}
+                    >
+                      <Trash2 size={18} color={trashColor} />
+                    </Pressable>
                   </View>
 
                   {tasks.length ? (
                     <View className="flex-row flex-wrap gap-2">
                       {tasks.map((task) => (
-                        <View
-                          key={task}
-                          className="rounded-full border border-border bg-card px-3 py-1 dark:border-borderDark dark:bg-cardDark"
-                        >
-                          <AppText variant="caption">{task}</AppText>
-                        </View>
+                        <TaskBadge key={task} task={task} />
                       ))}
                     </View>
                   ) : (
