@@ -1120,3 +1120,20 @@
   - In app: open each assessment screen, start/continue a session, and confirm the Student card header shows the student name on the right.
   - In Full License mock test, confirm the icon-only pause/resume button sits on the right of the Attempts/Score/Critical/Immediate row.
   - In Full License mock test, record fewer than 4 attempts and confirm the `IN PROGRESS` badge is green with white text.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Redesign lessons calendar
+- **Summary:**
+  - Redesigned the Lessons screen into a cleaner scheduler layout: header actions, month calendar in a card, and a day agenda card with a week strip.
+  - Updated month cells to use subtle lesson indicators (dots) and a clear today/selected treatment.
+- **Files changed:**
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/components/CalendarMonth.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Lessons`, navigate months, tap different days, and confirm the agenda updates.
+  - Tap a lesson row and confirm it opens edit; tap `New lesson` and confirm it pre-fills the selected date.

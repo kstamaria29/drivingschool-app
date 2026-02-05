@@ -1,7 +1,6 @@
 import dayjs, { type Dayjs } from "dayjs";
 import { Pressable, View } from "react-native";
 
-import { theme } from "../theme/theme";
 import { cn } from "../utils/cn";
 
 import { AppText } from "./AppText";
@@ -46,6 +45,7 @@ export function CalendarMonth({
   onSelectDate,
   lessonCountByDateISO,
 }: Props) {
+  const today = dayjs().startOf("day");
   const days = daysToRenderForMonth(month);
   const weeks: Dayjs[][] = [];
   for (let i = 0; i < days.length; i += 7) {
@@ -71,45 +71,52 @@ export function CalendarMonth({
             {week.map((date) => {
               const inMonth = date.month() === month.month();
               const isSelected = date.isSame(selectedDate, "day");
+              const isToday = date.isSame(today, "day");
               const dateISO = date.format("YYYY-MM-DD");
               const count = lessonCountByDateISO?.[dateISO] ?? 0;
+              const dots = Math.min(count, 3);
 
               return (
                 <View key={dateISO} className="flex-1 p-1">
                   <Pressable
                     onPress={() => onSelectDate(date)}
                     className={cn(
-                      "rounded-xl border px-2 py-2",
+                      "h-16 justify-between rounded-xl border px-2 py-2",
                       inMonth
                         ? "border-border bg-card dark:border-borderDark dark:bg-cardDark"
                         : "border-border/50 bg-card/60 dark:border-borderDark/50 dark:bg-cardDark/60",
-                      isSelected && "border-primary bg-primary/10 dark:border-primaryDark dark:bg-primaryDark/10",
+                      isToday && "border-accent dark:border-accent",
+                      isSelected &&
+                        "border-primary bg-primary/10 dark:border-primaryDark dark:bg-primaryDark/10",
                     )}
                   >
-                    <AppText
-                      variant="body"
-                      className={cn(
-                        "text-center",
-                        !inMonth && "text-muted dark:text-mutedDark",
-                        isSelected && theme.text.base,
-                      )}
-                    >
-                      {date.date()}
-                    </AppText>
+                    <View className="flex-row items-center justify-between">
+                      <AppText
+                        variant="body"
+                        className={cn(!inMonth && "text-muted dark:text-mutedDark")}
+                      >
+                        {date.date()}
+                      </AppText>
+                      {isToday ? <View className="h-2 w-2 rounded-full bg-accent" /> : null}
+                    </View>
 
                     {count > 0 ? (
-                      <View className="mt-2 items-center">
-                        <View className="min-w-5 rounded-full bg-primary px-2 py-0.5">
-                          <AppText
-                            className="text-center text-xs text-primaryForeground"
-                            variant="caption"
-                          >
-                            {count > 9 ? "9+" : String(count)}
+                      <View className="flex-row items-center gap-1">
+                        {Array.from({ length: dots }).map((_, index) => (
+                          <View
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={`${dateISO}-dot-${index}`}
+                            className="h-2 w-2 rounded-full bg-primary dark:bg-primaryDark"
+                          />
+                        ))}
+                        {count > 3 ? (
+                          <AppText className="text-xs text-muted dark:text-mutedDark" variant="caption">
+                            +{count - 3}
                           </AppText>
-                        </View>
+                        ) : null}
                       </View>
                     ) : (
-                      <View className="mt-2 h-5" />
+                      <View className="h-2" />
                     )}
                   </Pressable>
                 </View>
