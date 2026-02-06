@@ -1,14 +1,14 @@
-import type { GestureResponderHandlers, LayoutChangeEvent } from "react-native";
-import { Image, Modal, StyleSheet, View } from "react-native";
+﻿import type { GestureResponderHandlers, LayoutChangeEvent } from "react-native";
+import { Image, Modal, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Svg, { Polyline as SvgPolyline } from "react-native-svg";
+import Svg, { Polyline as SvgPolyline, Text as SvgText } from "react-native-svg";
 
+import type { SnapshotPoint, SnapshotStroke, SnapshotText } from "../../features/map-annotations/codec";
 import { AppButton } from "../../components/AppButton";
 import { AppInput } from "../../components/AppInput";
 import { AppText } from "../../components/AppText";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
-import type { SnapshotPoint, SnapshotStroke } from "../../features/map-annotations/codec";
 
 type Props = {
   visible: boolean;
@@ -16,12 +16,26 @@ type Props = {
   title: string;
   notes: string;
   strokes: SnapshotStroke[];
+  texts: SnapshotText[];
   activeStroke: SnapshotPoint[];
+  activeColor: string;
+  lineWidth: number;
+  colorOptions: readonly string[];
+  widthOptions: readonly number[];
+  textDraft: string;
+  placingText: boolean;
   saving: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
   onClose: () => void;
   onChangeTitle: (value: string) => void;
   onChangeNotes: (value: string) => void;
+  onChangeTextDraft: (value: string) => void;
+  onSelectColor: (value: string) => void;
+  onSelectWidth: (value: number) => void;
+  onToggleTextPlacement: () => void;
   onUndo: () => void;
+  onRedo: () => void;
   onClear: () => void;
   onSave: () => void;
   onCanvasLayout: (event: LayoutChangeEvent) => void;
@@ -38,12 +52,26 @@ export function SnapshotAnnotationModal({
   title,
   notes,
   strokes,
+  texts,
   activeStroke,
+  activeColor,
+  lineWidth,
+  colorOptions,
+  widthOptions,
+  textDraft,
+  placingText,
   saving,
+  canUndo,
+  canRedo,
   onClose,
   onChangeTitle,
   onChangeNotes,
+  onChangeTextDraft,
+  onSelectColor,
+  onSelectWidth,
+  onToggleTextPlacement,
   onUndo,
+  onRedo,
   onClear,
   onSave,
   onCanvasLayout,
@@ -69,6 +97,57 @@ export function SnapshotAnnotationModal({
             inputClassName="h-20 py-3"
           />
 
+          <View className="gap-2 rounded-xl border border-border p-3 dark:border-borderDark">
+            <AppText variant="label">Drawing style</AppText>
+
+            <View className="flex-row flex-wrap gap-2">
+              {colorOptions.map((colorOption) => {
+                const selected = colorOption.toLowerCase() === activeColor.toLowerCase();
+                return (
+                  <Pressable
+                    key={colorOption}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Select color ${colorOption}`}
+                    className={cn(
+                      "h-7 w-7 rounded-full border",
+                      selected ? "border-foreground dark:border-foregroundDark" : "border-border dark:border-borderDark",
+                    )}
+                    style={{ backgroundColor: colorOption }}
+                    onPress={() => onSelectColor(colorOption)}
+                  />
+                );
+              })}
+            </View>
+
+            <View className="flex-row flex-wrap gap-2">
+              {widthOptions.map((option) => {
+                const selected = option === lineWidth;
+                return (
+                  <AppButton
+                    key={`width-${option}`}
+                    width="auto"
+                    variant={selected ? "primary" : "secondary"}
+                    label={`${option}px`}
+                    onPress={() => onSelectWidth(option)}
+                  />
+                );
+              })}
+            </View>
+
+            <AppInput
+              label="Text label"
+              placeholder="e.g. Check mirrors"
+              value={textDraft}
+              onChangeText={onChangeTextDraft}
+            />
+            <AppButton
+              width="auto"
+              variant={placingText ? "primary" : "secondary"}
+              label={placingText ? "Tap image to place text" : "Place text"}
+              onPress={onToggleTextPlacement}
+            />
+          </View>
+
           <View
             className="flex-1 overflow-hidden rounded-2xl border border-border bg-black dark:border-borderDark"
             onLayout={onCanvasLayout}
@@ -87,8 +166,8 @@ export function SnapshotAnnotationModal({
                   key={stroke.id}
                   points={pointsToSvgPath(stroke.points)}
                   fill="none"
-                  stroke="#ef4444"
-                  strokeWidth={3}
+                  stroke={stroke.color}
+                  strokeWidth={stroke.width}
                   strokeLinejoin="round"
                   strokeLinecap="round"
                 />
@@ -98,19 +177,36 @@ export function SnapshotAnnotationModal({
                 <SvgPolyline
                   points={pointsToSvgPath(activeStroke)}
                   fill="none"
-                  stroke="#f97316"
-                  strokeWidth={3}
+                  stroke={activeColor}
+                  strokeWidth={lineWidth}
                   strokeLinejoin="round"
                   strokeLinecap="round"
+                  strokeDasharray="8 6"
                 />
               ) : null}
+
+              {texts.map((textItem) => (
+                <SvgText
+                  key={textItem.id}
+                  x={textItem.x}
+                  y={textItem.y}
+                  fill={textItem.color}
+                  stroke="#000000"
+                  strokeWidth={0.4}
+                  fontSize={16}
+                  fontWeight="600"
+                >
+                  {textItem.text}
+                </SvgText>
+              ))}
             </Svg>
 
             <View style={StyleSheet.absoluteFillObject} {...panHandlers} />
           </View>
 
           <View className="flex-row flex-wrap gap-2">
-            <AppButton width="auto" variant="secondary" label="Undo" onPress={onUndo} />
+            <AppButton width="auto" variant="secondary" label="Undo" disabled={!canUndo} onPress={onUndo} />
+            <AppButton width="auto" variant="secondary" label="Redo" disabled={!canRedo} onPress={onRedo} />
             <AppButton width="auto" variant="secondary" label="Clear" onPress={onClear} />
             <AppButton
               width="auto"

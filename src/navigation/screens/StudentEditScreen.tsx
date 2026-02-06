@@ -6,6 +6,7 @@ import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
+import { AddressAutocompleteInput } from "../../components/AddressAutocompleteInput";
 import { AppDateInput } from "../../components/AppDateInput";
 import { AppInput } from "../../components/AppInput";
 import { AppStack } from "../../components/AppStack";
@@ -349,11 +350,13 @@ export function StudentEditScreen({ navigation, route }: Props) {
             control={form.control}
             name="address"
             render={({ field }) => (
-              <AppInput
+              <AddressAutocompleteInput
                 label="Address (optional)"
                 value={field.value}
                 onChangeText={field.onChange}
                 onBlur={field.onBlur}
+                placeholder="Start typing an address"
+                autoCapitalize="words"
               />
             )}
           />

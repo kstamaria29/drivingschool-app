@@ -6,7 +6,7 @@ import "dotenv/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   const extra = (config.extra ?? {}) as Record<string, unknown>;
-  const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY;
+  const googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY ?? process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
   const iosConfig = config.ios ?? {};
   const androidConfig = config.android ?? {};
   const androidNativeConfig = (androidConfig.config ?? {}) as Record<string, unknown>;
@@ -47,6 +47,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       supabaseAnonKey:
         process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ??
         (typeof extra.supabaseAnonKey === "string" ? extra.supabaseAnonKey : undefined),
+      googleMapsApiKey:
+        googleMapsApiKey ??
+        (typeof extra.googleMapsApiKey === "string" ? extra.googleMapsApiKey : undefined),
     },
   };
 };

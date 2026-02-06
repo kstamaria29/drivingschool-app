@@ -1,12 +1,12 @@
-import dayjs from "dayjs";
+﻿import dayjs from "dayjs";
 import type { LayoutChangeEvent } from "react-native";
 import { Image, Modal, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Svg, { Polyline as SvgPolyline } from "react-native-svg";
+import Svg, { Polyline as SvgPolyline, Text as SvgText } from "react-native-svg";
 
+import type { SnapshotPoint, SnapshotStroke, SnapshotText } from "../../features/map-annotations/codec";
 import { AppButton } from "../../components/AppButton";
 import { AppText } from "../../components/AppText";
-import type { SnapshotPoint, SnapshotStroke } from "../../features/map-annotations/codec";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 
@@ -16,6 +16,7 @@ export type SnapshotPreview = {
   notes: string | null;
   imageBase64: string;
   strokes: SnapshotStroke[];
+  texts: SnapshotText[];
   width: number;
   height: number;
   createdAt: string;
@@ -99,12 +100,36 @@ export function SnapshotPreviewModal({
                       ),
                     )}
                     fill="none"
-                    stroke="#ef4444"
-                    strokeWidth={3}
+                    stroke={stroke.color}
+                    strokeWidth={stroke.width}
                     strokeLinejoin="round"
                     strokeLinecap="round"
                   />
                 ))}
+
+                {snapshot.texts.map((textItem) => {
+                  const scaledPoint = scalePoint(
+                    { x: textItem.x, y: textItem.y },
+                    snapshot.width,
+                    snapshot.height,
+                    canvasSize,
+                  );
+
+                  return (
+                    <SvgText
+                      key={textItem.id}
+                      x={scaledPoint.x}
+                      y={scaledPoint.y}
+                      fill={textItem.color}
+                      stroke="#000000"
+                      strokeWidth={0.4}
+                      fontSize={16}
+                      fontWeight="600"
+                    >
+                      {textItem.text}
+                    </SvgText>
+                  );
+                })}
               </Svg>
             ) : null}
           </View>

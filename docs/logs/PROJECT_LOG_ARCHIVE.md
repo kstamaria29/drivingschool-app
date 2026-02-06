@@ -1503,3 +1503,17 @@
 - **How to verify:**
   - On `Home`: confirm the lessons card heading reads "Upcoming Lessons Today".
 
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Underline next-days date headers
+- **Summary:**
+  - Underlined the day/date headers in the "Next 3 days" section and matched the font size to student rows.
+- **Files changed:**
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On `Home`: confirm each day/date header in "Next 3 days" is underlined and uses the same text size as the student names.
+

@@ -1,20 +1,6 @@
 ﻿# PROJECT_LOG.md
 
 - **Date:** 2026-02-05 (Pacific/Auckland)
-- **Task:** Underline next-days date headers
-- **Summary:**
-  - Underlined the day/date headers in the "Next 3 days" section and matched the font size to student rows.
-- **Files changed:**
-  - `src/navigation/screens/HomeScreen.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - On `Home`: confirm each day/date header in "Next 3 days" is underlined and uses the same text size as the student names.
-
----
-
-- **Date:** 2026-02-05 (Pacific/Auckland)
 - **Task:** Settings: Account settings + instructor creation
 - **Summary:**
   - Renamed Settings "Profile" section to "Account Settings" and displays full name (first + last) when available.
@@ -486,4 +472,36 @@
   - Open drawer -> Google Maps, select a pin, tap Anchored vector, draw on map, and save; confirm saved lines re-render when reopening the pin.
   - Select a pin, tap Snapshot, draw over the captured image, save, then tap the snapshot item to confirm preview rendering.
   - Tap Auto-pin active student addresses and confirm pins are created for active students with addresses that were not already pinned.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Google Maps main-map annotations + NZ address autocomplete
+- **Summary:**
+  - Added main-map annotation support so anchored vectors and snapshots work even when no pin is selected.
+  - Added drawing controls for anchored vectors and snapshots: color, line thickness, text placement, undo, and redo.
+  - Added NZ-only Google address search/autocomplete on Google Maps and zoom-to-address behavior.
+  - Added reusable NZ address autocomplete input and integrated it into student address editing.
+  - Extended annotation payload parsing/serialization to persist styled strokes and text labels.
+- **Files changed:**
+  - `.env.example`
+  - `README.md`
+  - `app.config.ts`
+  - `src/components/AddressAutocompleteInput.tsx`
+  - `src/features/maps/places.ts`
+  - `src/features/map-annotations/codec.ts`
+  - `src/navigation/components/SnapshotAnnotationModal.tsx`
+  - `src/navigation/components/SnapshotPreviewModal.tsx`
+  - `src/navigation/screens/GoogleMapsScreen.tsx`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+  - `npx expo config --type public`
+- **How to verify:**
+  - Open `Google Maps`, type an NZ address, pick autocomplete suggestion, and confirm the map zooms to that location.
+  - In `Google Maps`, use top-panel `Anchored vector` and `Snapshot` (without selecting a pin) and confirm color/width/text + undo/redo + save all work.
+  - Select an existing pin and confirm the same annotation tools still work for pin-scoped annotations.
+  - Open `Students` -> `New/Edit student` and confirm the Address field now shows NZ autocomplete suggestions while typing.
 

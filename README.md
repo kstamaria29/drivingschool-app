@@ -52,7 +52,11 @@ Out of scope in this repo task: Google Calendar sync.
 EXPO_PUBLIC_SUPABASE_URL=...
 EXPO_PUBLIC_SUPABASE_ANON_KEY=...
 GOOGLE_MAPS_API_KEY=...
+# Optional alias for runtime access in Expo:
+EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=...
 ```
+
+Use a Google key with Maps + Places Autocomplete + Place Details + Geocoding enabled.
 
 ### EAS builds (APK / AAB)
 
@@ -83,7 +87,7 @@ Then press `a` for Android (or scan the QR code with Expo Go).
 - Students v1 (create/edit/archive + owner/instructor permissions via RLS)
 - Lessons v1 (Today / This Week list + create/edit + calendar view)
 - Assessments v1 (Driving Assessment: score criteria + save + export PDF)
-- Google Maps screen (drawer entry) with map layer toggle and organization-safe map pins with notes
+- Google Maps screen (drawer entry) with map layer toggle, organization-safe map pins, anchored vector/snapshot annotations, and NZ address search/autocomplete
 
 ## 6) Repo notes
 
