@@ -1417,3 +1417,17 @@
   - Confirm Address shows as a 2-row field, while other fields are label/value inline rows.
   - Clear Notes for a student and confirm the Notes card disappears.
 
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Tighten contact row spacing
+- **Summary:**
+  - Reduced the spacing between inline labels (e.g. `Email:`) and values on the Student profile screen.
+- **Files changed:**
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open a student profile and confirm `Email:` sits close to the email value (no large gap).
+

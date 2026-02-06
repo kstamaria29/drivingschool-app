@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Pressable, View } from "react-native";
+import { Alert, Pressable, View } from "react-native";
 import type { DrawerContentComponentProps } from "@react-navigation/drawer";
 import { DrawerContentScrollView } from "@react-navigation/drawer";
 import {
@@ -8,6 +8,7 @@ import {
   ChevronRight,
   ClipboardList,
   Home,
+  LogOut,
   Settings,
   Users,
 } from "lucide-react-native";
@@ -20,6 +21,7 @@ import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { getProfileFullName } from "../../utils/profileName";
 import { useCurrentUser } from "../../features/auth/current-user";
+import { useSignOutMutation } from "../../features/auth/queries";
 import { useAppColorScheme } from "../../providers/ColorSchemeProvider";
 import {
   useOrganizationQuery,
@@ -74,6 +76,7 @@ export function AppDrawerContent({
 }: Props) {
   const { profile } = useCurrentUser();
   const { scheme } = useAppColorScheme();
+  const signOutMutation = useSignOutMutation();
 
   const organizationQuery = useOrganizationQuery(profile.organization_id);
   const settingsQuery = useOrganizationSettingsQuery(profile.organization_id);
@@ -85,6 +88,23 @@ export function AppDrawerContent({
 
   const iconColor = scheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
   const backgroundColor = scheme === "dark" ? theme.colors.backgroundDark : theme.colors.backgroundLight;
+
+  function confirmSignOut() {
+    Alert.alert("Sign out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign out",
+        style: "destructive",
+        onPress: () => {
+          signOutMutation.mutate(undefined, {
+            onError: () => {
+              Alert.alert("Couldn't sign out", "Please try again.");
+            },
+          });
+        },
+      },
+    ]);
+  }
 
   return (
     <DrawerContentScrollView
@@ -182,6 +202,15 @@ export function AppDrawerContent({
             onPress={() => navigation.navigate("Assessments")}
           />
         </View>
+
+        <DrawerRow
+          collapsed={collapsed}
+          label={signOutMutation.isPending ? "Signing out..." : "Sign out"}
+          icon={<LogOut color={iconColor} size={20} />}
+          active={false}
+          onPress={confirmSignOut}
+          disabled={signOutMutation.isPending}
+        />
 
         <View className="mt-2">
           <AppDivider />

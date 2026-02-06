@@ -1,20 +1,6 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-05 (Pacific/Auckland)
-- **Task:** Tighten contact row spacing
-- **Summary:**
-  - Reduced the spacing between inline labels (e.g. `Email:`) and values on the Student profile screen.
-- **Files changed:**
-  - `src/navigation/screens/StudentDetailScreen.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Open a student profile and confirm `Email:` sits close to the email value (no large gap).
-
----
-
-- **Date:** 2026-02-05 (Pacific/Auckland)
 - **Task:** Tighten licence inline spacing
 - **Summary:**
   - Adjusted inline detail rows to keep the space after `:` tight while keeping Licence rows neatly aligned.
@@ -410,4 +396,24 @@
   - Apply `supabase/migrations/010_admin_role.sql` in Supabase SQL Editor.
   - Set one profile role to `admin` and confirm admin can create instructors and change org logo.
   - Confirm instructor permissions remain restricted to assigned records.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Add drawer sign-out with confirmation
+- **Summary:**
+  - Added a `Sign out` action in the sidebar menu above the bottom divider/settings block.
+  - Added a confirmation alert (`Cancel` / `Sign out`) before signing out.
+  - On confirmation, triggers auth sign-out so the app returns to the login flow.
+- **Files changed:**
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open the drawer and confirm `Sign out` appears above the divider and `Settings`.
+  - Tap `Sign out` and confirm the confirmation alert appears.
+  - Tap `Cancel` and confirm you remain signed in.
+  - Tap `Sign out` in the alert and confirm you are returned to `LoginScreen`.
 
