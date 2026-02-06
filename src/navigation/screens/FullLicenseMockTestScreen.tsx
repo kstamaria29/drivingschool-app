@@ -23,7 +23,9 @@ import { ensureAndroidDownloadsDirectoryUri } from "../../features/assessments/a
 import { useCreateAssessmentMutation } from "../../features/assessments/queries";
 import {
   fullLicenseMockTestAssessmentItems,
+  fullLicenseMockTestHazardCategories,
   fullLicenseMockTestHazardCategoryLabels,
+  fullLicenseMockTestHazardDirections,
   fullLicenseMockTestHazardDirectionLabels,
   fullLicenseMockTestHazardLayout,
   fullLicenseMockTestCriticalErrors,
@@ -1261,17 +1263,18 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       </AppText>
 
       <AppStack gap="sm">
-        {(
-          Object.entries(fullLicenseMockTestHazardLayout) as Array<
-            [FullLicenseMockTestHazardCategory, readonly FullLicenseMockTestHazardDirection[]]
-          >
-        ).map(([category, directions]) => (
+        {fullLicenseMockTestHazardCategories.map((category) => (
           <View key={category} className="flex-row items-center justify-between gap-3">
             <AppText variant="body" className="w-28">
               {fullLicenseMockTestHazardCategoryLabels[category]}
             </AppText>
-            <View className="flex-1 flex-row flex-wrap justify-end gap-2">
-              {directions.map((direction) => {
+            <View className="flex-1 flex-row justify-end gap-2">
+              {fullLicenseMockTestHazardDirections.map((direction) => {
+                const isInCategory = fullLicenseMockTestHazardLayout[category].includes(direction);
+                if (!isInCategory) {
+                  return <View key={`${category}:${direction}`} className="h-11 w-11" />;
+                }
+
                 const response = hazardResponses[category][direction];
                 return (
                   <Pressable
