@@ -545,6 +545,7 @@ At the start of EVERY task, Codex MUST:
 
 1. Open and read `AGENTS.md`
 2. Open and read `PROJECT_LOG.md`
+3. Read `docs/logs/PROJECT_LOG_ARCHIVE.md` only when older context is needed
 
 Codex must use these files as the source of truth for decisions, structure, and what has already been done.
 
@@ -646,6 +647,7 @@ If any checklist item cannot be completed, Codex must explicitly state:
 Codex MUST maintain a running project log file at:
 
 - `PROJECT_LOG.md`
+- `docs/logs/PROJECT_LOG_ARCHIVE.md` (archive for older entries)
 
 ### Rules
 
@@ -662,6 +664,10 @@ Codex MUST maintain a running project log file at:
    - **Notes / follow-ups** (any TODOs or risks)
 
 3. Keep entries short and skimmable. Prefer bullet points.
+
+4. Keep only the most recent 20 entries in `PROJECT_LOG.md`.
+   - When adding a new entry would exceed 20, move the oldest entries to `docs/logs/PROJECT_LOG_ARCHIVE.md`.
+   - Preserve chronological order in both files.
 
 ### Template for each entry
 

@@ -1,0 +1,1400 @@
+# PROJECT_LOG archive
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Initialize repo documentation
+- **Summary:**
+  - Added initial `AGENTS.md` with v1 scope, stack decisions, schema, RLS rules, UI priorities, and Codex instructions.
+  - Added requirement to maintain this `PROJECT_LOG.md` after every task.
+- **Files changed:**
+  - `AGENTS.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - N/A (documentation only)
+- **Notes/TODO:**
+  - Next: run Codex task to bootstrap Expo project + Supabase migrations + auth/onboarding.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Bootstrap mobile app (Auth + Onboarding)
+- **Summary:**
+  - Initialized Expo React Native + TypeScript project structure and configured tablet portrait orientation.
+  - Added NativeWind + Tailwind setup and introduced shared UI primitives (`Screen`, `AppText`, `AppButton`, `AppInput`, `AppCard`, `AppStack`).
+  - Implemented React Navigation with `AuthStack` and `MainTabs`, plus an auth gate that checks Supabase session and routes first-time users into onboarding.
+  - Added Supabase client setup for Expo/React Native (AsyncStorage + URL polyfill) and public env var wiring via `.env`.
+  - Implemented email/password auth (sign in + sign up) and onboarding flow to create an organization + owner profile and optionally upload an org logo to Storage.
+  - Added Supabase SQL migrations for `organizations`, `profiles`, `organization_settings`, required triggers, RLS policies, and onboarding RPC.
+  - Added Storage bucket policy SQL for `org-logos` access rules (read within org; owner-only write).
+  - Updated README with step-by-step Supabase setup + running instructions.
+  - Fixed setup issues encountered during bootstrap:
+    - TypeScript JSX config error (`Cannot use JSX unless the '--jsx' flag is provided`).
+    - Metro bundling error for missing `babel-preset-expo`.
+    - Supabase `gotrue-js` lock timeout warnings (singleton client + retry); silenced third-party SafeAreaView deprecation warning.
+    - Supabase `profiles` policy recursion error (added follow-up migration to remove recursive RLS patterns).
+- **Files changed (high level):**
+  - App/config: `App.tsx`, `index.ts`, `app.json`, `package.json`, `tsconfig.json`, `.gitignore`, `.env.example`, `README.md`
+  - NativeWind: `babel.config.js`, `metro.config.js`, `tailwind.config.js`, `global.css`, `nativewind-env.d.ts`, `declarations.d.ts`
+  - UI primitives: `src/components/*`, `src/theme/theme.ts`, `src/utils/*`
+  - Navigation/auth/onboarding: `src/navigation/*`, `src/features/auth/*`, `src/features/onboarding/*`, `src/providers/*`, `src/supabase/*`
+  - Supabase SQL: `supabase/migrations/001_auth_onboarding.sql`, `supabase/migrations/002_fix_profiles_rls.sql`, `supabase/storage/org-logos.sql`
+- **Commands run (representative):**
+  - `npx create-expo-app@latest _tmp --template blank-typescript --yes --no-install`
+  - `npm install`
+  - `npm install nativewind`
+  - `npx expo install react-native-reanimated react-native-safe-area-context react-native-gesture-handler react-native-screens`
+  - `npm install @react-navigation/native @react-navigation/native-stack @react-navigation/bottom-tabs`
+  - `npm install @supabase/supabase-js @tanstack/react-query react-hook-form zod @hookform/resolvers dayjs react-native-url-polyfill`
+  - `npx expo install @react-native-async-storage/async-storage expo-image-picker`
+  - `npm install --save-dev tailwindcss prettier-plugin-tailwindcss babel-preset-expo`
+  - `npx tsc --noEmit`
+- **Verification:**
+  - TypeScript compile check via `npx tsc --noEmit` (local).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add dark mode + icons + theme polish
+- **Summary:**
+  - Added persisted light/dark theme toggle and wired it into Settings.
+  - Introduced dark-mode styles across core primitives (screen, cards, buttons, inputs) and key UI surfaces (drawer/header/calendar).
+  - Added Lucide icons to key CTAs and improved the Weather widget with condition icons.
+  - Added an accent color and softer depth (shadows/borders) to reduce the “plain” look.
+- **Files changed:**
+  - `App.tsx`
+  - `tailwind.config.js`
+  - `src/theme/theme.ts`
+  - `src/providers/ColorSchemeProvider.tsx`
+  - `src/providers/AppProviders.tsx`
+  - `src/components/AppButton.tsx`
+  - `src/components/AppInput.tsx`
+  - `src/components/AppDateInput.tsx`
+  - `src/components/AppSegmentedControl.tsx`
+  - `src/components/CalendarMonth.tsx`
+  - `src/navigation/components/HeaderButtons.tsx`
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/navigation/screens/AssessmentsListScreen.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open Settings and toggle Light/Dark; confirm the whole app updates (background, cards, borders, text).
+  - Confirm Home shows weather icons and key buttons show icons.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Enhance Home screen (greeting + weather)
+- **Summary:**
+  - Updated Home screen header to greet the signed-in user based on time of day.
+  - Replaced quick actions with 3 buttons: New Assessment, New Lesson, New Student.
+  - Added NZ weather widget showing current conditions + 2-day forecast, and (when permitted) current city/location.
+- **Files changed:**
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/features/weather/api.ts`
+  - `src/features/weather/queries.ts`
+  - `src/features/weather/WeatherWidget.tsx`
+  - `app.json`
+  - `package.json`
+  - `package-lock.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx expo install expo-location`
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open Home and confirm it shows `Good morning/afternoon/evening <name>!` and the 3 buttons in the requested order.
+  - Tap `Use my location` and confirm it shows your NZ city and local weather (or keeps the Auckland fallback if denied).
+  - Confirm the weather section shows current conditions and the next 2 days forecast.
+- **Notes/TODO:**
+  - `npm audit` reports 1 high severity vulnerability in dependencies; review separately if needed.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Refine mock test screen layout
+- **Summary:**
+  - Hid the `Pre-drive checks` section after the mock test has started to keep the test stage focused.
+  - Made Stage 1 and Stage 2 sections collapsible (Stage 2 remains locked until enabled).
+- **Files changed:**
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - In app: `Assessments` ? `Start Mock Test` ? `Start test` ? confirm `Pre-drive checks` is no longer shown.
+  - Confirm Stage 1/Stage 2 can be collapsed/expanded and Stage 2 shows `Locked` until enabled.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Update Driving Assessment start flow
+- **Summary:**
+  - Changed Driving Assessment to a staged flow: review student details first, confirm start, then show the scoring/test form.
+  - Kept existing PDF export + submission behavior once the test is started.
+- **Files changed:**
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - In app: `Assessments` tab ? `Start Driving Assessment` ? select a student ? confirm details screen shows `Start Test`.
+  - Tap `Start Test` ? confirm screen ? `Start` ? scoring + feedback sections appear.
+- **Notes/TODO:**
+  - Consider allowing editing of student/licence details in-test if needed later.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Refine Driving Assessment pre-test details
+- **Summary:**
+  - Merged assessment date + instructor into the pre-test details card and renamed it to `Student Assessment details`.
+  - Removed the Weather field entirely from the Driving Assessment form, history view, and PDF export.
+  - Kept the test stage focused on scoring/feedback only (details card hidden once the test starts).
+- **Files changed:**
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `src/features/assessments/driving-assessment/schema.ts`
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - In app: `Assessments` ? `Start Driving Assessment` ? verify `Student Assessment details` shows student info + date + instructor (no Weather).
+  - Tap `Start Test` ? confirm `Student Assessment details` is hidden and scoring/feedback sections show.
+  - Export PDF from a submitted assessment and confirm Weather is not present.
+- **Notes/TODO:**
+  - Older assessments with Weather in `form_data` will ignore that field when viewing/exporting.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Delete assessments from student history
+- **Summary:**
+  - Added a red delete action to the Assessment History detail view (with confirmation).
+  - Added an Assessments delete mutation and API helper.
+  - Added Supabase RLS delete policy migration for `assessments`.
+- **Files changed:**
+  - `src/features/assessments/api.ts`
+  - `src/features/assessments/queries.ts`
+  - `src/components/AppButton.tsx`
+  - `src/theme/theme.ts`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `supabase/migrations/007_assessments_delete.sql`
+  - `supabase/README.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Apply migration `supabase/migrations/007_assessments_delete.sql` in Supabase SQL Editor.
+  - In app: Student ? Assessment History ? select an assessment ? tap `Delete assessment` ? confirm it disappears from the list.
+- **Notes/TODO:**
+  - Deleting is permanent (no archive) for assessments in v1.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Standardize date display to DD/MM/YYYY
+- **Summary:**
+  - Standardized user-facing date formatting to `DD/MM/YYYY` across Home, Lessons, Students, and Assessments.
+  - Added shared date parsing/formatting utilities to support both legacy ISO strings and new display format.
+  - Updated forms + Zod schemas to validate `DD/MM/YYYY` (while still accepting ISO inputs for backwards compatibility).
+- **Files changed:**
+  - `src/utils/dayjs.ts`
+  - `src/utils/dates.ts`
+  - `src/features/students/schemas.ts`
+  - `src/features/lessons/schemas.ts`
+  - `src/features/assessments/driving-assessment/schema.ts`
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open Home/Lessons and confirm dates render as `DD/MM/YYYY`.
+  - Create/edit a Student and Lesson and confirm date inputs accept `DD/MM/YYYY`.
+  - Create a Driving Assessment and confirm saved assessment + PDF export shows `DD/MM/YYYY`.
+- **Notes/TODO:**
+  - Lesson month header still uses `MMMM YYYY` (calendar context); only specific dates were standardized.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add date picker inputs
+- **Summary:**
+  - Added `AppDateInput` primitive that opens a native date picker (spinner-style where available).
+  - Replaced manual date typing with date pickers for Lessons, Students (licence dates), and Driving Assessments.
+  - Kept optional dates clearable via a quick “Clear” action.
+- **Files changed:**
+  - `src/components/AppDateInput.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `package.json`
+  - `package-lock.json`
+  - `app.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx expo install @react-native-community/datetimepicker`
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open Lesson create/edit ? tap Date ? picker appears ? save lesson.
+  - Open Student edit ? tap Issue/Expiry date ? picker appears; use Clear to remove.
+  - Open Driving Assessment ? tap Date fields ? picker appears; submit assessment successfully.
+- **Notes/TODO:**
+  - `npm audit` reports 1 high severity vulnerability in dependencies; consider addressing separately to avoid unrelated diffs.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Save assessment PDFs to Downloads + notify
+- **Summary:**
+  - Added Android Downloads-folder saving via Storage Access Framework (one-time folder picker; then saves directly).
+  - Falls back to app storage if Android folder permission is revoked.
+  - Added local “PDF saved” notification; tapping it attempts to open the saved PDF.
+  - Kept iOS saving in app storage (sandbox) but added the same notification + tap-to-open behavior.
+- **Files changed:**
+  - `src/features/assessments/android-downloads.ts`
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/features/notifications/download-notifications.ts`
+  - `src/utils/open-pdf.ts`
+  - `src/app/AppRoot.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `package.json`
+  - `package-lock.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx expo install expo-notifications expo-intent-launcher`
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Android: submit an assessment, pick Downloads when prompted, then confirm a “PDF saved” notification appears; tap it to open the PDF.
+  - iOS: submit an assessment, confirm a “PDF saved” notification appears; tap it to open the PDF.
+- **Notes/TODO:**
+  - iOS cannot save directly to a global Downloads folder due to OS sandboxing; opening from the notification is the “download complete” UX.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Make Lessons screen fully scrollable on phone
+- **Summary:**
+  - Switched to a single outer scroll container on phone-sized screens so the entire Lessons screen (header + calendar + agenda) scrolls together.
+  - Kept tablet behavior: calendar stays visible while only the agenda area scrolls.
+- **Files changed:**
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - On a phone device/simulator, swipe up anywhere on the Lessons screen and confirm the whole screen scrolls.
+  - On a tablet device/simulator, confirm the calendar stays fixed and only the lesson list scrolls.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Driving Assessment submit UX
+- **Summary:**
+  - Made score calculation update live as criteria are scored.
+  - Replaced the two non-responsive save buttons with a single “Submit and generate PDF” button.
+  - Added validation feedback + a confirmation prompt before saving/exporting.
+- **Files changed:**
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open a Driving Assessment, press submit with no student selected and confirm an error prompt appears.
+  - Select a student, tap scores, confirm the total/summary updates immediately.
+  - Press “Submit and generate PDF” and confirm the confirmation dialog appears and the PDF share sheet opens after submitting.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Driving Assessment validation for scores
+- **Summary:**
+  - Fixed form validation so scored criteria no longer fails submit due to array-shaped `scores` values.
+  - Improved invalid-submit alerts to use the actual validation errors from React Hook Form.
+- **Files changed:**
+  - `src/features/assessments/driving-assessment/schema.ts`
+  - `src/features/assessments/driving-assessment/scoring.ts`
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Fill the Driving Assessment scores and tap `Submit and generate PDF` ? confirmation dialog should appear.
+  - If you intentionally enter an invalid date/email, the validation alert should show the specific field error.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Update Driving Assessment PDF layout
+- **Summary:**
+  - Updated PDF output to a 2-page layout: page 1 shows Personal Information + the Total Score Assessment Guide; page 2 shows Assessment Scores + a single combined Feedback box.
+  - Removed Assessment ID from the PDF and added organization name to the header.
+- **Files changed:**
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Submit a Driving Assessment and confirm the PDF has 2 pages with the requested section layout and org name header.
+- **Notes/TODO:**
+  - If feedback text is very long, it may still overflow beyond one page (expected behavior for print-to-PDF HTML).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Name Driving Assessment PDFs
+- **Summary:**
+  - Updated PDF export to copy the generated file to a named path using `expo-file-system` so the share sheet uses `First Last DD-MM-YY.pdf`.
+- **Files changed:**
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `package.json`
+  - `package-lock.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx expo install expo-file-system`
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Submit a Driving Assessment and confirm the shared PDF filename is `First Last DD-MM-YY.pdf`.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add split view for tablet landscape Lessons
+- **Summary:**
+  - Updated Lessons screen to use a two-column layout in tablet landscape: calendar on the left, agenda on the right.
+  - Kept existing behavior on tablet portrait (calendar above agenda) and phones (single-page scroll).
+- **Files changed:**
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - On a tablet in landscape, confirm calendar renders on the left and lesson list on the right with the list scrollable.
+  - Rotate back to portrait and confirm the layout matches the previous (calendar above, agenda below).
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix LessonEditScreen hook order crash
+- **Summary:**
+  - Fixed React hook-order runtime error when opening an existing lesson by ensuring all hooks run before any early returns.
+  - Moved the `useMemo` for `studentOptions` above the loading/error return paths.
+- **Files changed:**
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - From Lessons, tap an existing lesson; confirm no "Rendered more hooks" error and the edit form loads.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Lessons screen scrolling on phone
+- **Summary:**
+  - Fixed the Lessons screen empty/error states being clipped on small screens by making the agenda area scrollable in all states.
+  - Made the agenda `ScrollView` fill remaining height (`flex-1`) so it can actually scroll when the calendar leaves limited space on phones.
+  - Added extra bottom padding to agenda scroll content so the last card isn't cut off.
+- **Files changed:**
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - On a phone-sized simulator/device, open Lessons with 0 lessons and confirm you can scroll to fully see the "No lessons" card.
+  - Confirm the lessons list also scrolls normally when lessons exist.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix calendar week layout (7 days)
+- **Summary:**
+  - Fixed month calendar grid wrapping so weeks always render 7 columns (Mon–Sun) instead of occasionally wrapping at 6.
+  - Rendered the calendar as 6 explicit week rows (7 cells each) to avoid flex-wrap rounding issues.
+- **Files changed:**
+  - `src/components/CalendarMonth.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open Lessons tab and confirm each week row shows 7 days (Mon–Sun) with correct alignment (e.g. Feb 2026 should start on Sun).
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Make calendar the main Lessons screen
+- **Summary:**
+  - Embedded the month calendar directly into `LessonsListScreen` and removed the Today/This Week toggle and separate calendar screen.
+  - Lessons now default to showing today's agenda under the calendar, with day selection driving the list.
+- **Files changed:**
+  - `src/navigation/LessonsStackNavigator.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - TypeScript compile check via `npx tsc --noEmit` (local).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Remove org logo white background
+- **Summary:**
+  - Updated organization logo rendering to use a transparent background so PNG transparency shows correctly in dark mode.
+  - Updated the onboarding logo preview to match (no forced light background).
+- **Files changed:**
+  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `rg -n "SettingsScreen|organization logo|logo_url|Organization" -S src`
+- **Verification:**
+  - Open Settings and confirm the org logo no longer has a white square behind it.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Fix dark mode navigation chrome
+- **Summary:**
+  - Applied React Navigation theming so headers and drawer follow the selected light/dark scheme.
+  - Explicitly styled native-stack headers and drawer background to avoid the default white surfaces in dark mode.
+- **Files changed:**
+  - `src/navigation/navigationTheme.ts`
+  - `src/navigation/RootNavigation.tsx`
+  - `src/navigation/MainDrawerNavigator.tsx`
+  - `src/navigation/AuthStackNavigator.tsx`
+  - `src/navigation/HomeStackNavigator.tsx`
+  - `src/navigation/LessonsStackNavigator.tsx`
+  - `src/navigation/StudentsStackNavigator.tsx`
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/theme/theme.ts`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Toggle Light/Dark in Settings and confirm the header + drawer background switch correctly.
+  - Open/close the drawer in dark mode and confirm all text/icons remain readable.
+- **Notes/TODO:**
+  - If you still see any white flash, we can also align screen backgrounds on transition per-navigator.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Implement Mock Test – Restricted Licence assessment
+- **Summary:**
+  - Implemented the 2nd assessment as a Restricted Licence mock test (Stage 1/Stage 2 tasks, critical errors, immediate-fail errors) with auto-save draft on device.
+  - Added PDF export on submit and enabled PDF download + detailed history view in the student's assessment history.
+  - Updated Assessments list to launch the new mock test flow.
+- **Files changed:**
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `src/navigation/screens/AssessmentsListScreen.tsx`
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `src/components/AppCollapsibleCard.tsx`
+  - `src/components/AppSegmentedControl.tsx`
+  - `src/features/assessments/restricted-mock-test/constants.ts`
+  - `src/features/assessments/restricted-mock-test/pdf.ts`
+  - `src/features/assessments/restricted-mock-test/schema.ts`
+  - `src/features/assessments/restricted-mock-test/scoring.ts`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - In app: `Assessments` ? `Start Mock Test` ? select a student ? `Start test` ? fill a few faults/errors ? `Submit and generate PDF`.
+  - In student profile: `Assessment History` ? `Mock Test – Restricted` tab ? open an entry ? `Download PDF`.
+- **Notes/TODO:**
+  - Consider adding an explicit “Discard draft” action if instructors want to clear an in-progress mock test without submitting.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Remove assessment start from student profile
+- **Summary:**
+  - Removed the `New Driving Assessment` button from `StudentDetailScreen` so assessments are only initiated from the Assessments screen.
+- **Files changed:**
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open a student profile and confirm there is no `New Driving Assessment` button.
+  - Go to `Assessments` and start a Driving Assessment from there.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add student Assessment History screen
+- **Summary:**
+  - Added an Assessment History button on the student profile screen.
+  - Added `StudentAssessmentHistoryScreen` with assessment-type tabs, history list, and a Driving Assessment detail view with PDF re-export.
+  - Extended the Assessments API list query to support filtering by `assessment_type`.
+- **Files changed:**
+  - `src/features/assessments/api.ts`
+  - `src/features/assessments/driving-assessment/schema.ts`
+  - `src/navigation/StudentsStackNavigator.tsx`
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open a student ? tap `Assessment History` ? confirm you can switch tabs and see Driving Assessment history.
+  - Tap an assessment ? confirm details render and `Download PDF` exports/saves successfully.
+- **Notes/TODO:**
+  - Consider adding a dedicated detail route for phones if the combined list+detail view feels too long.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Save Driving Assessment PDFs without share sheet
+- **Summary:**
+  - Updated PDF export to save directly into app storage (`documentDirectory/driving-assessments/`) and skip opening the share sheet.
+  - Updated submit success alert to show the saved file URI.
+- **Files changed:**
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Submit a Driving Assessment and confirm the PDF is saved and a URI is shown in the success alert.
+- **Notes/TODO:**
+  - This saves to app sandbox storage; saving to a user-visible folder requires an explicit user action (platform limitation).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Implement Driving Assessment (Assessments v1)
+- **Summary:**
+  - Added Supabase `assessments` table with RLS (owner: org-wide; instructor: own assessments) and updated_at trigger.
+  - Built Assessments screens: assessment type list + Driving Assessment form (student picker, scoring criteria, feedback fields).
+  - Added PDF export for Driving Assessment using `expo-print` + `expo-sharing`.
+  - Added entry point from `StudentDetailScreen` to start a Driving Assessment pre-filled for that student.
+- **Files changed:**
+  - `supabase/migrations/006_assessments.sql`
+  - `src/supabase/types.ts`
+  - `src/features/assessments/api.ts`
+  - `src/features/assessments/queries.ts`
+  - `src/features/assessments/driving-assessment/constants.ts`
+  - `src/features/assessments/driving-assessment/schema.ts`
+  - `src/features/assessments/driving-assessment/scoring.ts`
+  - `src/features/assessments/driving-assessment/pdf.ts`
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `src/navigation/screens/AssessmentsListScreen.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `supabase/README.md`
+  - `README.md`
+  - `package.json`
+  - `package-lock.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx expo install expo-print expo-sharing`
+  - `npx tsc --noEmit`
+- **Verification:**
+  - Open `Assessments` from the drawer, start a Driving Assessment, pick a student, enter scores, and save.
+  - Tap `Save & export PDF` and confirm the share sheet appears with a generated PDF.
+- **Notes/TODO:**
+  - `2nd Assessment` and `3rd Assessment` are placeholders only.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Update AGENTS.md for Assessments scope
+- **Summary:**
+  - Updated v1 spec to include Assessments (Driving Assessment implemented; other assessment types remain placeholders).
+  - Updated schema/navigation/forms sections to reflect the new Assessments stack and `assessments` table.
+- **Files changed:**
+  - `AGENTS.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Open `AGENTS.md` and confirm Assessments is listed in v1 goals, navigation, schema, and build order.
+- **Notes/TODO:**
+  - None.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Redo navigation UI (sidebar + hamburger) + Home + Settings uploads
+- **Summary:**
+  - Replaced bottom tabs with a responsive drawer layout: permanent collapsible sidebar on tablet landscape, hamburger drawer on tablet portrait/phones.
+  - Added `Home` as the post-login landing screen (dashboard-style) and added an `Assessments` placeholder screen (no assessment features implemented).
+  - Added Settings options to upload organization logo (owner-only) and user profile photo (avatars bucket + RPC).
+  - Added Supabase migration + storage policies for profile avatars and created `supabase/README.md`.
+- **Files changed:**
+  - `src/navigation/RootNavigation.tsx`
+  - `src/navigation/MainDrawerNavigator.tsx`
+  - `src/navigation/HomeStackNavigator.tsx`
+  - `src/navigation/SettingsStackNavigator.tsx`
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/navigation/components/HeaderButtons.tsx`
+  - `src/navigation/useNavigationLayout.ts`
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/screens/AssessmentsComingSoonScreen.tsx`
+  - `src/components/Avatar.tsx`
+  - `src/components/AppDivider.tsx`
+  - `src/features/auth/current-user.tsx`
+  - `src/features/organization/api.ts`
+  - `src/features/organization/queries.ts`
+  - `src/features/profiles/api.ts`
+  - `src/features/profiles/queries.ts`
+  - `src/supabase/types.ts`
+  - `supabase/migrations/005_profile_avatars.sql`
+  - `supabase/storage/avatars.sql`
+  - `supabase/README.md`
+  - `README.md`
+  - `package.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None (dependencies were not installed in this environment).
+- **Verification:**
+  - Run `npm install`, then `npx tsc --noEmit`.
+  - On tablet landscape: confirm sidebar is permanent and collapsible (icons-only when collapsed).
+  - On tablet portrait/phone: confirm hamburger opens left drawer and avatar button shows on the right.
+  - In Settings: upload org logo (owner) and profile photo; confirm drawer/header reflect updates.
+- **Notes/TODO:**
+  - `Assessments` remains a placeholder only (v1 explicitly excludes assessment features).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Worklets version mismatch (Expo runtime crash)
+- **Summary:**
+  - Pinned `react-native-worklets` to `0.5.1` (dependency + npm overrides) to match the native Worklets version bundled with the current app runtime.
+- **Files changed:**
+  - `package.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Delete `node_modules` and reinstall: `npm install`
+  - Start Metro with a clean cache: `npx expo start -c`
+  - Confirm the red Worklets mismatch screen no longer appears.
+- **Notes/TODO:**
+  - If using a custom dev client, rebuild the dev client after dependency changes.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Align AGENTS.md with new navigation UI
+- **Summary:**
+  - Updated the navigation spec to describe the responsive drawer layout (sidebar in tablet landscape, hamburger in portrait/mobile) and set `HomeScreen` as the default post-login landing screen.
+  - Clarified `Assessments` as a placeholder-only route in v1 (no assessment features).
+- **Files changed:**
+  - `AGENTS.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Open `AGENTS.md` and confirm sections 8/10/11 match the current app navigation.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add top padding to drawer menus
+- **Summary:**
+  - Increased top padding for the drawer content so both the permanent sidebar and hamburger drawer menus start lower (`pt-10`).
+- **Files changed:**
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Open the drawer on phone/tablet portrait and confirm menu content starts lower.
+  - On tablet landscape, confirm the sidebar content has the same top spacing.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix image upload "Network request failed"
+- **Summary:**
+  - Switched logo/avatar uploads to use `expo-image-picker` base64 data instead of `fetch(asset.uri)`, avoiding failures with `content://` URIs on Android.
+- **Files changed:**
+  - `src/utils/base64.ts`
+  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/features/onboarding/api.ts`
+  - `src/features/organization/api.ts`
+  - `src/features/profiles/api.ts`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Open Settings and upload an organization logo + profile photo; confirm both uploads succeed and images render in the drawer/header.
+  - Complete onboarding with a logo selected; confirm the org logo uploads successfully.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Blob upload + ImagePicker deprecation
+- **Summary:**
+  - Updated Supabase Storage uploads to pass `Uint8Array` directly (avoids RN Blob limitation: “Creating blobs from ArrayBuffer…”).
+  - Switched `expo-image-picker` usage away from deprecated `ImagePicker.MediaTypeOptions`.
+- **Files changed:**
+  - `src/features/onboarding/api.ts`
+  - `src/features/organization/api.ts`
+  - `src/features/profiles/api.ts`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Upload org logo + profile photo and confirm uploads succeed without Blob errors or ImagePicker deprecation warnings.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Remove org logo border radius
+- **Summary:**
+  - Made the organization logo render as a square (no rounded corners) across the drawer header, Settings, and onboarding preview.
+- **Files changed:**
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Open the drawer and Settings and confirm the org logo has sharp corners.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix nested screen name warning
+- **Summary:**
+  - Renamed stack screen route names so drawer routes don't nest screens with the same name (removes `Home, Home > Home` warning; also prevents the same issue for Settings/Assessments).
+- **Files changed:**
+  - `src/navigation/HomeStackNavigator.tsx`
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/navigation/SettingsStackNavigator.tsx`
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Start the app and confirm the terminal no longer warns about nested screens with the same name.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Switch app font to Poppins
+- **Summary:**
+  - Added Poppins via Expo Google Fonts and block app render until fonts are loaded.
+  - Updated `AppText` and `AppInput` primitives to use Poppins weights (regular/medium/semibold) without relying on `fontWeight`.
+- **Files changed:**
+  - `App.tsx`
+  - `src/theme/fonts.ts`
+  - `src/components/AppText.tsx`
+  - `src/components/AppInput.tsx`
+  - `src/theme/theme.ts`
+  - `package.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Install deps: `npx expo install @expo-google-fonts/poppins expo-font`
+  - Start: `npx expo start -c`
+  - Confirm text + inputs render in Poppins across Home/Lessons/Students/Settings.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Poppins imports for Expo Google Fonts
+- **Summary:**
+  - Fixed `App.tsx` to import Poppins weights from `@expo-google-fonts/poppins` (the installed package exports fonts from its root, not `.../400Regular` subpaths).
+- **Files changed:**
+  - `App.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - None
+- **Verification:**
+  - Run `npx expo start -c` and confirm Metro no longer reports `Unable to resolve "@expo-google-fonts/poppins/400Regular"`.
+- **Notes/TODO:**
+  - None
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Fix Lessons screen layout (no forced scrolling)
+- **Summary:**
+  - Added `AppButton` `width` prop to support `auto` sizing in horizontal rows while preserving full-width by default.
+  - Refactored `LessonsListScreen` to keep the calendar visible and make only the agenda list scrollable.
+  - Updated row button usage across Lessons/Students screens to avoid overflow and pushed-down content.
+- **Files changed:**
+  - `src/theme/theme.ts`
+  - `src/components/AppButton.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - TypeScript compile check via `npx tsc --noEmit` (local).
+  - Manual run verified up to login/onboarding flow; Supabase RLS recursion fixed via follow-up migration.
+- **Notes/TODO:**
+  - Students and Lessons features are intentionally not implemented yet (per v1 build order).
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Implement Students feature (v1: CRUD + archive)
+- **Summary:**
+  - Added `students` table migration with RLS policies (owner: org-wide; instructor: assigned only) and updated_at trigger.
+  - Implemented typed Students data layer (`features/students/api.ts` + `features/students/queries.ts`) and Zod form schema.
+  - Added Profiles query helper for owner instructor assignment picker.
+  - Built Students stack navigation and screens:
+    - `StudentsListScreen` (active/archived toggle + create)
+    - `StudentDetailScreen` (view + archive/unarchive)
+    - `StudentEditScreen` (create/edit form with assignment rules)
+  - Wired Students stack into `MainTabs` (removed old placeholder).
+  - Updated README to include `003_students.sql` migration and mark Students as implemented.
+- **Files changed:**
+  - `supabase/migrations/003_students.sql`
+  - `src/supabase/types.ts`
+  - `src/features/students/api.ts`
+  - `src/features/students/queries.ts`
+  - `src/features/students/schemas.ts`
+  - `src/features/profiles/api.ts`
+  - `src/features/profiles/queries.ts`
+  - `src/navigation/MainTabsNavigator.tsx`
+  - `src/navigation/StudentsStackNavigator.tsx`
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `README.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - TypeScript compile check via `npx tsc --noEmit` (local).
+- **Notes/TODO:**
+  - Next: implement Lessons scheduling (Today view + edit) per v1.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Implement Lessons scheduling (v1: Today/Week + create/edit)
+- **Summary:**
+  - Added `lessons` table migration with constraints, indexes, updated_at trigger, and RLS policies (owner: org-wide; instructor: own lessons only).
+  - Enforced lesson integrity in RLS: lesson instructor must be in org and match the student's assigned instructor.
+  - Implemented typed Lessons data layer (`features/lessons/api.ts` + `features/lessons/queries.ts`) and Zod form schema using Day.js for time calculations.
+  - Added `LessonsStack` navigation with `LessonsListScreen` (Today/This Week) and `LessonEditScreen` (create/edit).
+  - Added `AppBadge` primitive for lesson status chips and wired Lessons stack into MainTabs.
+  - Updated README to include `004_lessons.sql` migration and mark Lessons as implemented.
+- **Files changed:**
+  - `supabase/migrations/004_lessons.sql`
+  - `src/supabase/types.ts`
+  - `src/features/lessons/api.ts`
+  - `src/features/lessons/queries.ts`
+  - `src/features/lessons/schemas.ts`
+  - `src/components/AppBadge.tsx`
+  - `src/navigation/LessonsStackNavigator.tsx`
+  - `src/navigation/MainTabsNavigator.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `README.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - TypeScript compile check via `npx tsc --noEmit` (local).
+- **Notes/TODO:**
+  - Next: polish lesson time input UX (date/time pickers) if needed, without adding heavy deps.
+
+---
+
+- **Date:** 2026-02-04 (Pacific/Auckland)
+- **Task:** Add calendar view for Lessons
+- **Summary:**
+  - Added an in-app month calendar screen for Lessons with per-day lesson counts and an agenda list for the selected day.
+  - Added navigation entry points from `LessonsListScreen` and the calendar screen to create a lesson on the selected date.
+  - Fixed mojibake in Lessons time/date separators by normalizing the en-dash character.
+- **Files changed:**
+  - `src/components/CalendarMonth.tsx`
+  - `src/navigation/LessonsStackNavigator.tsx`
+  - `src/navigation/screens/LessonsCalendarScreen.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `README.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **Verification:**
+  - TypeScript compile check via `npx tsc --noEmit` (local).
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Implement Mock Test - Full License (3rd assessment)
+- **Summary:**
+  - Added a new assessment flow: setup ? confirm ? run (timer + attempts) ? summary ? submit + PDF export.
+  - Implemented scoring/readiness summary from attempt item fails + critical/immediate error counts.
+  - Added PDF export + Android Downloads save support using the existing Expo Print/FileSystem pattern.
+  - Wired the new assessment into the Assessments list and the Student assessment history (detail view + PDF download).
+- **Files changed:**
+  - `src/features/assessments/full-license-mock-test/constants.ts`
+  - `src/features/assessments/full-license-mock-test/schema.ts`
+  - `src/features/assessments/full-license-mock-test/scoring.ts`
+  - `src/features/assessments/full-license-mock-test/pdf.ts`
+  - `src/navigation/AssessmentsStackNavigator.tsx`
+  - `src/navigation/screens/AssessmentsListScreen.tsx`
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: `Assessments` ? `Mock Test - Full License` ? select a student ? `Review and start` ? `Start session`.
+  - Record at least 1 attempt + a critical error; optionally log an immediate-fail error and confirm the timer pauses.
+  - `Finish session` ? `Submit and generate PDF` ? confirm a PDF is saved and can be opened.
+  - Student profile ? `Assessment History` ? `Mock Test - Full License` tab ? confirm entry renders + `Download PDF` works.
+- **Notes/TODO:**
+  - Consider normalizing older mojibake characters (e.g., `ƒ?`, `Aú`) in legacy UI strings when convenient.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Add time picker input for lessons
+- **Summary:**
+  - Added `AppTimeInput` primitive (same styling/UX as `AppDateInput`) using native spinner time picker.
+  - Replaced Lesson start time manual typing with `AppTimeInput`.
+- **Files changed:**
+  - `src/components/AppTimeInput.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: `Lessons` -> `+ New lesson` (or edit an existing one) -> tap `Start time` -> pick a time -> `OK` -> confirm the preview updates.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Home screen CTA + weather polish
+- **Summary:**
+  - Replaced Home CTAs with just `Students` and `Assessments` buttons (navigates to the respective screens).
+  - Improved `AppButton` ghost variant styling so link-style buttons don’t render a weird bordered/shadowed box in dark mode (fixes `Open Lessons` on Home).
+  - Enlarged and restyled the current weather visual to better fill whitespace and feel more like an illustration.
+- **Files changed:**
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/theme/theme.ts`
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open the app -> `Home`: confirm only two buttons (`Students`, `Assessments`) show and both navigate correctly.
+  - Toggle dark mode -> `Home` -> `Open Lessons`: confirm the button looks like a clean link (no ugly border/shadow box).
+  - `Home` -> `Weather`: confirm the current weather image area is larger and visually balanced.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Mock test suggestions + time pickers
+- **Summary:**
+  - Added multi-select suggestion options (5 each) for Full License mock test attempt notes: hazards spoken, actions spoken, and instructor notes.
+  - Added a confirmation alert when saving a task attempt.
+  - Replaced manual time inputs with `AppTimeInput` pickers in Full License session setup and Restricted License pre-drive checks.
+- **Files changed:**
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: `Assessments` -> `Mock Test - Full License` -> start a session -> in a task card, toggle suggestions and select multiple options; confirm they add/remove lines in the text fields.
+  - Tap `Save task attempt`; confirm a "Saved" alert appears and the attempt shows in the list.
+  - In `Mock Test - Full License` session setup, tap `Time`; confirm a native time picker appears and writes `HH:mm`.
+  - In `Mock Test - Restricted License` pre-drive checks, tap `Time (optional)`; confirm a native time picker appears.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Make mock test suggestions exclusive
+- **Summary:**
+  - Updated Full License mock test so only one suggestions panel can be open at a time (hazards/actions/notes).
+- **Files changed:**
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: `Assessments` -> `Mock Test - Full License` -> open hazard suggestions, then open action suggestions; confirm hazard suggestions auto-hide (repeat for notes).
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Adjust mock test attempt actions
+- **Summary:**
+  - Right-aligned the attempt action buttons, swapped order, and renamed them to `Clear all` and `Record task attempt`.
+  - Updated the save confirmation copy to "Recorded" / "Task attempt recorded."
+- **Files changed:**
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: `Assessments` -> `Mock Test - Full License` -> scroll to the task attempt section and confirm `Clear all` + `Record task attempt` are right-aligned and in that order.
+  - Tap `Record task attempt`; confirm the alert text reads "Recorded" and "Task attempt recorded."
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Assessment student header + full license session controls
+- **Summary:**
+  - Updated all assessment screens to show the selected student name right-aligned in the Student card header (removed the "Selected:" line).
+  - Moved the Full License resume/pause control into the Session badges row as an icon-only button.
+  - Styled the Full License `IN PROGRESS` readiness badge with a green background and white text.
+- **Files changed:**
+  - `src/components/AppButton.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open each assessment screen, start/continue a session, and confirm the Student card header shows the student name on the right.
+  - In Full License mock test, confirm the icon-only pause/resume button sits on the right of the Attempts/Score/Critical/Immediate row.
+  - In Full License mock test, record fewer than 4 attempts and confirm the `IN PROGRESS` badge is green with white text.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Redesign lessons calendar
+- **Summary:**
+  - Redesigned the Lessons screen into a cleaner scheduler layout: header actions, month calendar in a card, and a day agenda card with a week strip.
+  - Updated month cells to use subtle lesson indicators (dots) and a clear today/selected treatment.
+- **Files changed:**
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/components/CalendarMonth.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Lessons`, navigate months, tap different days, and confirm the agenda updates.
+  - Tap a lesson row and confirm it opens edit; tap `New lesson` and confirm it pre-fills the selected date.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Redesign students list
+- **Summary:**
+  - Redesigned Students into a more professional management list with search, status filter (active/archived), and sort (name/recent).
+  - Added a tablet-friendly table layout while keeping a compact card layout for smaller screens.
+- **Files changed:**
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Students`, use Search, toggle Active/Archived, switch Sort, and confirm the list updates.
+  - Tap a student row/card and confirm it navigates to Student details.
+  - Tap `New student` and confirm it opens the create screen.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Polish students table fields
+- **Summary:**
+  - Removed address from the Students list and replaced it with email.
+  - Added phone display and a colored licence-type badge (learner/restricted/full) with Mail/Phone icons for readability.
+- **Files changed:**
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Students` and confirm email + phone render with icons and licence type shows as a colored badge.
+  - Toggle dark mode and confirm badge + icon contrast remains readable.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Refine students rows layout
+- **Summary:**
+  - Moved student email under the student name and removed the avatar/initials circle.
+  - Right-aligned the licence badge next to the chevron, and adjusted table columns accordingly.
+- **Files changed:**
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Students` and confirm each row shows name + email stacked, with licence badge right-aligned next to the chevron.
+  - Confirm there is no avatar/initials bubble in the list.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Students list phone/icon + licence circle
+- **Summary:**
+  - Moved the phone icon from each row into the Phone column header (table layout).
+  - Changed the licence type indicator into a circular icon showing only the first letter (L/R/F) with type-based coloring.
+- **Files changed:**
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Students` in tablet layout and confirm the Phone header shows the icon and rows show plain phone numbers.
+  - Confirm the licence indicator is a colored circle with a single letter next to the chevron.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Home weather actions icon-only
+- **Summary:**
+  - Made the Home Weather widget action buttons (Refresh / Use my location) icon-only while keeping accessibility labels for screen readers.
+- **Files changed:**
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In app: open `Home` and confirm the Weather card top-right shows icon-only buttons for refresh and location (no text).
+  - Tap each icon and confirm refresh still refetches weather and location still requests/uses device location.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Fix header safe area + enhance weather widget
+- **Summary:**
+  - Wrapped the app in `SafeAreaProvider` to restore correct top insets on edge-to-edge Android and prevent the header from overlapping the system status bar.
+  - Increased the hamburger and avatar size and aligned them to the same height for a better phone experience.
+  - Enhanced the Home Weather widget with driving-conditions guidance, a next-5-hours strip, and a next-3-days forecast to reduce empty space.
+- **Files changed:**
+  - `src/providers/AppProviders.tsx`
+  - `src/navigation/components/HeaderButtons.tsx`
+  - `src/features/weather/api.ts`
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On a phone: open the app and confirm the header no longer overlaps the status bar (time/battery icons).
+  - Confirm hamburger + avatar are larger and feel consistent in size.
+  - On `Home`: confirm Weather shows driving guidance, next 5 hours, and Next 3 days; verify layout has less blank space.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Tweak weather layout + 4-day forecast
+- **Summary:**
+  - Moved the Weather Ã¢â‚¬Å“Updated Ã¢â‚¬Â¦Ã¢â‚¬Â line directly under Ã¢â‚¬Å“Right nowÃ¢â‚¬Â and removed it from the wind row.
+  - Expanded the forecast list to show the next 4 days (fetching 5 total days including today).
+- **Files changed:**
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On `Home` -> Weather: confirm Ã¢â‚¬Å“Updated Ã¢â‚¬Â¦Ã¢â‚¬Â appears under Ã¢â‚¬Å“Right nowÃ¢â‚¬Â, and wind line no longer includes Ã¢â‚¬Å“UpdatedÃ¢â‚¬Â.
+  - Confirm the forecast card shows 4 rows under Ã¢â‚¬Å“Next 4 daysÃ¢â‚¬Â.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Remove current weather icon box
+- **Summary:**
+  - Removed the bordered/rounded container behind the current-condition icon so the icon renders on its own.
+- **Files changed:**
+  - `src/features/weather/WeatherWidget.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On `Home` -> Weather: confirm the current weather icon no longer has a rounded box/background behind it.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Org logo styling + student form requirements
+- **Summary:**
+  - Removed bordered Ã¢â‚¬Å“boxÃ¢â‚¬Â styling around the organization logo in the drawer, onboarding logo preview, and Settings.
+  - Updated New/Edit Student form to require email, phone, and licence type; removed licence clear action.
+  - On mobile, switched licence type picker to colored circular letter buttons (L/R/F).
+- **Files changed:**
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `src/features/students/schemas.ts`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - In drawer/Settings/onboarding: confirm the org logo shows without a bordered box.
+  - On `Students` -> `New student`: confirm Email/Phone are required, licence has no Clear button, and on phones the licence picker shows L/R/F circular colored buttons.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Preserve org logo PNG transparency
+- **Summary:**
+  - Fixed org logo uploads to use the original file bytes from `asset.uri` (instead of `ImagePickerAsset.base64`, which is JPEG), preserving PNG alpha transparency.
+  - Updated onboarding + Settings org-logo picker to disable editing to avoid platform re-encoding and keep original formats.
+- **Files changed:**
+  - `src/utils/file-bytes.ts`
+  - `src/features/onboarding/api.ts`
+  - `src/features/organization/api.ts`
+  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Upload a PNG logo with transparency from Settings and confirm the drawer/logo renders without a white background.
+  - Confirm existing avatars still upload as before.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Enlarge header controls on tablet portrait
+- **Summary:**
+  - Increased hamburger + avatar sizes slightly for tablet portrait only, keeping mobile sizing unchanged.
+- **Files changed:**
+  - `src/navigation/components/HeaderButtons.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On a tablet in portrait: confirm hamburger + avatar are slightly larger and match in size.
+  - On a phone: confirm hamburger + avatar sizing looks unchanged.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Student profile grid + session history
+- **Summary:**
+  - Updated `StudentDetailScreen` Contact/Licence sections to use a 2-column layout (Email+Phone; Type+Number; Version+Class held).
+  - Added a new `StudentSessionHistoryScreen` with a quick "New session" form (tasks multi-select with collapsible suggestions) and a session list with delete.
+  - Added a `student_sessions` Supabase table migration with RLS (owner org-wide; instructor self-only).
+- **Files changed:**
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `src/navigation/screens/StudentSessionHistoryScreen.tsx`
+  - `src/navigation/StudentsStackNavigator.tsx`
+  - `src/features/sessions/api.ts`
+  - `src/features/sessions/queries.ts`
+  - `src/features/sessions/schemas.ts`
+  - `src/supabase/types.ts`
+  - `supabase/migrations/008_student_sessions.sql`
+  - `supabase/README.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Students` -> select a student -> confirm Contact shows Email+Phone on the same row, and Licence shows Type+Number and Version+Class held on the same rows.
+  - On the student detail: tap `Add session` (top-right) or `Session History` (below Edit) -> add a session with a few tasks -> confirm it appears in the list.
+  - Delete a session and confirm it disappears from the list.
+  - (If connected to Supabase) apply migration `008_student_sessions.sql` and confirm RLS works for owner vs instructor.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Fix new session time/duration validation
+- **Summary:**
+  - Fixed Zod regex escaping so `Time` (`HH:mm`) and `Duration (min)` accept valid values and the session can be saved.
+- **Files changed:**
+  - `src/features/sessions/schemas.ts`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Students` -> student -> `Session History` -> `Add new` -> set a time like `17:46` and duration like `60` -> confirm `Save session` works without validation errors.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Polish new session suggestions + confirm save
+- **Summary:**
+  - Moved Task suggestions above custom-task input and added a high-visibility Show/Hide toggle (green in light mode, yellow in dark mode).
+  - Added a save confirmation dialog before creating a new session.
+  - Updated session list delete to an icon-only circular button and made task badges use colored backgrounds (green/orange).
+- **Files changed:**
+  - `src/navigation/screens/StudentSessionHistoryScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Students` -> student -> `Session History` -> `Add new` and confirm Task suggestions sits above Add custom task.
+  - Tap `Show` to expand suggestions and confirm the button stands out (light: green; dark: yellow).
+  - Tap `Save session` and confirm a confirmation prompt appears before saving.
+  - In the history list, confirm Delete is a circular icon-only button and task badges are colored.
+
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Make suggestions toggle text-only
+- **Summary:**
+  - Changed the Task suggestions Show/Hide control from a button style to underlined colored text (green in light mode; yellow in dark mode).
+- **Files changed:**
+  - `src/navigation/screens/StudentSessionHistoryScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Students` -> student -> `Session History` -> `Add new` and confirm Show/Hide is text-only, underlined, and still toggles suggestions.
