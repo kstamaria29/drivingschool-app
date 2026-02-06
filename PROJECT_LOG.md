@@ -1,20 +1,6 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-05 (Pacific/Auckland)
-- **Task:** Tighten licence inline spacing
-- **Summary:**
-  - Adjusted inline detail rows to keep the space after `:` tight while keeping Licence rows neatly aligned.
-- **Files changed:**
-  - `src/navigation/screens/StudentDetailScreen.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Open a student profile and confirm `Type:`, `Version:`, `Issue date:` etc have only a small space after `:` and the right-column values (Number/Class held) align neatly.
-
----
-
-- **Date:** 2026-02-05 (Pacific/Auckland)
 - **Task:** Left-align inline contact/licence rows
 - **Summary:**
   - Updated inline detail rows to render as `Label: value` with minimal spacing and consistent left alignment (no right-justified label column).
@@ -416,4 +402,35 @@
   - Tap `Sign out` and confirm the confirmation alert appears.
   - Tap `Cancel` and confirm you remain signed in.
   - Tap `Sign out` in the alert and confirm you are returned to `LoginScreen`.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Add delete actions and save confirmations for students/lessons
+- **Summary:**
+  - Excluded `admin` from assignable instructor options on `New student` and `New lesson` screens.
+  - Added save confirmations for `Edit student` and for both `New lesson`/`Edit lesson` submissions.
+  - Added permanent `Delete student` action on student profile and icon-only `Delete lesson` action on edit lesson header.
+  - Added student/lesson delete API + query mutations and new RLS delete policies migration.
+- **Files changed:**
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `src/features/students/api.ts`
+  - `src/features/students/queries.ts`
+  - `src/features/lessons/api.ts`
+  - `src/features/lessons/queries.ts`
+  - `supabase/migrations/011_students_lessons_delete_policies.sql`
+  - `supabase/README.md`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - New student/new lesson: confirm admin users are not shown in assignable instructor options.
+  - Edit student: tap `Save student` and confirm a save confirmation appears before update.
+  - New/edit lesson: tap save/create and confirm confirmation appears before mutation.
+  - Student profile: confirm red `Delete student` appears below archive/unarchive and deletes after confirmation.
+  - Edit lesson: confirm top-right icon-only delete button appears and deletes after confirmation.
+  - Apply `supabase/migrations/011_students_lessons_delete_policies.sql` before testing deletes against Supabase.
 

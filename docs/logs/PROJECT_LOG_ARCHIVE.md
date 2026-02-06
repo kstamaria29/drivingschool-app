@@ -1431,3 +1431,17 @@
 - **How to verify:**
   - Open a student profile and confirm `Email:` sits close to the email value (no large gap).
 
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Tighten licence inline spacing
+- **Summary:**
+  - Adjusted inline detail rows to keep the space after `:` tight while keeping Licence rows neatly aligned.
+- **Files changed:**
+  - `src/navigation/screens/StudentDetailScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open a student profile and confirm `Type:`, `Version:`, `Issue date:` etc have only a small space after `:` and the right-column values (Number/Class held) align neatly.
+

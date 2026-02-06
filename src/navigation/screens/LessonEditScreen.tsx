@@ -3,8 +3,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ActivityIndicator, View } from "react-native";
-import { Plus, RefreshCw, Save, X } from "lucide-react-native";
+import { ActivityIndicator, Alert, Pressable, View } from "react-native";
+import { Plus, RefreshCw, Save, Trash2, X } from "lucide-react-native";
+import { useColorScheme } from "nativewind";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -19,7 +20,12 @@ import { isOwnerOrAdminRole } from "../../features/auth/roles";
 import { useAuthSession } from "../../features/auth/session";
 import { useOrganizationProfilesQuery } from "../../features/profiles/queries";
 import { useStudentsQuery } from "../../features/students/queries";
-import { useCreateLessonMutation, useLessonQuery, useUpdateLessonMutation } from "../../features/lessons/queries";
+import {
+  useCreateLessonMutation,
+  useDeleteLessonMutation,
+  useLessonQuery,
+  useUpdateLessonMutation,
+} from "../../features/lessons/queries";
 import { lessonFormSchema, type LessonFormValues } from "../../features/lessons/schemas";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
@@ -54,12 +60,15 @@ export function LessonEditScreen({ navigation, route }: Props) {
   const lessonQuery = useLessonQuery(lessonId);
   const createMutation = useCreateLessonMutation();
   const updateMutation = useUpdateLessonMutation();
+  const deleteMutation = useDeleteLessonMutation();
+  const { colorScheme } = useColorScheme();
 
   const role = profileQuery.data?.role ?? null;
   const canManageLessonInstructor = isOwnerOrAdminRole(role);
 
   const orgProfilesQuery = useOrganizationProfilesQuery(canManageLessonInstructor);
   const studentsQuery = useStudentsQuery({ archived: false });
+  const deleteIconColor = colorScheme === "dark" ? theme.colors.dangerDark : theme.colors.danger;
 
   const [studentSearch, setStudentSearch] = useState("");
 
@@ -82,9 +91,17 @@ export function LessonEditScreen({ navigation, route }: Props) {
 
   const defaultInstructorId = useMemo(() => {
     if (role === "instructor") return userId ?? "";
-    if (isOwnerOrAdminRole(role)) return userId ?? "";
+    if (role === "owner") return userId ?? "";
     return "";
   }, [role, userId]);
+
+  const assignableInstructorProfiles = useMemo(
+    () =>
+      lessonId
+        ? (orgProfilesQuery.data ?? [])
+        : (orgProfilesQuery.data ?? []).filter((profileOption) => profileOption.role !== "admin"),
+    [lessonId, orgProfilesQuery.data],
+  );
 
   const form = useForm<LessonFormValues>({
     resolver: zodResolver(lessonFormSchema),
@@ -184,10 +201,10 @@ export function LessonEditScreen({ navigation, route }: Props) {
 
   const organizationId = profile.organization_id;
   const isEditing = Boolean(lessonId);
-  const saving = createMutation.isPending || updateMutation.isPending;
-  const mutationError = createMutation.error ?? updateMutation.error;
+  const saving = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const mutationError = createMutation.error ?? updateMutation.error ?? deleteMutation.error;
 
-  async function onSubmit(values: LessonFormValues) {
+  async function saveLesson(values: LessonFormValues) {
     const dateISO = parseDateInputToISODate(values.date);
     if (!dateISO) return;
 
@@ -206,16 +223,48 @@ export function LessonEditScreen({ navigation, route }: Props) {
 
     if (isEditing) {
       await updateMutation.mutateAsync({ lessonId: lessonId!, input: base });
-      navigation.goBack();
-      return;
+    } else {
+      await createMutation.mutateAsync({
+        organization_id: organizationId,
+        ...base,
+      });
     }
 
-    await createMutation.mutateAsync({
-      organization_id: organizationId,
-      ...base,
-    });
-
     navigation.goBack();
+  }
+
+  async function onSubmit(values: LessonFormValues) {
+    Alert.alert(
+      isEditing ? "Save lesson" : "Create lesson",
+      isEditing ? "Save changes to this lesson?" : "Create this lesson now?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: isEditing ? "Save" : "Create",
+          onPress: () => {
+            void saveLesson(values).catch(() => {
+              // Mutation error state is already handled by React Query and rendered below.
+            });
+          },
+        },
+      ],
+    );
+  }
+
+  function onDeleteLessonPress() {
+    if (!lessonId) return;
+    Alert.alert("Delete lesson", "Permanently delete this lesson?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          deleteMutation.mutate(lessonId, {
+            onSuccess: () => navigation.goBack(),
+          });
+        },
+      },
+    ]);
   }
 
   const previewDateISO = parseDateInputToISODate(form.watch("date")) ?? "";
@@ -227,7 +276,24 @@ export function LessonEditScreen({ navigation, route }: Props) {
     <Screen scroll>
       <AppStack gap="lg">
         <View>
-          <AppText variant="title">{isEditing ? "Edit lesson" : "New lesson"}</AppText>
+          <View className="flex-row items-center justify-between gap-3">
+            <AppText variant="title">{isEditing ? "Edit lesson" : "New lesson"}</AppText>
+            {isEditing ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Delete lesson"
+                disabled={deleteMutation.isPending}
+                onPress={onDeleteLessonPress}
+                className={cn(
+                  "h-10 w-10 items-center justify-center rounded-full border",
+                  "border-red-500/30 bg-red-500/10 dark:border-red-400/30 dark:bg-red-400/10",
+                  deleteMutation.isPending && "opacity-60",
+                )}
+              >
+                <Trash2 size={18} color={deleteIconColor} />
+              </Pressable>
+            ) : null}
+          </View>
           {endPreview ? (
             <AppText className="mt-2" variant="body">
               {startPreview.format(`ddd, ${DISPLAY_DATE_FORMAT}`)} · {startPreview.format("h:mm A")} –{" "}
@@ -309,21 +375,25 @@ export function LessonEditScreen({ navigation, route }: Props) {
                     </AppStack>
                   ) : (
                     <AppStack gap="sm">
-                      {orgProfilesQuery.data.map((profileOption) => (
-                        <AppButton
-                          key={profileOption.id}
-                          label={`${profileOption.display_name}${
-                            profileOption.role === "owner" || profileOption.role === "admin"
-                              ? ` (${profileOption.role})`
-                              : ""
-                          }`}
-                          variant={field.value === profileOption.id ? "primary" : "secondary"}
-                          onPress={() => {
-                            field.onChange(profileOption.id);
-                            form.setValue("studentId", "", { shouldValidate: true });
-                          }}
-                        />
-                      ))}
+                      {assignableInstructorProfiles.length === 0 ? (
+                        <AppText variant="caption">No instructors available.</AppText>
+                      ) : (
+                        assignableInstructorProfiles.map((profileOption) => (
+                          <AppButton
+                            key={profileOption.id}
+                            label={`${profileOption.display_name}${
+                              profileOption.role === "owner" || profileOption.role === "admin"
+                                ? ` (${profileOption.role})`
+                                : ""
+                            }`}
+                            variant={field.value === profileOption.id ? "primary" : "secondary"}
+                            onPress={() => {
+                              field.onChange(profileOption.id);
+                              form.setValue("studentId", "", { shouldValidate: true });
+                            }}
+                          />
+                        ))
+                      )}
                     </AppStack>
                   )
                 ) : (

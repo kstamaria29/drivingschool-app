@@ -1,6 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Alert, ActivityIndicator, View } from "react-native";
-import { Archive, ClipboardList, Clock, Pencil, Plus, RefreshCw, Undo2 } from "lucide-react-native";
+import { Archive, ClipboardList, Clock, Pencil, Plus, RefreshCw, Trash2, Undo2 } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -9,6 +9,7 @@ import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
 import {
   useArchiveStudentMutation,
+  useDeleteStudentMutation,
   useStudentQuery,
   useUnarchiveStudentMutation,
 } from "../../features/students/queries";
@@ -46,6 +47,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
   const query = useStudentQuery(studentId);
   const archiveMutation = useArchiveStudentMutation();
   const unarchiveMutation = useUnarchiveStudentMutation();
+  const deleteMutation = useDeleteStudentMutation();
 
   const student = query.data ?? null;
   const isArchived = Boolean(student?.archived_at);
@@ -66,6 +68,23 @@ export function StudentDetailScreen({ navigation, route }: Props) {
   function onUnarchivePress() {
     if (!student) return;
     unarchiveMutation.mutate(student.id);
+  }
+
+  function onDeletePress() {
+    if (!student) return;
+    Alert.alert("Delete student", "Permanently delete this student? This cannot be undone.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          deleteMutation.mutate(student.id, {
+            onSuccess: () => navigation.popToTop(),
+            onError: (error) => Alert.alert("Couldn't delete student", toErrorMessage(error)),
+          });
+        },
+      },
+    ]);
   }
 
   return (
@@ -204,7 +223,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
               {isArchived ? (
                 <AppButton
                   label={unarchiveMutation.isPending ? "Unarchiving..." : "Unarchive"}
-                  disabled={unarchiveMutation.isPending}
+                  disabled={unarchiveMutation.isPending || deleteMutation.isPending}
                   icon={Undo2}
                   onPress={onUnarchivePress}
                 />
@@ -212,11 +231,19 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                 <AppButton
                   label={archiveMutation.isPending ? "Archiving..." : "Archive"}
                   variant="secondary"
-                  disabled={archiveMutation.isPending}
+                  disabled={archiveMutation.isPending || deleteMutation.isPending}
                   icon={Archive}
                   onPress={onArchivePress}
                 />
               )}
+
+              <AppButton
+                label={deleteMutation.isPending ? "Deleting..." : "Delete student"}
+                variant="danger"
+                disabled={deleteMutation.isPending || archiveMutation.isPending || unarchiveMutation.isPending}
+                icon={Trash2}
+                onPress={onDeletePress}
+              />
             </AppStack>
           </>
         )}

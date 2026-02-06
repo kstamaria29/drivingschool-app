@@ -96,9 +96,17 @@ export function StudentEditScreen({ navigation, route }: Props) {
 
   const defaultAssignedInstructorId = useMemo(() => {
     if (role === "instructor") return userId ?? "";
-    if (isOwnerOrAdminRole(role)) return userId ?? "";
+    if (role === "owner") return userId ?? "";
     return "";
   }, [role, userId]);
+
+  const assignableInstructorProfiles = useMemo(
+    () =>
+      studentId
+        ? (orgProfilesQuery.data ?? [])
+        : (orgProfilesQuery.data ?? []).filter((profileOption) => profileOption.role !== "admin"),
+    [orgProfilesQuery.data, studentId],
+  );
 
   const form = useForm<StudentFormValues>({
     resolver: zodResolver(studentFormSchema),
@@ -220,14 +228,29 @@ export function StudentEditScreen({ navigation, route }: Props) {
     navigation.replace("StudentDetail", { studentId: created.id });
   }
 
+  async function updateStudentAndNavigate(values: StudentFormValues) {
+    const updated = await updateMutation.mutateAsync({
+      studentId: studentId!,
+      input: mapStudentInput(values),
+    });
+    navigation.replace("StudentDetail", { studentId: updated.id });
+  }
+
   async function onSubmit(values: StudentFormValues) {
     if (!userId) return;
 
-    const base = mapStudentInput(values);
-
     if (isEditing) {
-      const updated = await updateMutation.mutateAsync({ studentId: studentId!, input: base });
-      navigation.replace("StudentDetail", { studentId: updated.id });
+      Alert.alert("Save student", "Save changes to this student?", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Save",
+          onPress: () => {
+            void updateStudentAndNavigate(values).catch(() => {
+              // Mutation error state is already handled by React Query and rendered below.
+            });
+          },
+        },
+      ]);
       return;
     }
 
@@ -362,18 +385,22 @@ export function StudentEditScreen({ navigation, route }: Props) {
                     </AppStack>
                   ) : (
                     <AppStack gap="sm">
-                      {orgProfilesQuery.data.map((profileOption) => (
-                        <AppButton
-                          key={profileOption.id}
-                          label={`${profileOption.display_name}${
-                            profileOption.role === "owner" || profileOption.role === "admin"
-                              ? ` (${profileOption.role})`
-                              : ""
-                          }`}
-                          variant={field.value === profileOption.id ? "primary" : "secondary"}
-                          onPress={() => field.onChange(profileOption.id)}
-                        />
-                      ))}
+                      {assignableInstructorProfiles.length === 0 ? (
+                        <AppText variant="caption">No instructors available.</AppText>
+                      ) : (
+                        assignableInstructorProfiles.map((profileOption) => (
+                          <AppButton
+                            key={profileOption.id}
+                            label={`${profileOption.display_name}${
+                              profileOption.role === "owner" || profileOption.role === "admin"
+                                ? ` (${profileOption.role})`
+                                : ""
+                            }`}
+                            variant={field.value === profileOption.id ? "primary" : "secondary"}
+                            onPress={() => field.onChange(profileOption.id)}
+                          />
+                        ))
+                      )}
                     </AppStack>
                   )
                 ) : (
@@ -510,7 +537,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
                   onChangeText={field.onChange}
                   error={fieldState.error?.message}
                 />
-                {field.value.trim() ? (
+                {isEditing && field.value.trim() ? (
                   <AppButton
                     width="auto"
                     variant="ghost"
@@ -533,7 +560,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
                   onChangeText={field.onChange}
                   error={fieldState.error?.message}
                 />
-                {field.value.trim() ? (
+                {isEditing && field.value.trim() ? (
                   <AppButton
                     width="auto"
                     variant="ghost"

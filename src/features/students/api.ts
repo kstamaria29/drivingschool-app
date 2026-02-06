@@ -67,3 +67,8 @@ export async function archiveStudent(studentId: string): Promise<Student> {
 export async function unarchiveStudent(studentId: string): Promise<Student> {
   return updateStudent(studentId, { archived_at: null });
 }
+
+export async function deleteStudent(studentId: string): Promise<void> {
+  const { error } = await supabase.from("students").delete().eq("id", studentId);
+  if (error) throw error;
+}
