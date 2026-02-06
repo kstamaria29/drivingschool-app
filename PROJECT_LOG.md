@@ -1,21 +1,22 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Add onboarding back button to login
+- **Task:** Remove Google Maps share-guide PDF feature
 - **Summary:**
-  - Added a back action on `OnboardingCreateOrgScreen` so users can return to the sign-in screen.
-  - Implemented the action with `navigation.replace("Login")` to avoid leaving onboarding on the back stack.
+  - Removed the `Share Maps Guide (PDF)` button from Google Maps.
+  - Deleted the temporary in-app PDF guide module that was added for sharing.
 - **Files changed:**
-  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `src/navigation/screens/GoogleMapsScreen.tsx`
+  - `src/features/maps/googleMapsFeaturesGuidePdf.ts`
   - `PROJECT_LOG.md`
 - **Commands run:**
   - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Tail 140 PROJECT_LOG.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `Get-Content -Raw docs/logs/INDEX.md`
   - `npx tsc --noEmit`
 - **How to verify:**
-  - Open `Create your driving school` screen.
-  - Tap `Back to sign in`.
-  - Confirm the app navigates to `LoginScreen`.
+  - Open `Google Maps`.
+  - Confirm there is no `Share Maps Guide (PDF)` button in the top card.
 
 ---
 

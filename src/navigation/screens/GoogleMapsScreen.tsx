@@ -68,6 +68,7 @@ import type { MapsStackParamList } from "../MapsStackNavigator";
 type Props = NativeStackScreenProps<MapsStackParamList, "GoogleMapsMain">;
 
 type MapLayer = "standard" | "satellite" | "hybrid";
+type TrafficMode = "off" | "on";
 
 type SnapshotCanvasSize = {
   width: number;
@@ -99,6 +100,10 @@ const MAP_LAYER_OPTIONS: Array<{ value: MapLayer; label: string }> = [
   { value: "standard", label: "Default" },
   { value: "satellite", label: "Satellite" },
   { value: "hybrid", label: "Hybrid" },
+];
+const TRAFFIC_OPTIONS: Array<{ value: TrafficMode; label: string }> = [
+  { value: "off", label: "Traffic Off" },
+  { value: "on", label: "Traffic On" },
 ];
 
 const DEFAULT_REGION = {
@@ -170,6 +175,7 @@ export function GoogleMapsScreen(_props: Props) {
   const refetchPins = pinsQuery.refetch;
 
   const [mapLayer, setMapLayer] = useState<MapLayer>("standard");
+  const [trafficMode, setTrafficMode] = useState<TrafficMode>("off");
   const [mapCenter, setMapCenter] = useState<LatLng>({
     latitude: DEFAULT_REGION.latitude,
     longitude: DEFAULT_REGION.longitude,
@@ -1108,6 +1114,7 @@ export function GoogleMapsScreen(_props: Props) {
             }
             showsCompass
             showsBuildings
+            showsTraffic={trafficMode === "on"}
             showsUserLocation
             toolbarEnabled
           >
@@ -1164,6 +1171,15 @@ export function GoogleMapsScreen(_props: Props) {
                 options={MAP_LAYER_OPTIONS}
                 onChange={setMapLayer}
               />
+
+              <View className="gap-1">
+                <AppText variant="label">Live traffic</AppText>
+                <AppSegmentedControl<TrafficMode>
+                  value={trafficMode}
+                  options={TRAFFIC_OPTIONS}
+                  onChange={setTrafficMode}
+                />
+              </View>
 
               <AddressAutocompleteInput
                 label="Search address (NZ)"

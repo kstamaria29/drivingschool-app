@@ -60,7 +60,7 @@
   - Added persisted light/dark theme toggle and wired it into Settings.
   - Introduced dark-mode styles across core primitives (screen, cards, buttons, inputs) and key UI surfaces (drawer/header/calendar).
   - Added Lucide icons to key CTAs and improved the Weather widget with condition icons.
-  - Added an accent color and softer depth (shadows/borders) to reduce the ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œplainÃƒÂ¢Ã¢â€šÂ¬Ã‚Â look.
+  - Added an accent color and softer depth (shadows/borders) to reduce the ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“plainÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â look.
 - **Files changed:**
   - `App.tsx`
   - `tailwind.config.js`
@@ -242,7 +242,7 @@
 - **Summary:**
   - Added `AppDateInput` primitive that opens a native date picker (spinner-style where available).
   - Replaced manual date typing with date pickers for Lessons, Students (licence dates), and Driving Assessments.
-  - Kept optional dates clearable via a quick ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œClearÃƒÂ¢Ã¢â€šÂ¬Ã‚Â action.
+  - Kept optional dates clearable via a quick ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ClearÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â action.
 - **Files changed:**
   - `src/components/AppDateInput.tsx`
   - `src/navigation/screens/LessonEditScreen.tsx`
@@ -269,7 +269,7 @@
 - **Summary:**
   - Added Android Downloads-folder saving via Storage Access Framework (one-time folder picker; then saves directly).
   - Falls back to app storage if Android folder permission is revoked.
-  - Added local ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œPDF savedÃƒÂ¢Ã¢â€šÂ¬Ã‚Â notification; tapping it attempts to open the saved PDF.
+  - Added local ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“PDF savedÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â notification; tapping it attempts to open the saved PDF.
   - Kept iOS saving in app storage (sandbox) but added the same notification + tap-to-open behavior.
 - **Files changed:**
   - `src/features/assessments/android-downloads.ts`
@@ -285,10 +285,10 @@
   - `npx expo install expo-notifications expo-intent-launcher`
   - `npx tsc --noEmit`
 - **Verification:**
-  - Android: submit an assessment, pick Downloads when prompted, then confirm a ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œPDF savedÃƒÂ¢Ã¢â€šÂ¬Ã‚Â notification appears; tap it to open the PDF.
-  - iOS: submit an assessment, confirm a ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œPDF savedÃƒÂ¢Ã¢â€šÂ¬Ã‚Â notification appears; tap it to open the PDF.
+  - Android: submit an assessment, pick Downloads when prompted, then confirm a ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“PDF savedÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â notification appears; tap it to open the PDF.
+  - iOS: submit an assessment, confirm a ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“PDF savedÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â notification appears; tap it to open the PDF.
 - **Notes/TODO:**
-  - iOS cannot save directly to a global Downloads folder due to OS sandboxing; opening from the notification is the ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œdownload completeÃƒÂ¢Ã¢â€šÂ¬Ã‚Â UX.
+  - iOS cannot save directly to a global Downloads folder due to OS sandboxing; opening from the notification is the ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“download completeÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â UX.
 
 ---
 
@@ -314,7 +314,7 @@
 - **Task:** Fix Driving Assessment submit UX
 - **Summary:**
   - Made score calculation update live as criteria are scored.
-  - Replaced the two non-responsive save buttons with a single ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œSubmit and generate PDFÃƒÂ¢Ã¢â€šÂ¬Ã‚Â button.
+  - Replaced the two non-responsive save buttons with a single ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“Submit and generate PDFÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â button.
   - Added validation feedback + a confirmation prompt before saving/exporting.
 - **Files changed:**
   - `src/navigation/screens/DrivingAssessmentScreen.tsx`
@@ -324,7 +324,7 @@
 - **Verification:**
   - Open a Driving Assessment, press submit with no student selected and confirm an error prompt appears.
   - Select a student, tap scores, confirm the total/summary updates immediately.
-  - Press ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œSubmit and generate PDFÃƒÂ¢Ã¢â€šÂ¬Ã‚Â and confirm the confirmation dialog appears and the PDF share sheet opens after submitting.
+  - Press ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“Submit and generate PDFÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â and confirm the confirmation dialog appears and the PDF share sheet opens after submitting.
 - **Notes/TODO:**
   - None.
 
@@ -446,7 +446,7 @@
 - **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Fix calendar week layout (7 days)
 - **Summary:**
-  - Fixed month calendar grid wrapping so weeks always render 7 columns (MonÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Sun) instead of occasionally wrapping at 6.
+  - Fixed month calendar grid wrapping so weeks always render 7 columns (MonÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œSun) instead of occasionally wrapping at 6.
   - Rendered the calendar as 6 explicit week rows (7 cells each) to avoid flex-wrap rounding issues.
 - **Files changed:**
   - `src/components/CalendarMonth.tsx`
@@ -454,7 +454,7 @@
 - **Commands run:**
   - `npx tsc --noEmit`
 - **Verification:**
-  - Open Lessons tab and confirm each week row shows 7 days (MonÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Sun) with correct alignment (e.g. Feb 2026 should start on Sun).
+  - Open Lessons tab and confirm each week row shows 7 days (MonÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œSun) with correct alignment (e.g. Feb 2026 should start on Sun).
 - **Notes/TODO:**
   - None.
 
@@ -521,7 +521,7 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
-- **Task:** Implement Mock Test ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ Restricted Licence assessment
+- **Task:** Implement Mock Test ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ Restricted Licence assessment
 - **Summary:**
   - Implemented the 2nd assessment as a Restricted Licence mock test (Stage 1/Stage 2 tasks, critical errors, immediate-fail errors) with auto-save draft on device.
   - Added PDF export on submit and enabled PDF download + detailed history view in the student's assessment history.
@@ -542,9 +542,9 @@
   - `npx tsc --noEmit`
 - **Verification:**
   - In app: `Assessments` ? `Start Mock Test` ? select a student ? `Start test` ? fill a few faults/errors ? `Submit and generate PDF`.
-  - In student profile: `Assessment History` ? `Mock Test ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ Restricted` tab ? open an entry ? `Download PDF`.
+  - In student profile: `Assessment History` ? `Mock Test ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ Restricted` tab ? open an entry ? `Download PDF`.
 - **Notes/TODO:**
-  - Consider adding an explicit ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œDiscard draftÃƒÂ¢Ã¢â€šÂ¬Ã‚Â action if instructors want to clear an in-progress mock test without submitting.
+  - Consider adding an explicit ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“Discard draftÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â action if instructors want to clear an in-progress mock test without submitting.
 
 ---
 
@@ -781,7 +781,7 @@
 - **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Fix Blob upload + ImagePicker deprecation
 - **Summary:**
-  - Updated Supabase Storage uploads to pass `Uint8Array` directly (avoids RN Blob limitation: ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œCreating blobs from ArrayBufferÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â).
+  - Updated Supabase Storage uploads to pass `Uint8Array` directly (avoids RN Blob limitation: ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“Creating blobs from ArrayBufferÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â).
   - Switched `expo-image-picker` usage away from deprecated `ImagePicker.MediaTypeOptions`.
 - **Files changed:**
   - `src/features/onboarding/api.ts`
@@ -1012,7 +1012,7 @@
   - `Finish session` ? `Submit and generate PDF` ? confirm a PDF is saved and can be opened.
   - Student profile ? `Assessment History` ? `Mock Test - Full License` tab ? confirm entry renders + `Download PDF` works.
 - **Notes/TODO:**
-  - Consider normalizing older mojibake characters (e.g., `Ãƒâ€ Ã¢â‚¬â„¢?`, `AÃƒÆ’Ã‚Âº`) in legacy UI strings when convenient.
+  - Consider normalizing older mojibake characters (e.g., `ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢?`, `AÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âº`) in legacy UI strings when convenient.
 
 ---
 
@@ -1036,7 +1036,7 @@
 - **Task:** Home screen CTA + weather polish
 - **Summary:**
   - Replaced Home CTAs with just `Students` and `Assessments` buttons (navigates to the respective screens).
-  - Improved `AppButton` ghost variant styling so link-style buttons donÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢t render a weird bordered/shadowed box in dark mode (fixes `Open Lessons` on Home).
+  - Improved `AppButton` ghost variant styling so link-style buttons donÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢t render a weird bordered/shadowed box in dark mode (fixes `Open Lessons` on Home).
   - Enlarged and restyled the current weather visual to better fill whitespace and feel more like an illustration.
 - **Files changed:**
   - `src/navigation/screens/HomeScreen.tsx`
@@ -1244,7 +1244,7 @@
 - **Date:** 2026-02-05 (Pacific/Auckland)
 - **Task:** Tweak weather layout + 4-day forecast
 - **Summary:**
-  - Moved the Weather ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œUpdated ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â line directly under ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œRight nowÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â and removed it from the wind row.
+  - Moved the Weather ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“Updated ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â line directly under ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“Right nowÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â and removed it from the wind row.
   - Expanded the forecast list to show the next 4 days (fetching 5 total days including today).
 - **Files changed:**
   - `src/features/weather/WeatherWidget.tsx`
@@ -1252,8 +1252,8 @@
 - **Commands run:**
   - `npx tsc --noEmit`
 - **How to verify:**
-  - On `Home` -> Weather: confirm ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œUpdated ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â appears under ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œRight nowÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â, and wind line no longer includes ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œUpdatedÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â.
-  - Confirm the forecast card shows 4 rows under ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œNext 4 daysÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â.
+  - On `Home` -> Weather: confirm ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“Updated ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â appears under ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“Right nowÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â, and wind line no longer includes ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“UpdatedÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â.
+  - Confirm the forecast card shows 4 rows under ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“Next 4 daysÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â.
 
 ---
 
@@ -1274,7 +1274,7 @@
 - **Date:** 2026-02-05 (Pacific/Auckland)
 - **Task:** Org logo styling + student form requirements
 - **Summary:**
-  - Removed bordered ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œboxÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â styling around the organization logo in the drawer, onboarding logo preview, and Settings.
+  - Removed bordered ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“boxÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â styling around the organization logo in the drawer, onboarding logo preview, and Settings.
   - Updated New/Edit Student form to require email, phone, and licence type; removed licence clear action.
   - On mobile, switched licence type picker to colored circular letter buttons (L/R/F).
 - **Files changed:**
@@ -1626,3 +1626,51 @@
   - Delete a signed-in user in Supabase (`auth.users`) while keeping the app installed/signed in on device.
   - Reopen the app and confirm it lands on `LoginScreen` (not `OnboardingCreateOrgScreen`).
   - Create a brand-new account from `Signup` and confirm onboarding still appears for first-time org creation.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Add onboarding back button to login
+- **Summary:**
+  - Added a back action on `OnboardingCreateOrgScreen` so users can return to the sign-in screen.
+  - Implemented the action with `navigation.replace("Login")` to avoid leaving onboarding on the back stack.
+- **Files changed:**
+  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Tail 140 PROJECT_LOG.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Create your driving school` screen.
+  - Tap `Back to sign in`.
+  - Confirm the app navigates to `LoginScreen`.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Fix students first-load list render + mobile licence buttons + traffic toggle
+- **Summary:**
+  - Fixed students list rendering in compact/mobile layout by removing nested compact-mode scroll rendering that could collapse row content on first load.
+  - Updated New/Edit Student licence type controls to always use rectangular segmented-style buttons (`Learner`, `Restricted`, `Full`) instead of mobile circle buttons.
+  - Added a live traffic toggle on Google Maps (`Traffic Off` / `Traffic On`) and wired it to map `showsTraffic`.
+- **Files changed:**
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `src/navigation/screens/GoogleMapsScreen.tsx`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `Get-Content -Raw docs/logs/INDEX.md`
+  - `Get-Content -Raw src/navigation/screens/StudentsListScreen.tsx`
+  - `Get-Content -Raw src/navigation/screens/StudentEditScreen.tsx`
+  - `Get-Content -Raw src/navigation/screens/GoogleMapsScreen.tsx`
+  - `mcp__context7__resolve-library-id (react-native-maps)`
+  - `mcp__context7__query-docs (/react-native-maps/react-native-maps)`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Students` immediately after app launch and confirm active students render without switching tabs.
+  - Open `Students` -> `New student` and `Edit student`; confirm licence type shows rectangular buttons (no circle buttons).
+  - Open `Google Maps` and confirm `Live traffic` toggle appears; switch to `Traffic On` and verify live traffic overlay appears on the map.

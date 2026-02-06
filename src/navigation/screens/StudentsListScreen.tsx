@@ -25,7 +25,7 @@ type SortKey = "name" | "recent";
 type StatusKey = "active" | "archived";
 
 function formatLicenseType(type: string | null) {
-  if (!type) return "—";
+  if (!type) return "Ã¢â‚¬â€";
   if (type === "learner") return "Learner";
   if (type === "restricted") return "Restricted";
   if (type === "full") return "Full";
@@ -36,7 +36,7 @@ function licenseTypeLetter(type: string | null) {
   if (type === "learner") return "L";
   if (type === "restricted") return "R";
   if (type === "full") return "F";
-  return "—";
+  return "Ã¢â‚¬â€";
 }
 
 function licenseTypeBadgeClasses(type: string | null) {
@@ -249,30 +249,21 @@ export function StudentsListScreen({ navigation }: Props) {
               </View>
             ) : null}
 
-            <ScrollView
-              className={cn(!isCompact && "flex-1")}
-              keyboardShouldPersistTaps="handled"
-              contentContainerClassName={cn("py-2", isCompact && "gap-2 px-2 pb-2")}
-            >
-              {rows.map((student) => {
-                const fullName = `${student.first_name} ${student.last_name}`.trim() || "Student";
-                const email = student.email ?? "";
-                const phone = student.phone ?? "";
-                const licenseType = student.license_type;
+            {isCompact ? (
+              <View className="gap-2 px-2 py-2">
+                {rows.map((student) => {
+                  const fullName = `${student.first_name} ${student.last_name}`.trim() || "Student";
+                  const email = student.email ?? "";
+                  const phone = student.phone ?? "";
+                  const licenseType = student.license_type;
+                  const rowBase = "border-border bg-card dark:border-borderDark dark:bg-cardDark";
 
-                const rowBase = "border-border bg-card dark:border-borderDark dark:bg-cardDark";
-
-                return (
-                  <Pressable
-                    key={student.id}
-                    onPress={() => navigation.navigate("StudentDetail", { studentId: student.id })}
-                    className={cn(
-                      isCompact
-                        ? `rounded-2xl border p-4 ${rowBase}`
-                        : `flex-row items-center border-b px-4 py-3 ${rowBase}`,
-                    )}
-                  >
-                    {isCompact ? (
+                  return (
+                    <Pressable
+                      key={student.id}
+                      onPress={() => navigation.navigate("StudentDetail", { studentId: student.id })}
+                      className={`rounded-2xl border p-4 ${rowBase}`}
+                    >
                       <View className="gap-3">
                         <View className="flex-row items-start justify-between gap-3">
                           <View className="flex-1 gap-2">
@@ -289,33 +280,53 @@ export function StudentsListScreen({ navigation }: Props) {
 
                         {phone ? <AppText variant="caption">Phone: {phone}</AppText> : null}
                       </View>
-                    ) : (
-                      <>
-                        <View className="flex-[5] pr-3">
-                          <AppText numberOfLines={1} variant="heading">
-                            {fullName}
-                          </AppText>
-                          <View className="mt-1">
-                            <ContactLine icon={Mail} text={email || "—"} iconColor={iconMuted} />
-                          </View>
-                        </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : (
+              <ScrollView
+                className="flex-1"
+                keyboardShouldPersistTaps="handled"
+                contentContainerClassName="py-2"
+              >
+                {rows.map((student) => {
+                  const fullName = `${student.first_name} ${student.last_name}`.trim() || "Student";
+                  const email = student.email ?? "";
+                  const phone = student.phone ?? "";
+                  const licenseType = student.license_type;
+                  const rowBase = "border-border bg-card dark:border-borderDark dark:bg-cardDark";
 
-                        <View className="flex-[3] pr-3">
-                          <AppText numberOfLines={1} variant="caption">
-                            {phone || "—"}
-                          </AppText>
+                  return (
+                    <Pressable
+                      key={student.id}
+                      onPress={() => navigation.navigate("StudentDetail", { studentId: student.id })}
+                      className={`flex-row items-center border-b px-4 py-3 ${rowBase}`}
+                    >
+                      <View className="flex-[5] pr-3">
+                        <AppText numberOfLines={1} variant="heading">
+                          {fullName}
+                        </AppText>
+                        <View className="mt-1">
+                          <ContactLine icon={Mail} text={email || "-"} iconColor={iconMuted} />
                         </View>
+                      </View>
 
-                        <View className="flex-[2] flex-row items-center justify-end gap-2">
-                          <LicenseTypeCircle type={licenseType} />
-                          <ChevronRight size={18} color={iconMuted} />
-                        </View>
-                      </>
-                    )}
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
+                      <View className="flex-[3] pr-3">
+                        <AppText numberOfLines={1} variant="caption">
+                          {phone || "-"}
+                        </AppText>
+                      </View>
+
+                      <View className="flex-[2] flex-row items-center justify-end gap-2">
+                        <LicenseTypeCircle type={licenseType} />
+                        <ChevronRight size={18} color={iconMuted} />
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            )}
           </AppCard>
         )}
       </AppStack>
