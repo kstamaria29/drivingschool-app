@@ -15,6 +15,7 @@ import { AppText } from "../../components/AppText";
 import { AppTimeInput } from "../../components/AppTimeInput";
 import { Screen } from "../../components/Screen";
 import { useMyProfileQuery } from "../../features/auth/queries";
+import { isOwnerOrAdminRole } from "../../features/auth/roles";
 import { useAuthSession } from "../../features/auth/session";
 import { useOrganizationProfilesQuery } from "../../features/profiles/queries";
 import { useStudentsQuery } from "../../features/students/queries";
@@ -55,9 +56,9 @@ export function LessonEditScreen({ navigation, route }: Props) {
   const updateMutation = useUpdateLessonMutation();
 
   const role = profileQuery.data?.role ?? null;
-  const isOwner = role === "owner";
+  const canManageLessonInstructor = isOwnerOrAdminRole(role);
 
-  const orgProfilesQuery = useOrganizationProfilesQuery(isOwner);
+  const orgProfilesQuery = useOrganizationProfilesQuery(canManageLessonInstructor);
   const studentsQuery = useStudentsQuery({ archived: false });
 
   const [studentSearch, setStudentSearch] = useState("");
@@ -81,7 +82,7 @@ export function LessonEditScreen({ navigation, route }: Props) {
 
   const defaultInstructorId = useMemo(() => {
     if (role === "instructor") return userId ?? "";
-    if (role === "owner") return userId ?? "";
+    if (isOwnerOrAdminRole(role)) return userId ?? "";
     return "";
   }, [role, userId]);
 
@@ -294,7 +295,7 @@ export function LessonEditScreen({ navigation, route }: Props) {
                   <AppText variant="error">{fieldState.error.message}</AppText>
                 ) : null}
 
-                {isOwner ? (
+                {canManageLessonInstructor ? (
                   orgProfilesQuery.isPending ? (
                     <AppText variant="caption">Loading instructors…</AppText>
                   ) : orgProfilesQuery.isError ? (
@@ -312,7 +313,9 @@ export function LessonEditScreen({ navigation, route }: Props) {
                         <AppButton
                           key={profileOption.id}
                           label={`${profileOption.display_name}${
-                            profileOption.role === "owner" ? " (owner)" : ""
+                            profileOption.role === "owner" || profileOption.role === "admin"
+                              ? ` (${profileOption.role})`
+                              : ""
                           }`}
                           variant={field.value === profileOption.id ? "primary" : "secondary"}
                           onPress={() => {

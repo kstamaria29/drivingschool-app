@@ -18,6 +18,7 @@ import { AppText } from "../../components/AppText";
 import { AppTimeInput } from "../../components/AppTimeInput";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
+import { isOwnerOrAdminRole } from "../../features/auth/roles";
 import {
   useCreateStudentSessionMutation,
   useDeleteStudentSessionMutation,
@@ -196,7 +197,7 @@ export function StudentSessionHistoryScreen({ route }: Props) {
     const duration =
       values.durationMinutes.trim() === "" ? null : Math.max(15, Number(values.durationMinutes.trim()));
 
-    const instructorId = profile.role === "owner" ? student.assigned_instructor_id : userId;
+    const instructorId = isOwnerOrAdminRole(profile.role) ? student.assigned_instructor_id : userId;
 
     try {
       await createMutation.mutateAsync({
@@ -308,7 +309,7 @@ export function StudentSessionHistoryScreen({ route }: Props) {
             onToggle={() => setAddOpen(false)}
           >
             <AppStack gap="md">
-              {profile.role === "owner" && studentQuery.data ? (
+              {isOwnerOrAdminRole(profile.role) && studentQuery.data ? (
                 <AppText variant="caption">
                   Recorded under assigned instructor for this student.
                 </AppText>

@@ -15,14 +15,15 @@ In the Supabase Dashboard:
    - `supabase/migrations/007_assessments_delete.sql`
    - `supabase/migrations/008_student_sessions.sql`
    - `supabase/migrations/009_account_settings.sql`
+   - `supabase/migrations/010_admin_role.sql`
 
 ## Edge Functions
 
-### `create-instructor` (owner-only)
+### `create-instructor` (owner/admin only)
 
-This Edge Function allows an `owner` to create an instructor login and a matching `profiles` row in
-their organization. It generates a temporary password and sets `profiles.must_change_password = true`
-so the instructor is required to change it on first sign-in.
+This Edge Function allows an `owner` or `admin` to create an instructor login and a matching
+`profiles` row in their organization. It generates a temporary password and sets
+`profiles.must_change_password = true` so the instructor is required to change it on first sign-in.
 
 Deploy (requires Supabase CLI):
 
@@ -45,17 +46,19 @@ Then apply policies (Dashboard → `SQL Editor`):
 
 ## Verify RLS + permissions
 
-Create 2 users in the same org:
+Create 3 users in the same org:
 
 - `owner` user (onboarding creates this)
+- `admin` user (create a `profiles` row with role `admin`)
 - `instructor` user (create a `profiles` row with role `instructor`)
 
 Checks:
 
-- `owner` can read/write org data within org (students, lessons, organization_settings).
+- `owner` and `admin` can read/write org data within org (students, lessons, organization_settings).
 - `instructor` can only read/write their own assigned students + lessons (per existing RLS policies).
 - `instructor` can only read/write their own assessments (assessments must match the student's assigned instructor).
 - `instructor` can only read/write their own student sessions (session history).
 - `instructor` cannot upload/replace `org-logos/*` (Storage policy should reject).
-- Both `owner` and `instructor` can upload/update only their own `avatars/<auth.uid()>/avatar.*`.
+- `owner` and `admin` can upload/replace `org-logos/<organization_id>/logo.*`.
+- `owner`, `admin`, and `instructor` can upload/update only their own `avatars/<auth.uid()>/avatar.*`.
 - Users can read avatars of other users in the same org (drawer/header avatar display).

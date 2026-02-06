@@ -1,24 +1,6 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-05 (Pacific/Auckland)
-- **Task:** Refine student profile contact/licence layout
-- **Summary:**
-  - Split Contact, Licence, and Notes into separate containers on the Student profile screen.
-  - Updated Contact/Licence details to use inline label/value rows (Address remains stacked) and paired Licence fields (Type+Number, Version+Class held).
-  - Hid the Notes container when no notes exist.
-- **Files changed:**
-  - `src/navigation/screens/StudentDetailScreen.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Open a student profile and confirm Contact, Licence, and (optional) Notes are separate cards.
-  - Confirm Address shows as a 2-row field, while other fields are label/value inline rows.
-  - Clear Notes for a student and confirm the Notes card disappears.
-
----
-
-- **Date:** 2026-02-05 (Pacific/Auckland)
 - **Task:** Tighten contact row spacing
 - **Summary:**
   - Reduced the spacing between inline labels (e.g. `Email:`) and values on the Student profile screen.
@@ -399,3 +381,33 @@
   - Confirm `PROJECT_LOG.md` contains only the most recent 20 entries.
   - Confirm older entries are present in `docs/logs/PROJECT_LOG_ARCHIVE.md`.
   - Confirm `AGENTS.md` references a 20-entry cap.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Add admin role with owner-equivalent permissions
+- **Summary:**
+  - Added a new Supabase migration to allow `profiles.role = 'admin'` and apply owner-equivalent RLS behavior for admin users.
+  - Updated app role gates so owner-only flows (logo management, instructor creation, assignment controls) also allow admins.
+  - Updated create-instructor Edge Function and org-logo storage policy SQL to allow both owners and admins.
+- **Files changed:**
+  - `src/features/auth/roles.ts`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `src/navigation/screens/StudentSessionHistoryScreen.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/screens/AddInstructorScreen.tsx`
+  - `src/supabase/types.ts`
+  - `supabase/migrations/010_admin_role.sql`
+  - `supabase/functions/create-instructor/index.ts`
+  - `supabase/storage/org-logos.sql`
+  - `supabase/README.md`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Apply `supabase/migrations/010_admin_role.sql` in Supabase SQL Editor.
+  - Set one profile role to `admin` and confirm admin can create instructors and change org logo.
+  - Confirm instructor permissions remain restricted to assigned records.
+

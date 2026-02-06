@@ -13,6 +13,7 @@ import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
+import { isOwnerOrAdminRole } from "../../features/auth/roles";
 import { useUploadOrganizationLogoMutation } from "../../features/organization/queries";
 import {
   useOrganizationQuery,
@@ -30,6 +31,7 @@ import type { SettingsStackParamList } from "../SettingsStackNavigator";
 
 export function SettingsScreen() {
   const { userId, profile } = useCurrentUser();
+  const canManageOrganization = isOwnerOrAdminRole(profile.role);
   const [pickerError, setPickerError] = useState<string | null>(null);
   const { scheme, setScheme } = useAppColorScheme();
   const navigation = useNavigation<NativeStackNavigationProp<SettingsStackParamList>>();
@@ -141,9 +143,9 @@ export function SettingsScreen() {
               <View className="flex-1">
                 <AppText variant="body">{orgQuery.data?.name ?? "Organization"}</AppText>
                 <AppText variant="caption">
-                  {profile.role === "owner"
-                    ? "Owners can update the organization logo."
-                    : "Only owners can update the organization logo."}
+                  {canManageOrganization
+                    ? "Owners and admins can update the organization logo."
+                    : "Only owners and admins can update the organization logo."}
                 </AppText>
               </View>
             </View>
@@ -155,7 +157,7 @@ export function SettingsScreen() {
             }
             variant="secondary"
             icon={ImageUp}
-            disabled={profile.role !== "owner" || uploadOrgLogoMutation.isPending}
+            disabled={!canManageOrganization || uploadOrgLogoMutation.isPending}
             onPress={async () => {
               try {
                 setPickerError(null);
@@ -275,7 +277,7 @@ export function SettingsScreen() {
           />
         </AppCard>
 
-        {profile.role === "owner" ? (
+        {canManageOrganization ? (
           <AppCard className="gap-3">
             <AppText variant="heading">Instructors</AppText>
             <AppText variant="caption">

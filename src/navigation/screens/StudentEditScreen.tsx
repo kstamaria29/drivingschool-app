@@ -12,6 +12,7 @@ import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
 import { useMyProfileQuery } from "../../features/auth/queries";
+import { isOwnerOrAdminRole } from "../../features/auth/roles";
 import { useAuthSession } from "../../features/auth/session";
 import { useOrganizationProfilesQuery } from "../../features/profiles/queries";
 import {
@@ -89,13 +90,13 @@ export function StudentEditScreen({ navigation, route }: Props) {
   const updateMutation = useUpdateStudentMutation();
 
   const role = profileQuery.data?.role ?? null;
-  const isOwner = role === "owner";
+  const canManageStudentAssignments = isOwnerOrAdminRole(role);
 
-  const orgProfilesQuery = useOrganizationProfilesQuery(isOwner);
+  const orgProfilesQuery = useOrganizationProfilesQuery(canManageStudentAssignments);
 
   const defaultAssignedInstructorId = useMemo(() => {
     if (role === "instructor") return userId ?? "";
-    if (role === "owner") return userId ?? "";
+    if (isOwnerOrAdminRole(role)) return userId ?? "";
     return "";
   }, [role, userId]);
 
@@ -251,7 +252,9 @@ export function StudentEditScreen({ navigation, route }: Props) {
         <View>
           <AppText variant="title">{isEditing ? "Edit student" : "New student"}</AppText>
           <AppText className="mt-2" variant="body">
-            {isOwner ? "You can assign this student to an instructor." : "This student will be assigned to you."}
+            {canManageStudentAssignments
+              ? "You can assign this student to an instructor."
+              : "This student will be assigned to you."}
           </AppText>
         </View>
 
@@ -345,7 +348,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
                   <AppText variant="error">{fieldState.error.message}</AppText>
                 ) : null}
 
-                {isOwner ? (
+                {canManageStudentAssignments ? (
                   orgProfilesQuery.isPending ? (
                     <AppText variant="caption">Loading instructors…</AppText>
                   ) : orgProfilesQuery.isError ? (
@@ -363,7 +366,9 @@ export function StudentEditScreen({ navigation, route }: Props) {
                         <AppButton
                           key={profileOption.id}
                           label={`${profileOption.display_name}${
-                            profileOption.role === "owner" ? " (owner)" : ""
+                            profileOption.role === "owner" || profileOption.role === "admin"
+                              ? ` (${profileOption.role})`
+                              : ""
                           }`}
                           variant={field.value === profileOption.id ? "primary" : "secondary"}
                           onPress={() => field.onChange(profileOption.id)}

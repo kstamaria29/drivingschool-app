@@ -38,7 +38,7 @@ export type Database = {
         Row: {
           id: string;
           organization_id: string;
-          role: "owner" | "instructor";
+          role: "owner" | "admin" | "instructor";
           display_name: string;
           first_name: string | null;
           last_name: string | null;
@@ -50,7 +50,7 @@ export type Database = {
         Insert: {
           id: string;
           organization_id: string;
-          role: "owner" | "instructor";
+          role: "owner" | "admin" | "instructor";
           display_name: string;
           first_name?: string | null;
           last_name?: string | null;
@@ -61,7 +61,7 @@ export type Database = {
         };
         Update: {
           organization_id?: string;
-          role?: "owner" | "instructor";
+          role?: "owner" | "admin" | "instructor";
           display_name?: string;
           first_name?: string | null;
           last_name?: string | null;
