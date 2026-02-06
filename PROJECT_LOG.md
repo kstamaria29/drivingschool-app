@@ -1,189 +1,22 @@
 # PROJECT_LOG.md
 
-- **Date:** 2026-02-05 (Pacific/Auckland)
-- **Task:** Show upcoming lessons on Home
-- **Summary:**
-  - Updated the Home "Today" card to list each lesson (student full name + start/end time) instead of a count.
-  - Added an "Next 3 days" section showing upcoming lessons grouped by day.
-- **Files changed:**
-  - `src/navigation/screens/HomeScreen.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - On `Home`: confirm Today's lessons list shows names + time ranges.
-  - Confirm lessons for the next 3 days appear under "Next 3 days" and days with no lessons are hidden.
-
----
-
-- **Date:** 2026-02-05 (Pacific/Auckland)
-- **Task:** Use 12h time format on Home
-- **Summary:**
-  - Updated lesson time ranges on Home to use 12-hour format (e.g. `10:15 am - 10:30 am`).
-- **Files changed:**
-  - `src/navigation/screens/HomeScreen.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - On `Home`: confirm lesson time ranges show in 12-hour format with am/pm.
-
----
-
-- **Date:** 2026-02-05 (Pacific/Auckland)
-- **Task:** Rename Today heading on Home
-- **Summary:**
-  - Renamed the Home lessons card heading from "Today" to "Upcoming Lessons Today".
-- **Files changed:**
-  - `src/navigation/screens/HomeScreen.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - On `Home`: confirm the lessons card heading reads "Upcoming Lessons Today".
-
----
-
-- **Date:** 2026-02-05 (Pacific/Auckland)
-- **Task:** Underline next-days date headers
-- **Summary:**
-  - Underlined the day/date headers in the "Next 3 days" section and matched the font size to student rows.
-- **Files changed:**
-  - `src/navigation/screens/HomeScreen.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - On `Home`: confirm each day/date header in "Next 3 days" is underlined and uses the same text size as the student names.
-
----
-
-- **Date:** 2026-02-05 (Pacific/Auckland)
-- **Task:** Settings: Account settings + instructor creation
-- **Summary:**
-  - Renamed Settings "Profile" section to "Account Settings" and displays full name (first + last) when available.
-  - Added profile photo actions (take photo, choose from library, remove photo).
-  - Added Change Name and Change Password flows (with current/new/confirm fields).
-  - Enforced first-login password change via `profiles.must_change_password` (instructors created by owner are gated until password is updated).
-  - Implemented owner-only "Add Instructor" flow backed by a Supabase Edge Function that generates a temporary password.
-- **Files changed:**
-  - `src/navigation/screens/SettingsScreen.tsx`
-  - `src/navigation/SettingsStackNavigator.tsx`
-  - `src/navigation/RootNavigation.tsx`
-  - `src/navigation/ForcedPasswordChangeStackNavigator.tsx`
-  - `src/navigation/screens/EditNameScreen.tsx`
-  - `src/navigation/screens/ChangePasswordScreen.tsx`
-  - `src/navigation/screens/ForcePasswordChangeScreen.tsx`
-  - `src/navigation/screens/AddInstructorScreen.tsx`
-  - `src/navigation/components/HeaderButtons.tsx`
-  - `src/navigation/components/AppDrawerContent.tsx`
-  - `src/navigation/screens/HomeScreen.tsx`
-  - `src/navigation/screens/LessonEditScreen.tsx`
-  - `src/navigation/screens/StudentEditScreen.tsx`
-  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
-  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
-  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
-  - `src/features/account/api.ts`
-  - `src/features/account/queries.ts`
-  - `src/features/account/schemas.ts`
-  - `src/features/account/ChangePasswordForm.tsx`
-  - `src/features/instructors/api.ts`
-  - `src/features/instructors/queries.ts`
-  - `src/features/instructors/schemas.ts`
-  - `src/utils/profileName.ts`
-  - `src/supabase/types.ts`
-  - `supabase/migrations/009_account_settings.sql`
-  - `supabase/functions/create-instructor/index.ts`
-  - `supabase/README.md`
-  - `app.json`
-  - `tsconfig.json`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Settings -> confirm "Account Settings" heading, full name display, Change name/password buttons.
-  - Settings -> Change profile photo -> confirm Take/Choose/Remove options.
-  - Owner: Settings -> Instructors -> Add instructor -> create an instructor and confirm credentials are returned.
-  - Sign in as the new instructor -> confirm you are forced to the password change screen until you update it.
-
----
-
-- **Date:** 2026-02-06 (Pacific/Auckland)
-- **Task:** Fix release build crash (Supabase env)
-- **Summary:**
-  - Fixed Supabase env resolution for native builds by avoiding dynamic `process.env[key]` access and supporting Expo `extra` fallback.
-  - Added `app.config.ts` to surface Supabase values in `expo.extra` for builds.
-  - Added an in-app "missing Supabase config" screen to prevent a hard crash when env vars are absent.
-  - Documented EAS env requirements in `README.md`.
-- **Files changed:**
-  - `app.config.ts`
-  - `src/supabase/env.ts`
-  - `src/supabase/client.ts`
-  - `src/features/auth/session.tsx`
-  - `src/navigation/RootNavigation.tsx`
-  - `src/navigation/screens/MissingSupabaseConfigScreen.tsx`
-  - `README.md`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-  - `npx expo config --type public`
-- **How to verify:**
-  - With env vars set: build/install APK and confirm it opens without crashing.
-  - Without env vars set: confirm the app shows the "App misconfigured" screen instead of crashing.
-
----
-
-- **Date:** 2026-02-06 (Pacific/Auckland)
-- **Task:** Estimate solo-dev timeline (no AI)
-- **Summary:**
-  - Provided a rough full-time solo developer estimate for implementing the v1 mobile app scope end-to-end (Expo RN + Supabase + RLS + PDF export) without AI assistance.
-- **Files changed:**
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `Get-Content AGENTS.md`
-  - `Get-Content PROJECT_LOG.md`
-  - `Get-Content PROJECT_LOG.md -Tail 40`
-- **How to verify:**
-  - Open `PROJECT_LOG.md` and confirm this entry exists at the bottom.
-
----
-
 - **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Route deleted/stale sessions to login
+- **Task:** Remove Google Maps share-guide PDF feature
 - **Summary:**
-  - Added startup session validation against Supabase Auth (`getUser`) before trusting a restored local session.
-  - Added stale-session detection (invalid JWT/missing user/auth-session-missing patterns + 401/403/404) and local sign-out cleanup.
-  - Prevents deleted users with cached sessions from being routed to onboarding; they now fall back to `Login`.
+  - Removed the `Share Maps Guide (PDF)` button from Google Maps.
+  - Deleted the temporary in-app PDF guide module that was added for sharing.
 - **Files changed:**
-  - `src/features/auth/session.tsx`
+  - `src/navigation/screens/GoogleMapsScreen.tsx`
+  - `src/features/maps/googleMapsFeaturesGuidePdf.ts`
   - `PROJECT_LOG.md`
 - **Commands run:**
   - `Get-Content -Raw AGENTS.md`
   - `Get-Content -Raw PROJECT_LOG.md`
+  - `Get-Content -Raw docs/logs/INDEX.md`
   - `npx tsc --noEmit`
 - **How to verify:**
-  - Delete a signed-in user in Supabase (`auth.users`) while keeping the app installed/signed in on device.
-  - Reopen the app and confirm it lands on `LoginScreen` (not `OnboardingCreateOrgScreen`).
-  - Create a brand-new account from `Signup` and confirm onboarding still appears for first-time org creation.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Add onboarding back button to login
-- **Summary:**
-  - Added a back action on `OnboardingCreateOrgScreen` so users can return to the sign-in screen.
-  - Implemented the action with `navigation.replace("Login")` to avoid leaving onboarding on the back stack.
-- **Files changed:**
-  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Tail 140 PROJECT_LOG.md`
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Open `Create your driving school` screen.
-  - Tap `Back to sign in`.
-  - Confirm the app navigates to `LoginScreen`.
+  - Open `Google Maps`.
+  - Confirm there is no `Share Maps Guide (PDF)` button in the top card.
 
 ---
 
@@ -443,3 +276,232 @@
   - Confirm `PROJECT_LOG.md` still contains 20 entries and includes this new entry at the bottom.
   - Confirm the oldest previously active entry now exists in `docs/logs/PROJECT_LOG_ARCHIVE.md`.
 
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Add Google Maps screen with persistent pins
+- **Summary:**
+  - Added a new drawer route Google Maps with a near full-screen interactive map view.
+  - Implemented map layer switching (Default, Satellite, Hybrid) and pin creation via long-press or map-center placement.
+  - Added pin labels/notes and optional student linking, backed by a new tenant-safe map_pins table with RLS.
+  - Added map pin API/query hooks and marker selection/delete support on the map screen.
+  - Added optional build-time GOOGLE_MAPS_API_KEY wiring through Expo config for react-native-maps plugin setup.
+- **Files changed:**
+  - .env.example
+  - README.md
+  - app.config.ts
+  - package.json
+  - package-lock.json
+  - src/features/map-pins/api.ts
+  - src/features/map-pins/queries.ts
+  - src/navigation/MainDrawerNavigator.tsx
+  - src/navigation/MapsStackNavigator.tsx
+  - src/navigation/components/AppDrawerContent.tsx
+  - src/navigation/screens/GoogleMapsScreen.tsx
+  - src/supabase/types.ts
+  - supabase/migrations/012_map_pins.sql
+  - supabase/README.md
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - npx expo install react-native-maps
+  - npx tsc --noEmit
+  - npx expo config --type public
+- **How to verify:**
+  - Apply supabase/migrations/012_map_pins.sql in Supabase SQL Editor.
+  - Set GOOGLE_MAPS_API_KEY for local/EAS builds and rebuild the app.
+  - Open drawer -> Google Maps and confirm the map renders full-screen with layer toggle controls.
+  - Long-press map to add a pin, enter label/notes, optionally link a student, and save.
+  - Tap an existing marker to view details, then delete it and confirm it disappears.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Fix react-native-maps config plugin startup error
+- **Summary:**
+  - Removed dynamic app config plugin injection for react-native-maps, which caused Expo startup to fail.
+  - Kept Google Maps key wiring in app config using native fields instead (ios config googleMapsApiKey and android config googleMaps apiKey).
+  - Verified Expo config resolves without PluginError and TypeScript compile still passes.
+- **Files changed:**
+  - app.config.ts
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - npx expo config --type public
+  - npx tsc --noEmit
+- **How to verify:**
+  - Run npm start and confirm startup no longer throws PluginError for react-native-maps.
+  - Open the Google Maps screen from the drawer and confirm map renders.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Add anchored vectors, snapshots, and student address auto-pin in Google Maps
+- **Summary:**
+  - Added persistent map annotations with two modes: anchored vector drawings (lat/lng polylines) and snapshot annotations (map capture + doodle overlay).
+  - Added annotation data layer and query hooks plus a new Supabase migration/table for multi-tenant annotation storage with role-safe RLS policies.
+  - Added snapshot annotation editor modal and snapshot preview modal with stroke rendering.
+  - Added Auto-pin action that geocodes all active students with addresses and creates map pins for students not already pinned.
+  - Updated the Google Maps screen to render saved vector overlays, create/delete annotations, and expose the new annotation workflows.
+- **Files changed:**
+  - README.md
+  - supabase/README.md
+  - supabase/migrations/013_map_annotations.sql
+  - src/supabase/types.ts
+  - src/features/map-annotations/api.ts
+  - src/features/map-annotations/queries.ts
+  - src/features/map-annotations/codec.ts
+  - src/navigation/components/SnapshotAnnotationModal.tsx
+  - src/navigation/components/SnapshotPreviewModal.tsx
+  - src/navigation/screens/GoogleMapsScreen.tsx
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - npx tsc --noEmit
+- **How to verify:**
+  - Apply supabase/migrations/013_map_annotations.sql in Supabase SQL Editor.
+  - Open drawer -> Google Maps, select a pin, tap Anchored vector, draw on map, and save; confirm saved lines re-render when reopening the pin.
+  - Select a pin, tap Snapshot, draw over the captured image, save, then tap the snapshot item to confirm preview rendering.
+  - Tap Auto-pin active student addresses and confirm pins are created for active students with addresses that were not already pinned.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Google Maps main-map annotations + NZ address autocomplete
+- **Summary:**
+  - Added main-map annotation support so anchored vectors and snapshots work even when no pin is selected.
+  - Added drawing controls for anchored vectors and snapshots: color, line thickness, text placement, undo, and redo.
+  - Added NZ-only Google address search/autocomplete on Google Maps and zoom-to-address behavior.
+  - Added reusable NZ address autocomplete input and integrated it into student address editing.
+  - Extended annotation payload parsing/serialization to persist styled strokes and text labels.
+- **Files changed:**
+  - `.env.example`
+  - `README.md`
+  - `app.config.ts`
+  - `src/components/AddressAutocompleteInput.tsx`
+  - `src/features/maps/places.ts`
+  - `src/features/map-annotations/codec.ts`
+  - `src/navigation/components/SnapshotAnnotationModal.tsx`
+  - `src/navigation/components/SnapshotPreviewModal.tsx`
+  - `src/navigation/screens/GoogleMapsScreen.tsx`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+  - `npx expo config --type public`
+- **How to verify:**
+  - Open `Google Maps`, type an NZ address, pick autocomplete suggestion, and confirm the map zooms to that location.
+  - In `Google Maps`, use top-panel `Anchored vector` and `Snapshot` (without selecting a pin) and confirm color/width/text + undo/redo + save all work.
+  - Select an existing pin and confirm the same annotation tools still work for pin-scoped annotations.
+  - Open `Students` -> `New/Edit student` and confirm the Address field now shows NZ autocomplete suggestions while typing.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Google Maps cleanup: remove vectors + snapshot UI updates
+- **Summary:**
+  - Removed Anchored vector workflows from the Google Maps UI and map annotation codec, keeping snapshot annotations and pin workflows intact.
+  - Updated map controls layout: removed top-right refresh, changed add button icon to Lucide `Pin`, moved layer tabs above address search, and replaced the separate search button with inline Clear beside the address input.
+  - Moved snapshot capture controls into bottom annotation cards (main map + selected pin) as square icon buttons.
+  - Updated Snapshot Annotation modal: added line-thickness icons beside size labels, added black as a draw color option, switched Undo/Redo to icon-only buttons, and right-aligned Save snapshot.
+  - Hardened Auto-pin geocoding by trying Google geocode first (when configured), then Expo geocode fallback, and surfacing the first failure reason when insert errors occur.
+- **Files changed:**
+  - `src/navigation/screens/GoogleMapsScreen.tsx`
+  - `src/navigation/components/SnapshotAnnotationModal.tsx`
+  - `src/components/AddressAutocompleteInput.tsx`
+  - `src/features/map-annotations/codec.ts`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+  - `rg -n "anchored_vector|vector" src/navigation/screens/GoogleMapsScreen.tsx src/features/map-annotations/codec.ts`
+- **How to verify:**
+  - Open `Google Maps` and confirm top-right shows only one square add-pin icon button (no refresh button).
+  - Confirm map layer tabs are above the address input, and the Clear button is beside the input on the right.
+  - Confirm there is no Anchored vector button/workflow and no vector counts/listing in bottom cards.
+  - In `Main Map Annotations`, confirm Snapshot is a right-aligned square camera icon button; tap it and save a snapshot.
+  - Open Snapshot Annotation modal and confirm: black color is available, size options show an icon + px label, Undo/Redo are icon-only, and Save snapshot is right-aligned.
+  - Tap `Auto-pin active student addresses` and confirm it no longer reports generic unexpected failures for geocoder path issues.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Center Google Maps add-pin icon button
+- **Summary:**
+  - Fixed shared `AppButton` icon-only layout so internal content gap is only applied when both icon and label exist.
+  - This centers icon-only buttons, including the top-right Google Maps add-pin button.
+- **Files changed:**
+  - `src/components/AppButton.tsx`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `Get-Content -Raw docs/logs/INDEX.md`
+  - `rg -n "add pin|Add pin|Pin|pin" src/navigation/screens/GoogleMapsScreen.tsx`
+  - `Get-Content -Raw src/navigation/screens/GoogleMapsScreen.tsx`
+  - `Get-Content -Raw src/components/AppButton.tsx`
+  - `Get-Content -Raw src/theme/theme.ts`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Google Maps` screen.
+  - Confirm the top-right blue add-pin button icon is visually centered.
+  - Confirm other icon-only square buttons (e.g. snapshot camera) remain centered.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Harden icon-only button centering for map controls
+- **Summary:**
+  - Added a dedicated `icon` button size in shared theme/button primitives to avoid conflicting NativeWind utility classes for icon-only controls.
+  - Updated icon-only buttons on Google Maps, Snapshot Annotation modal, and Lessons month navigation to use `size="icon"` instead of class-based height/width overrides.
+  - This removes inherited `md` spacing conflicts and centers icons consistently inside square buttons.
+- **Files changed:**
+  - `src/theme/theme.ts`
+  - `src/components/AppButton.tsx`
+  - `src/navigation/screens/GoogleMapsScreen.tsx`
+  - `src/navigation/components/SnapshotAnnotationModal.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Raw src/navigation/screens/GoogleMapsScreen.tsx`
+  - `Get-Content -Raw src/navigation/components/SnapshotAnnotationModal.tsx`
+  - `Get-Content -Raw src/features/weather/WeatherWidget.tsx`
+  - `Get-Content -Raw src/components/AppButton.tsx`
+  - `Get-Content -Raw src/theme/theme.ts`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Google Maps` and confirm the top-right add-pin icon is centered inside its blue square button.
+  - In `Main Map Annotations`, confirm the camera icon is centered inside its square button.
+  - Open Snapshot Annotation and confirm Undo/Redo icons are centered in their square buttons.
+  - Open Lessons list and confirm month nav chevron icons are centered in square controls.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Snapshot text sizes + automatic student auto-pin
+- **Summary:**
+  - Added selectable text-size controls in Snapshot Annotation and persisted text size in annotation payloads.
+  - Updated snapshot editor and preview rendering to respect per-text font size, with backward-compatible default sizing for existing saved snapshots.
+  - Removed the manual `Auto-pin active student addresses` button and switched Google Maps to automatic background auto-pin for active students with addresses.
+- **Files changed:**
+  - `src/features/map-annotations/codec.ts`
+  - `src/navigation/components/SnapshotAnnotationModal.tsx`
+  - `src/navigation/components/SnapshotPreviewModal.tsx`
+  - `src/navigation/screens/GoogleMapsScreen.tsx`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `Get-Content -Raw docs/logs/INDEX.md`
+  - `mcp__context7__resolve-library-id (react-native-svg)`
+  - `mcp__context7__query-docs (/software-mansion/react-native-svg)`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Google Maps` and confirm there is no `Auto-pin active student addresses` button.
+  - Ensure there are active students with valid addresses and verify their pins appear automatically after map data loads.
+  - Open Snapshot Annotation, enter text, choose different text sizes, place labels, save, and reopen preview.
+  - Confirm placed labels render at the chosen font sizes both in editor and preview.

@@ -256,20 +256,20 @@ export function LessonsListScreen({ navigation }: Props) {
                 <View className="flex-row items-center gap-2">
                   <AppButton
                     width="auto"
+                    size="icon"
                     variant="secondary"
                     icon={ChevronLeft}
                     label=""
-                    className="h-10 w-10 px-0"
                     accessibilityLabel="Previous month"
                     onPress={onPrevMonth}
                   />
                   <AppText variant="heading">{month.format("MMMM YYYY")}</AppText>
                   <AppButton
                     width="auto"
+                    size="icon"
                     variant="secondary"
                     icon={ChevronRight}
                     label=""
-                    className="h-10 w-10 px-0"
                     accessibilityLabel="Next month"
                     onPress={onNextMonth}
                   />
@@ -302,20 +302,20 @@ export function LessonsListScreen({ navigation }: Props) {
                 <View className="flex-row items-center gap-2">
                   <AppButton
                     width="auto"
+                    size="icon"
                     variant="secondary"
                     icon={ChevronLeft}
                     label=""
-                    className="h-10 w-10 px-0"
                     accessibilityLabel="Previous month"
                     onPress={onPrevMonth}
                   />
                   <AppText variant="heading">{month.format("MMMM YYYY")}</AppText>
                   <AppButton
                     width="auto"
+                    size="icon"
                     variant="secondary"
                     icon={ChevronRight}
                     label=""
-                    className="h-10 w-10 px-0"
                     accessibilityLabel="Next month"
                     onPress={onNextMonth}
                   />

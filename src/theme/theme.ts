@@ -41,6 +41,7 @@ export const theme = {
     size: {
       md: "h-12 px-4",
       lg: "h-14 px-5",
+      icon: "h-10 w-10 p-0",
     },
     variant: {
       primary: "bg-primary border-primary dark:bg-primaryDark dark:border-primaryDark",

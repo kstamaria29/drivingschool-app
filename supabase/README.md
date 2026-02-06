@@ -17,6 +17,8 @@ In the Supabase Dashboard:
    - `supabase/migrations/009_account_settings.sql`
    - `supabase/migrations/010_admin_role.sql`
    - `supabase/migrations/011_students_lessons_delete_policies.sql`
+   - `supabase/migrations/012_map_pins.sql`
+   - `supabase/migrations/013_map_annotations.sql`
 
 ## Edge Functions
 
