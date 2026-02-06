@@ -1687,3 +1687,24 @@
   - Fresh install APK on device and launch app for the first time.
   - Confirm login/auth screens and drawer/navigation surfaces are all light mode (no mixed dark sidebar).
   - Open Settings and toggle dark mode, then relaunch app to confirm persisted mode still applies consistently.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Confirm before creating student + rename create CTA
+- **Summary:**
+  - Added a confirmation alert on `StudentCreate` submit with `Back` and `Confirm` options before persisting a new student.
+  - Kept edit flow unchanged (updates still save directly).
+  - Renamed create-screen primary button from `Save student` to `Add student`.
+- **Files changed:**
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Students` -> `New student`, fill required fields, and tap `Add student`.
+  - Confirm alert appears with `Back` and `Confirm`.
+  - Tap `Back` and verify no student is created.
+  - Tap `Add student` again and then `Confirm`; verify you are navigated to the new student detail.
