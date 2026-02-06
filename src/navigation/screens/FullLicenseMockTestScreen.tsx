@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Platform, View } from "react-native";
+import { ActivityIndicator, Alert, Modal, Platform, Pressable, View } from "react-native";
 import { Controller, useForm } from "react-hook-form";
 import { CircleStop, Flag, Pause, Play, RotateCcw, Timer, TriangleAlert } from "lucide-react-native";
 
@@ -23,10 +23,16 @@ import { ensureAndroidDownloadsDirectoryUri } from "../../features/assessments/a
 import { useCreateAssessmentMutation } from "../../features/assessments/queries";
 import {
   fullLicenseMockTestAssessmentItems,
+  fullLicenseMockTestHazardCategoryLabels,
+  fullLicenseMockTestHazardDirectionLabels,
+  fullLicenseMockTestHazardLayout,
   fullLicenseMockTestCriticalErrors,
   fullLicenseMockTestImmediateErrors,
   fullLicenseMockTestTasks,
   type FullLicenseMockTestAssessmentItemId,
+  type FullLicenseMockTestHazardCategory,
+  type FullLicenseMockTestHazardDirection,
+  type FullLicenseMockTestHazardResponse,
   type FullLicenseMockTestMode,
   type FullLicenseMockTestTaskId,
   type FullLicenseMockTestWeather,
@@ -34,10 +40,13 @@ import {
 import { exportFullLicenseMockTestPdf } from "../../features/assessments/full-license-mock-test/pdf";
 import {
   calculateFullLicenseMockTestSummary,
+  createFullLicenseMockTestEmptyHazardResponses,
   createFullLicenseMockTestEmptyItems,
+  hasFullLicenseMockTestHazardResponse,
   scoreFullLicenseMockTestAttempt,
   type FullLicenseMockTestAttempt,
   type FullLicenseMockTestErrorCounts,
+  type FullLicenseMockTestHazardResponses,
 } from "../../features/assessments/full-license-mock-test/scoring";
 import {
   fullLicenseMockTestFormSchema,
@@ -62,6 +71,10 @@ type Props = NativeStackScreenProps<AssessmentsStackParamList, "FullLicenseMockT
 
 type Stage = "details" | "confirm" | "run" | "summary";
 type PFValue = "P" | "F";
+type HazardPickerTarget = {
+  category: FullLicenseMockTestHazardCategory;
+  direction: FullLicenseMockTestHazardDirection;
+};
 
 const OFFICIAL_SECONDS = 20 * 60;
 const DRILL_SECONDS = 30 * 60;
@@ -113,6 +126,20 @@ function immediateTotalFromCounts(counts: FullLicenseMockTestErrorCounts) {
   return fullLicenseMockTestImmediateErrors.reduce((sum, label) => sum + (counts[label] ?? 0), 0);
 }
 
+function hazardResponseLabel(value: FullLicenseMockTestHazardResponse) {
+  if (value === "yes") return "Yes";
+  if (value === "no") return "No";
+  return "N/A";
+}
+
+function hazardDirectionLabel(direction: FullLicenseMockTestHazardDirection) {
+  if (direction === "left") return "Left";
+  if (direction === "right") return "Right";
+  if (direction === "ahead") return "Ahead";
+  if (direction === "behind") return "Behind";
+  return "Others";
+}
+
 export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   const { isSidebar } = useNavigationLayout();
   const { profile, userId } = useCurrentUser();
@@ -155,6 +182,10 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   const [items, setItems] = useState<Record<FullLicenseMockTestAssessmentItemId, PFValue>>(() =>
     createFullLicenseMockTestEmptyItems(),
   );
+  const [hazardResponses, setHazardResponses] = useState<FullLicenseMockTestHazardResponses>(() =>
+    createFullLicenseMockTestEmptyHazardResponses(),
+  );
+  const [hazardPickerTarget, setHazardPickerTarget] = useState<HazardPickerTarget | null>(null);
   const [hazardsSpoken, setHazardsSpoken] = useState("");
   const [actionsSpoken, setActionsSpoken] = useState("");
   const [notes, setNotes] = useState("");
@@ -219,6 +250,30 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
 
   function toggleSuggestions(key: "hazards" | "actions" | "notes") {
     setOpenSuggestions((prev) => (prev === key ? null : key));
+  }
+
+  function setHazardResponse(
+    category: FullLicenseMockTestHazardCategory,
+    direction: FullLicenseMockTestHazardDirection,
+    response: FullLicenseMockTestHazardResponse,
+  ) {
+    setHazardResponses((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [direction]: response,
+      },
+    }));
+  }
+
+  function responseChipClassName(response: FullLicenseMockTestHazardResponse) {
+    if (response === "yes") {
+      return "border-emerald-600 bg-emerald-600/15 dark:border-emerald-400 dark:bg-emerald-500/20";
+    }
+    if (response === "no") {
+      return "border-rose-600 bg-rose-600/15 dark:border-rose-400 dark:bg-rose-500/20";
+    }
+    return "border-border bg-background dark:border-borderDark dark:bg-backgroundDark";
   }
 
   const organizationName = organizationQuery.data?.name ?? "Driving School";
@@ -326,6 +381,8 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     }
 
     setItems(createFullLicenseMockTestEmptyItems());
+    setHazardResponses(createFullLicenseMockTestEmptyHazardResponses());
+    setHazardPickerTarget(null);
     setHazardsSpoken("");
     setActionsSpoken("");
     setNotes("");
@@ -355,6 +412,13 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     setCritical(createErrorCounts(fullLicenseMockTestCriticalErrors));
     setImmediate(createErrorCounts(fullLicenseMockTestImmediateErrors));
     setTaskId("left_turn");
+    setItems(createFullLicenseMockTestEmptyItems());
+    setHazardResponses(createFullLicenseMockTestEmptyHazardResponses());
+    setHazardPickerTarget(null);
+    setHazardsSpoken("");
+    setActionsSpoken("");
+    setNotes("");
+    setLocationTag("");
 
     const nextMode = options?.keepDetails ? form.getValues("mode") : "official";
     setSessionSeconds(nextMode === "drill" ? DRILL_SECONDS : OFFICIAL_SECONDS);
@@ -547,6 +611,9 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   }
 
   function validateAttempt() {
+    if (!hasFullLicenseMockTestHazardResponse(hazardResponses)) {
+      return "Select at least one hazard response (Yes/No) before recording this attempt.";
+    }
     if (!hazardsSpoken.trim()) return "Please enter the hazards spoken.";
     if (!actionsSpoken.trim()) return "Please enter the action spoken.";
     if (mode === "drill") {
@@ -577,6 +644,11 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       repIndex,
       repTarget,
       items: { ...items },
+      hazardResponses: {
+        pedestrians: { ...hazardResponses.pedestrians },
+        vehicles: { ...hazardResponses.vehicles },
+        others: { ...hazardResponses.others },
+      },
       hazardsSpoken: hazardsSpoken.trim(),
       actionsSpoken: actionsSpoken.trim(),
       notes: notes.trim(),
@@ -594,10 +666,12 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     }
 
     setItems(createFullLicenseMockTestEmptyItems());
+    setHazardResponses(createFullLicenseMockTestEmptyHazardResponses());
+    setHazardPickerTarget(null);
     setHazardsSpoken("");
     setActionsSpoken("");
-      setNotes("");
-      setLocationTag("");
+    setNotes("");
+    setLocationTag("");
     Alert.alert("Recorded", "Task attempt recorded.");
   }
 
@@ -1180,6 +1254,56 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
 
       <AppDivider />
 
+      <AppText variant="heading">Hazard Detection and Response</AppText>
+      <AppText variant="caption">
+        Tap each hazard box to set Yes, No, or N/A. At least one Yes/No response is required per
+        task attempt.
+      </AppText>
+
+      <AppStack gap="sm">
+        {(
+          Object.entries(fullLicenseMockTestHazardLayout) as Array<
+            [FullLicenseMockTestHazardCategory, readonly FullLicenseMockTestHazardDirection[]]
+          >
+        ).map(([category, directions]) => (
+          <View key={category} className="flex-row items-center justify-between gap-3">
+            <AppText variant="body" className="w-28">
+              {fullLicenseMockTestHazardCategoryLabels[category]}
+            </AppText>
+            <View className="flex-1 flex-row flex-wrap justify-end gap-2">
+              {directions.map((direction) => {
+                const response = hazardResponses[category][direction];
+                return (
+                  <Pressable
+                    key={`${category}:${direction}`}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${fullLicenseMockTestHazardCategoryLabels[category]} ${hazardDirectionLabel(direction)} response`}
+                    className={cn(
+                      "h-11 w-11 items-center justify-center rounded-lg border",
+                      responseChipClassName(response),
+                    )}
+                    onPress={() => setHazardPickerTarget({ category, direction })}
+                  >
+                    <AppText
+                      variant="label"
+                      className={cn(
+                        "text-base",
+                        response === "yes" && "text-emerald-700 dark:text-emerald-300",
+                        response === "no" && "text-rose-700 dark:text-rose-300",
+                      )}
+                    >
+                      {fullLicenseMockTestHazardDirectionLabels[direction]}
+                    </AppText>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        ))}
+      </AppStack>
+
+      <AppDivider />
+
       <AppText variant="heading">Assessment items (Pass/Fail)</AppText>
       <AppStack gap="sm">
         {fullLicenseMockTestAssessmentItems.map((it) => (
@@ -1303,6 +1427,8 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
           icon={RotateCcw}
           onPress={() => {
             setItems(createFullLicenseMockTestEmptyItems());
+            setHazardResponses(createFullLicenseMockTestEmptyHazardResponses());
+            setHazardPickerTarget(null);
             setHazardsSpoken("");
             setActionsSpoken("");
             setNotes("");
@@ -1572,36 +1698,108 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     </AppStack>
   );
 
+  const selectedHazardResponse = hazardPickerTarget
+    ? hazardResponses[hazardPickerTarget.category][hazardPickerTarget.direction]
+    : "na";
+
+  const hazardPickerModal = (
+    <Modal
+      visible={hazardPickerTarget != null}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setHazardPickerTarget(null)}
+    >
+      <View className="flex-1 items-center justify-center bg-black/45 px-6">
+        <AppCard className="w-full max-w-sm gap-3">
+          <AppText variant="heading">Hazard Detection and Response</AppText>
+          {hazardPickerTarget ? (
+            <AppText variant="body">
+              {fullLicenseMockTestHazardCategoryLabels[hazardPickerTarget.category]} -{" "}
+              {hazardDirectionLabel(hazardPickerTarget.direction)}
+            </AppText>
+          ) : null}
+          <View className="flex-row gap-2">
+            <AppButton
+              width="auto"
+              className="flex-1"
+              variant={selectedHazardResponse === "yes" ? "primary" : "secondary"}
+              label="Yes"
+              onPress={() => {
+                if (!hazardPickerTarget) return;
+                setHazardResponse(hazardPickerTarget.category, hazardPickerTarget.direction, "yes");
+                setHazardPickerTarget(null);
+              }}
+            />
+            <AppButton
+              width="auto"
+              className="flex-1"
+              variant={selectedHazardResponse === "no" ? "danger" : "secondary"}
+              label="No"
+              onPress={() => {
+                if (!hazardPickerTarget) return;
+                setHazardResponse(hazardPickerTarget.category, hazardPickerTarget.direction, "no");
+                setHazardPickerTarget(null);
+              }}
+            />
+          </View>
+          <View className="flex-row gap-2">
+            <AppButton
+              width="auto"
+              className="flex-1"
+              variant={selectedHazardResponse === "na" ? "primary" : "secondary"}
+              label="N/A"
+              onPress={() => {
+                if (!hazardPickerTarget) return;
+                setHazardResponse(hazardPickerTarget.category, hazardPickerTarget.direction, "na");
+                setHazardPickerTarget(null);
+              }}
+            />
+            <AppButton
+              width="auto"
+              className="flex-1"
+              variant="ghost"
+              label="Close"
+              onPress={() => setHazardPickerTarget(null)}
+            />
+          </View>
+        </AppCard>
+      </View>
+    </Modal>
+  );
+
   return (
-    <Screen scroll className={cn(isSidebar && "max-w-6xl")}>
-      <AppStack gap="lg">
-        {header}
-        {studentCard}
+    <>
+      <Screen scroll className={cn(isSidebar && "max-w-6xl")}>
+        <AppStack gap="lg">
+          {header}
+          {studentCard}
 
-        {stage === "details" ? (
-          <>
-            {setupCard}
-            {stageActions}
-          </>
-        ) : null}
+          {stage === "details" ? (
+            <>
+              {setupCard}
+              {stageActions}
+            </>
+          ) : null}
 
-        {stage === "confirm" ? (
-          <>
-            {confirmCard}
-            {stageActions}
-          </>
-        ) : null}
+          {stage === "confirm" ? (
+            <>
+              {confirmCard}
+              {stageActions}
+            </>
+          ) : null}
 
-        {stage === "run" ? runContent : null}
+          {stage === "run" ? runContent : null}
 
-        {stage === "summary" ? (
-          <AppStack gap="lg">
-            {summaryCard}
-            {liveLogCard}
-            {stageActions}
-          </AppStack>
-        ) : null}
-      </AppStack>
-    </Screen>
+          {stage === "summary" ? (
+            <AppStack gap="lg">
+              {summaryCard}
+              {liveLogCard}
+              {stageActions}
+            </AppStack>
+          ) : null}
+        </AppStack>
+      </Screen>
+      {hazardPickerModal}
+    </>
   );
 }

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { parseDateInputToISODate } from "../../../utils/dates";
+import { createFullLicenseMockTestEmptyHazardResponses } from "./scoring";
 
 const dateString = z
   .string()
@@ -25,6 +26,25 @@ export const fullLicenseMockTestFormSchema = z.object({
 export type FullLicenseMockTestFormValues = z.infer<typeof fullLicenseMockTestFormSchema>;
 
 const itemValueSchema = z.union([z.literal("P"), z.literal("F")]);
+const hazardResponseSchema = z.union([z.literal("yes"), z.literal("no"), z.literal("na")]);
+
+const hazardDirectionSchema = z.object({
+  left: hazardResponseSchema.default("na"),
+  right: hazardResponseSchema.default("na"),
+  ahead: hazardResponseSchema.default("na"),
+  behind: hazardResponseSchema.default("na"),
+  others: hazardResponseSchema.default("na"),
+});
+
+const emptyHazardResponses = createFullLicenseMockTestEmptyHazardResponses();
+
+const hazardResponsesSchema = z
+  .object({
+    pedestrians: hazardDirectionSchema.default(emptyHazardResponses.pedestrians),
+    vehicles: hazardDirectionSchema.default(emptyHazardResponses.vehicles),
+    others: hazardDirectionSchema.default(emptyHazardResponses.others),
+  })
+  .default(emptyHazardResponses);
 
 const attemptSchema = z.object({
   id: z.string(),
@@ -35,6 +55,7 @@ const attemptSchema = z.object({
   repIndex: z.number().int().min(1),
   repTarget: z.number().int().min(1),
   items: z.record(z.string(), itemValueSchema).default({}),
+  hazardResponses: hazardResponsesSchema,
   hazardsSpoken: z.string().default(""),
   actionsSpoken: z.string().default(""),
   notes: z.string().default(""),
@@ -69,4 +90,3 @@ export const fullLicenseMockTestStoredDataSchema = fullLicenseMockTestFormSchema
 });
 
 export type FullLicenseMockTestStoredData = z.infer<typeof fullLicenseMockTestStoredDataSchema>;
-
