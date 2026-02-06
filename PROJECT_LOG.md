@@ -1,20 +1,6 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-05 (Pacific/Auckland)
-- **Task:** Left-align inline contact/licence rows
-- **Summary:**
-  - Updated inline detail rows to render as `Label: value` with minimal spacing and consistent left alignment (no right-justified label column).
-- **Files changed:**
-  - `src/navigation/screens/StudentDetailScreen.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Open a student profile and confirm Contact + Licence rows start flush-left like Address, while still keeping just a small space after `:`.
-
----
-
-- **Date:** 2026-02-05 (Pacific/Auckland)
 - **Task:** Show upcoming lessons on Home
 - **Summary:**
   - Updated the Home "Today" card to list each lesson (student full name + start/end time) instead of a count.
@@ -321,8 +307,8 @@
 - **Files changed:**
   - `AGENTS.md`
   - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
   - `docs/logs/INDEX.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
 - **Commands run:**
   - `Get-Content -Raw AGENTS.md`
   - `Get-Content -Raw PROJECT_LOG.md`
@@ -433,4 +419,27 @@
   - Student profile: confirm red `Delete student` appears below archive/unarchive and deletes after confirmation.
   - Edit lesson: confirm top-right icon-only delete button appears and deletes after confirmation.
   - Apply `supabase/migrations/011_students_lessons_delete_policies.sql` before testing deletes against Supabase.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Refactor AGENTS.md using full project log history
+- **Summary:**
+  - Reviewed all entries in `PROJECT_LOG.md` and `docs/logs/PROJECT_LOG_ARCHIVE.md` to align instructions with current implemented behavior.
+  - Replaced the oversized spec-style `AGENTS.md` with a concise operations guide focused on current app reality and durable working rules.
+  - Preserved mandatory workflow items (MCP lookup expectations, migrations process, log/commit/verification requirements) while removing outdated or redundant sections.
+- **Files changed:**
+  - `AGENTS.md`
+  - `PROJECT_LOG.md`
+  - `docs/logs/INDEX.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `Get-Content -Raw docs/logs/PROJECT_LOG_ARCHIVE.md`
+  - `rg --no-heading "^- \\*\\*Date:\\*\\*|^- \\*\\*Task:\\*\\*" PROJECT_LOG.md docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **How to verify:**
+  - Open `AGENTS.md` and confirm it is significantly shorter and references current roles (`owner`, `admin`, `instructor`) and current feature baseline.
+  - Confirm `PROJECT_LOG.md` still contains 20 entries and includes this new entry at the bottom.
+  - Confirm the oldest previously active entry now exists in `docs/logs/PROJECT_LOG_ARCHIVE.md`.
 
