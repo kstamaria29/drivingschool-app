@@ -26,6 +26,7 @@ Out of scope in this repo task: Google Calendar sync.
    - `supabase/migrations/010_admin_role.sql`
    - `supabase/migrations/011_students_lessons_delete_policies.sql`
    - `supabase/migrations/012_map_pins.sql`
+   - `supabase/migrations/013_map_annotations.sql`
 3. Create the Storage bucket:
    - Go to `Storage` -> `New bucket`
    - Name: `org-logos`

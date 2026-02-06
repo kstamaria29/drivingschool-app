@@ -1,20 +1,6 @@
 ﻿# PROJECT_LOG.md
 
 - **Date:** 2026-02-05 (Pacific/Auckland)
-- **Task:** Rename Today heading on Home
-- **Summary:**
-  - Renamed the Home lessons card heading from "Today" to "Upcoming Lessons Today".
-- **Files changed:**
-  - `src/navigation/screens/HomeScreen.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - On `Home`: confirm the lessons card heading reads "Upcoming Lessons Today".
-
----
-
-- **Date:** 2026-02-05 (Pacific/Auckland)
 - **Task:** Underline next-days date headers
 - **Summary:**
   - Underlined the day/date headers in the "Next 3 days" section and matched the font size to student rows.
@@ -469,4 +455,35 @@
 - **How to verify:**
   - Run npm start and confirm startup no longer throws PluginError for react-native-maps.
   - Open the Google Maps screen from the drawer and confirm map renders.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Add anchored vectors, snapshots, and student address auto-pin in Google Maps
+- **Summary:**
+  - Added persistent map annotations with two modes: anchored vector drawings (lat/lng polylines) and snapshot annotations (map capture + doodle overlay).
+  - Added annotation data layer and query hooks plus a new Supabase migration/table for multi-tenant annotation storage with role-safe RLS policies.
+  - Added snapshot annotation editor modal and snapshot preview modal with stroke rendering.
+  - Added Auto-pin action that geocodes all active students with addresses and creates map pins for students not already pinned.
+  - Updated the Google Maps screen to render saved vector overlays, create/delete annotations, and expose the new annotation workflows.
+- **Files changed:**
+  - README.md
+  - supabase/README.md
+  - supabase/migrations/013_map_annotations.sql
+  - src/supabase/types.ts
+  - src/features/map-annotations/api.ts
+  - src/features/map-annotations/queries.ts
+  - src/features/map-annotations/codec.ts
+  - src/navigation/components/SnapshotAnnotationModal.tsx
+  - src/navigation/components/SnapshotPreviewModal.tsx
+  - src/navigation/screens/GoogleMapsScreen.tsx
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - npx tsc --noEmit
+- **How to verify:**
+  - Apply supabase/migrations/013_map_annotations.sql in Supabase SQL Editor.
+  - Open drawer -> Google Maps, select a pin, tap Anchored vector, draw on map, and save; confirm saved lines re-render when reopening the pin.
+  - Select a pin, tap Snapshot, draw over the captured image, save, then tap the snapshot item to confirm preview rendering.
+  - Tap Auto-pin active student addresses and confirm pins are created for active students with addresses that were not already pinned.
 

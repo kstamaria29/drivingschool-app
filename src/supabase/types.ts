@@ -229,6 +229,58 @@ export type Database = {
         };
         Relationships: [];
       };
+      map_annotations: {
+        Row: {
+          id: string;
+          organization_id: string;
+          map_pin_id: string | null;
+          student_id: string | null;
+          instructor_id: string;
+          annotation_type: "anchored_vector" | "snapshot";
+          title: string;
+          notes: string | null;
+          vector_strokes: Record<string, unknown> | null;
+          snapshot_image_base64: string | null;
+          snapshot_strokes: Record<string, unknown> | null;
+          snapshot_width: number | null;
+          snapshot_height: number | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          map_pin_id?: string | null;
+          student_id?: string | null;
+          instructor_id: string;
+          annotation_type: "anchored_vector" | "snapshot";
+          title: string;
+          notes?: string | null;
+          vector_strokes?: Record<string, unknown> | null;
+          snapshot_image_base64?: string | null;
+          snapshot_strokes?: Record<string, unknown> | null;
+          snapshot_width?: number | null;
+          snapshot_height?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          organization_id?: string;
+          map_pin_id?: string | null;
+          student_id?: string | null;
+          instructor_id?: string;
+          annotation_type?: "anchored_vector" | "snapshot";
+          title?: string;
+          notes?: string | null;
+          vector_strokes?: Record<string, unknown> | null;
+          snapshot_image_base64?: string | null;
+          snapshot_strokes?: Record<string, unknown> | null;
+          snapshot_width?: number | null;
+          snapshot_height?: number | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       assessments: {
         Row: {
           id: string;

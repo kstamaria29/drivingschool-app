@@ -1489,3 +1489,17 @@
 - **How to verify:**
   - On `Home`: confirm lesson time ranges show in 12-hour format with am/pm.
 
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Rename Today heading on Home
+- **Summary:**
+  - Renamed the Home lessons card heading from "Today" to "Upcoming Lessons Today".
+- **Files changed:**
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - On `Home`: confirm the lessons card heading reads "Upcoming Lessons Today".
+
