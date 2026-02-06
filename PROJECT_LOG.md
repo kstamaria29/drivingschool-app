@@ -1665,3 +1665,25 @@
   - Open `Create account`, enter a new email/password, and tap `Create account`.
   - Confirm an alert appears with `Check your email to verify your account.`.
   - Tap `OK` and confirm navigation returns to `LoginScreen`.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Force consistent default light theme on first launch
+- **Summary:**
+  - Fixed theme hydration mismatch by syncing provider state and NativeWind color scheme from a single resolved value (`stored` or default `light`).
+  - Added a theme-ready gate in root navigation to avoid rendering mixed themed surfaces before color scheme initialization finishes.
+  - Moved status bar theme source to `ColorSchemeProvider` so it always matches app theme.
+- **Files changed:**
+  - `src/providers/ColorSchemeProvider.tsx`
+  - `src/navigation/RootNavigation.tsx`
+  - `App.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Fresh install APK on device and launch app for the first time.
+  - Confirm login/auth screens and drawer/navigation surfaces are all light mode (no mixed dark sidebar).
+  - Open Settings and toggle dark mode, then relaunch app to confirm persisted mode still applies consistently.
