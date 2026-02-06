@@ -1645,3 +1645,23 @@
   - Open `Create your driving school` screen.
   - Tap `Back to sign in`.
   - Confirm the app navigates to `LoginScreen`.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Signup email verification confirmation dialog
+- **Summary:**
+  - Updated `Create account` flow to show a confirmation alert after sign-up when email verification is required.
+  - Alert message is `Check your email to verify your account.` and `OK` returns the user to `Login`.
+  - Removed the previous inline confirmation text block from the signup screen.
+- **Files changed:**
+  - `src/navigation/screens/SignupScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Tail 120 PROJECT_LOG.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Create account`, enter a new email/password, and tap `Create account`.
+  - Confirm an alert appears with `Check your email to verify your account.`.
+  - Tap `OK` and confirm navigation returns to `LoginScreen`.
