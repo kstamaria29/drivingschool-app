@@ -1,64 +1,4 @@
-﻿# PROJECT_LOG.md
-
-- **Date:** 2026-02-06 (Pacific/Auckland)
-- **Task:** Fix release build crash (Supabase env)
-- **Summary:**
-  - Fixed Supabase env resolution for native builds by avoiding dynamic `process.env[key]` access and supporting Expo `extra` fallback.
-  - Added `app.config.ts` to surface Supabase values in `expo.extra` for builds.
-  - Added an in-app "missing Supabase config" screen to prevent a hard crash when env vars are absent.
-  - Documented EAS env requirements in `README.md`.
-- **Files changed:**
-  - `app.config.ts`
-  - `src/supabase/env.ts`
-  - `src/supabase/client.ts`
-  - `src/features/auth/session.tsx`
-  - `src/navigation/RootNavigation.tsx`
-  - `src/navigation/screens/MissingSupabaseConfigScreen.tsx`
-  - `README.md`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-  - `npx expo config --type public`
-- **How to verify:**
-  - With env vars set: build/install APK and confirm it opens without crashing.
-  - Without env vars set: confirm the app shows the "App misconfigured" screen instead of crashing.
-
----
-
-- **Date:** 2026-02-06 (Pacific/Auckland)
-- **Task:** Estimate solo-dev timeline (no AI)
-- **Summary:**
-  - Provided a rough full-time solo developer estimate for implementing the v1 mobile app scope end-to-end (Expo RN + Supabase + RLS + PDF export) without AI assistance.
-- **Files changed:**
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `Get-Content AGENTS.md`
-  - `Get-Content PROJECT_LOG.md`
-  - `Get-Content PROJECT_LOG.md -Tail 40`
-- **How to verify:**
-  - Open `PROJECT_LOG.md` and confirm this entry exists at the bottom.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Route deleted/stale sessions to login
-- **Summary:**
-  - Added startup session validation against Supabase Auth (`getUser`) before trusting a restored local session.
-  - Added stale-session detection (invalid JWT/missing user/auth-session-missing patterns + 401/403/404) and local sign-out cleanup.
-  - Prevents deleted users with cached sessions from being routed to onboarding; they now fall back to `Login`.
-- **Files changed:**
-  - `src/features/auth/session.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Raw PROJECT_LOG.md`
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Delete a signed-in user in Supabase (`auth.users`) while keeping the app installed/signed in on device.
-  - Reopen the app and confirm it lands on `LoginScreen` (not `OnboardingCreateOrgScreen`).
-  - Create a brand-new account from `Signup` and confirm onboarding still appears for first-time org creation.
-
----
+# PROJECT_LOG.md
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
 - **Task:** Add onboarding back button to login
@@ -482,3 +422,85 @@
   - In `Main Map Annotations`, confirm Snapshot is a right-aligned square camera icon button; tap it and save a snapshot.
   - Open Snapshot Annotation modal and confirm: black color is available, size options show an icon + px label, Undo/Redo are icon-only, and Save snapshot is right-aligned.
   - Tap `Auto-pin active student addresses` and confirm it no longer reports generic unexpected failures for geocoder path issues.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Center Google Maps add-pin icon button
+- **Summary:**
+  - Fixed shared `AppButton` icon-only layout so internal content gap is only applied when both icon and label exist.
+  - This centers icon-only buttons, including the top-right Google Maps add-pin button.
+- **Files changed:**
+  - `src/components/AppButton.tsx`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `Get-Content -Raw docs/logs/INDEX.md`
+  - `rg -n "add pin|Add pin|Pin|pin" src/navigation/screens/GoogleMapsScreen.tsx`
+  - `Get-Content -Raw src/navigation/screens/GoogleMapsScreen.tsx`
+  - `Get-Content -Raw src/components/AppButton.tsx`
+  - `Get-Content -Raw src/theme/theme.ts`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Google Maps` screen.
+  - Confirm the top-right blue add-pin button icon is visually centered.
+  - Confirm other icon-only square buttons (e.g. snapshot camera) remain centered.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Harden icon-only button centering for map controls
+- **Summary:**
+  - Added a dedicated `icon` button size in shared theme/button primitives to avoid conflicting NativeWind utility classes for icon-only controls.
+  - Updated icon-only buttons on Google Maps, Snapshot Annotation modal, and Lessons month navigation to use `size="icon"` instead of class-based height/width overrides.
+  - This removes inherited `md` spacing conflicts and centers icons consistently inside square buttons.
+- **Files changed:**
+  - `src/theme/theme.ts`
+  - `src/components/AppButton.tsx`
+  - `src/navigation/screens/GoogleMapsScreen.tsx`
+  - `src/navigation/components/SnapshotAnnotationModal.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Raw src/navigation/screens/GoogleMapsScreen.tsx`
+  - `Get-Content -Raw src/navigation/components/SnapshotAnnotationModal.tsx`
+  - `Get-Content -Raw src/features/weather/WeatherWidget.tsx`
+  - `Get-Content -Raw src/components/AppButton.tsx`
+  - `Get-Content -Raw src/theme/theme.ts`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Google Maps` and confirm the top-right add-pin icon is centered inside its blue square button.
+  - In `Main Map Annotations`, confirm the camera icon is centered inside its square button.
+  - Open Snapshot Annotation and confirm Undo/Redo icons are centered in their square buttons.
+  - Open Lessons list and confirm month nav chevron icons are centered in square controls.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Snapshot text sizes + automatic student auto-pin
+- **Summary:**
+  - Added selectable text-size controls in Snapshot Annotation and persisted text size in annotation payloads.
+  - Updated snapshot editor and preview rendering to respect per-text font size, with backward-compatible default sizing for existing saved snapshots.
+  - Removed the manual `Auto-pin active student addresses` button and switched Google Maps to automatic background auto-pin for active students with addresses.
+- **Files changed:**
+  - `src/features/map-annotations/codec.ts`
+  - `src/navigation/components/SnapshotAnnotationModal.tsx`
+  - `src/navigation/components/SnapshotPreviewModal.tsx`
+  - `src/navigation/screens/GoogleMapsScreen.tsx`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `Get-Content -Raw docs/logs/INDEX.md`
+  - `mcp__context7__resolve-library-id (react-native-svg)`
+  - `mcp__context7__query-docs (/software-mansion/react-native-svg)`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Google Maps` and confirm there is no `Auto-pin active student addresses` button.
+  - Ensure there are active students with valid addresses and verify their pins appear automatically after map data loads.
+  - Open Snapshot Annotation, enter text, choose different text sizes, place labels, save, and reopen preview.
+  - Confirm placed labels render at the chosen font sizes both in editor and preview.

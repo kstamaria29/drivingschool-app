@@ -123,7 +123,7 @@ export function SnapshotPreviewModal({
                       fill={textItem.color}
                       stroke="#000000"
                       strokeWidth={0.4}
-                      fontSize={16}
+                      fontSize={textItem.size}
                       fontWeight="600"
                     >
                       {textItem.text}

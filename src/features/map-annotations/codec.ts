@@ -1,5 +1,6 @@
 export const DEFAULT_DRAW_COLOR = "#ef4444";
 export const DEFAULT_DRAW_WIDTH = 4;
+export const DEFAULT_TEXT_SIZE = 16;
 
 type JsonRecord = Record<string, unknown>;
 
@@ -19,6 +20,7 @@ export type SnapshotText = {
   id: string;
   text: string;
   color: string;
+  size: number;
   x: number;
   y: number;
 };
@@ -51,6 +53,12 @@ function asStrokeWidth(value: unknown) {
   const numeric = asNumber(value);
   if (numeric == null) return DEFAULT_DRAW_WIDTH;
   return Math.max(1, Math.min(16, numeric));
+}
+
+function asTextSize(value: unknown) {
+  const numeric = asNumber(value);
+  if (numeric == null) return DEFAULT_TEXT_SIZE;
+  return Math.max(10, Math.min(48, numeric));
 }
 
 export function parseSnapshotAnnotation(raw: JsonRecord | null): SnapshotAnnotationContent {
@@ -95,6 +103,7 @@ export function parseSnapshotAnnotation(raw: JsonRecord | null): SnapshotAnnotat
         id: asText(textRecord?.id) ?? `snapshot_text_${textIndex}`,
         text,
         color: asColor(textRecord?.color),
+        size: asTextSize(textRecord?.size),
         x,
         y,
       };
@@ -106,7 +115,7 @@ export function parseSnapshotAnnotation(raw: JsonRecord | null): SnapshotAnnotat
 
 export function serializeSnapshotAnnotation(content: SnapshotAnnotationContent): JsonRecord {
   return {
-    version: 2,
+    version: 3,
     strokes: content.strokes.map((stroke) => ({
       id: stroke.id,
       color: stroke.color,
@@ -120,6 +129,7 @@ export function serializeSnapshotAnnotation(content: SnapshotAnnotationContent):
       id: text.id,
       text: text.text,
       color: text.color,
+      size: text.size,
       x: text.x,
       y: text.y,
     })),

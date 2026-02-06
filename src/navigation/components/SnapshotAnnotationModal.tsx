@@ -24,6 +24,8 @@ type Props = {
   colorOptions: readonly string[];
   widthOptions: readonly number[];
   textDraft: string;
+  textSize: number;
+  textSizeOptions: readonly number[];
   placingText: boolean;
   saving: boolean;
   canUndo: boolean;
@@ -32,6 +34,7 @@ type Props = {
   onChangeTitle: (value: string) => void;
   onChangeNotes: (value: string) => void;
   onChangeTextDraft: (value: string) => void;
+  onSelectTextSize: (value: number) => void;
   onSelectColor: (value: string) => void;
   onSelectWidth: (value: number) => void;
   onToggleTextPlacement: () => void;
@@ -60,6 +63,8 @@ export function SnapshotAnnotationModal({
   colorOptions,
   widthOptions,
   textDraft,
+  textSize,
+  textSizeOptions,
   placingText,
   saving,
   canUndo,
@@ -68,6 +73,7 @@ export function SnapshotAnnotationModal({
   onChangeTitle,
   onChangeNotes,
   onChangeTextDraft,
+  onSelectTextSize,
   onSelectColor,
   onSelectWidth,
   onToggleTextPlacement,
@@ -145,6 +151,23 @@ export function SnapshotAnnotationModal({
               value={textDraft}
               onChangeText={onChangeTextDraft}
             />
+            <View className="gap-2">
+              <AppText variant="label">Text size</AppText>
+              <View className="flex-row flex-wrap gap-2">
+                {textSizeOptions.map((sizeOption) => {
+                  const selected = sizeOption === textSize;
+                  return (
+                    <AppButton
+                      key={`text-size-${sizeOption}`}
+                      width="auto"
+                      variant={selected ? "primary" : "secondary"}
+                      label={`${sizeOption}px`}
+                      onPress={() => onSelectTextSize(sizeOption)}
+                    />
+                  );
+                })}
+              </View>
+            </View>
             <AppButton
               width="auto"
               variant={placingText ? "primary" : "secondary"}
@@ -198,7 +221,7 @@ export function SnapshotAnnotationModal({
                   fill={textItem.color}
                   stroke="#000000"
                   strokeWidth={0.4}
-                  fontSize={16}
+                  fontSize={textItem.size}
                   fontWeight="600"
                 >
                   {textItem.text}
@@ -213,20 +236,20 @@ export function SnapshotAnnotationModal({
             <View className="flex-row flex-wrap gap-2">
               <AppButton
                 width="auto"
+                size="icon"
                 variant="secondary"
                 label=""
                 icon={Undo2}
-                className="h-10 w-10 px-0"
                 accessibilityLabel="Undo"
                 disabled={!canUndo}
                 onPress={onUndo}
               />
               <AppButton
                 width="auto"
+                size="icon"
                 variant="secondary"
                 label=""
                 icon={Redo2}
-                className="h-10 w-10 px-0"
                 accessibilityLabel="Redo"
                 disabled={!canRedo}
                 onPress={onRedo}

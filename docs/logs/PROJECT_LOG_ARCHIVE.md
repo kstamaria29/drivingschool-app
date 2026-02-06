@@ -1,4 +1,4 @@
-﻿# PROJECT_LOG archive
+# PROJECT_LOG archive
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Initialize repo documentation
@@ -60,7 +60,7 @@
   - Added persisted light/dark theme toggle and wired it into Settings.
   - Introduced dark-mode styles across core primitives (screen, cards, buttons, inputs) and key UI surfaces (drawer/header/calendar).
   - Added Lucide icons to key CTAs and improved the Weather widget with condition icons.
-  - Added an accent color and softer depth (shadows/borders) to reduce the â€œplainâ€ look.
+  - Added an accent color and softer depth (shadows/borders) to reduce the ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œplainÃƒÂ¢Ã¢â€šÂ¬Ã‚Â look.
 - **Files changed:**
   - `App.tsx`
   - `tailwind.config.js`
@@ -242,7 +242,7 @@
 - **Summary:**
   - Added `AppDateInput` primitive that opens a native date picker (spinner-style where available).
   - Replaced manual date typing with date pickers for Lessons, Students (licence dates), and Driving Assessments.
-  - Kept optional dates clearable via a quick â€œClearâ€ action.
+  - Kept optional dates clearable via a quick ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œClearÃƒÂ¢Ã¢â€šÂ¬Ã‚Â action.
 - **Files changed:**
   - `src/components/AppDateInput.tsx`
   - `src/navigation/screens/LessonEditScreen.tsx`
@@ -269,7 +269,7 @@
 - **Summary:**
   - Added Android Downloads-folder saving via Storage Access Framework (one-time folder picker; then saves directly).
   - Falls back to app storage if Android folder permission is revoked.
-  - Added local â€œPDF savedâ€ notification; tapping it attempts to open the saved PDF.
+  - Added local ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œPDF savedÃƒÂ¢Ã¢â€šÂ¬Ã‚Â notification; tapping it attempts to open the saved PDF.
   - Kept iOS saving in app storage (sandbox) but added the same notification + tap-to-open behavior.
 - **Files changed:**
   - `src/features/assessments/android-downloads.ts`
@@ -285,10 +285,10 @@
   - `npx expo install expo-notifications expo-intent-launcher`
   - `npx tsc --noEmit`
 - **Verification:**
-  - Android: submit an assessment, pick Downloads when prompted, then confirm a â€œPDF savedâ€ notification appears; tap it to open the PDF.
-  - iOS: submit an assessment, confirm a â€œPDF savedâ€ notification appears; tap it to open the PDF.
+  - Android: submit an assessment, pick Downloads when prompted, then confirm a ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œPDF savedÃƒÂ¢Ã¢â€šÂ¬Ã‚Â notification appears; tap it to open the PDF.
+  - iOS: submit an assessment, confirm a ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œPDF savedÃƒÂ¢Ã¢â€šÂ¬Ã‚Â notification appears; tap it to open the PDF.
 - **Notes/TODO:**
-  - iOS cannot save directly to a global Downloads folder due to OS sandboxing; opening from the notification is the â€œdownload completeâ€ UX.
+  - iOS cannot save directly to a global Downloads folder due to OS sandboxing; opening from the notification is the ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œdownload completeÃƒÂ¢Ã¢â€šÂ¬Ã‚Â UX.
 
 ---
 
@@ -314,7 +314,7 @@
 - **Task:** Fix Driving Assessment submit UX
 - **Summary:**
   - Made score calculation update live as criteria are scored.
-  - Replaced the two non-responsive save buttons with a single â€œSubmit and generate PDFâ€ button.
+  - Replaced the two non-responsive save buttons with a single ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œSubmit and generate PDFÃƒÂ¢Ã¢â€šÂ¬Ã‚Â button.
   - Added validation feedback + a confirmation prompt before saving/exporting.
 - **Files changed:**
   - `src/navigation/screens/DrivingAssessmentScreen.tsx`
@@ -324,7 +324,7 @@
 - **Verification:**
   - Open a Driving Assessment, press submit with no student selected and confirm an error prompt appears.
   - Select a student, tap scores, confirm the total/summary updates immediately.
-  - Press â€œSubmit and generate PDFâ€ and confirm the confirmation dialog appears and the PDF share sheet opens after submitting.
+  - Press ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œSubmit and generate PDFÃƒÂ¢Ã¢â€šÂ¬Ã‚Â and confirm the confirmation dialog appears and the PDF share sheet opens after submitting.
 - **Notes/TODO:**
   - None.
 
@@ -446,7 +446,7 @@
 - **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Fix calendar week layout (7 days)
 - **Summary:**
-  - Fixed month calendar grid wrapping so weeks always render 7 columns (Monâ€“Sun) instead of occasionally wrapping at 6.
+  - Fixed month calendar grid wrapping so weeks always render 7 columns (MonÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Sun) instead of occasionally wrapping at 6.
   - Rendered the calendar as 6 explicit week rows (7 cells each) to avoid flex-wrap rounding issues.
 - **Files changed:**
   - `src/components/CalendarMonth.tsx`
@@ -454,7 +454,7 @@
 - **Commands run:**
   - `npx tsc --noEmit`
 - **Verification:**
-  - Open Lessons tab and confirm each week row shows 7 days (Monâ€“Sun) with correct alignment (e.g. Feb 2026 should start on Sun).
+  - Open Lessons tab and confirm each week row shows 7 days (MonÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Sun) with correct alignment (e.g. Feb 2026 should start on Sun).
 - **Notes/TODO:**
   - None.
 
@@ -521,7 +521,7 @@
 ---
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
-- **Task:** Implement Mock Test â€“ Restricted Licence assessment
+- **Task:** Implement Mock Test ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ Restricted Licence assessment
 - **Summary:**
   - Implemented the 2nd assessment as a Restricted Licence mock test (Stage 1/Stage 2 tasks, critical errors, immediate-fail errors) with auto-save draft on device.
   - Added PDF export on submit and enabled PDF download + detailed history view in the student's assessment history.
@@ -542,9 +542,9 @@
   - `npx tsc --noEmit`
 - **Verification:**
   - In app: `Assessments` ? `Start Mock Test` ? select a student ? `Start test` ? fill a few faults/errors ? `Submit and generate PDF`.
-  - In student profile: `Assessment History` ? `Mock Test â€“ Restricted` tab ? open an entry ? `Download PDF`.
+  - In student profile: `Assessment History` ? `Mock Test ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ Restricted` tab ? open an entry ? `Download PDF`.
 - **Notes/TODO:**
-  - Consider adding an explicit â€œDiscard draftâ€ action if instructors want to clear an in-progress mock test without submitting.
+  - Consider adding an explicit ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œDiscard draftÃƒÂ¢Ã¢â€šÂ¬Ã‚Â action if instructors want to clear an in-progress mock test without submitting.
 
 ---
 
@@ -781,7 +781,7 @@
 - **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Fix Blob upload + ImagePicker deprecation
 - **Summary:**
-  - Updated Supabase Storage uploads to pass `Uint8Array` directly (avoids RN Blob limitation: â€œCreating blobs from ArrayBufferâ€¦â€).
+  - Updated Supabase Storage uploads to pass `Uint8Array` directly (avoids RN Blob limitation: ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œCreating blobs from ArrayBufferÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â).
   - Switched `expo-image-picker` usage away from deprecated `ImagePicker.MediaTypeOptions`.
 - **Files changed:**
   - `src/features/onboarding/api.ts`
@@ -1012,7 +1012,7 @@
   - `Finish session` ? `Submit and generate PDF` ? confirm a PDF is saved and can be opened.
   - Student profile ? `Assessment History` ? `Mock Test - Full License` tab ? confirm entry renders + `Download PDF` works.
 - **Notes/TODO:**
-  - Consider normalizing older mojibake characters (e.g., `Æ’?`, `AÃº`) in legacy UI strings when convenient.
+  - Consider normalizing older mojibake characters (e.g., `Ãƒâ€ Ã¢â‚¬â„¢?`, `AÃƒÆ’Ã‚Âº`) in legacy UI strings when convenient.
 
 ---
 
@@ -1036,7 +1036,7 @@
 - **Task:** Home screen CTA + weather polish
 - **Summary:**
   - Replaced Home CTAs with just `Students` and `Assessments` buttons (navigates to the respective screens).
-  - Improved `AppButton` ghost variant styling so link-style buttons donâ€™t render a weird bordered/shadowed box in dark mode (fixes `Open Lessons` on Home).
+  - Improved `AppButton` ghost variant styling so link-style buttons donÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢t render a weird bordered/shadowed box in dark mode (fixes `Open Lessons` on Home).
   - Enlarged and restyled the current weather visual to better fill whitespace and feel more like an illustration.
 - **Files changed:**
   - `src/navigation/screens/HomeScreen.tsx`
@@ -1244,7 +1244,7 @@
 - **Date:** 2026-02-05 (Pacific/Auckland)
 - **Task:** Tweak weather layout + 4-day forecast
 - **Summary:**
-  - Moved the Weather ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œUpdated ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â line directly under ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œRight nowÃƒÂ¢Ã¢â€šÂ¬Ã‚Â and removed it from the wind row.
+  - Moved the Weather ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œUpdated ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â line directly under ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œRight nowÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â and removed it from the wind row.
   - Expanded the forecast list to show the next 4 days (fetching 5 total days including today).
 - **Files changed:**
   - `src/features/weather/WeatherWidget.tsx`
@@ -1252,8 +1252,8 @@
 - **Commands run:**
   - `npx tsc --noEmit`
 - **How to verify:**
-  - On `Home` -> Weather: confirm ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œUpdated ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â appears under ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œRight nowÃƒÂ¢Ã¢â€šÂ¬Ã‚Â, and wind line no longer includes ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œUpdatedÃƒÂ¢Ã¢â€šÂ¬Ã‚Â.
-  - Confirm the forecast card shows 4 rows under ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œNext 4 daysÃƒÂ¢Ã¢â€šÂ¬Ã‚Â.
+  - On `Home` -> Weather: confirm ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œUpdated ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â appears under ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œRight nowÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â, and wind line no longer includes ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œUpdatedÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â.
+  - Confirm the forecast card shows 4 rows under ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œNext 4 daysÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â.
 
 ---
 
@@ -1274,7 +1274,7 @@
 - **Date:** 2026-02-05 (Pacific/Auckland)
 - **Task:** Org logo styling + student form requirements
 - **Summary:**
-  - Removed bordered ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œboxÃƒÂ¢Ã¢â€šÂ¬Ã‚Â styling around the organization logo in the drawer, onboarding logo preview, and Settings.
+  - Removed bordered ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œboxÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â styling around the organization logo in the drawer, onboarding logo preview, and Settings.
   - Updated New/Edit Student form to require email, phone, and licence type; removed licence clear action.
   - On mobile, switched licence type picker to colored circular letter buttons (L/R/F).
 - **Files changed:**
@@ -1566,3 +1566,63 @@
   - Settings -> Change profile photo -> confirm Take/Choose/Remove options.
   - Owner: Settings -> Instructors -> Add instructor -> create an instructor and confirm credentials are returned.
   - Sign in as the new instructor -> confirm you are forced to the password change screen until you update it.
+
+---
+
+- **Date:** 2026-02-06 (Pacific/Auckland)
+- **Task:** Fix release build crash (Supabase env)
+- **Summary:**
+  - Fixed Supabase env resolution for native builds by avoiding dynamic `process.env[key]` access and supporting Expo `extra` fallback.
+  - Added `app.config.ts` to surface Supabase values in `expo.extra` for builds.
+  - Added an in-app "missing Supabase config" screen to prevent a hard crash when env vars are absent.
+  - Documented EAS env requirements in `README.md`.
+- **Files changed:**
+  - `app.config.ts`
+  - `src/supabase/env.ts`
+  - `src/supabase/client.ts`
+  - `src/features/auth/session.tsx`
+  - `src/navigation/RootNavigation.tsx`
+  - `src/navigation/screens/MissingSupabaseConfigScreen.tsx`
+  - `README.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+  - `npx expo config --type public`
+- **How to verify:**
+  - With env vars set: build/install APK and confirm it opens without crashing.
+  - Without env vars set: confirm the app shows the "App misconfigured" screen instead of crashing.
+
+---
+
+- **Date:** 2026-02-06 (Pacific/Auckland)
+- **Task:** Estimate solo-dev timeline (no AI)
+- **Summary:**
+  - Provided a rough full-time solo developer estimate for implementing the v1 mobile app scope end-to-end (Expo RN + Supabase + RLS + PDF export) without AI assistance.
+- **Files changed:**
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `Get-Content AGENTS.md`
+  - `Get-Content PROJECT_LOG.md`
+  - `Get-Content PROJECT_LOG.md -Tail 40`
+- **How to verify:**
+  - Open `PROJECT_LOG.md` and confirm this entry exists at the bottom.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Route deleted/stale sessions to login
+- **Summary:**
+  - Added startup session validation against Supabase Auth (`getUser`) before trusting a restored local session.
+  - Added stale-session detection (invalid JWT/missing user/auth-session-missing patterns + 401/403/404) and local sign-out cleanup.
+  - Prevents deleted users with cached sessions from being routed to onboarding; they now fall back to `Login`.
+- **Files changed:**
+  - `src/features/auth/session.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Delete a signed-in user in Supabase (`auth.users`) while keeping the app installed/signed in on device.
+  - Reopen the app and confirm it lands on `LoginScreen` (not `OnboardingCreateOrgScreen`).
+  - Create a brand-new account from `Signup` and confirm onboarding still appears for first-time org creation.

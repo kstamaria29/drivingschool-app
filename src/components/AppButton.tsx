@@ -9,7 +9,7 @@ import { cn } from "../utils/cn";
 import { AppText } from "./AppText";
 
 type AppButtonVariant = "primary" | "secondary" | "danger" | "ghost";
-type AppButtonSize = "md" | "lg";
+type AppButtonSize = "md" | "lg" | "icon";
 type AppButtonWidth = "full" | "auto";
 
 type Props = Omit<PressableProps, "children"> & {
@@ -41,6 +41,7 @@ export function AppButton({
   ...props
 }: Props) {
   const { colorScheme } = useColorScheme();
+  const hasLabel = label.length > 0;
 
   const resolvedIconSize = iconSize ?? (size === "lg" ? 20 : 18);
   const resolvedIconColor =
@@ -70,6 +71,7 @@ export function AppButton({
           />
         )
       : null;
+  const showContentGap = hasLabel && iconNode != null;
 
   return (
     <Pressable
@@ -85,9 +87,15 @@ export function AppButton({
       )}
       {...props}
     >
-      <View className="flex-row items-center justify-center gap-2">
+      <View
+        className={cn(
+          "flex-row items-center justify-center",
+          size === "icon" && "h-full w-full",
+          showContentGap && "gap-2",
+        )}
+      >
         {iconPosition === "left" ? iconNode : null}
-        {label ? (
+        {hasLabel ? (
           <AppText
             variant="button"
             className={cn(theme.button.labelBase, theme.button.labelVariant[variant])}

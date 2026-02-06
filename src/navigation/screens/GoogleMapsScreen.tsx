@@ -1,7 +1,7 @@
 ﻿import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import dayjs from "dayjs";
 import * as Location from "expo-location";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -32,6 +32,7 @@ import { useCurrentUser } from "../../features/auth/current-user";
 import {
   DEFAULT_DRAW_COLOR,
   DEFAULT_DRAW_WIDTH,
+  DEFAULT_TEXT_SIZE,
   parseSnapshotAnnotation,
   serializeSnapshotAnnotation,
   type SnapshotAnnotationContent,
@@ -56,6 +57,7 @@ import {
   useDeleteMapPinMutation,
   useMapPinsQuery,
 } from "../../features/map-pins/queries";
+import type { Student } from "../../features/students/api";
 import { useStudentsQuery } from "../../features/students/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
@@ -89,6 +91,7 @@ const DRAW_COLORS = [
   "#eab308",
 ] as const;
 const DRAW_WIDTH_OPTIONS = [2, 4, 6, 8] as const;
+const SNAPSHOT_TEXT_SIZE_OPTIONS = [12, 16, 20, 24, 28] as const;
 const SNAPSHOT_CAPTURE_SIZE = 1080;
 const SNAPSHOT_CAPTURE_QUALITY = 0.65;
 
@@ -164,6 +167,7 @@ export function GoogleMapsScreen(_props: Props) {
   const deleteMapPin = useDeleteMapPinMutation();
   const createMapAnnotation = useCreateMapAnnotationMutation();
   const deleteMapAnnotation = useDeleteMapAnnotationMutation();
+  const refetchPins = pinsQuery.refetch;
 
   const [mapLayer, setMapLayer] = useState<MapLayer>("standard");
   const [mapCenter, setMapCenter] = useState<LatLng>({
@@ -196,11 +200,13 @@ export function GoogleMapsScreen(_props: Props) {
   const [snapshotColor, setSnapshotColor] = useState<string>(DEFAULT_DRAW_COLOR);
   const [snapshotLineWidth, setSnapshotLineWidth] = useState<number>(DEFAULT_DRAW_WIDTH);
   const [snapshotTextDraft, setSnapshotTextDraft] = useState("");
+  const [snapshotTextSize, setSnapshotTextSize] = useState<number>(DEFAULT_TEXT_SIZE);
   const [snapshotTextPlacementEnabled, setSnapshotTextPlacementEnabled] = useState(false);
   const [snapshotCanvasSize, setSnapshotCanvasSize] = useState<SnapshotCanvasSize>({
     width: 0,
     height: 0,
   });
+  const lastAutoPinRunKeyRef = useRef("");
 
   const [previewSnapshotId, setPreviewSnapshotId] = useState<string | null>(null);
   const [previewCanvasSize, setPreviewCanvasSize] = useState<SnapshotCanvasSize>({
@@ -230,6 +236,24 @@ export function GoogleMapsScreen(_props: Props) {
       })
       .slice(0, 8);
   }, [studentSearch, studentsQuery.data]);
+
+  const autoPinCandidates = useMemo(() => {
+    const students = studentsQuery.data ?? [];
+    const existingStudentPins = new Set(
+      (pinsQuery.data ?? []).map((pin) => pin.student_id).filter((studentId): studentId is string => !!studentId),
+    );
+
+    return students.filter((student) => !!student.address?.trim() && !existingStudentPins.has(student.id));
+  }, [pinsQuery.data, studentsQuery.data]);
+
+  const autoPinCandidateKey = useMemo(
+    () =>
+      autoPinCandidates
+        .map((student) => `${student.id}:${(student.address ?? "").trim().toLowerCase()}`)
+        .sort()
+        .join("|"),
+    [autoPinCandidates],
+  );
 
   const snapshotAnnotationsForSelectedPin = useMemo((): SnapshotPreview[] => {
     if (!selectedPinId) return [];
@@ -296,6 +320,12 @@ export function GoogleMapsScreen(_props: Props) {
       setPreviewSnapshotId(null);
     }
   }, [activeSnapshotAnnotations, previewSnapshotId]);
+
+  useEffect(() => {
+    if (autoPinCandidates.length === 0) {
+      lastAutoPinRunKeyRef.current = "";
+    }
+  }, [autoPinCandidates.length]);
 
   function clearDraft() {
     setDraftCoordinate(null);
@@ -458,6 +488,7 @@ export function GoogleMapsScreen(_props: Props) {
     setSnapshotColor(DEFAULT_DRAW_COLOR);
     setSnapshotLineWidth(DEFAULT_DRAW_WIDTH);
     setSnapshotTextDraft("");
+    setSnapshotTextSize(DEFAULT_TEXT_SIZE);
     setSnapshotTextPlacementEnabled(false);
     setSnapshotCanvasSize({ width: 0, height: 0 });
   }
@@ -492,6 +523,7 @@ export function GoogleMapsScreen(_props: Props) {
       setSnapshotColor(DEFAULT_DRAW_COLOR);
       setSnapshotLineWidth(DEFAULT_DRAW_WIDTH);
       setSnapshotTextDraft("");
+      setSnapshotTextSize(DEFAULT_TEXT_SIZE);
       setSnapshotTextPlacementEnabled(false);
       setSnapshotCanvasSize({ width: 0, height: 0 });
       setSnapshotEditorVisible(true);
@@ -625,46 +657,10 @@ export function GoogleMapsScreen(_props: Props) {
     }
   }
 
-  async function autopinActiveStudentAddresses() {
-    if (autopinPending) return;
-
-    const students = studentsQuery.data ?? [];
-    if (students.length === 0) {
-      Alert.alert("No students", "There are no active students to auto-pin.");
-      return;
-    }
-
-    const existingStudentPins = new Set(
-      (pinsQuery.data ?? []).map((pin) => pin.student_id).filter((studentId): studentId is string => !!studentId),
-    );
-
-    const candidates = students.filter(
-      (student) => !!student.address?.trim() && !existingStudentPins.has(student.id),
-    );
-
-    const skippedNoAddress = students.filter((student) => !student.address?.trim()).length;
-    const skippedPinned = students.filter((student) => existingStudentPins.has(student.id)).length;
-
-    if (candidates.length === 0) {
-      Alert.alert(
-        "Nothing to auto-pin",
-        [
-          "All active students are already pinned or have no address.",
-          skippedPinned > 0 ? `${skippedPinned} already pinned.` : null,
-          skippedNoAddress > 0 ? `${skippedNoAddress} missing address.` : null,
-        ]
-          .filter(Boolean)
-          .join("\n"),
-      );
-      return;
-    }
+  const autopinStudents = useCallback(async (candidates: Student[]) => {
+    if (candidates.length === 0) return;
 
     setAutopinPending(true);
-    let created = 0;
-    let notGeocoded = 0;
-    let failed = 0;
-    let firstFailureMessage: string | null = null;
-
     try {
       for (const student of candidates) {
         const address = student.address?.trim();
@@ -682,8 +678,8 @@ export function GoogleMapsScreen(_props: Props) {
               };
             }
           }
-        } catch (error) {
-          firstFailureMessage = firstFailureMessage ?? toErrorMessage(error);
+        } catch {
+          // Fall through to Expo geocoding fallback.
         }
 
         if (!coordinates) {
@@ -698,15 +694,12 @@ export function GoogleMapsScreen(_props: Props) {
                 longitude: first.longitude,
               };
             }
-          } catch (error) {
-            firstFailureMessage = firstFailureMessage ?? toErrorMessage(error);
+          } catch {
+            continue;
           }
         }
 
-        if (!coordinates) {
-          notGeocoded += 1;
-          continue;
-        }
+        if (!coordinates) continue;
 
         try {
           await createMapPinApi({
@@ -718,30 +711,32 @@ export function GoogleMapsScreen(_props: Props) {
             latitude: coordinates.latitude,
             longitude: coordinates.longitude,
           });
-          created += 1;
-        } catch (error) {
-          failed += 1;
-          firstFailureMessage = firstFailureMessage ?? toErrorMessage(error);
+        } catch {
+          // Keep auto-pin non-blocking and continue remaining students.
         }
       }
     } finally {
       setAutopinPending(false);
-      void pinsQuery.refetch();
+      void refetchPins();
     }
+  }, [placesConfigured, profile.organization_id, refetchPins]);
 
-    const message = [
-      `${created} pin${created === 1 ? "" : "s"} created.`,
-      skippedPinned > 0 ? `${skippedPinned} already pinned.` : null,
-      skippedNoAddress > 0 ? `${skippedNoAddress} missing address.` : null,
-      notGeocoded > 0 ? `${notGeocoded} addresses could not be geocoded.` : null,
-      failed > 0 ? `${failed} failed due to unexpected errors.` : null,
-      failed > 0 && firstFailureMessage ? `First error: ${firstFailureMessage}` : null,
-    ]
-      .filter(Boolean)
-      .join("\n");
+  useEffect(() => {
+    if (studentsQuery.isPending || pinsQuery.isPending) return;
+    if (autoPinCandidates.length === 0 || autopinPending) return;
+    if (!autoPinCandidateKey) return;
+    if (autoPinCandidateKey === lastAutoPinRunKeyRef.current) return;
 
-    Alert.alert("Auto-pin complete", message);
-  }
+    lastAutoPinRunKeyRef.current = autoPinCandidateKey;
+    void autopinStudents(autoPinCandidates);
+  }, [
+    autoPinCandidateKey,
+    autoPinCandidates,
+    autopinPending,
+    autopinStudents,
+    pinsQuery.isPending,
+    studentsQuery.isPending,
+  ]);
 
   const snapshotPanResponder = useMemo(
     () =>
@@ -774,6 +769,7 @@ export function GoogleMapsScreen(_props: Props) {
                     id: createLocalId("snapshot_text"),
                     text: label,
                     color: snapshotColor,
+                    size: snapshotTextSize,
                     x: startPoint.x,
                     y: startPoint.y,
                   },
@@ -813,6 +809,7 @@ export function GoogleMapsScreen(_props: Props) {
       snapshotEditorVisible,
       snapshotLineWidth,
       snapshotTextDraft,
+      snapshotTextSize,
       snapshotTextPlacementEnabled,
     ],
   );
@@ -925,10 +922,10 @@ export function GoogleMapsScreen(_props: Props) {
         <View className="flex-row items-center gap-2">
           <AppButton
             width="auto"
+            size="icon"
             variant="secondary"
             icon={Camera}
             label=""
-            className="h-10 w-10 px-0"
             accessibilityLabel="Capture snapshot for selected pin"
             disabled={snapshotCapturePending}
             onPress={() => void startSnapshotEditor()}
@@ -1002,10 +999,10 @@ export function GoogleMapsScreen(_props: Props) {
         <AppText variant="heading">Main Map Annotations</AppText>
         <AppButton
           width="auto"
+          size="icon"
           variant="secondary"
           icon={Camera}
           label=""
-          className="h-10 w-10 px-0"
           accessibilityLabel="Capture snapshot for main map"
           disabled={snapshotCapturePending}
           onPress={() => void startSnapshotEditor()}
@@ -1059,6 +1056,8 @@ export function GoogleMapsScreen(_props: Props) {
       colorOptions={DRAW_COLORS}
       widthOptions={DRAW_WIDTH_OPTIONS}
       textDraft={snapshotTextDraft}
+      textSize={snapshotTextSize}
+      textSizeOptions={SNAPSHOT_TEXT_SIZE_OPTIONS}
       placingText={snapshotTextPlacementEnabled}
       saving={createMapAnnotation.isPending}
       canUndo={snapshotCanUndo}
@@ -1067,6 +1066,7 @@ export function GoogleMapsScreen(_props: Props) {
       onChangeTitle={setSnapshotTitle}
       onChangeNotes={setSnapshotNotes}
       onChangeTextDraft={setSnapshotTextDraft}
+      onSelectTextSize={setSnapshotTextSize}
       onSelectColor={setSnapshotColor}
       onSelectWidth={setSnapshotLineWidth}
       onToggleTextPlacement={() => setSnapshotTextPlacementEnabled((previous) => !previous)}
@@ -1151,9 +1151,9 @@ export function GoogleMapsScreen(_props: Props) {
                 </View>
                 <AppButton
                   width="auto"
+                  size="icon"
                   icon={Pin}
                   label=""
-                  className="h-10 w-10 px-0"
                   accessibilityLabel="Add pin at map center"
                   onPress={() => startDraftAtCoordinate(mapCenter)}
                 />
@@ -1193,14 +1193,6 @@ export function GoogleMapsScreen(_props: Props) {
                   Set GOOGLE_MAPS_API_KEY to enable New Zealand address autocomplete/search.
                 </AppText>
               ) : null}
-
-              <AppButton
-                width="auto"
-                variant="secondary"
-                label={autopinPending ? "Auto-pinning..." : "Auto-pin active student addresses"}
-                disabled={autopinPending}
-                onPress={() => void autopinActiveStudentAddresses()}
-              />
 
               {pinsQuery.isError ? <AppText variant="error">{toErrorMessage(pinsQuery.error)}</AppText> : null}
               {studentsQuery.isError ? (
