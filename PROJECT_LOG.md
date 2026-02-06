@@ -1,55 +1,5 @@
 ﻿# PROJECT_LOG.md
 
-- **Date:** 2026-02-05 (Pacific/Auckland)
-- **Task:** Settings: Account settings + instructor creation
-- **Summary:**
-  - Renamed Settings "Profile" section to "Account Settings" and displays full name (first + last) when available.
-  - Added profile photo actions (take photo, choose from library, remove photo).
-  - Added Change Name and Change Password flows (with current/new/confirm fields).
-  - Enforced first-login password change via `profiles.must_change_password` (instructors created by owner are gated until password is updated).
-  - Implemented owner-only "Add Instructor" flow backed by a Supabase Edge Function that generates a temporary password.
-- **Files changed:**
-  - `src/navigation/screens/SettingsScreen.tsx`
-  - `src/navigation/SettingsStackNavigator.tsx`
-  - `src/navigation/RootNavigation.tsx`
-  - `src/navigation/ForcedPasswordChangeStackNavigator.tsx`
-  - `src/navigation/screens/EditNameScreen.tsx`
-  - `src/navigation/screens/ChangePasswordScreen.tsx`
-  - `src/navigation/screens/ForcePasswordChangeScreen.tsx`
-  - `src/navigation/screens/AddInstructorScreen.tsx`
-  - `src/navigation/components/HeaderButtons.tsx`
-  - `src/navigation/components/AppDrawerContent.tsx`
-  - `src/navigation/screens/HomeScreen.tsx`
-  - `src/navigation/screens/LessonEditScreen.tsx`
-  - `src/navigation/screens/StudentEditScreen.tsx`
-  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
-  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
-  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
-  - `src/features/account/api.ts`
-  - `src/features/account/queries.ts`
-  - `src/features/account/schemas.ts`
-  - `src/features/account/ChangePasswordForm.tsx`
-  - `src/features/instructors/api.ts`
-  - `src/features/instructors/queries.ts`
-  - `src/features/instructors/schemas.ts`
-  - `src/utils/profileName.ts`
-  - `src/supabase/types.ts`
-  - `supabase/migrations/009_account_settings.sql`
-  - `supabase/functions/create-instructor/index.ts`
-  - `supabase/README.md`
-  - `app.json`
-  - `tsconfig.json`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Settings -> confirm "Account Settings" heading, full name display, Change name/password buttons.
-  - Settings -> Change profile photo -> confirm Take/Choose/Remove options.
-  - Owner: Settings -> Instructors -> Add instructor -> create an instructor and confirm credentials are returned.
-  - Sign in as the new instructor -> confirm you are forced to the password change screen until you update it.
-
----
-
 - **Date:** 2026-02-06 (Pacific/Auckland)
 - **Task:** Fix release build crash (Supabase env)
 - **Summary:**
@@ -505,3 +455,30 @@
   - Select an existing pin and confirm the same annotation tools still work for pin-scoped annotations.
   - Open `Students` -> `New/Edit student` and confirm the Address field now shows NZ autocomplete suggestions while typing.
 
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Google Maps cleanup: remove vectors + snapshot UI updates
+- **Summary:**
+  - Removed Anchored vector workflows from the Google Maps UI and map annotation codec, keeping snapshot annotations and pin workflows intact.
+  - Updated map controls layout: removed top-right refresh, changed add button icon to Lucide `Pin`, moved layer tabs above address search, and replaced the separate search button with inline Clear beside the address input.
+  - Moved snapshot capture controls into bottom annotation cards (main map + selected pin) as square icon buttons.
+  - Updated Snapshot Annotation modal: added line-thickness icons beside size labels, added black as a draw color option, switched Undo/Redo to icon-only buttons, and right-aligned Save snapshot.
+  - Hardened Auto-pin geocoding by trying Google geocode first (when configured), then Expo geocode fallback, and surfacing the first failure reason when insert errors occur.
+- **Files changed:**
+  - `src/navigation/screens/GoogleMapsScreen.tsx`
+  - `src/navigation/components/SnapshotAnnotationModal.tsx`
+  - `src/components/AddressAutocompleteInput.tsx`
+  - `src/features/map-annotations/codec.ts`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+  - `rg -n "anchored_vector|vector" src/navigation/screens/GoogleMapsScreen.tsx src/features/map-annotations/codec.ts`
+- **How to verify:**
+  - Open `Google Maps` and confirm top-right shows only one square add-pin icon button (no refresh button).
+  - Confirm map layer tabs are above the address input, and the Clear button is beside the input on the right.
+  - Confirm there is no Anchored vector button/workflow and no vector counts/listing in bottom cards.
+  - In `Main Map Annotations`, confirm Snapshot is a right-aligned square camera icon button; tap it and save a snapshot.
+  - Open Snapshot Annotation modal and confirm: black color is available, size options show an icon + px label, Undo/Redo are icon-only, and Save snapshot is right-aligned.
+  - Tap `Auto-pin active student addresses` and confirm it no longer reports generic unexpected failures for geocoder path issues.

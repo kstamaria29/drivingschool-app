@@ -1517,3 +1517,52 @@
 - **How to verify:**
   - On `Home`: confirm each day/date header in "Next 3 days" is underlined and uses the same text size as the student names.
 
+---
+
+- **Date:** 2026-02-05 (Pacific/Auckland)
+- **Task:** Settings: Account settings + instructor creation
+- **Summary:**
+  - Renamed Settings "Profile" section to "Account Settings" and displays full name (first + last) when available.
+  - Added profile photo actions (take photo, choose from library, remove photo).
+  - Added Change Name and Change Password flows (with current/new/confirm fields).
+  - Enforced first-login password change via `profiles.must_change_password` (instructors created by owner are gated until password is updated).
+  - Implemented owner-only "Add Instructor" flow backed by a Supabase Edge Function that generates a temporary password.
+- **Files changed:**
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/SettingsStackNavigator.tsx`
+  - `src/navigation/RootNavigation.tsx`
+  - `src/navigation/ForcedPasswordChangeStackNavigator.tsx`
+  - `src/navigation/screens/EditNameScreen.tsx`
+  - `src/navigation/screens/ChangePasswordScreen.tsx`
+  - `src/navigation/screens/ForcePasswordChangeScreen.tsx`
+  - `src/navigation/screens/AddInstructorScreen.tsx`
+  - `src/navigation/components/HeaderButtons.tsx`
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/features/account/api.ts`
+  - `src/features/account/queries.ts`
+  - `src/features/account/schemas.ts`
+  - `src/features/account/ChangePasswordForm.tsx`
+  - `src/features/instructors/api.ts`
+  - `src/features/instructors/queries.ts`
+  - `src/features/instructors/schemas.ts`
+  - `src/utils/profileName.ts`
+  - `src/supabase/types.ts`
+  - `supabase/migrations/009_account_settings.sql`
+  - `supabase/functions/create-instructor/index.ts`
+  - `supabase/README.md`
+  - `app.json`
+  - `tsconfig.json`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Settings -> confirm "Account Settings" heading, full name display, Change name/password buttons.
+  - Settings -> Change profile photo -> confirm Take/Choose/Remove options.
+  - Owner: Settings -> Instructors -> Add instructor -> create an instructor and confirm credentials are returned.
+  - Sign in as the new instructor -> confirm you are forced to the password change screen until you update it.

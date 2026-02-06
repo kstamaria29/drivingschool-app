@@ -1,5 +1,6 @@
-﻿import type { GestureResponderHandlers, LayoutChangeEvent } from "react-native";
+import type { GestureResponderHandlers, LayoutChangeEvent } from "react-native";
 import { Image, Modal, Pressable, StyleSheet, View } from "react-native";
+import { Minus, Redo2, Undo2 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Polyline as SvgPolyline, Text as SvgText } from "react-native-svg";
 
@@ -110,7 +111,9 @@ export function SnapshotAnnotationModal({
                     accessibilityLabel={`Select color ${colorOption}`}
                     className={cn(
                       "h-7 w-7 rounded-full border",
-                      selected ? "border-foreground dark:border-foregroundDark" : "border-border dark:border-borderDark",
+                      selected
+                        ? "border-foreground dark:border-foregroundDark"
+                        : "border-border dark:border-borderDark",
                     )}
                     style={{ backgroundColor: colorOption }}
                     onPress={() => onSelectColor(colorOption)}
@@ -128,6 +131,8 @@ export function SnapshotAnnotationModal({
                     width="auto"
                     variant={selected ? "primary" : "secondary"}
                     label={`${option}px`}
+                    icon={Minus}
+                    iconStrokeWidth={Math.max(1.5, Math.min(4, option / 1.5))}
                     onPress={() => onSelectWidth(option)}
                   />
                 );
@@ -204,16 +209,39 @@ export function SnapshotAnnotationModal({
             <View style={StyleSheet.absoluteFillObject} {...panHandlers} />
           </View>
 
-          <View className="flex-row flex-wrap gap-2">
-            <AppButton width="auto" variant="secondary" label="Undo" disabled={!canUndo} onPress={onUndo} />
-            <AppButton width="auto" variant="secondary" label="Redo" disabled={!canRedo} onPress={onRedo} />
-            <AppButton width="auto" variant="secondary" label="Clear" onPress={onClear} />
-            <AppButton
-              width="auto"
-              label={saving ? "Saving..." : "Save snapshot"}
-              disabled={saving}
-              onPress={onSave}
-            />
+          <View className="gap-2">
+            <View className="flex-row flex-wrap gap-2">
+              <AppButton
+                width="auto"
+                variant="secondary"
+                label=""
+                icon={Undo2}
+                className="h-10 w-10 px-0"
+                accessibilityLabel="Undo"
+                disabled={!canUndo}
+                onPress={onUndo}
+              />
+              <AppButton
+                width="auto"
+                variant="secondary"
+                label=""
+                icon={Redo2}
+                className="h-10 w-10 px-0"
+                accessibilityLabel="Redo"
+                disabled={!canRedo}
+                onPress={onRedo}
+              />
+              <AppButton width="auto" variant="secondary" label="Clear" onPress={onClear} />
+            </View>
+
+            <View className="flex-row justify-end">
+              <AppButton
+                width="auto"
+                label={saving ? "Saving..." : "Save snapshot"}
+                disabled={saving}
+                onPress={onSave}
+              />
+            </View>
           </View>
         </View>
       </SafeAreaView>

@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import type { TextInputProps } from "react-native";
 import { ActivityIndicator, Pressable, View } from "react-native";
 
@@ -21,6 +21,7 @@ type Props = Omit<TextInputProps, "value" | "onChangeText"> & {
   error?: string;
   containerClassName?: string;
   inputClassName?: string;
+  inputRightAccessory?: ReactNode;
   minQueryLength?: number;
   maxResults?: number;
 };
@@ -33,6 +34,7 @@ export function AddressAutocompleteInput({
   error,
   containerClassName,
   inputClassName,
+  inputRightAccessory,
   minQueryLength = 3,
   maxResults = 6,
   onFocus,
@@ -97,28 +99,33 @@ export function AddressAutocompleteInput({
 
   return (
     <View className={cn("gap-2", containerClassName)}>
-      <AppInput
-        label={label}
-        value={value}
-        onChangeText={onChangeText}
-        error={error}
-        inputClassName={inputClassName}
-        onFocus={(event) => {
-          if (blurTimeoutRef.current) {
-            clearTimeout(blurTimeoutRef.current);
-            blurTimeoutRef.current = null;
-          }
-          setFocused(true);
-          onFocus?.(event);
-        }}
-        onBlur={(event) => {
-          blurTimeoutRef.current = setTimeout(() => {
-            setFocused(false);
-          }, 120);
-          onBlur?.(event);
-        }}
-        {...props}
-      />
+      <View className="flex-row items-end gap-2">
+        <AppInput
+          label={label}
+          value={value}
+          onChangeText={onChangeText}
+          error={error}
+          containerClassName="flex-1"
+          inputClassName={inputClassName}
+          onFocus={(event) => {
+            if (blurTimeoutRef.current) {
+              clearTimeout(blurTimeoutRef.current);
+              blurTimeoutRef.current = null;
+            }
+            setFocused(true);
+            onFocus?.(event);
+          }}
+          onBlur={(event) => {
+            blurTimeoutRef.current = setTimeout(() => {
+              setFocused(false);
+            }, 120);
+            onBlur?.(event);
+          }}
+          {...props}
+        />
+
+        {inputRightAccessory ? <View className="pb-0.5">{inputRightAccessory}</View> : null}
+      </View>
 
       {!autocompleteConfigured && focused ? (
         <AppText variant="caption">Set `GOOGLE_MAPS_API_KEY` to enable NZ address autocomplete.</AppText>
@@ -157,7 +164,12 @@ export function AddressAutocompleteInput({
         </View>
       ) : null}
 
-      {focused && !loading && autocompleteConfigured && value.trim().length >= minQueryLength && predictions.length === 0 && !lookupError ? (
+      {focused &&
+      !loading &&
+      autocompleteConfigured &&
+      value.trim().length >= minQueryLength &&
+      predictions.length === 0 &&
+      !lookupError ? (
         <AppText variant="caption">No matching NZ addresses.</AppText>
       ) : null}
     </View>

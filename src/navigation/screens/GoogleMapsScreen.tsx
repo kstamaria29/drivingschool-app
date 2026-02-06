@@ -15,11 +15,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapView, {
   Marker,
-  Polyline as MapPolyline,
   PROVIDER_GOOGLE,
   type LatLng,
 } from "react-native-maps";
-import { Camera, MapPin, Plus, RefreshCw, Trash2, User } from "lucide-react-native";
+import { Camera, MapPin, Pin, Trash2, User } from "lucide-react-native";
 
 import { AddressAutocompleteInput } from "../../components/AddressAutocompleteInput";
 import { AppButton } from "../../components/AppButton";
@@ -34,16 +33,11 @@ import {
   DEFAULT_DRAW_COLOR,
   DEFAULT_DRAW_WIDTH,
   parseSnapshotAnnotation,
-  parseVectorAnnotation,
   serializeSnapshotAnnotation,
-  serializeVectorAnnotation,
   type SnapshotAnnotationContent,
   type SnapshotPoint,
   type SnapshotStroke,
   type SnapshotText,
-  type VectorAnnotationContent,
-  type VectorStroke,
-  type VectorText,
 } from "../../features/map-annotations/codec";
 import {
   useCreateMapAnnotationMutation,
@@ -84,19 +78,12 @@ type HistoryState<T> = {
   future: T[];
 };
 
-type ParsedVectorAnnotation = {
-  id: string;
-  title: string;
-  notes: string | null;
-  strokes: VectorStroke[];
-  texts: VectorText[];
-};
-
 const DRAW_COLORS = [
   "#22c55e",
   "#3b82f6",
   "#f97316",
   "#ef4444",
+  "#111827",
   "#a855f7",
   "#14b8a6",
   "#eab308",
@@ -197,19 +184,6 @@ export function GoogleMapsScreen(_props: Props) {
   const [autopinPending, setAutopinPending] = useState(false);
   const [snapshotCapturePending, setSnapshotCapturePending] = useState(false);
 
-  const [vectorModeEnabled, setVectorModeEnabled] = useState(false);
-  const [vectorTitle, setVectorTitle] = useState("");
-  const [vectorNotes, setVectorNotes] = useState("");
-  const [vectorHistory, setVectorHistory] = useState<HistoryState<VectorAnnotationContent>>(
-    createHistoryState({ strokes: [], texts: [] }),
-  );
-  const [activeVectorStroke, setActiveVectorStroke] = useState<LatLng[]>([]);
-  const [activeVectorRedoPoints, setActiveVectorRedoPoints] = useState<LatLng[]>([]);
-  const [vectorColor, setVectorColor] = useState<string>(DEFAULT_DRAW_COLOR);
-  const [vectorLineWidth, setVectorLineWidth] = useState<number>(DEFAULT_DRAW_WIDTH);
-  const [vectorTextDraft, setVectorTextDraft] = useState("");
-  const [vectorTextPlacementEnabled, setVectorTextPlacementEnabled] = useState(false);
-
   const [snapshotEditorVisible, setSnapshotEditorVisible] = useState(false);
   const [snapshotTitle, setSnapshotTitle] = useState("");
   const [snapshotNotes, setSnapshotNotes] = useState("");
@@ -256,48 +230,6 @@ export function GoogleMapsScreen(_props: Props) {
       })
       .slice(0, 8);
   }, [studentSearch, studentsQuery.data]);
-
-  const vectorAnnotationsForSelectedPin = useMemo((): ParsedVectorAnnotation[] => {
-    if (!selectedPinId) return [];
-    const all = annotationsQuery.data ?? [];
-    return all
-      .filter(
-        (annotation) =>
-          annotation.map_pin_id === selectedPinId && annotation.annotation_type === "anchored_vector",
-      )
-      .map((annotation) => {
-        const parsed = parseVectorAnnotation(annotation.vector_strokes);
-        if (parsed.strokes.length === 0 && parsed.texts.length === 0) return null;
-
-        return {
-          id: annotation.id,
-          title: annotation.title,
-          notes: annotation.notes,
-          strokes: parsed.strokes,
-          texts: parsed.texts,
-        };
-      })
-      .filter((annotation): annotation is ParsedVectorAnnotation => annotation != null);
-  }, [annotationsQuery.data, selectedPinId]);
-
-  const mapLevelVectorAnnotations = useMemo((): ParsedVectorAnnotation[] => {
-    const all = annotationsQuery.data ?? [];
-    return all
-      .filter((annotation) => annotation.map_pin_id == null && annotation.annotation_type === "anchored_vector")
-      .map((annotation) => {
-        const parsed = parseVectorAnnotation(annotation.vector_strokes);
-        if (parsed.strokes.length === 0 && parsed.texts.length === 0) return null;
-
-        return {
-          id: annotation.id,
-          title: annotation.title,
-          notes: annotation.notes,
-          strokes: parsed.strokes,
-          texts: parsed.texts,
-        };
-      })
-      .filter((annotation): annotation is ParsedVectorAnnotation => annotation != null);
-  }, [annotationsQuery.data]);
 
   const snapshotAnnotationsForSelectedPin = useMemo((): SnapshotPreview[] => {
     if (!selectedPinId) return [];
@@ -348,14 +280,9 @@ export function GoogleMapsScreen(_props: Props) {
       .filter((annotation): annotation is SnapshotPreview => annotation != null);
   }, [annotationsQuery.data]);
 
-  const activeVectorAnnotations = selectedPin ? vectorAnnotationsForSelectedPin : mapLevelVectorAnnotations;
   const activeSnapshotAnnotations = selectedPin
     ? snapshotAnnotationsForSelectedPin
     : mapLevelSnapshotAnnotations;
-
-  const visibleVectorAnnotations = selectedPin
-    ? [...mapLevelVectorAnnotations, ...vectorAnnotationsForSelectedPin]
-    : mapLevelVectorAnnotations;
 
   const previewSnapshot = useMemo(
     () => activeSnapshotAnnotations.find((snapshot) => snapshot.id === previewSnapshotId) ?? null,
@@ -443,7 +370,6 @@ export function GoogleMapsScreen(_props: Props) {
   }
 
   function startDraftAtCoordinate(coordinate: LatLng) {
-    if (vectorModeEnabled) return;
     setSelectedPinId(null);
     setDraftCoordinate(coordinate);
   }
@@ -521,188 +447,6 @@ export function GoogleMapsScreen(_props: Props) {
     ]);
   }
 
-  function startVectorMode() {
-    if (snapshotEditorVisible) {
-      Alert.alert("Finish snapshot first", "Save or close the snapshot editor before starting vectors.");
-      return;
-    }
-
-    clearDraft();
-    setPreviewSnapshotId(null);
-
-    setVectorModeEnabled(true);
-    setVectorTitle(selectedPin ? `${selectedPin.title} coaching` : "Main map coaching");
-    setVectorNotes("");
-    setVectorHistory(createHistoryState({ strokes: [], texts: [] }));
-    setActiveVectorStroke([]);
-    setActiveVectorRedoPoints([]);
-    setVectorColor(DEFAULT_DRAW_COLOR);
-    setVectorLineWidth(DEFAULT_DRAW_WIDTH);
-    setVectorTextDraft("");
-    setVectorTextPlacementEnabled(false);
-  }
-
-  function stopVectorMode() {
-    setVectorModeEnabled(false);
-    setVectorTitle("");
-    setVectorNotes("");
-    setVectorHistory(createHistoryState({ strokes: [], texts: [] }));
-    setActiveVectorStroke([]);
-    setActiveVectorRedoPoints([]);
-    setVectorTextDraft("");
-    setVectorTextPlacementEnabled(false);
-  }
-
-  function addVectorPoint(coordinate: LatLng) {
-    if (!vectorModeEnabled) return;
-
-    if (vectorTextPlacementEnabled) {
-      const label = vectorTextDraft.trim();
-      if (!label) {
-        Alert.alert("Enter text", "Type text first, then tap the map to place it.");
-        setVectorTextPlacementEnabled(false);
-        return;
-      }
-
-      setVectorHistory((history) =>
-        pushHistoryState(history, {
-          ...history.present,
-          texts: [
-            ...history.present.texts,
-            {
-              id: createLocalId("vector_text"),
-              text: label,
-              color: vectorColor,
-              coordinate,
-            },
-          ],
-        }),
-      );
-      setVectorTextPlacementEnabled(false);
-      return;
-    }
-
-    setActiveVectorRedoPoints([]);
-    setActiveVectorStroke((previous) => [...previous, coordinate]);
-  }
-
-  function finishVectorStroke() {
-    setActiveVectorStroke((activeStroke) => {
-      if (activeStroke.length < 2) return [];
-
-      setVectorHistory((history) =>
-        pushHistoryState(history, {
-          ...history.present,
-          strokes: [
-            ...history.present.strokes,
-            {
-              id: createLocalId("vector_stroke"),
-              points: activeStroke,
-              color: vectorColor,
-              width: vectorLineWidth,
-            },
-          ],
-        }),
-      );
-      return [];
-    });
-    setActiveVectorRedoPoints([]);
-  }
-
-  function undoVectorAction() {
-    if (activeVectorStroke.length > 0) {
-      setActiveVectorStroke((previous) => {
-        if (previous.length === 0) return previous;
-        const removedPoint = previous[previous.length - 1];
-        setActiveVectorRedoPoints((redoPoints) => [...redoPoints, removedPoint]);
-        return previous.slice(0, -1);
-      });
-      return;
-    }
-
-    setVectorHistory((history) => undoHistoryState(history));
-  }
-
-  function redoVectorAction() {
-    if (activeVectorRedoPoints.length > 0) {
-      setActiveVectorRedoPoints((redoPoints) => {
-        if (redoPoints.length === 0) return redoPoints;
-
-        const point = redoPoints[redoPoints.length - 1];
-        setActiveVectorStroke((stroke) => [...stroke, point]);
-        return redoPoints.slice(0, -1);
-      });
-      return;
-    }
-
-    setVectorHistory((history) => redoHistoryState(history));
-  }
-
-  function clearVectorDraft() {
-    const hasEntries =
-      vectorHistory.present.strokes.length > 0 ||
-      vectorHistory.present.texts.length > 0 ||
-      activeVectorStroke.length > 0;
-
-    if (hasEntries) {
-      setVectorHistory((history) =>
-        pushHistoryState(history, {
-          strokes: [],
-          texts: [],
-        }),
-      );
-    }
-
-    setActiveVectorStroke([]);
-    setActiveVectorRedoPoints([]);
-    setVectorTextPlacementEnabled(false);
-  }
-
-  async function saveVectorAnnotation() {
-    const draft = vectorHistory.present;
-
-    const finalStrokes =
-      activeVectorStroke.length >= 2
-        ? [
-            ...draft.strokes,
-            {
-              id: createLocalId("vector_stroke"),
-              points: activeVectorStroke,
-              color: vectorColor,
-              width: vectorLineWidth,
-            },
-          ]
-        : draft.strokes;
-
-    if (finalStrokes.length === 0 && draft.texts.length === 0) {
-      Alert.alert("No annotation", "Add at least one stroke or text label before saving.");
-      return;
-    }
-
-    try {
-      await createMapAnnotation.mutateAsync({
-        organization_id: profile.organization_id,
-        map_pin_id: selectedPin?.id ?? null,
-        student_id: selectedPin?.student_id ?? null,
-        instructor_id: selectedPin?.instructor_id ?? profile.id,
-        annotation_type: "anchored_vector",
-        title: vectorTitle.trim() || `${selectedPin ? selectedPin.title : "Main map"} vector`,
-        notes: vectorNotes.trim() || null,
-        vector_strokes: serializeVectorAnnotation({
-          strokes: finalStrokes,
-          texts: draft.texts,
-        }),
-        snapshot_image_base64: null,
-        snapshot_strokes: null,
-        snapshot_width: null,
-        snapshot_height: null,
-      });
-      stopVectorMode();
-    } catch (error) {
-      Alert.alert("Couldn't save vector annotation", toErrorMessage(error));
-    }
-  }
-
   function closeSnapshotEditor() {
     setSnapshotEditorVisible(false);
     setSnapshotTitle("");
@@ -721,10 +465,6 @@ export function GoogleMapsScreen(_props: Props) {
   async function startSnapshotEditor() {
     if (!mapRef.current) {
       Alert.alert("Map unavailable", "Could not capture the map right now.");
-      return;
-    }
-    if (vectorModeEnabled) {
-      Alert.alert("Finish vector mode first", "Save or cancel vector drawing before capturing a snapshot.");
       return;
     }
 
@@ -923,35 +663,65 @@ export function GoogleMapsScreen(_props: Props) {
     let created = 0;
     let notGeocoded = 0;
     let failed = 0;
+    let firstFailureMessage: string | null = null;
 
     try {
       for (const student of candidates) {
         const address = student.address?.trim();
         if (!address) continue;
 
+        let coordinates: { latitude: number; longitude: number } | null = null;
+
         try {
-          const candidatesFromGeocode = await Location.geocodeAsync(address);
-          const first = candidatesFromGeocode.find(
-            (result) => Number.isFinite(result.latitude) && Number.isFinite(result.longitude),
-          );
-
-          if (!first) {
-            notGeocoded += 1;
-            continue;
+          if (placesConfigured) {
+            const geocoded = await geocodeNewZealandAddress(address);
+            if (geocoded) {
+              coordinates = {
+                latitude: geocoded.latitude,
+                longitude: geocoded.longitude,
+              };
+            }
           }
+        } catch (error) {
+          firstFailureMessage = firstFailureMessage ?? toErrorMessage(error);
+        }
 
+        if (!coordinates) {
+          try {
+            const candidatesFromGeocode = await Location.geocodeAsync(address);
+            const first = candidatesFromGeocode.find(
+              (result) => Number.isFinite(result.latitude) && Number.isFinite(result.longitude),
+            );
+            if (first) {
+              coordinates = {
+                latitude: first.latitude,
+                longitude: first.longitude,
+              };
+            }
+          } catch (error) {
+            firstFailureMessage = firstFailureMessage ?? toErrorMessage(error);
+          }
+        }
+
+        if (!coordinates) {
+          notGeocoded += 1;
+          continue;
+        }
+
+        try {
           await createMapPinApi({
             organization_id: profile.organization_id,
             instructor_id: student.assigned_instructor_id,
             student_id: student.id,
             title: `${student.first_name} ${student.last_name}`,
             notes: `Address: ${address}`,
-            latitude: first.latitude,
-            longitude: first.longitude,
+            latitude: coordinates.latitude,
+            longitude: coordinates.longitude,
           });
           created += 1;
-        } catch {
+        } catch (error) {
           failed += 1;
+          firstFailureMessage = firstFailureMessage ?? toErrorMessage(error);
         }
       }
     } finally {
@@ -965,6 +735,7 @@ export function GoogleMapsScreen(_props: Props) {
       skippedNoAddress > 0 ? `${skippedNoAddress} missing address.` : null,
       notGeocoded > 0 ? `${notGeocoded} addresses could not be geocoded.` : null,
       failed > 0 ? `${failed} failed due to unexpected errors.` : null,
+      failed > 0 && firstFailureMessage ? `First error: ${firstFailureMessage}` : null,
     ]
       .filter(Boolean)
       .join("\n");
@@ -1060,8 +831,6 @@ export function GoogleMapsScreen(_props: Props) {
     });
   }
 
-  const vectorCanUndo = activeVectorStroke.length > 0 || vectorHistory.past.length > 0;
-  const vectorCanRedo = activeVectorRedoPoints.length > 0 || vectorHistory.future.length > 0;
   const snapshotCanUndo = activeSnapshotStroke.length > 0 || snapshotHistory.past.length > 0;
   const snapshotCanRedo = activeSnapshotRedoPoints.length > 0 || snapshotHistory.future.length > 0;
 
@@ -1149,120 +918,30 @@ export function GoogleMapsScreen(_props: Props) {
     </AppCard>
   ) : null;
 
-  const vectorDraftCard =
-    vectorModeEnabled ? (
-      <AppCard className="gap-3">
-        <View className="flex-row items-center justify-between gap-3">
-          <AppText variant="heading">Anchored Vector</AppText>
-          <AppButton width="auto" variant="ghost" label="Cancel" onPress={stopVectorMode} />
-        </View>
-
-        <AppText variant="caption">
-          Drawing target: {selectedPin ? selectedPin.title : "Main map"}. Tap or long-press to draw.
-        </AppText>
-
-        <AppInput label="Title" value={vectorTitle} onChangeText={setVectorTitle} />
-        <AppInput
-          label="Notes"
-          value={vectorNotes}
-          onChangeText={setVectorNotes}
-          multiline
-          numberOfLines={3}
-          textAlignVertical="top"
-          inputClassName="h-20 py-3"
-        />
-
-        <View className="gap-2 rounded-xl border border-border p-3 dark:border-borderDark">
-          <AppText variant="label">Drawing style</AppText>
-
-          <View className="flex-row flex-wrap gap-2">
-            {DRAW_COLORS.map((colorOption) => {
-              const selected = colorOption.toLowerCase() === vectorColor.toLowerCase();
-              return (
-                <Pressable
-                  key={colorOption}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Select color ${colorOption}`}
-                  className={cn(
-                    "h-7 w-7 rounded-full border",
-                    selected ? "border-foreground dark:border-foregroundDark" : "border-border dark:border-borderDark",
-                  )}
-                  style={{ backgroundColor: colorOption }}
-                  onPress={() => setVectorColor(colorOption)}
-                />
-              );
-            })}
-          </View>
-
-          <View className="flex-row flex-wrap gap-2">
-            {DRAW_WIDTH_OPTIONS.map((option) => (
-              <AppButton
-                key={`vector-width-${option}`}
-                width="auto"
-                variant={vectorLineWidth === option ? "primary" : "secondary"}
-                label={`${option}px`}
-                onPress={() => setVectorLineWidth(option)}
-              />
-            ))}
-          </View>
-
-          <AppInput
-            label="Text label"
-            placeholder="e.g. Slow down before entry"
-            value={vectorTextDraft}
-            onChangeText={setVectorTextDraft}
-          />
-          <AppButton
-            width="auto"
-            variant={vectorTextPlacementEnabled ? "primary" : "secondary"}
-            label={vectorTextPlacementEnabled ? "Tap map to place text" : "Place text"}
-            onPress={() => setVectorTextPlacementEnabled((previous) => !previous)}
-          />
-        </View>
-
-        <AppText variant="caption">
-          Strokes: {vectorHistory.present.strokes.length}
-          {activeVectorStroke.length > 0 ? ` + active (${activeVectorStroke.length} points)` : ""} | Text:
-          {` ${vectorHistory.present.texts.length}`}
-        </AppText>
-
-        <View className="flex-row flex-wrap gap-2">
-          <AppButton
-            width="auto"
-            variant="secondary"
-            label="Finish stroke"
-            disabled={activeVectorStroke.length < 2}
-            onPress={finishVectorStroke}
-          />
-          <AppButton width="auto" variant="secondary" label="Undo" disabled={!vectorCanUndo} onPress={undoVectorAction} />
-          <AppButton width="auto" variant="secondary" label="Redo" disabled={!vectorCanRedo} onPress={redoVectorAction} />
-          <AppButton width="auto" variant="secondary" label="Clear all" onPress={clearVectorDraft} />
-        </View>
-
-        {createMapAnnotation.isError ? (
-          <AppText variant="error">{toErrorMessage(createMapAnnotation.error)}</AppText>
-        ) : null}
-
-        <AppButton
-          label={createMapAnnotation.isPending ? "Saving..." : "Save anchored vector"}
-          disabled={createMapAnnotation.isPending}
-          onPress={() => void saveVectorAnnotation()}
-        />
-      </AppCard>
-    ) : null;
-
-  const selectedPinCard = !draftCoordinate && !vectorModeEnabled && selectedPin ? (
+  const selectedPinCard = !draftCoordinate && selectedPin ? (
     <AppCard className="gap-3">
       <View className="flex-row items-center justify-between gap-3">
         <AppText variant="heading">{selectedPin.title}</AppText>
-        <AppButton
-          width="auto"
-          variant="danger"
-          icon={Trash2}
-          label={deleteMapPin.isPending ? "Deleting..." : "Delete pin"}
-          disabled={deleteMapPin.isPending}
-          onPress={confirmDeletePin}
-        />
+        <View className="flex-row items-center gap-2">
+          <AppButton
+            width="auto"
+            variant="secondary"
+            icon={Camera}
+            label=""
+            className="h-10 w-10 px-0"
+            accessibilityLabel="Capture snapshot for selected pin"
+            disabled={snapshotCapturePending}
+            onPress={() => void startSnapshotEditor()}
+          />
+          <AppButton
+            width="auto"
+            variant="danger"
+            icon={Trash2}
+            label={deleteMapPin.isPending ? "Deleting..." : "Delete pin"}
+            disabled={deleteMapPin.isPending}
+            onPress={confirmDeletePin}
+          />
+        </View>
       </View>
 
       {selectedPin.student_id ? (
@@ -1282,9 +961,7 @@ export function GoogleMapsScreen(_props: Props) {
         Lat {selectedPin.latitude.toFixed(5)}, Lng {selectedPin.longitude.toFixed(5)}
       </AppText>
 
-      <AppText variant="caption">
-        Anchored vectors: {activeVectorAnnotations.length} | Snapshots: {activeSnapshotAnnotations.length}
-      </AppText>
+      <AppText variant="caption">Snapshots: {activeSnapshotAnnotations.length}</AppText>
 
       {activeSnapshotAnnotations.slice(0, 4).map((annotation) => (
         <View
@@ -1311,40 +988,31 @@ export function GoogleMapsScreen(_props: Props) {
         </View>
       ))}
 
-      {activeVectorAnnotations.slice(0, 3).map((annotation) => (
-        <View
-          key={annotation.id}
-          className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark"
-        >
-          <View className="flex-row items-center justify-between gap-2">
-            <View className="flex-1">
-              <AppText variant="label">{annotation.title}</AppText>
-              <AppText variant="caption">
-                {annotation.strokes.length} stroke{annotation.strokes.length === 1 ? "" : "s"},{" "}
-                {annotation.texts.length} text label{annotation.texts.length === 1 ? "" : "s"}
-              </AppText>
-            </View>
-            <AppButton
-              width="auto"
-              variant="ghost"
-              label="Delete"
-              onPress={() => confirmDeleteAnnotation(annotation.id, annotation.title)}
-            />
-          </View>
-        </View>
-      ))}
+      {activeSnapshotAnnotations.length === 0 ? (
+        <AppText variant="caption">
+          Tip: Use the camera button to add a snapshot annotation for this pin.
+        </AppText>
+      ) : null}
     </AppCard>
   ) : null;
 
-  const mapAnnotationsCard = !draftCoordinate && !vectorModeEnabled && !selectedPin ? (
+  const mapAnnotationsCard = !draftCoordinate && !selectedPin ? (
     <AppCard className="gap-3">
-      <View className="flex-row items-center justify-between gap-3">
+      <View className="flex-row items-start justify-between gap-3 px-1 pt-1">
         <AppText variant="heading">Main Map Annotations</AppText>
+        <AppButton
+          width="auto"
+          variant="secondary"
+          icon={Camera}
+          label=""
+          className="h-10 w-10 px-0"
+          accessibilityLabel="Capture snapshot for main map"
+          disabled={snapshotCapturePending}
+          onPress={() => void startSnapshotEditor()}
+        />
       </View>
 
-      <AppText variant="caption">
-        Anchored vectors: {mapLevelVectorAnnotations.length} | Snapshots: {mapLevelSnapshotAnnotations.length}
-      </AppText>
+      <AppText variant="caption">Snapshots: {mapLevelSnapshotAnnotations.length}</AppText>
 
       {mapLevelSnapshotAnnotations.slice(0, 4).map((annotation) => (
         <View
@@ -1371,33 +1039,8 @@ export function GoogleMapsScreen(_props: Props) {
         </View>
       ))}
 
-      {mapLevelVectorAnnotations.slice(0, 3).map((annotation) => (
-        <View
-          key={annotation.id}
-          className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark"
-        >
-          <View className="flex-row items-center justify-between gap-2">
-            <View className="flex-1">
-              <AppText variant="label">{annotation.title}</AppText>
-              <AppText variant="caption">
-                {annotation.strokes.length} stroke{annotation.strokes.length === 1 ? "" : "s"},{" "}
-                {annotation.texts.length} text label{annotation.texts.length === 1 ? "" : "s"}
-              </AppText>
-            </View>
-            <AppButton
-              width="auto"
-              variant="ghost"
-              label="Delete"
-              onPress={() => confirmDeleteAnnotation(annotation.id, annotation.title)}
-            />
-          </View>
-        </View>
-      ))}
-
-      {mapLevelSnapshotAnnotations.length === 0 && mapLevelVectorAnnotations.length === 0 ? (
-        <AppText variant="caption">
-          Tip: Use Anchored vector or Snapshot from the top panel to annotate the main map.
-        </AppText>
+      {mapLevelSnapshotAnnotations.length === 0 ? (
+        <AppText variant="caption">Tip: Use the camera button to annotate the main map.</AppText>
       ) : null}
     </AppCard>
   ) : null;
@@ -1455,19 +1098,9 @@ export function GoogleMapsScreen(_props: Props) {
             provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
             mapType={mapLayer}
             initialRegion={DEFAULT_REGION}
-            onLongPress={(event) => {
-              if (vectorModeEnabled) {
-                addVectorPoint(event.nativeEvent.coordinate);
-                return;
-              }
-              startDraftAtCoordinate(event.nativeEvent.coordinate);
-            }}
+            onLongPress={(event) => startDraftAtCoordinate(event.nativeEvent.coordinate)}
             onPress={(event) => {
               if (event.nativeEvent.action === "marker-press") return;
-              if (vectorModeEnabled) {
-                addVectorPoint(event.nativeEvent.coordinate);
-                return;
-              }
               setSelectedPinId(null);
             }}
             onRegionChangeComplete={(region) =>
@@ -1497,67 +1130,6 @@ export function GoogleMapsScreen(_props: Props) {
               );
             })}
 
-            {visibleVectorAnnotations.map((annotation) => (
-              <View key={`vector-render-${annotation.id}`}>
-                {annotation.strokes.map((stroke) => (
-                  <MapPolyline
-                    key={`${annotation.id}:${stroke.id}`}
-                    coordinates={stroke.points}
-                    strokeColor={stroke.color}
-                    strokeWidth={stroke.width}
-                  />
-                ))}
-
-                {annotation.texts.map((textEntry) => (
-                  <Marker
-                    key={`${annotation.id}:${textEntry.id}`}
-                    coordinate={textEntry.coordinate}
-                    tracksViewChanges={false}
-                    anchor={{ x: 0.5, y: 1 }}
-                  >
-                    <View className="rounded-md bg-black/75 px-2 py-1">
-                      <AppText variant="caption" className="text-white">
-                        {textEntry.text}
-                      </AppText>
-                    </View>
-                  </Marker>
-                ))}
-              </View>
-            ))}
-
-            {vectorHistory.present.strokes.map((stroke) => (
-              <MapPolyline
-                key={stroke.id}
-                coordinates={stroke.points}
-                strokeColor={stroke.color}
-                strokeWidth={stroke.width}
-              />
-            ))}
-
-            {vectorHistory.present.texts.map((textEntry) => (
-              <Marker
-                key={textEntry.id}
-                coordinate={textEntry.coordinate}
-                tracksViewChanges={false}
-                anchor={{ x: 0.5, y: 1 }}
-              >
-                <View className="rounded-md bg-black/75 px-2 py-1">
-                  <AppText variant="caption" className="text-white">
-                    {textEntry.text}
-                  </AppText>
-                </View>
-              </Marker>
-            ))}
-
-            {activeVectorStroke.length >= 2 ? (
-              <MapPolyline
-                coordinates={activeVectorStroke}
-                strokeColor={vectorColor}
-                strokeWidth={vectorLineWidth}
-                lineDashPattern={[8, 6]}
-              />
-            ) : null}
-
             {draftCoordinate ? (
               <Marker
                 coordinate={draftCoordinate}
@@ -1574,32 +1146,24 @@ export function GoogleMapsScreen(_props: Props) {
                 <View className="flex-1">
                   <AppText variant="heading">Google Maps</AppText>
                   <AppText variant="caption">
-                    Long-press to add pins. Use Anchored vector/Snapshot for selected pin or main map.
+                    Long-press to add pins. Use snapshots in the bottom annotation panel.
                   </AppText>
                 </View>
-                <View className="items-end gap-2">
-                  <AppButton
-                    width="auto"
-                    variant="secondary"
-                    icon={RefreshCw}
-                    label=""
-                    className="h-10 w-10 px-0"
-                    accessibilityLabel="Refresh pins"
-                    onPress={() => {
-                      void pinsQuery.refetch();
-                      void annotationsQuery.refetch();
-                    }}
-                  />
-                  <AppButton
-                    width="auto"
-                    icon={Plus}
-                    label=""
-                    className="h-10 w-10 px-0"
-                    accessibilityLabel="Add pin at map center"
-                    onPress={() => startDraftAtCoordinate(mapCenter)}
-                  />
-                </View>
+                <AppButton
+                  width="auto"
+                  icon={Pin}
+                  label=""
+                  className="h-10 w-10 px-0"
+                  accessibilityLabel="Add pin at map center"
+                  onPress={() => startDraftAtCoordinate(mapCenter)}
+                />
               </View>
+
+              <AppSegmentedControl<MapLayer>
+                value={mapLayer}
+                options={MAP_LAYER_OPTIONS}
+                onChange={setMapLayer}
+              />
 
               <AddressAutocompleteInput
                 label="Search address (NZ)"
@@ -1611,53 +1175,24 @@ export function GoogleMapsScreen(_props: Props) {
                 onSelectPrediction={(prediction) => {
                   void handleMapAddressPredictionSelected(prediction);
                 }}
+                onSubmitEditing={() => void searchAddressAndZoom()}
+                returnKeyType="search"
                 editable={!mapSearchPending}
+                inputRightAccessory={
+                  <AppButton
+                    width="auto"
+                    variant="ghost"
+                    label="Clear"
+                    onPress={() => setMapSearchValue("")}
+                  />
+                }
               />
-
-              <View className="flex-row flex-wrap gap-2">
-                <AppButton
-                  width="auto"
-                  variant="secondary"
-                  label={mapSearchPending ? "Searching..." : "Search address"}
-                  disabled={mapSearchPending}
-                  onPress={() => void searchAddressAndZoom()}
-                />
-                <AppButton
-                  width="auto"
-                  variant="ghost"
-                  label="Clear"
-                  onPress={() => setMapSearchValue("")}
-                />
-              </View>
 
               {!placesConfigured ? (
                 <AppText variant="caption">
                   Set GOOGLE_MAPS_API_KEY to enable New Zealand address autocomplete/search.
                 </AppText>
               ) : null}
-
-              <AppSegmentedControl<MapLayer>
-                value={mapLayer}
-                options={MAP_LAYER_OPTIONS}
-                onChange={setMapLayer}
-              />
-
-              <View className="flex-row flex-wrap gap-2">
-                <AppButton
-                  width="auto"
-                  variant={vectorModeEnabled ? "primary" : "secondary"}
-                  label={vectorModeEnabled ? "Vector mode active" : "Anchored vector"}
-                  onPress={vectorModeEnabled ? stopVectorMode : startVectorMode}
-                />
-                <AppButton
-                  width="auto"
-                  variant="secondary"
-                  icon={Camera}
-                  label={snapshotCapturePending ? "Capturing..." : "Snapshot"}
-                  disabled={snapshotCapturePending || vectorModeEnabled}
-                  onPress={() => void startSnapshotEditor()}
-                />
-              </View>
 
               <AppButton
                 width="auto"
@@ -1679,7 +1214,6 @@ export function GoogleMapsScreen(_props: Props) {
 
           <View pointerEvents="box-none" className="absolute bottom-4 left-4 right-4">
             {draftCard ??
-              vectorDraftCard ??
               selectedPinCard ??
               mapAnnotationsCard ?? (
                 <Pressable
@@ -1688,7 +1222,7 @@ export function GoogleMapsScreen(_props: Props) {
                   onPress={() => startDraftAtCoordinate(mapCenter)}
                 >
                   <AppText variant="caption">
-                    Tip: Long-press to add a pin. Use Anchored vector or Snapshot from the top panel to annotate the map.
+                    Tip: Long-press to add a pin. Use snapshots from the annotation cards.
                   </AppText>
                 </Pressable>
               )}
