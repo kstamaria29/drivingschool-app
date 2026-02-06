@@ -1,8 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { View } from "react-native";
+import { Alert, View } from "react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -20,7 +19,6 @@ type Props = NativeStackScreenProps<AuthStackParamList, "Signup">;
 
 export function SignupScreen({ navigation }: Props) {
   const mutation = useSignUpWithPasswordMutation();
-  const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false);
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -28,10 +26,14 @@ export function SignupScreen({ navigation }: Props) {
   });
 
   async function onSubmit(values: SignUpFormValues) {
-    setNeedsEmailConfirmation(false);
     const result = await mutation.mutateAsync({ email: values.email, password: values.password });
     if (result.kind === "needs-email-confirmation") {
-      setNeedsEmailConfirmation(true);
+      Alert.alert("Account verification", "Check your email to verify your account.", [
+        {
+          text: "OK",
+          onPress: () => navigation.replace("Login"),
+        },
+      ]);
     }
   }
 
@@ -100,12 +102,6 @@ export function SignupScreen({ navigation }: Props) {
             )}
           />
         </AppCard>
-
-        {needsEmailConfirmation ? (
-          <AppText variant="body">
-            Check your email to confirm your account, then return here and sign in.
-          </AppText>
-        ) : null}
 
         {mutation.isError ? (
           <AppText variant="error">{toUserFacingAuthError(mutation.error)}</AppText>

@@ -16,8 +16,8 @@ const STORAGE_KEY = "drivingschool.colorScheme.v1";
 const ColorSchemeContext = createContext<Value | null>(null);
 
 export function ColorSchemeProvider({ children }: PropsWithChildren) {
-  const { colorScheme, setColorScheme } = useColorScheme();
-  const [scheme, setSchemeState] = useState<AppColorScheme>(colorScheme === "dark" ? "dark" : "light");
+  const { setColorScheme } = useColorScheme();
+  const [scheme, setSchemeState] = useState<AppColorScheme>("light");
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -26,12 +26,9 @@ export function ColorSchemeProvider({ children }: PropsWithChildren) {
       try {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
         if (canceled) return;
-        if (stored === "light" || stored === "dark") {
-          setSchemeState(stored);
-          setColorScheme(stored);
-        } else {
-          setColorScheme("light");
-        }
+        const nextScheme: AppColorScheme = stored === "dark" ? "dark" : "light";
+        setSchemeState(nextScheme);
+        setColorScheme(nextScheme);
       } finally {
         if (!canceled) setReady(true);
       }
@@ -65,4 +62,3 @@ export function useAppColorScheme() {
   }
   return value;
 }
-

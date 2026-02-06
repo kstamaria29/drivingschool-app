@@ -46,6 +46,15 @@ EXPO_PUBLIC_SUPABASE_URL=...
 EXPO_PUBLIC_SUPABASE_ANON_KEY=...
 ```
 
+### EAS builds (APK / AAB)
+
+EAS builds do not automatically use your local `.env` (it is gitignored). You must set the same variables in EAS:
+
+- `EXPO_PUBLIC_SUPABASE_URL`
+- `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+
+Then rebuild (for example): `eas build -p android --profile preview`
+
 ## 4) Run the app
 
 ```

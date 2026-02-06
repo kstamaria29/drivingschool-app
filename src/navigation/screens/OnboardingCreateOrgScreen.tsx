@@ -24,7 +24,7 @@ import type { AuthStackParamList } from "../AuthStackNavigator";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "OnboardingCreateOrg">;
 
-export function OnboardingCreateOrgScreen(_props: Props) {
+export function OnboardingCreateOrgScreen({ navigation }: Props) {
   const { session } = useAuthSession();
   const userId = session?.user.id ?? "";
 
@@ -124,6 +124,12 @@ export function OnboardingCreateOrgScreen(_props: Props) {
           label={mutation.isPending ? "Creating..." : "Create organization"}
           disabled={mutation.isPending}
           onPress={form.handleSubmit(onSubmit)}
+        />
+        <AppButton
+          label="Back to sign in"
+          variant="ghost"
+          disabled={mutation.isPending}
+          onPress={() => navigation.replace("Login")}
         />
       </AppStack>
     </Screen>

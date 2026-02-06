@@ -6,10 +6,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient, processLock } from "@supabase/supabase-js";
 
 import type { Database } from "./types";
-import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./env";
+import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./env";
 
 const createSupabaseClient = () =>
-  createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  createClient<Database>(
+    // Avoid crashing the JS runtime on misconfigured builds; the UI will gate instead.
+    isSupabaseConfigured ? SUPABASE_URL : "http://localhost",
+    isSupabaseConfigured ? SUPABASE_ANON_KEY : "missing-supabase-anon-key",
+    {
     auth: {
       ...(Platform.OS !== "web" ? { storage: AsyncStorage } : {}),
       autoRefreshToken: true,
@@ -17,7 +21,8 @@ const createSupabaseClient = () =>
       detectSessionInUrl: false,
       // lock: processLock,
     },
-  });
+    },
+  );
 
 type SupabaseClientType = ReturnType<typeof createSupabaseClient>;
 

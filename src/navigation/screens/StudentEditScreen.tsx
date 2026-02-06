@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -191,9 +191,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
   const isEditing = Boolean(studentId);
   const mutationError = createMutation.error ?? updateMutation.error;
 
-  async function onSubmit(values: StudentFormValues) {
-    if (!userId) return;
-
+  function mapStudentInput(values: StudentFormValues) {
     const base = {
       assigned_instructor_id: values.assignedInstructorId,
       first_name: values.firstName.trim(),
@@ -209,6 +207,22 @@ export function StudentEditScreen({ navigation, route }: Props) {
       expiry_date: values.expiryDate.trim() ? parseDateInputToISODate(values.expiryDate) : null,
       notes: emptyToNull(values.notes),
     } as const;
+    return base;
+  }
+
+  async function createStudentAndNavigate(values: StudentFormValues) {
+    const base = mapStudentInput(values);
+    const created = await createMutation.mutateAsync({
+      organization_id: organizationId,
+      ...base,
+    });
+    navigation.replace("StudentDetail", { studentId: created.id });
+  }
+
+  async function onSubmit(values: StudentFormValues) {
+    if (!userId) return;
+
+    const base = mapStudentInput(values);
 
     if (isEditing) {
       const updated = await updateMutation.mutateAsync({ studentId: studentId!, input: base });
@@ -216,11 +230,17 @@ export function StudentEditScreen({ navigation, route }: Props) {
       return;
     }
 
-    const created = await createMutation.mutateAsync({
-      organization_id: organizationId,
-      ...base,
-    });
-    navigation.replace("StudentDetail", { studentId: created.id });
+    Alert.alert("Add student", "Add this student now?", [
+      { text: "Back", style: "cancel" },
+      {
+        text: "Confirm",
+        onPress: () => {
+          void createStudentAndNavigate(values).catch(() => {
+            // Mutation error state is already handled by React Query and rendered below.
+          });
+        },
+      },
+    ]);
   }
 
   const saving = createMutation.isPending || updateMutation.isPending;
@@ -543,7 +563,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
         {mutationError ? <AppText variant="error">{toErrorMessage(mutationError)}</AppText> : null}
 
         <AppButton
-          label={saving ? "Saving..." : "Save student"}
+          label={saving ? "Saving..." : isEditing ? "Save student" : "Add student"}
           disabled={saving}
           onPress={form.handleSubmit(onSubmit)}
         />

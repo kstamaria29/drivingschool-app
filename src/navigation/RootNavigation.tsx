@@ -13,13 +13,23 @@ import { MainDrawerNavigator } from "./MainDrawerNavigator";
 import { getNavigationTheme } from "./navigationTheme";
 import { AuthBootstrapScreen } from "./screens/AuthBootstrapScreen";
 import { AuthGateErrorScreen } from "./screens/AuthGateErrorScreen";
+import { MissingSupabaseConfigScreen } from "./screens/MissingSupabaseConfigScreen";
+import { isSupabaseConfigured } from "../supabase/env";
 
 export function RootNavigation() {
-  const { scheme } = useAppColorScheme();
+  if (!isSupabaseConfigured) {
+    return <MissingSupabaseConfigScreen />;
+  }
+
+  const { scheme, ready } = useAppColorScheme();
   const navigationTheme = useMemo(() => getNavigationTheme(scheme), [scheme]);
   const { session, isLoading } = useAuthSession();
   const profileQuery = useMyProfileQuery(session?.user.id);
   const signOutMutation = useSignOutMutation();
+
+  if (!ready) {
+    return <AuthBootstrapScreen label="Preparing app..." />;
+  }
 
   if (isLoading) {
     return <AuthBootstrapScreen label="Checking session..." />;

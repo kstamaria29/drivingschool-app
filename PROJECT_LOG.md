@@ -1566,3 +1566,145 @@
   - Settings -> Change profile photo -> confirm Take/Choose/Remove options.
   - Owner: Settings -> Instructors -> Add instructor -> create an instructor and confirm credentials are returned.
   - Sign in as the new instructor -> confirm you are forced to the password change screen until you update it.
+
+---
+
+- **Date:** 2026-02-06 (Pacific/Auckland)
+- **Task:** Fix release build crash (Supabase env)
+- **Summary:**
+  - Fixed Supabase env resolution for native builds by avoiding dynamic `process.env[key]` access and supporting Expo `extra` fallback.
+  - Added `app.config.ts` to surface Supabase values in `expo.extra` for builds.
+  - Added an in-app "missing Supabase config" screen to prevent a hard crash when env vars are absent.
+  - Documented EAS env requirements in `README.md`.
+- **Files changed:**
+  - `app.config.ts`
+  - `src/supabase/env.ts`
+  - `src/supabase/client.ts`
+  - `src/features/auth/session.tsx`
+  - `src/navigation/RootNavigation.tsx`
+  - `src/navigation/screens/MissingSupabaseConfigScreen.tsx`
+  - `README.md`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `npx tsc --noEmit`
+  - `npx expo config --type public`
+- **How to verify:**
+  - With env vars set: build/install APK and confirm it opens without crashing.
+  - Without env vars set: confirm the app shows the "App misconfigured" screen instead of crashing.
+
+---
+
+- **Date:** 2026-02-06 (Pacific/Auckland)
+- **Task:** Estimate solo-dev timeline (no AI)
+- **Summary:**
+  - Provided a rough full-time solo developer estimate for implementing the v1 mobile app scope end-to-end (Expo RN + Supabase + RLS + PDF export) without AI assistance.
+- **Files changed:**
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `Get-Content AGENTS.md`
+  - `Get-Content PROJECT_LOG.md`
+  - `Get-Content PROJECT_LOG.md -Tail 40`
+- **How to verify:**
+  - Open `PROJECT_LOG.md` and confirm this entry exists at the bottom.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Route deleted/stale sessions to login
+- **Summary:**
+  - Added startup session validation against Supabase Auth (`getUser`) before trusting a restored local session.
+  - Added stale-session detection (invalid JWT/missing user/auth-session-missing patterns + 401/403/404) and local sign-out cleanup.
+  - Prevents deleted users with cached sessions from being routed to onboarding; they now fall back to `Login`.
+- **Files changed:**
+  - `src/features/auth/session.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Delete a signed-in user in Supabase (`auth.users`) while keeping the app installed/signed in on device.
+  - Reopen the app and confirm it lands on `LoginScreen` (not `OnboardingCreateOrgScreen`).
+  - Create a brand-new account from `Signup` and confirm onboarding still appears for first-time org creation.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Add onboarding back button to login
+- **Summary:**
+  - Added a back action on `OnboardingCreateOrgScreen` so users can return to the sign-in screen.
+  - Implemented the action with `navigation.replace("Login")` to avoid leaving onboarding on the back stack.
+- **Files changed:**
+  - `src/navigation/screens/OnboardingCreateOrgScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Tail 140 PROJECT_LOG.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Create your driving school` screen.
+  - Tap `Back to sign in`.
+  - Confirm the app navigates to `LoginScreen`.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Signup email verification confirmation dialog
+- **Summary:**
+  - Updated `Create account` flow to show a confirmation alert after sign-up when email verification is required.
+  - Alert message is `Check your email to verify your account.` and `OK` returns the user to `Login`.
+  - Removed the previous inline confirmation text block from the signup screen.
+- **Files changed:**
+  - `src/navigation/screens/SignupScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Tail 120 PROJECT_LOG.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Create account`, enter a new email/password, and tap `Create account`.
+  - Confirm an alert appears with `Check your email to verify your account.`.
+  - Tap `OK` and confirm navigation returns to `LoginScreen`.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Force consistent default light theme on first launch
+- **Summary:**
+  - Fixed theme hydration mismatch by syncing provider state and NativeWind color scheme from a single resolved value (`stored` or default `light`).
+  - Added a theme-ready gate in root navigation to avoid rendering mixed themed surfaces before color scheme initialization finishes.
+  - Moved status bar theme source to `ColorSchemeProvider` so it always matches app theme.
+- **Files changed:**
+  - `src/providers/ColorSchemeProvider.tsx`
+  - `src/navigation/RootNavigation.tsx`
+  - `App.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Fresh install APK on device and launch app for the first time.
+  - Confirm login/auth screens and drawer/navigation surfaces are all light mode (no mixed dark sidebar).
+  - Open Settings and toggle dark mode, then relaunch app to confirm persisted mode still applies consistently.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Confirm before creating student + rename create CTA
+- **Summary:**
+  - Added a confirmation alert on `StudentCreate` submit with `Back` and `Confirm` options before persisting a new student.
+  - Kept edit flow unchanged (updates still save directly).
+  - Renamed create-screen primary button from `Save student` to `Add student`.
+- **Files changed:**
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Students` -> `New student`, fill required fields, and tap `Add student`.
+  - Confirm alert appears with `Back` and `Confirm`.
+  - Tap `Back` and verify no student is created.
+  - Tap `Add student` again and then `Confirm`; verify you are navigated to the new student detail.
