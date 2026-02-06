@@ -1,6 +1,6 @@
 // Supabase Edge Function: create-instructor
 // Creates an instructor auth user + profile row for the caller's organization.
-// Access: authenticated owners only.
+// Access: authenticated owners/admins only.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -67,7 +67,10 @@ Deno.serve(async (req) => {
     return json(500, { error: "failed_to_load_profile" });
   }
 
-  if (!callerProfile || callerProfile.role !== "owner") {
+  const canManageInstructors =
+    callerProfile?.role === "owner" || callerProfile?.role === "admin";
+
+  if (!canManageInstructors) {
     return json(403, { error: "forbidden" });
   }
 
@@ -120,4 +123,3 @@ Deno.serve(async (req) => {
 
   return json(200, { userId: newUserId, email, temporaryPassword });
 });
-

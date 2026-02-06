@@ -23,7 +23,7 @@ using (
   )
 );
 
--- Upload/replace: owners only (same org as the folder).
+-- Upload/replace: owners/admins only (same org as the folder).
 drop policy if exists "org_logos_write_owner" on storage.objects;
 create policy "org_logos_write_owner"
 on storage.objects
@@ -34,7 +34,7 @@ with check (
     select 1
     from public.profiles p
     where p.id = auth.uid()
-      and p.role = 'owner'
+      and p.role in ('owner', 'admin')
       and p.organization_id::text = split_part(name, '/', 1)
   )
 );
@@ -49,7 +49,7 @@ using (
     select 1
     from public.profiles p
     where p.id = auth.uid()
-      and p.role = 'owner'
+      and p.role in ('owner', 'admin')
       and p.organization_id::text = split_part(name, '/', 1)
   )
 )
@@ -59,7 +59,7 @@ with check (
     select 1
     from public.profiles p
     where p.id = auth.uid()
-      and p.role = 'owner'
+      and p.role in ('owner', 'admin')
       and p.organization_id::text = split_part(name, '/', 1)
   )
 );
@@ -74,8 +74,7 @@ using (
     select 1
     from public.profiles p
     where p.id = auth.uid()
-      and p.role = 'owner'
+      and p.role in ('owner', 'admin')
       and p.organization_id::text = split_part(name, '/', 1)
   )
 );
-

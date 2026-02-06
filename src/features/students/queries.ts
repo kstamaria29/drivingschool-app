@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   archiveStudent,
   createStudent,
+  deleteStudent,
   getStudent,
   listStudents,
   unarchiveStudent,
@@ -86,3 +87,16 @@ export function useUnarchiveStudentMutation() {
   });
 }
 
+export function useDeleteStudentMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (studentId: string) => deleteStudent(studentId),
+    onSuccess: async (_data, studentId) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["students"] }),
+        queryClient.invalidateQueries({ queryKey: studentKeys.detail(studentId) }),
+      ]);
+    },
+  });
+}

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   createLesson,
+  deleteLesson,
   getLesson,
   listLessons,
   updateLesson,
@@ -56,3 +57,16 @@ export function useUpdateLessonMutation() {
   });
 }
 
+export function useDeleteLessonMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (lessonId: string) => deleteLesson(lessonId),
+    onSuccess: async (_data, lessonId) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["lessons"] }),
+        queryClient.invalidateQueries({ queryKey: lessonKeys.detail(lessonId) }),
+      ]);
+    },
+  });
+}

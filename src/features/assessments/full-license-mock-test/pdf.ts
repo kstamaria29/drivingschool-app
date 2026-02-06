@@ -6,11 +6,17 @@ import dayjs from "dayjs";
 
 import {
   fullLicenseMockTestAssessmentItems,
+  fullLicenseMockTestHazardCategoryLabels,
+  fullLicenseMockTestHazardCategories,
+  fullLicenseMockTestHazardDirectionLabels,
+  fullLicenseMockTestHazardLayout,
   fullLicenseMockTestCriticalErrors,
   fullLicenseMockTestImmediateErrors,
+  type FullLicenseMockTestHazardDirection,
 } from "./constants";
 import {
   calculateFullLicenseMockTestSummary,
+  createFullLicenseMockTestEmptyHazardResponses,
   scoreFullLicenseMockTestAttempt,
   type FullLicenseMockTestAttempt,
 } from "./scoring";
@@ -52,6 +58,12 @@ function formatMMSS(totalSeconds: number) {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+function hazardResponseLabel(value: string | undefined) {
+  if (value === "yes") return "Yes";
+  if (value === "no") return "No";
+  return "N/A";
+}
+
 function buildHtml(input: Input) {
   const v = input.values;
 
@@ -71,6 +83,7 @@ function buildHtml(input: Input) {
       repIndex: attempt.repIndex,
       repTarget: attempt.repTarget,
       items,
+      hazardResponses: attempt.hazardResponses ?? createFullLicenseMockTestEmptyHazardResponses(),
       hazardsSpoken: attempt.hazardsSpoken ?? "",
       actionsSpoken: attempt.actionsSpoken ?? "",
       notes: attempt.notes ?? "",
@@ -126,6 +139,29 @@ function buildHtml(input: Input) {
         })
         .join("");
 
+      const hazardLines = fullLicenseMockTestHazardCategories
+        .map((category) => {
+          const directions = fullLicenseMockTestHazardLayout[
+            category
+          ] as readonly FullLicenseMockTestHazardDirection[];
+          const line = directions
+            .map(
+              (direction) =>
+                `${fullLicenseMockTestHazardDirectionLabels[direction]}: ${hazardResponseLabel(
+                  attempt.hazardResponses?.[category]?.[direction],
+                )}`,
+            )
+            .join(" · ");
+
+          return `
+            <div class="row">
+              <div class="row-label">${escapeHtml(fullLicenseMockTestHazardCategoryLabels[category])}</div>
+              <div class="value">${escapeHtml(line)}</div>
+            </div>
+          `;
+        })
+        .join("");
+
       return `
         <div class="attempt">
           <div class="attempt-head">
@@ -136,6 +172,13 @@ function buildHtml(input: Input) {
             <div class="pill">
               <div class="pill-title">Fails</div>
               <div class="pill-value">${escapeHtml(String(scored.fails))}/${escapeHtml(String(scored.total))}</div>
+            </div>
+          </div>
+
+          <div class="section box-soft">
+            <h3>Hazard detection and response</h3>
+            <div class="items">
+              ${hazardLines}
             </div>
           </div>
 

@@ -11,6 +11,7 @@ import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
+import { isOwnerOrAdminRole } from "../../features/auth/roles";
 import { useCreateInstructorMutation } from "../../features/instructors/queries";
 import { addInstructorSchema, type AddInstructorFormValues } from "../../features/instructors/schemas";
 import { theme } from "../../theme/theme";
@@ -31,6 +32,7 @@ function CredentialRow({ label, value }: { label: string; value: string }) {
 
 export function AddInstructorScreen() {
   const { profile } = useCurrentUser();
+  const canManageInstructors = isOwnerOrAdminRole(profile.role);
   const mutation = useCreateInstructorMutation();
   const { colorScheme } = useColorScheme();
   const iconColor = colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
@@ -41,7 +43,7 @@ export function AddInstructorScreen() {
   });
 
   async function onSubmit(values: AddInstructorFormValues) {
-    if (profile.role !== "owner") return;
+    if (!canManageInstructors) return;
 
     const created = await mutation.mutateAsync(values);
     Alert.alert(
@@ -55,14 +57,14 @@ export function AddInstructorScreen() {
 
   const latest = mutation.data ?? null;
 
-  if (profile.role !== "owner") {
+  if (!canManageInstructors) {
     return (
       <Screen scroll>
         <AppStack gap="lg">
           <View>
             <AppText variant="title">Add instructor</AppText>
             <AppText className="mt-2" variant="body">
-              Only owners can add instructors.
+              Only owners and admins can add instructors.
             </AppText>
           </View>
         </AppStack>

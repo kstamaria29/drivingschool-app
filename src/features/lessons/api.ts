@@ -66,9 +66,13 @@ export async function updateLesson(lessonId: string, input: LessonUpdate): Promi
   return data;
 }
 
+export async function deleteLesson(lessonId: string): Promise<void> {
+  const { error } = await supabase.from("lessons").delete().eq("id", lessonId);
+  if (error) throw error;
+}
+
 export function toUserFacingLessonError(error: unknown) {
   const postgrest = error as Partial<PostgrestError> | null;
   if (postgrest?.message) return postgrest.message;
   return "Something went wrong. Please try again.";
 }
-

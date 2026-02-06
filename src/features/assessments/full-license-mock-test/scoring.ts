@@ -1,11 +1,22 @@
 import {
   fullLicenseMockTestAssessmentItems,
+  fullLicenseMockTestHazardCategories,
+  fullLicenseMockTestHazardDirections,
+  fullLicenseMockTestHazardLayout,
   fullLicenseMockTestCriticalErrors,
   fullLicenseMockTestImmediateErrors,
   type FullLicenseMockTestAssessmentItemId,
+  type FullLicenseMockTestHazardCategory,
+  type FullLicenseMockTestHazardDirection,
+  type FullLicenseMockTestHazardResponse,
 } from "./constants";
 
 export type FullLicenseMockTestItemValue = "P" | "F";
+
+export type FullLicenseMockTestHazardResponses = Record<
+  FullLicenseMockTestHazardCategory,
+  Record<FullLicenseMockTestHazardDirection, FullLicenseMockTestHazardResponse>
+>;
 
 export type FullLicenseMockTestAttempt = {
   id: string;
@@ -16,6 +27,7 @@ export type FullLicenseMockTestAttempt = {
   repIndex: number;
   repTarget: number;
   items: Record<FullLicenseMockTestAssessmentItemId, FullLicenseMockTestItemValue>;
+  hazardResponses: FullLicenseMockTestHazardResponses;
   hazardsSpoken: string;
   actionsSpoken: string;
   notes: string;
@@ -51,6 +63,28 @@ export function createFullLicenseMockTestEmptyItems(): Record<
     acc[item.id] = "P";
     return acc;
   }, {} as Record<FullLicenseMockTestAssessmentItemId, FullLicenseMockTestItemValue>);
+}
+
+export function createFullLicenseMockTestEmptyHazardResponses(): FullLicenseMockTestHazardResponses {
+  return fullLicenseMockTestHazardCategories.reduce((categoryAcc, category) => {
+    const directionMap = fullLicenseMockTestHazardDirections.reduce((directionAcc, direction) => {
+      directionAcc[direction] = "na";
+      return directionAcc;
+    }, {} as Record<FullLicenseMockTestHazardDirection, FullLicenseMockTestHazardResponse>);
+
+    categoryAcc[category] = directionMap;
+    return categoryAcc;
+  }, {} as FullLicenseMockTestHazardResponses);
+}
+
+export function hasFullLicenseMockTestHazardResponse(
+  responses: FullLicenseMockTestHazardResponses,
+): boolean {
+  return fullLicenseMockTestHazardCategories.some((category) =>
+    fullLicenseMockTestHazardLayout[category].some(
+      (direction) => responses[category][direction] !== "na",
+    ),
+  );
 }
 
 export function scoreFullLicenseMockTestAttempt(attempt: Pick<FullLicenseMockTestAttempt, "items">) {
@@ -140,4 +174,3 @@ export function calculateFullLicenseMockTestReadiness(input: {
 
   return { label: "LOOKING GOOD", reason: "No major error patterns detected." };
 }
-

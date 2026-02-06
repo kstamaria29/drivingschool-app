@@ -12,6 +12,7 @@ import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
 import { useMyProfileQuery } from "../../features/auth/queries";
+import { isOwnerOrAdminRole } from "../../features/auth/roles";
 import { useAuthSession } from "../../features/auth/session";
 import { useOrganizationProfilesQuery } from "../../features/profiles/queries";
 import {
@@ -89,15 +90,23 @@ export function StudentEditScreen({ navigation, route }: Props) {
   const updateMutation = useUpdateStudentMutation();
 
   const role = profileQuery.data?.role ?? null;
-  const isOwner = role === "owner";
+  const canManageStudentAssignments = isOwnerOrAdminRole(role);
 
-  const orgProfilesQuery = useOrganizationProfilesQuery(isOwner);
+  const orgProfilesQuery = useOrganizationProfilesQuery(canManageStudentAssignments);
 
   const defaultAssignedInstructorId = useMemo(() => {
     if (role === "instructor") return userId ?? "";
     if (role === "owner") return userId ?? "";
     return "";
   }, [role, userId]);
+
+  const assignableInstructorProfiles = useMemo(
+    () =>
+      studentId
+        ? (orgProfilesQuery.data ?? [])
+        : (orgProfilesQuery.data ?? []).filter((profileOption) => profileOption.role !== "admin"),
+    [orgProfilesQuery.data, studentId],
+  );
 
   const form = useForm<StudentFormValues>({
     resolver: zodResolver(studentFormSchema),
@@ -219,14 +228,29 @@ export function StudentEditScreen({ navigation, route }: Props) {
     navigation.replace("StudentDetail", { studentId: created.id });
   }
 
+  async function updateStudentAndNavigate(values: StudentFormValues) {
+    const updated = await updateMutation.mutateAsync({
+      studentId: studentId!,
+      input: mapStudentInput(values),
+    });
+    navigation.replace("StudentDetail", { studentId: updated.id });
+  }
+
   async function onSubmit(values: StudentFormValues) {
     if (!userId) return;
 
-    const base = mapStudentInput(values);
-
     if (isEditing) {
-      const updated = await updateMutation.mutateAsync({ studentId: studentId!, input: base });
-      navigation.replace("StudentDetail", { studentId: updated.id });
+      Alert.alert("Save student", "Save changes to this student?", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Save",
+          onPress: () => {
+            void updateStudentAndNavigate(values).catch(() => {
+              // Mutation error state is already handled by React Query and rendered below.
+            });
+          },
+        },
+      ]);
       return;
     }
 
@@ -251,7 +275,9 @@ export function StudentEditScreen({ navigation, route }: Props) {
         <View>
           <AppText variant="title">{isEditing ? "Edit student" : "New student"}</AppText>
           <AppText className="mt-2" variant="body">
-            {isOwner ? "You can assign this student to an instructor." : "This student will be assigned to you."}
+            {canManageStudentAssignments
+              ? "You can assign this student to an instructor."
+              : "This student will be assigned to you."}
           </AppText>
         </View>
 
@@ -345,7 +371,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
                   <AppText variant="error">{fieldState.error.message}</AppText>
                 ) : null}
 
-                {isOwner ? (
+                {canManageStudentAssignments ? (
                   orgProfilesQuery.isPending ? (
                     <AppText variant="caption">Loading instructors…</AppText>
                   ) : orgProfilesQuery.isError ? (
@@ -359,16 +385,22 @@ export function StudentEditScreen({ navigation, route }: Props) {
                     </AppStack>
                   ) : (
                     <AppStack gap="sm">
-                      {orgProfilesQuery.data.map((profileOption) => (
-                        <AppButton
-                          key={profileOption.id}
-                          label={`${profileOption.display_name}${
-                            profileOption.role === "owner" ? " (owner)" : ""
-                          }`}
-                          variant={field.value === profileOption.id ? "primary" : "secondary"}
-                          onPress={() => field.onChange(profileOption.id)}
-                        />
-                      ))}
+                      {assignableInstructorProfiles.length === 0 ? (
+                        <AppText variant="caption">No instructors available.</AppText>
+                      ) : (
+                        assignableInstructorProfiles.map((profileOption) => (
+                          <AppButton
+                            key={profileOption.id}
+                            label={`${profileOption.display_name}${
+                              profileOption.role === "owner" || profileOption.role === "admin"
+                                ? ` (${profileOption.role})`
+                                : ""
+                            }`}
+                            variant={field.value === profileOption.id ? "primary" : "secondary"}
+                            onPress={() => field.onChange(profileOption.id)}
+                          />
+                        ))
+                      )}
                     </AppStack>
                   )
                 ) : (
@@ -505,7 +537,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
                   onChangeText={field.onChange}
                   error={fieldState.error?.message}
                 />
-                {field.value.trim() ? (
+                {isEditing && field.value.trim() ? (
                   <AppButton
                     width="auto"
                     variant="ghost"
@@ -528,7 +560,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
                   onChangeText={field.onChange}
                   error={fieldState.error?.message}
                 />
-                {field.value.trim() ? (
+                {isEditing && field.value.trim() ? (
                   <AppButton
                     width="auto"
                     variant="ghost"

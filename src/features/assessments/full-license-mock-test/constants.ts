@@ -56,6 +56,57 @@ export type FullLicenseMockTestTaskId = (typeof fullLicenseMockTestTasks)[number
 export type FullLicenseMockTestMode = "official" | "drill";
 export type FullLicenseMockTestWeather = "dry" | "wet" | "low_visibility";
 
+export const fullLicenseMockTestHazardCategories = [
+  "pedestrians",
+  "vehicles",
+  "others",
+] as const;
+
+export type FullLicenseMockTestHazardCategory =
+  (typeof fullLicenseMockTestHazardCategories)[number];
+
+export const fullLicenseMockTestHazardDirections = [
+  "left",
+  "right",
+  "ahead",
+  "behind",
+  "others",
+] as const;
+
+export type FullLicenseMockTestHazardDirection =
+  (typeof fullLicenseMockTestHazardDirections)[number];
+
+export type FullLicenseMockTestHazardResponse = "yes" | "no" | "na";
+
+export const fullLicenseMockTestHazardCategoryLabels: Record<
+  FullLicenseMockTestHazardCategory,
+  string
+> = {
+  pedestrians: "Pedestrians",
+  vehicles: "Vehicles",
+  others: "Others",
+};
+
+export const fullLicenseMockTestHazardDirectionLabels: Record<
+  FullLicenseMockTestHazardDirection,
+  string
+> = {
+  left: "L",
+  right: "R",
+  ahead: "A",
+  behind: "B",
+  others: "O",
+};
+
+export const fullLicenseMockTestHazardLayout: Record<
+  FullLicenseMockTestHazardCategory,
+  readonly FullLicenseMockTestHazardDirection[]
+> = {
+  pedestrians: ["left", "right", "ahead"],
+  vehicles: ["left", "right", "ahead", "behind", "others"],
+  others: ["left", "right", "ahead", "behind"],
+};
+
 export const fullLicenseMockTestCriticalErrors = [
   "Late/incorrect observation (missed head check / mirrors)",
   "Signalling incorrect / late / missing",
@@ -73,4 +124,3 @@ export const fullLicenseMockTestImmediateErrors = [
   "Disobeyed stop sign/red light (dangerous)",
   "Drove on wrong side / dangerous lane incursion",
 ] as const;
-
