@@ -21,7 +21,13 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "com.kstamaria29.drivingschoolapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -42,6 +48,11 @@
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location to show local New Zealand weather."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b9a9c8cb-50b5-4e6c-923f-ff3a0d606bb7"
+      }
+    }
   }
 }
