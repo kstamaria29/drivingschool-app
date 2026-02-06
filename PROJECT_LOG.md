@@ -1,34 +1,4 @@
-# PROJECT_LOG.md
-
-- **Date:** 2026-02-05 (Pacific/Auckland)
-- **Task:** Show upcoming lessons on Home
-- **Summary:**
-  - Updated the Home "Today" card to list each lesson (student full name + start/end time) instead of a count.
-  - Added an "Next 3 days" section showing upcoming lessons grouped by day.
-- **Files changed:**
-  - `src/navigation/screens/HomeScreen.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - On `Home`: confirm Today's lessons list shows names + time ranges.
-  - Confirm lessons for the next 3 days appear under "Next 3 days" and days with no lessons are hidden.
-
----
-
-- **Date:** 2026-02-05 (Pacific/Auckland)
-- **Task:** Use 12h time format on Home
-- **Summary:**
-  - Updated lesson time ranges on Home to use 12-hour format (e.g. `10:15 am - 10:30 am`).
-- **Files changed:**
-  - `src/navigation/screens/HomeScreen.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - On `Home`: confirm lesson time ranges show in 12-hour format with am/pm.
-
----
+﻿# PROJECT_LOG.md
 
 - **Date:** 2026-02-05 (Pacific/Auckland)
 - **Task:** Rename Today heading on Home
@@ -442,4 +412,61 @@
   - Open `AGENTS.md` and confirm it is significantly shorter and references current roles (`owner`, `admin`, `instructor`) and current feature baseline.
   - Confirm `PROJECT_LOG.md` still contains 20 entries and includes this new entry at the bottom.
   - Confirm the oldest previously active entry now exists in `docs/logs/PROJECT_LOG_ARCHIVE.md`.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Add Google Maps screen with persistent pins
+- **Summary:**
+  - Added a new drawer route Google Maps with a near full-screen interactive map view.
+  - Implemented map layer switching (Default, Satellite, Hybrid) and pin creation via long-press or map-center placement.
+  - Added pin labels/notes and optional student linking, backed by a new tenant-safe map_pins table with RLS.
+  - Added map pin API/query hooks and marker selection/delete support on the map screen.
+  - Added optional build-time GOOGLE_MAPS_API_KEY wiring through Expo config for react-native-maps plugin setup.
+- **Files changed:**
+  - .env.example
+  - README.md
+  - app.config.ts
+  - package.json
+  - package-lock.json
+  - src/features/map-pins/api.ts
+  - src/features/map-pins/queries.ts
+  - src/navigation/MainDrawerNavigator.tsx
+  - src/navigation/MapsStackNavigator.tsx
+  - src/navigation/components/AppDrawerContent.tsx
+  - src/navigation/screens/GoogleMapsScreen.tsx
+  - src/supabase/types.ts
+  - supabase/migrations/012_map_pins.sql
+  - supabase/README.md
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - npx expo install react-native-maps
+  - npx tsc --noEmit
+  - npx expo config --type public
+- **How to verify:**
+  - Apply supabase/migrations/012_map_pins.sql in Supabase SQL Editor.
+  - Set GOOGLE_MAPS_API_KEY for local/EAS builds and rebuild the app.
+  - Open drawer -> Google Maps and confirm the map renders full-screen with layer toggle controls.
+  - Long-press map to add a pin, enter label/notes, optionally link a student, and save.
+  - Tap an existing marker to view details, then delete it and confirm it disappears.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Fix react-native-maps config plugin startup error
+- **Summary:**
+  - Removed dynamic app config plugin injection for react-native-maps, which caused Expo startup to fail.
+  - Kept Google Maps key wiring in app config using native fields instead (ios config googleMapsApiKey and android config googleMaps apiKey).
+  - Verified Expo config resolves without PluginError and TypeScript compile still passes.
+- **Files changed:**
+  - app.config.ts
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - npx expo config --type public
+  - npx tsc --noEmit
+- **How to verify:**
+  - Run npm start and confirm startup no longer throws PluginError for react-native-maps.
+  - Open the Google Maps screen from the drawer and confirm map renders.
 

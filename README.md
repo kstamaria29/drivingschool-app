@@ -20,6 +20,12 @@ Out of scope in this repo task: Google Calendar sync.
    - `supabase/migrations/004_lessons.sql`
    - `supabase/migrations/005_profile_avatars.sql`
    - `supabase/migrations/006_assessments.sql`
+   - `supabase/migrations/007_assessments_delete.sql`
+   - `supabase/migrations/008_student_sessions.sql`
+   - `supabase/migrations/009_account_settings.sql`
+   - `supabase/migrations/010_admin_role.sql`
+   - `supabase/migrations/011_students_lessons_delete_policies.sql`
+   - `supabase/migrations/012_map_pins.sql`
 3. Create the Storage bucket:
    - Go to `Storage` -> `New bucket`
    - Name: `org-logos`
@@ -44,6 +50,7 @@ Out of scope in this repo task: Google Calendar sync.
 ```
 EXPO_PUBLIC_SUPABASE_URL=...
 EXPO_PUBLIC_SUPABASE_ANON_KEY=...
+GOOGLE_MAPS_API_KEY=...
 ```
 
 ### EAS builds (APK / AAB)
@@ -52,6 +59,7 @@ EAS builds do not automatically use your local `.env` (it is gitignored). You mu
 
 - `EXPO_PUBLIC_SUPABASE_URL`
 - `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+- `GOOGLE_MAPS_API_KEY`
 
 Then rebuild (for example): `eas build -p android --profile preview`
 
@@ -74,6 +82,7 @@ Then press `a` for Android (or scan the QR code with Expo Go).
 - Students v1 (create/edit/archive + owner/instructor permissions via RLS)
 - Lessons v1 (Today / This Week list + create/edit + calendar view)
 - Assessments v1 (Driving Assessment: score criteria + save + export PDF)
+- Google Maps screen (drawer entry) with map layer toggle and organization-safe map pins with notes
 
 ## 6) Repo notes
 

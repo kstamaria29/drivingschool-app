@@ -14,6 +14,8 @@ import type { SettingsStackParamList } from "./SettingsStackNavigator";
 import { SettingsStackNavigator } from "./SettingsStackNavigator";
 import type { AssessmentsStackParamList } from "./AssessmentsStackNavigator";
 import { AssessmentsStackNavigator } from "./AssessmentsStackNavigator";
+import type { MapsStackParamList } from "./MapsStackNavigator";
+import { MapsStackNavigator } from "./MapsStackNavigator";
 import { AppDrawerContent } from "./components/AppDrawerContent";
 import { getDrawerScreenOptions } from "./navigationTheme";
 import { useNavigationLayout } from "./useNavigationLayout";
@@ -23,6 +25,7 @@ export type MainDrawerParamList = {
   Lessons: NavigatorScreenParams<LessonsStackParamList> | undefined;
   Students: NavigatorScreenParams<StudentsStackParamList> | undefined;
   Assessments: NavigatorScreenParams<AssessmentsStackParamList> | undefined;
+  GoogleMaps: NavigatorScreenParams<MapsStackParamList> | undefined;
   Settings: NavigatorScreenParams<SettingsStackParamList> | undefined;
 };
 
@@ -68,6 +71,7 @@ export function MainDrawerNavigator() {
       <Drawer.Screen name="Lessons" component={LessonsStackNavigator} />
       <Drawer.Screen name="Students" component={StudentsStackNavigator} />
       <Drawer.Screen name="Assessments" component={AssessmentsStackNavigator} />
+      <Drawer.Screen name="GoogleMaps" component={MapsStackNavigator} />
       <Drawer.Screen name="Settings" component={SettingsStackNavigator} />
     </Drawer.Navigator>
   );

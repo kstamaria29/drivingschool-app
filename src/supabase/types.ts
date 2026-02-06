@@ -192,6 +192,43 @@ export type Database = {
         };
         Relationships: [];
       };
+      map_pins: {
+        Row: {
+          id: string;
+          organization_id: string;
+          student_id: string | null;
+          instructor_id: string;
+          title: string;
+          notes: string | null;
+          latitude: number;
+          longitude: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          student_id?: string | null;
+          instructor_id: string;
+          title: string;
+          notes?: string | null;
+          latitude: number;
+          longitude: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          organization_id?: string;
+          student_id?: string | null;
+          instructor_id?: string;
+          title?: string;
+          notes?: string | null;
+          latitude?: number;
+          longitude?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       assessments: {
         Row: {
           id: string;

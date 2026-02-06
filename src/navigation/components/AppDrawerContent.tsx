@@ -9,6 +9,7 @@ import {
   ClipboardList,
   Home,
   LogOut,
+  Map,
   Settings,
   Users,
 } from "lucide-react-native";
@@ -28,7 +29,13 @@ import {
   useOrganizationSettingsQuery,
 } from "../../features/organization/queries";
 
-type DrawerRouteName = "Home" | "Lessons" | "Students" | "Assessments" | "Settings";
+type DrawerRouteName =
+  | "Home"
+  | "Lessons"
+  | "Students"
+  | "Assessments"
+  | "GoogleMaps"
+  | "Settings";
 
 type Props = DrawerContentComponentProps & {
   collapsed: boolean;
@@ -200,6 +207,13 @@ export function AppDrawerContent({
             icon={<ClipboardList color={iconColor} size={20} />}
             active={currentRouteName === "Assessments"}
             onPress={() => navigation.navigate("Assessments")}
+          />
+          <DrawerRow
+            collapsed={collapsed}
+            label="Google Maps"
+            icon={<Map color={iconColor} size={20} />}
+            active={currentRouteName === "GoogleMaps"}
+            onPress={() => navigation.navigate("GoogleMaps")}
           />
         </View>
 
