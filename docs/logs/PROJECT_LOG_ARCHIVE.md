@@ -1696,3 +1696,72 @@
   - Open `Google Maps`.
   - Confirm there is no `Share Maps Guide (PDF)` button in the top card.
 
+
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Signup email verification confirmation dialog
+- **Summary:**
+  - Updated `Create account` flow to show a confirmation alert after sign-up when email verification is required.
+  - Alert message is `Check your email to verify your account.` and `OK` returns the user to `Login`.
+  - Removed the previous inline confirmation text block from the signup screen.
+- **Files changed:**
+  - `src/navigation/screens/SignupScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Tail 120 PROJECT_LOG.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Create account`, enter a new email/password, and tap `Create account`.
+  - Confirm an alert appears with `Check your email to verify your account.`.
+  - Tap `OK` and confirm navigation returns to `LoginScreen`.
+
+
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Force consistent default light theme on first launch
+- **Summary:**
+  - Fixed theme hydration mismatch by syncing provider state and NativeWind color scheme from a single resolved value (`stored` or default `light`).
+  - Added a theme-ready gate in root navigation to avoid rendering mixed themed surfaces before color scheme initialization finishes.
+  - Moved status bar theme source to `ColorSchemeProvider` so it always matches app theme.
+- **Files changed:**
+  - `src/providers/ColorSchemeProvider.tsx`
+  - `src/navigation/RootNavigation.tsx`
+  - `App.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Fresh install APK on device and launch app for the first time.
+  - Confirm login/auth screens and drawer/navigation surfaces are all light mode (no mixed dark sidebar).
+  - Open Settings and toggle dark mode, then relaunch app to confirm persisted mode still applies consistently.
+
+
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Confirm before creating student + rename create CTA
+- **Summary:**
+  - Added a confirmation alert on `StudentCreate` submit with `Back` and `Confirm` options before persisting a new student.
+  - Kept edit flow unchanged (updates still save directly).
+  - Renamed create-screen primary button from `Save student` to `Add student`.
+- **Files changed:**
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Students` -> `New student`, fill required fields, and tap `Add student`.
+  - Confirm alert appears with `Back` and `Confirm`.
+  - Tap `Back` and verify no student is created.
+  - Tap `Add student` again and then `Confirm`; verify you are navigated to the new student detail.
+

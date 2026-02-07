@@ -1,0 +1,6 @@
+# Supabase local/deploy config
+# Keep JWT verification disabled for this function because it performs
+# explicit token validation in code (`auth.getUser(accessToken)`).
+
+[functions.create-instructor]
+verify_jwt = false

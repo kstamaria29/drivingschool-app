@@ -31,10 +31,13 @@ This Edge Function allows an `owner` or `admin` to create an instructor login an
 
 Deploy (requires Supabase CLI):
 
-- `supabase functions deploy create-instructor`
+- `supabase functions deploy create-instructor --no-verify-jwt`
 - Set secrets (Dashboard or CLI):
   - `SUPABASE_URL`
   - `SUPABASE_SERVICE_ROLE_KEY`
+
+Notes:
+- `create-instructor` validates caller JWT inside the function (`auth.getUser(accessToken)`), so gateway `verify_jwt` is intentionally disabled to avoid edge pre-auth mismatches.
 
 ## Storage buckets + policies
 

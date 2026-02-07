@@ -1,69 +1,6 @@
 ﻿# PROJECT_LOG.md
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Signup email verification confirmation dialog
-- **Summary:**
-  - Updated `Create account` flow to show a confirmation alert after sign-up when email verification is required.
-  - Alert message is `Check your email to verify your account.` and `OK` returns the user to `Login`.
-  - Removed the previous inline confirmation text block from the signup screen.
-- **Files changed:**
-  - `src/navigation/screens/SignupScreen.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Tail 120 PROJECT_LOG.md`
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Open `Create account`, enter a new email/password, and tap `Create account`.
-  - Confirm an alert appears with `Check your email to verify your account.`.
-  - Tap `OK` and confirm navigation returns to `LoginScreen`.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Force consistent default light theme on first launch
-- **Summary:**
-  - Fixed theme hydration mismatch by syncing provider state and NativeWind color scheme from a single resolved value (`stored` or default `light`).
-  - Added a theme-ready gate in root navigation to avoid rendering mixed themed surfaces before color scheme initialization finishes.
-  - Moved status bar theme source to `ColorSchemeProvider` so it always matches app theme.
-- **Files changed:**
-  - `src/providers/ColorSchemeProvider.tsx`
-  - `src/navigation/RootNavigation.tsx`
-  - `App.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Raw PROJECT_LOG.md`
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Fresh install APK on device and launch app for the first time.
-  - Confirm login/auth screens and drawer/navigation surfaces are all light mode (no mixed dark sidebar).
-  - Open Settings and toggle dark mode, then relaunch app to confirm persisted mode still applies consistently.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Confirm before creating student + rename create CTA
-- **Summary:**
-  - Added a confirmation alert on `StudentCreate` submit with `Back` and `Confirm` options before persisting a new student.
-  - Kept edit flow unchanged (updates still save directly).
-  - Renamed create-screen primary button from `Save student` to `Add student`.
-- **Files changed:**
-  - `src/navigation/screens/StudentEditScreen.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Raw PROJECT_LOG.md`
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Open `Students` -> `New student`, fill required fields, and tap `Add student`.
-  - Confirm alert appears with `Back` and `Confirm`.
-  - Tap `Back` and verify no student is created.
-  - Tap `Add student` again and then `Confirm`; verify you are navigated to the new student detail.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
 - **Task:** Add hazard detection and response controls to full mock test
 - **Summary:**
   - Added a new `Hazard Detection and Response` section above `Assessment items (Pass/Fail)` in `Mock Test - Full License`.
@@ -531,4 +468,78 @@
   - Open `Settings`: confirm `Change organization name` appears above `Change organization logo`.
   - Open `Settings` as owner/admin: confirm `Change role display` is available and updates displayed role text; as instructor, confirm it is unavailable.
   - Apply `supabase/migrations/014_role_display_name.sql` before testing role-display persistence against Supabase.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Fix Add Instructor edge invocation auth headers
+- **Summary:**
+  - Updated instructor creation API call to explicitly attach the signed-in access token as `Authorization: Bearer <token>` for the `create-instructor` edge function.
+  - Added explicit `apikey` header (`SUPABASE_ANON_KEY`) on function invoke to avoid edge gateway auth/header mismatches.
+  - Added fail-fast handling when no active session token exists, with a clearer user-facing error.
+- **Files changed:**
+  - `src/features/instructors/api.ts`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Path AGENTS.md`
+  - `Get-Content -Path PROJECT_LOG.md`
+  - `Get-Content -Path docs/logs/INDEX.md`
+  - `Get-Content -Path docs/logs/PROJECT_LOG_ARCHIVE.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Sign in as owner/admin and open `Settings` -> `Add instructor`.
+  - Submit valid instructor details and confirm function no longer fails with generic non-2xx auth error.
+  - If invocation still fails, open Supabase `Edge Functions` -> `create-instructor` -> `Invocations` and confirm response is no longer `401`.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Harden Add Instructor function call with direct fetch + detailed errors
+- **Summary:**
+  - Replaced `supabase.functions.invoke` in instructor creation with direct `fetch` to `/functions/v1/create-instructor`.
+  - Sends explicit `Authorization`, `apikey`, and `Content-Type` headers on every request.
+  - Added structured non-2xx error parsing so the app surfaces the actual edge/gateway reason instead of the generic non-2xx message.
+  - Added response-shape validation to fail clearly on malformed function responses.
+- **Files changed:**
+  - `src/features/instructors/api.ts`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Path AGENTS.md`
+  - `Get-Content -Path PROJECT_LOG.md`
+  - `Get-Content -Path docs/logs/INDEX.md`
+  - `Get-Content -Path docs/logs/PROJECT_LOG_ARCHIVE.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Rebuild and install the app containing this patch.
+  - Open `Settings` -> `Add instructor`, submit valid details.
+  - Confirm failure message now includes status + backend error code/message (if any), not only generic non-2xx text.
+  - In Supabase invocations, confirm header-auth failures can be diagnosed from returned body content shown in-app.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Fix create-instructor Invalid JWT gateway rejection
+- **Summary:**
+  - Updated `create-instructor` edge function to parse bearer token explicitly and validate caller identity with `auth.getUser(accessToken)`.
+  - Removed dependency on forwarding global authorization headers inside the service-role client for caller validation.
+  - Added `supabase/config.toml` function config to disable gateway `verify_jwt` for `create-instructor` because JWT is validated explicitly inside function code.
+  - Updated Supabase README deploy command to include `--no-verify-jwt` for this function and documented why.
+- **Files changed:**
+  - `supabase/functions/create-instructor/index.ts`
+  - `supabase/config.toml`
+  - `supabase/README.md`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Path AGENTS.md`
+  - `Get-Content -Path PROJECT_LOG.md`
+  - `Get-Content -Path docs/logs/INDEX.md`
+  - `Get-Content -Path docs/logs/PROJECT_LOG_ARCHIVE.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Deploy function with no gateway JWT verification: `supabase functions deploy create-instructor --project-ref djwuraqzrmpcvjidtgfb --no-verify-jwt`.
+  - Re-run `Add instructor` as owner/admin.
+  - In Supabase invocations, confirm `execution_id` is no longer `null` and status is not blocked with gateway `401 Invalid JWT`.
 
