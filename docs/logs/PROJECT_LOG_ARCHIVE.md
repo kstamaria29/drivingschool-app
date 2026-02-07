@@ -1765,3 +1765,31 @@
   - Tap `Back` and verify no student is created.
   - Tap `Add student` again and then `Confirm`; verify you are navigated to the new student detail.
 
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Add hazard detection and response controls to full mock test
+- **Summary:**
+  - Added a new `Hazard Detection and Response` section above `Assessment items (Pass/Fail)` in `Mock Test - Full License`.
+  - Implemented category rows (`Pedestrians`, `Vehicles`, `Others`) with letter-box subcategories and a Yes/No/N/A modal picker.
+  - Set `N/A` as the default for all hazard subcategories and color-coded selected boxes (`Yes` = green, `No` = red).
+  - Enforced validation so each task attempt must include at least one non-`N/A` hazard response before recording.
+  - Extended stored attempt data and PDF export to include hazard response selections.
+- **Files changed:**
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `src/features/assessments/full-license-mock-test/constants.ts`
+  - `src/features/assessments/full-license-mock-test/scoring.ts`
+  - `src/features/assessments/full-license-mock-test/schema.ts`
+  - `src/features/assessments/full-license-mock-test/pdf.ts`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Assessments` -> `Mock Test - Full License`, start a run, and go to `Record task attempt`.
+  - Confirm `Hazard Detection and Response` appears above `Assessment items (Pass/Fail)`.
+  - Tap hazard boxes for each category row and confirm a modal appears with `Yes`, `No`, and `N/A`.
+  - Confirm selected box colors: green for `Yes`, red for `No`, neutral for `N/A`.
+  - Leave all hazard boxes as `N/A`, tap `Record task attempt`, and confirm validation blocks save.
+  - Set at least one hazard to `Yes` or `No`, then confirm the attempt records successfully.

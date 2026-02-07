@@ -1,35 +1,6 @@
 ﻿# PROJECT_LOG.md
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Add hazard detection and response controls to full mock test
-- **Summary:**
-  - Added a new `Hazard Detection and Response` section above `Assessment items (Pass/Fail)` in `Mock Test - Full License`.
-  - Implemented category rows (`Pedestrians`, `Vehicles`, `Others`) with letter-box subcategories and a Yes/No/N/A modal picker.
-  - Set `N/A` as the default for all hazard subcategories and color-coded selected boxes (`Yes` = green, `No` = red).
-  - Enforced validation so each task attempt must include at least one non-`N/A` hazard response before recording.
-  - Extended stored attempt data and PDF export to include hazard response selections.
-- **Files changed:**
-  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
-  - `src/features/assessments/full-license-mock-test/constants.ts`
-  - `src/features/assessments/full-license-mock-test/scoring.ts`
-  - `src/features/assessments/full-license-mock-test/schema.ts`
-  - `src/features/assessments/full-license-mock-test/pdf.ts`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Raw PROJECT_LOG.md`
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Open `Assessments` -> `Mock Test - Full License`, start a run, and go to `Record task attempt`.
-  - Confirm `Hazard Detection and Response` appears above `Assessment items (Pass/Fail)`.
-  - Tap hazard boxes for each category row and confirm a modal appears with `Yes`, `No`, and `N/A`.
-  - Confirm selected box colors: green for `Yes`, red for `No`, neutral for `N/A`.
-  - Leave all hazard boxes as `N/A`, tap `Record task attempt`, and confirm validation blocks save.
-  - Set at least one hazard to `Yes` or `No`, then confirm the attempt records successfully.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
 - **Task:** Align full mock test hazard columns vertically
 - **Summary:**
   - Updated hazard matrix layout to use fixed direction columns (`L`, `R`, `A`, `B`, `O`) for every category row.
@@ -543,3 +514,31 @@
   - Re-run `Add instructor` as owner/admin.
   - In Supabase invocations, confirm `execution_id` is no longer `null` and status is not blocked with gateway `401 Invalid JWT`.
 
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Center address input placeholders vertically
+- **Summary:**
+  - Updated shared `AppInput` styling so single-line text inputs use vertical centering for text/placeholder content.
+  - Kept multiline behavior unchanged so notes/textarea fields remain top-aligned.
+  - Address inputs that use `AddressAutocompleteInput` now render vertically centered placeholders.
+- **Files changed:**
+  - `src/components/AppInput.tsx`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `Get-Content -Raw docs/logs/INDEX.md`
+  - `rg -n "Address|address|placeholder|TextInput|textAlignVertical|includeFontPadding" src/components src/navigation -g "*.tsx"`
+  - `Get-Content -Raw src/components/AddressAutocompleteInput.tsx`
+  - `Get-Content -Raw src/components/AppInput.tsx`
+  - `Get-Content -Raw src/theme/theme.ts`
+  - `mcp__context7__resolve-library-id (react-native)`
+  - `mcp__context7__query-docs (/websites/reactnative_dev)`
+  - `npx tsc --noEmit`
+  - `PowerShell UTF-8 log rotation script (append new entry + keep latest 20)`
+- **How to verify:**
+  - Open `Students` -> `New/Edit student` and confirm `Address (optional)` placeholder text is vertically centered.
+  - Open `Google Maps` and confirm `Search address (NZ)` placeholder text is vertically centered.
+  - Confirm multiline fields (for example `Notes`) remain top-aligned.

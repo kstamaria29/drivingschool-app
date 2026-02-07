@@ -109,89 +109,91 @@ export function SettingsScreen() {
         <View>
           <AppText variant="title">Settings</AppText>
           <AppText className="mt-2" variant="body">
-            Manage your organization and profile.
+            {canManageOrganization
+              ? "Manage your organization and profile."
+              : "Manage your profile."}
           </AppText>
         </View>
 
-        <AppCard className="gap-3">
-          <AppText variant="heading">Organization</AppText>
+        {canManageOrganization ? (
+          <AppCard className="gap-3">
+            <AppText variant="heading">Organization</AppText>
 
-          {orgQuery.isPending || orgSettingsQuery.isPending ? (
-            <View className={cn("items-center justify-center py-6", theme.text.base)}>
-              <ActivityIndicator />
-              <AppText className="mt-3 text-center" variant="body">
-                Loading organization...
-              </AppText>
-            </View>
-          ) : orgQuery.isError || orgSettingsQuery.isError ? (
-            <AppStack gap="md">
-              <AppText variant="body">
-                {toErrorMessage(orgQuery.error ?? orgSettingsQuery.error)}
-              </AppText>
-              <AppButton
-                label="Retry"
-                variant="secondary"
-                icon={RefreshCw}
-                onPress={() => {
-                  void orgQuery.refetch();
-                  void orgSettingsQuery.refetch();
-                }}
-              />
-            </AppStack>
-          ) : (
-            <View className="flex-row items-center gap-4">
-              {orgSettingsQuery.data?.logo_url ? (
-                <AppImage
-                  source={{ uri: orgSettingsQuery.data.logo_url }}
-                  resizeMode="contain"
-                  className="h-16 w-16 bg-transparent"
-                />
-              ) : (
-                <View className="h-16 w-16 border border-border bg-card dark:border-borderDark dark:bg-cardDark" />
-              )}
-              <View className="flex-1">
-                <AppText variant="body">{orgQuery.data?.name ?? "Organization"}</AppText>
-                <AppText variant="caption">
-                  {canManageOrganization
-                    ? "Owners and admins can update the organization logo."
-                    : "Only owners and admins can update the organization logo."}
+            {orgQuery.isPending || orgSettingsQuery.isPending ? (
+              <View className={cn("items-center justify-center py-6", theme.text.base)}>
+                <ActivityIndicator />
+                <AppText className="mt-3 text-center" variant="body">
+                  Loading organization...
                 </AppText>
               </View>
-            </View>
-          )}
+            ) : orgQuery.isError || orgSettingsQuery.isError ? (
+              <AppStack gap="md">
+                <AppText variant="body">
+                  {toErrorMessage(orgQuery.error ?? orgSettingsQuery.error)}
+                </AppText>
+                <AppButton
+                  label="Retry"
+                  variant="secondary"
+                  icon={RefreshCw}
+                  onPress={() => {
+                    void orgQuery.refetch();
+                    void orgSettingsQuery.refetch();
+                  }}
+                />
+              </AppStack>
+            ) : (
+              <View className="flex-row items-center gap-4">
+                {orgSettingsQuery.data?.logo_url ? (
+                  <AppImage
+                    source={{ uri: orgSettingsQuery.data.logo_url }}
+                    resizeMode="contain"
+                    className="h-16 w-16 bg-transparent"
+                  />
+                ) : (
+                  <View className="h-16 w-16 border border-border bg-card dark:border-borderDark dark:bg-cardDark" />
+                )}
+                <View className="flex-1">
+                  <AppText variant="body">{orgQuery.data?.name ?? "Organization"}</AppText>
+                  <AppText variant="caption">
+                    Owners and admins can update the organization logo.
+                  </AppText>
+                </View>
+              </View>
+            )}
 
-          <AppButton
-            label="Change organization name"
-            variant="secondary"
-            icon={Building2}
-            disabled={!canManageOrganization}
-            onPress={() => navigation.navigate("EditOrganizationName")}
-          />
+            <AppButton
+              label="Change organization name"
+              variant="secondary"
+              icon={Building2}
+              disabled={!canManageOrganization}
+              onPress={() => navigation.navigate("EditOrganizationName")}
+            />
 
-          <AppButton
-            label={
-              uploadOrgLogoMutation.isPending ? "Uploading logo..." : "Change organization logo"
-            }
-            variant="secondary"
-            icon={ImageUp}
-            disabled={!canManageOrganization || uploadOrgLogoMutation.isPending}
-            onPress={async () => {
-              try {
-                setPickerError(null);
-                const asset = await pickOrgLogo();
-                if (!asset) return;
-                uploadOrgLogoMutation.mutate({ asset });
-              } catch (error) {
-                setPickerError(toErrorMessage(error));
+            <AppButton
+              label={
+                uploadOrgLogoMutation.isPending ? "Uploading logo..." : "Change organization logo"
               }
-            }}
-          />
+              variant="secondary"
+              icon={ImageUp}
+              disabled={!canManageOrganization || uploadOrgLogoMutation.isPending}
+              onPress={async () => {
+                try {
+                  setPickerError(null);
+                  const asset = await pickOrgLogo();
+                  if (!asset) return;
+                  uploadOrgLogoMutation.mutate({ asset });
+                } catch (error) {
+                  setPickerError(toErrorMessage(error));
+                }
+              }}
+            />
 
-          {uploadOrgLogoMutation.isError ? (
-            <AppText variant="error">{toErrorMessage(uploadOrgLogoMutation.error)}</AppText>
-          ) : null}
-          {pickerError ? <AppText variant="error">{pickerError}</AppText> : null}
-        </AppCard>
+            {uploadOrgLogoMutation.isError ? (
+              <AppText variant="error">{toErrorMessage(uploadOrgLogoMutation.error)}</AppText>
+            ) : null}
+            {pickerError ? <AppText variant="error">{pickerError}</AppText> : null}
+          </AppCard>
+        ) : null}
 
         <AppCard className="gap-3">
           <AppText variant="heading">Account Settings</AppText>
