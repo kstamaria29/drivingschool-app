@@ -44,6 +44,7 @@ import {
 } from "../../features/assessments/restricted-mock-test/schema";
 import { notifyPdfSaved } from "../../features/notifications/download-notifications";
 import { useOrganizationQuery } from "../../features/organization/queries";
+import { useOrganizationProfilesQuery } from "../../features/profiles/queries";
 import { useStudentsQuery } from "../../features/students/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
@@ -130,6 +131,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   const { profile, userId } = useCurrentUser();
   const organizationQuery = useOrganizationQuery(profile.organization_id);
   const studentsQuery = useStudentsQuery({ archived: false });
+  const organizationProfilesQuery = useOrganizationProfilesQuery(isOwnerOrAdminRole(profile.role));
   const createAssessment = useCreateAssessmentMutation();
 
   const [stage, setStage] = useState<Stage>("details");
@@ -208,6 +210,49 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
       return fullName.includes(needle) || email.includes(needle) || phone.includes(needle);
     });
   }, [studentSearch, visibleStudents]);
+
+  const limitedStudentOptions = useMemo(() => studentOptions.slice(0, 30), [studentOptions]);
+  const shouldGroupStudentOptions = canViewOtherInstructorStudents && showOtherInstructorStudents;
+
+  const instructorNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const member of organizationProfilesQuery.data ?? []) {
+      const fullName = getProfileFullName(member) || member.display_name || "Instructor";
+      map.set(member.id, fullName);
+    }
+    return map;
+  }, [organizationProfilesQuery.data]);
+
+  const selfStudentOptions = useMemo(() => {
+    if (!shouldGroupStudentOptions) return [];
+    return limitedStudentOptions.filter((student) => student.assigned_instructor_id === profile.id);
+  }, [limitedStudentOptions, profile.id, shouldGroupStudentOptions]);
+
+  const otherInstructorStudentGroups = useMemo(() => {
+    if (!shouldGroupStudentOptions) return [];
+
+    const groups = new Map<string, typeof limitedStudentOptions>();
+    for (const student of limitedStudentOptions) {
+      if (student.assigned_instructor_id === profile.id) continue;
+      const instructorId = student.assigned_instructor_id ?? "__unassigned__";
+      const existing = groups.get(instructorId) ?? [];
+      groups.set(instructorId, [...existing, student]);
+    }
+
+    return Array.from(groups.entries())
+      .map(([instructorId, students]) => {
+        const name =
+          instructorId === "__unassigned__"
+            ? "Unassigned"
+            : (instructorNameById.get(instructorId) ?? "Unknown instructor");
+        return {
+          key: instructorId,
+          instructorName: name,
+          students,
+        };
+      })
+      .sort((a, b) => a.instructorName.localeCompare(b.instructorName, undefined, { sensitivity: "base" }));
+  }, [instructorNameById, limitedStudentOptions, profile.id, shouldGroupStudentOptions]);
 
   const summary = useMemo(() => {
     return calculateRestrictedMockTestSummary({ stagesState, critical, immediate });
@@ -528,9 +573,55 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
               {studentOptions.length === 0 ? (
                 <AppText variant="caption">No students match this search.</AppText>
+              ) : shouldGroupStudentOptions ? (
+                <AppStack gap="md">
+                  <AppCard className="gap-3">
+                    <AppText variant="heading">Your students</AppText>
+                    {selfStudentOptions.length === 0 ? (
+                      <AppText variant="caption">No students assigned to you match this search.</AppText>
+                    ) : (
+                      <AppStack gap="sm">
+                        {selfStudentOptions.map((student) => (
+                          <AppButton
+                            key={student.id}
+                            variant={selectedStudentId === student.id ? "primary" : "secondary"}
+                            label={`${student.first_name} ${student.last_name}`}
+                            onPress={() => {
+                              setSelectedStudentId(student.id);
+                              setShowStudentPicker(false);
+                              setStudentSearch("");
+                              form.setValue("studentId", student.id, { shouldValidate: true });
+                            }}
+                          />
+                        ))}
+                      </AppStack>
+                    )}
+                  </AppCard>
+
+                  {otherInstructorStudentGroups.map((group) => (
+                    <AppCard key={group.key} className="gap-3">
+                      <AppText variant="heading">{group.instructorName}</AppText>
+                      <AppStack gap="sm">
+                        {group.students.map((student) => (
+                          <AppButton
+                            key={student.id}
+                            variant={selectedStudentId === student.id ? "primary" : "secondary"}
+                            label={`${student.first_name} ${student.last_name}`}
+                            onPress={() => {
+                              setSelectedStudentId(student.id);
+                              setShowStudentPicker(false);
+                              setStudentSearch("");
+                              form.setValue("studentId", student.id, { shouldValidate: true });
+                            }}
+                          />
+                        ))}
+                      </AppStack>
+                    </AppCard>
+                  ))}
+                </AppStack>
               ) : (
                 <AppStack gap="sm">
-                  {studentOptions.slice(0, 30).map((student) => (
+                  {limitedStudentOptions.map((student) => (
                     <AppButton
                       key={student.id}
                       variant={selectedStudentId === student.id ? "primary" : "secondary"}

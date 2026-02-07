@@ -17,6 +17,7 @@ import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
 import { isOwnerOrAdminRole } from "../../features/auth/roles";
 import { useCreateAssessmentMutation } from "../../features/assessments/queries";
+import { useOrganizationProfilesQuery } from "../../features/profiles/queries";
 import { drivingAssessmentCriteria, drivingAssessmentFeedbackOptions } from "../../features/assessments/driving-assessment/constants";
 import { exportDrivingAssessmentPdf } from "../../features/assessments/driving-assessment/pdf";
 import { calculateDrivingAssessmentScore, generateDrivingAssessmentFeedbackSummary } from "../../features/assessments/driving-assessment/scoring";
@@ -130,6 +131,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
 
   const organizationQuery = useOrganizationQuery(profile.organization_id);
   const studentsQuery = useStudentsQuery({ archived: false });
+  const organizationProfilesQuery = useOrganizationProfilesQuery(isOwnerOrAdminRole(profile.role));
   const createAssessment = useCreateAssessmentMutation();
 
   const [stage, setStage] = useState<DrivingAssessmentStage>("details");
@@ -206,6 +208,49 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
       return fullName.includes(needle) || email.includes(needle) || phone.includes(needle);
     });
   }, [studentSearch, visibleStudents]);
+
+  const limitedStudentOptions = useMemo(() => studentOptions.slice(0, 30), [studentOptions]);
+  const shouldGroupStudentOptions = canViewOtherInstructorStudents && showOtherInstructorStudents;
+
+  const instructorNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const member of organizationProfilesQuery.data ?? []) {
+      const fullName = getProfileFullName(member) || member.display_name || "Instructor";
+      map.set(member.id, fullName);
+    }
+    return map;
+  }, [organizationProfilesQuery.data]);
+
+  const selfStudentOptions = useMemo(() => {
+    if (!shouldGroupStudentOptions) return [];
+    return limitedStudentOptions.filter((student) => student.assigned_instructor_id === profile.id);
+  }, [limitedStudentOptions, profile.id, shouldGroupStudentOptions]);
+
+  const otherInstructorStudentGroups = useMemo(() => {
+    if (!shouldGroupStudentOptions) return [];
+
+    const groups = new Map<string, typeof limitedStudentOptions>();
+    for (const student of limitedStudentOptions) {
+      if (student.assigned_instructor_id === profile.id) continue;
+      const instructorId = student.assigned_instructor_id ?? "__unassigned__";
+      const existing = groups.get(instructorId) ?? [];
+      groups.set(instructorId, [...existing, student]);
+    }
+
+    return Array.from(groups.entries())
+      .map(([instructorId, students]) => {
+        const name =
+          instructorId === "__unassigned__"
+            ? "Unassigned"
+            : (instructorNameById.get(instructorId) ?? "Unknown instructor");
+        return {
+          key: instructorId,
+          instructorName: name,
+          students,
+        };
+      })
+      .sort((a, b) => a.instructorName.localeCompare(b.instructorName, undefined, { sensitivity: "base" }));
+  }, [instructorNameById, limitedStudentOptions, profile.id, shouldGroupStudentOptions]);
 
   const scoreResult = useMemo(() => {
     return calculateDrivingAssessmentScore(watchedScores);
@@ -402,9 +447,57 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
 
                   {studentOptions.length === 0 ? (
                     <AppText variant="caption">No students match this search.</AppText>
+                  ) : shouldGroupStudentOptions ? (
+                    <AppStack gap="md">
+                      <AppCard className="gap-3">
+                        <AppText variant="heading">Your students</AppText>
+                        {selfStudentOptions.length === 0 ? (
+                          <AppText variant="caption">No students assigned to you match this search.</AppText>
+                        ) : (
+                          <AppStack gap="sm">
+                            {selfStudentOptions.map((student) => (
+                              <AppButton
+                                key={student.id}
+                                variant={selectedStudentId === student.id ? "primary" : "secondary"}
+                                label={`${student.first_name} ${student.last_name}`}
+                                onPress={() => {
+                                  setSelectedStudentId(student.id);
+                                  setShowStudentPicker(false);
+                                  setStudentSearch("");
+                                  form.setValue("studentId", student.id, { shouldValidate: true });
+                                  hydrateFromStudent(form, student);
+                                }}
+                              />
+                            ))}
+                          </AppStack>
+                        )}
+                      </AppCard>
+
+                      {otherInstructorStudentGroups.map((group) => (
+                        <AppCard key={group.key} className="gap-3">
+                          <AppText variant="heading">{group.instructorName}</AppText>
+                          <AppStack gap="sm">
+                            {group.students.map((student) => (
+                              <AppButton
+                                key={student.id}
+                                variant={selectedStudentId === student.id ? "primary" : "secondary"}
+                                label={`${student.first_name} ${student.last_name}`}
+                                onPress={() => {
+                                  setSelectedStudentId(student.id);
+                                  setShowStudentPicker(false);
+                                  setStudentSearch("");
+                                  form.setValue("studentId", student.id, { shouldValidate: true });
+                                  hydrateFromStudent(form, student);
+                                }}
+                              />
+                            ))}
+                          </AppStack>
+                        </AppCard>
+                      ))}
+                    </AppStack>
                   ) : (
                     <AppStack gap="sm">
-                      {studentOptions.slice(0, 30).map((student) => (
+                      {limitedStudentOptions.map((student) => (
                         <AppButton
                           key={student.id}
                           variant={selectedStudentId === student.id ? "primary" : "secondary"}

@@ -1,6 +1,39 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Group other instructors' students in assessment pickers
+- **Summary:**
+  - Updated `Driving Assessment`, `Mock Test - Restricted Licence`, and `Mock Test - Full License` student pickers so owner/admin `Show` mode no longer mixes all students in one list.
+  - Added grouped picker layout in `Show` mode: `Your students` block first, followed by separate instructor blocks below, each labeled with the designated instructor name.
+  - Added organization profile lookups in those screens to resolve instructor display names from `assigned_instructor_id`.
+  - Kept `Hide` mode behavior unchanged (owner/admin see only self-assigned students), and kept instructor behavior unchanged.
+- **Files changed:**
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `Get-Content -Raw docs/logs/INDEX.md`
+  - `Get-Content -Raw docs/logs/PROJECT_LOG_ARCHIVE.md`
+  - `rg -n "assigned_instructor_id|useStudentsQuery|Student" src/navigation/screens/*.tsx src/features/students/api.ts src/features/profiles/api.ts`
+  - `mcp__context7__resolve-library-id (react)`
+  - `mcp__context7__query-docs (/websites/react_dev)`
+  - `npx tsc --noEmit`
+  - `git status --short`
+  - `git diff --stat src/navigation/screens/DrivingAssessmentScreen.tsx src/navigation/screens/RestrictedMockTestScreen.tsx src/navigation/screens/FullLicenseMockTestScreen.tsx`
+- **How to verify:**
+  - Open each assessment screen as owner/admin and switch `Other Instructor's Students` to `Show`.
+  - Confirm the picker renders `Your students` first, then additional block containers below labeled by instructor name.
+  - Confirm students are not mixed across blocks.
+  - Switch back to `Hide` and confirm only self-assigned students are listed.
+  - Run `npx tsc --noEmit` and confirm no type errors.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
 - **Task:** Assessments student filtering toggle + full mock optional spoken fields
 - **Summary:**
   - Updated all three assessment student selectors (`Driving Assessment`, `Mock Test - Restricted Licence`, `Mock Test - Full License`) so owner/admin default view hides other instructors' students.
@@ -553,43 +586,3 @@
   - Open `Students` -> `New/Edit student` and confirm `Address (optional)` placeholder text is vertically centered.
   - Open `Google Maps` and confirm `Search address (NZ)` placeholder text is vertically centered.
   - Confirm multiline fields (for example `Notes`) remain top-aligned.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Drawer alignment, student role-grouping, and members directory screen
-- **Summary:**
-  - Updated drawer layout so `Sign out` is right-aligned and added a divider between `Google Maps` and `Settings`.
-  - Added owner-only `View Instructor's Students` toggle (`Hide`/`Show`) beside Sort in Students and grouped visible students into role-based blocks.
-  - Added admin fallback Students behavior: when admin has no assigned students, hide the main list and show owner/instructor student blocks with names.
-  - Added `View members` in Organization settings (owner/admin only) and a new members screen grouped top-to-bottom as Owner, Instructors, and Admin with avatar + full name cards.
-  - Extended organization profile query payload to include name/avatar fields needed for member and instructor labeling.
-- **Files changed:**
-  - `src/navigation/components/AppDrawerContent.tsx`
-  - `src/navigation/screens/StudentsListScreen.tsx`
-  - `src/navigation/screens/SettingsScreen.tsx`
-  - `src/navigation/SettingsStackNavigator.tsx`
-  - `src/navigation/screens/ViewMembersScreen.tsx`
-  - `src/features/profiles/api.ts`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Raw PROJECT_LOG.md`
-  - `Get-Content -Raw docs/logs/INDEX.md`
-  - `git status -sb`
-  - `Get-Content -Raw src/navigation/components/AppDrawerContent.tsx`
-  - `Get-Content -Raw src/navigation/screens/StudentsListScreen.tsx`
-  - `Get-Content -Raw src/navigation/screens/SettingsScreen.tsx`
-  - `Get-Content -Raw src/navigation/SettingsStackNavigator.tsx`
-  - `Get-Content -Raw src/features/profiles/api.ts`
-  - `mcp__context7__resolve-library-id (react)`
-  - `mcp__context7__query-docs (/websites/react_dev)`
-  - `npx tsc --noEmit`
-  - `PowerShell UTF-8 log rotation script (append new entry + keep latest 20)`
-- **How to verify:**
-  - Open the drawer and confirm `Sign out` is right-aligned and there is a divider between `Google Maps` and `Settings`.
-  - Sign in as owner, open `Students`, and confirm `View Instructor's Students` toggle appears on the same controls row as `Sort`, defaulting to `Hide`.
-  - As owner, toggle `Show` and confirm instructor student groups appear below the owner block with each instructor name.
-  - Sign in as admin with no students assigned to that admin account and confirm the default students list is replaced by owner/instructor grouped blocks.
-  - Sign in as owner/admin, open `Settings` -> `Organization`, tap `View members`, and confirm members render in order: Owner, Instructors, Admin, with avatar and full name rows.
