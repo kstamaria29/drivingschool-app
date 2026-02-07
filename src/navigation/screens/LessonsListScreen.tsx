@@ -1,12 +1,13 @@
 import dayjs, { type Dayjs } from "dayjs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
+import { Pressable, ScrollView, useWindowDimensions, View } from "react-native";
 import { CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react-native";
 
 import { AppBadge } from "../../components/AppBadge";
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
+import { CenteredLoadingState } from "../../components/AsyncState";
 import { CalendarMonth } from "../../components/CalendarMonth";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
@@ -14,7 +15,6 @@ import { Screen } from "../../components/Screen";
 import { useMyProfileQuery } from "../../features/auth/queries";
 import { useAuthSession } from "../../features/auth/session";
 import { useLessonsQuery } from "../../features/lessons/queries";
-import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { DISPLAY_DATE_FORMAT } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
@@ -201,12 +201,7 @@ export function LessonsListScreen({ navigation }: Props) {
       {weekStrip}
 
       {lessonsQuery.isPending ? (
-        <View className={cn("items-center justify-center py-10", theme.text.base)}>
-          <ActivityIndicator />
-          <AppText className="mt-3 text-center" variant="body">
-            Loading lessons...
-          </AppText>
-        </View>
+        <CenteredLoadingState label="Loading lessons..." />
       ) : lessonsQuery.isError ? (
         <AppStack gap="md">
           <AppText variant="error">{toErrorMessage(lessonsQuery.error)}</AppText>

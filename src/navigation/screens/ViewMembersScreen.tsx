@@ -1,11 +1,11 @@
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { ChevronRight } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useColorScheme } from "nativewind";
 
+import { CenteredLoadingState, ErrorStateCard } from "../../components/AsyncState";
 import { Avatar } from "../../components/Avatar";
-import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
@@ -14,7 +14,6 @@ import { useCurrentUser } from "../../features/auth/current-user";
 import { isOwnerOrAdminRole } from "../../features/auth/roles";
 import { useOrganizationProfilesQuery } from "../../features/profiles/queries";
 import { theme } from "../../theme/theme";
-import { cn } from "../../utils/cn";
 import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
 import type { SettingsStackParamList } from "../SettingsStackNavigator";
@@ -136,20 +135,13 @@ export function ViewMembersScreen() {
         </View>
 
         {profilesQuery.isPending ? (
-          <View className={cn("items-center justify-center py-6", theme.text.base)}>
-            <ActivityIndicator />
-            <AppText className="mt-3 text-center" variant="body">
-              Loading members...
-            </AppText>
-          </View>
+          <CenteredLoadingState label="Loading members..." className="py-6" />
         ) : profilesQuery.isError ? (
-          <AppStack gap="md">
-            <AppCard className="gap-2">
-              <AppText variant="heading">Couldn&apos;t load members</AppText>
-              <AppText variant="body">{toErrorMessage(profilesQuery.error)}</AppText>
-            </AppCard>
-            <AppButton width="auto" variant="secondary" label="Retry" onPress={() => profilesQuery.refetch()} />
-          </AppStack>
+          <ErrorStateCard
+            title="Couldn't load members"
+            message={toErrorMessage(profilesQuery.error)}
+            onRetry={() => profilesQuery.refetch()}
+          />
         ) : (
           <AppStack gap="md">
             <MemberGroup

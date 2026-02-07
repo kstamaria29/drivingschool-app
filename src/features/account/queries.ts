@@ -1,7 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
 
 import { authKeys } from "../auth/queries";
 import { profileKeys } from "../profiles/queries";
+import { invalidateQueriesByKey } from "../../utils/query";
 
 import {
   changeMyPassword,
@@ -13,17 +14,21 @@ import {
   type UpdateMyRoleDisplayInput,
 } from "./api";
 
+function invalidateProfileCaches(queryClient: QueryClient, userId: string) {
+  return invalidateQueriesByKey(queryClient, [
+    authKeys.profile(userId),
+    profileKeys.list(),
+    profileKeys.memberRoot(),
+  ]);
+}
+
 export function useUpdateMyDetailsMutation(userId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (input: UpdateMyDetailsInput) => updateMyDetails(input),
     onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: authKeys.profile(userId) }),
-        queryClient.invalidateQueries({ queryKey: profileKeys.list() }),
-        queryClient.invalidateQueries({ queryKey: ["profiles", "member"] }),
-      ]);
+      await invalidateProfileCaches(queryClient, userId);
     },
   });
 }
@@ -34,11 +39,7 @@ export function useClearMyAvatarMutation(userId: string) {
   return useMutation({
     mutationFn: () => clearMyAvatar(userId),
     onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: authKeys.profile(userId) }),
-        queryClient.invalidateQueries({ queryKey: profileKeys.list() }),
-        queryClient.invalidateQueries({ queryKey: ["profiles", "member"] }),
-      ]);
+      await invalidateProfileCaches(queryClient, userId);
     },
   });
 }
@@ -60,11 +61,7 @@ export function useUpdateMyRoleDisplayMutation(userId: string) {
   return useMutation({
     mutationFn: (input: UpdateMyRoleDisplayInput) => updateMyRoleDisplay(input),
     onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: authKeys.profile(userId) }),
-        queryClient.invalidateQueries({ queryKey: profileKeys.list() }),
-        queryClient.invalidateQueries({ queryKey: ["profiles", "member"] }),
-      ]);
+      await invalidateProfileCaches(queryClient, userId);
     },
   });
 }

@@ -1,9 +1,10 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import dayjs from "dayjs";
 import { useMemo } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { View } from "react-native";
 import { BookOpen, ClipboardList, Map as MapIcon, Users } from "lucide-react-native";
 
+import { CenteredLoadingState, ErrorStateCard } from "../../components/AsyncState";
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
 import { AppStack } from "../../components/AppStack";
@@ -13,8 +14,6 @@ import { useCurrentUser } from "../../features/auth/current-user";
 import type { LessonWithStudent } from "../../features/lessons/api";
 import { useLessonsQuery } from "../../features/lessons/queries";
 import { WeatherWidget } from "../../features/weather/WeatherWidget";
-import { theme } from "../../theme/theme";
-import { cn } from "../../utils/cn";
 import { DISPLAY_DATE_FORMAT } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
@@ -130,18 +129,14 @@ export function HomeScreen({ navigation }: Props) {
         </View>
 
         {lessonsQuery.isPending ? (
-          <View className={cn("items-center justify-center py-10", theme.text.base)}>
-            <ActivityIndicator />
-            <AppText className="mt-3 text-center" variant="body">
-              Loading today&apos;s lessons...
-            </AppText>
-          </View>
+          <CenteredLoadingState label="Loading today's lessons..." />
         ) : lessonsQuery.isError ? (
-          <AppCard className="gap-2">
-            <AppText variant="heading">Couldn&apos;t load today&apos;s lessons</AppText>
-            <AppText variant="body">{toErrorMessage(lessonsQuery.error)}</AppText>
-            <AppButton label="Retry" variant="secondary" onPress={() => lessonsQuery.refetch()} />
-          </AppCard>
+          <ErrorStateCard
+            title="Couldn't load today's lessons"
+            message={toErrorMessage(lessonsQuery.error)}
+            onRetry={() => lessonsQuery.refetch()}
+            retryPlacement="inside"
+          />
         ) : (
           <AppCard className="gap-3">
             <AppText variant="heading">Upcoming Lessons Today</AppText>

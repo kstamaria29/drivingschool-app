@@ -1,6 +1,44 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Refactor Batch 2+3: query invalidation helpers + shared async UI states
+- **Summary:**
+  - Added `invalidateQueriesByKey` helper to centralize parallel React Query cache invalidation calls and reduced duplicated invalidation blocks in account/profile/student/lesson mutations.
+  - Added reusable async-state UI primitives (`CenteredLoadingState`, `ErrorStateCard`, `EmptyStateCard`) for consistent loading/error/empty rendering.
+  - Refactored `Home`, `Lessons`, `Students`, and `View Members` screens to use shared async-state components without changing routes, feature behavior, or API contracts.
+  - Introduced low-risk key constants/helpers (`students`/`lessons` roots and `profileKeys.memberRoot`) to remove repeated raw query-key arrays.
+- **Files changed:**
+  - `src/utils/query.ts`
+  - `src/features/account/queries.ts`
+  - `src/features/profiles/queries.ts`
+  - `src/features/students/queries.ts`
+  - `src/features/lessons/queries.ts`
+  - `src/components/AsyncState.tsx`
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/navigation/screens/LessonsListScreen.tsx`
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `src/navigation/screens/ViewMembersScreen.tsx`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `rg -n "invalidateQueries\(|isPending|ActivityIndicator" src/features src/navigation/screens`
+  - `mcp__context7__resolve-library-id (@tanstack/react-query)`
+  - `mcp__context7__query-docs (/tanstack/query/v5.71.10)`
+  - `npx tsc --noEmit`
+  - `npm run lint` (fails: missing `lint` script in `package.json`)
+  - `npm run`
+  - `git status --short`
+  - `git diff --stat`
+- **How to verify:**
+  - Run `npx tsc --noEmit` and confirm no TypeScript errors.
+  - Open `Home` and confirm lessons loading/error states and retry action behave as before.
+  - Open `Lessons` list and confirm loading state still appears while monthly lessons fetch.
+  - Open `Students` and verify loading/error/empty cards still display the same messages and retry behavior for both main list and owner/admin member-dependent blocks.
+  - Open `Settings` -> `View members` and confirm loading/error/retry behavior is unchanged.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
 - **Task:** Batch 1 refactor: dead code cleanup + type safety hardening
 - **Summary:**
   - Removed unreachable navigation/screen code (`MainTabsNavigator`, `EditNameScreen`) and related unused account name-update schema/query/api paths.
@@ -52,7 +90,6 @@
   - Tap `Cancel` and confirm you remain signed in.
   - Tap `Sign out` in the alert and confirm you are returned to `LoginScreen`.
 
-
 ---
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
@@ -84,7 +121,6 @@
   - Edit lesson: confirm top-right icon-only delete button appears and deletes after confirmation.
   - Apply `supabase/migrations/011_students_lessons_delete_policies.sql` before testing deletes against Supabase.
 
-
 ---
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
@@ -107,7 +143,6 @@
   - Open `AGENTS.md` and confirm it is significantly shorter and references current roles (`owner`, `admin`, `instructor`) and current feature baseline.
   - Confirm `PROJECT_LOG.md` still contains 20 entries and includes this new entry at the bottom.
   - Confirm the oldest previously active entry now exists in `docs/logs/PROJECT_LOG_ARCHIVE.md`.
-
 
 ---
 
@@ -147,7 +182,6 @@
   - Long-press map to add a pin, enter label/notes, optionally link a student, and save.
   - Tap an existing marker to view details, then delete it and confirm it disappears.
 
-
 ---
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
@@ -166,7 +200,6 @@
 - **How to verify:**
   - Run npm start and confirm startup no longer throws PluginError for react-native-maps.
   - Open the Google Maps screen from the drawer and confirm map renders.
-
 
 ---
 
@@ -198,7 +231,6 @@
   - Open drawer -> Google Maps, select a pin, tap Anchored vector, draw on map, and save; confirm saved lines re-render when reopening the pin.
   - Select a pin, tap Snapshot, draw over the captured image, save, then tap the snapshot item to confirm preview rendering.
   - Tap Auto-pin active student addresses and confirm pins are created for active students with addresses that were not already pinned.
-
 
 ---
 
@@ -232,7 +264,6 @@
   - Select an existing pin and confirm the same annotation tools still work for pin-scoped annotations.
   - Open `Students` -> `New/Edit student` and confirm the Address field now shows NZ autocomplete suggestions while typing.
 
-
 ---
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
@@ -261,7 +292,6 @@
   - Open Snapshot Annotation modal and confirm: black color is available, size options show an icon + px label, Undo/Redo are icon-only, and Save snapshot is right-aligned.
   - Tap `Auto-pin active student addresses` and confirm it no longer reports generic unexpected failures for geocoder path issues.
 
-
 ---
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
@@ -286,7 +316,6 @@
   - Open `Google Maps` screen.
   - Confirm the top-right blue add-pin button icon is visually centered.
   - Confirm other icon-only square buttons (e.g. snapshot camera) remain centered.
-
 
 ---
 
@@ -317,7 +346,6 @@
   - Open Snapshot Annotation and confirm Undo/Redo icons are centered in their square buttons.
   - Open Lessons list and confirm month nav chevron icons are centered in square controls.
 
-
 ---
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
@@ -345,7 +373,6 @@
   - Ensure there are active students with valid addresses and verify their pins appear automatically after map data loads.
   - Open Snapshot Annotation, enter text, choose different text sizes, place labels, save, and reopen preview.
   - Confirm placed labels render at the chosen font sizes both in editor and preview.
-
 
 ---
 
@@ -393,7 +420,6 @@
   - Open `Settings` as owner/admin: confirm `Change role display` is available and updates displayed role text; as instructor, confirm it is unavailable.
   - Apply `supabase/migrations/014_role_display_name.sql` before testing role-display persistence against Supabase.
 
-
 ---
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
@@ -416,7 +442,6 @@
   - Sign in as owner/admin and open `Settings` -> `Add instructor`.
   - Submit valid instructor details and confirm function no longer fails with generic non-2xx auth error.
   - If invocation still fails, open Supabase `Edge Functions` -> `create-instructor` -> `Invocations` and confirm response is no longer `401`.
-
 
 ---
 
@@ -443,7 +468,6 @@
   - Confirm failure message now includes status + backend error code/message (if any), not only generic non-2xx text.
   - In Supabase invocations, confirm header-auth failures can be diagnosed from returned body content shown in-app.
 
-
 ---
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
@@ -469,7 +493,6 @@
   - Deploy function with no gateway JWT verification: `supabase functions deploy create-instructor --project-ref djwuraqzrmpcvjidtgfb --no-verify-jwt`.
   - Re-run `Add instructor` as owner/admin.
   - In Supabase invocations, confirm `execution_id` is no longer `null` and status is not blocked with gateway `401 Invalid JWT`.
-
 
 ---
 
@@ -499,7 +522,6 @@
   - Open `Students` -> `New/Edit student` and confirm `Address (optional)` placeholder text is vertically centered.
   - Open `Google Maps` and confirm `Search address (NZ)` placeholder text is vertically centered.
   - Confirm multiline fields (for example `Notes`) remain top-aligned.
-
 
 ---
 
@@ -540,7 +562,6 @@
   - As owner, toggle `Show` and confirm instructor student groups appear below the owner block with each instructor name.
   - Sign in as admin with no students assigned to that admin account and confirm the default students list is replaced by owner/instructor grouped blocks.
   - Sign in as owner/admin, open `Settings` -> `Organization`, tap `View members`, and confirm members render in order: Owner, Instructors, Admin, with avatar and full name rows.
-
 
 ---
 
@@ -590,36 +611,3 @@
   - Open `Edit details`, update first/last name, email, contact no., address, and avatar; save and confirm values refresh in settings/member views.
   - In `Settings` -> `Themes`, confirm heading is `Themes`, Light/Dark toggle still works, and `Custom Themes` dropdown lists 6 new presets and applies colors app-wide.
   - Apply `supabase/migrations/015_profile_member_details.sql` before testing profile detail persistence against Supabase.
-
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Tablet keyboard fix, mode-based themes, and member active student links
-- **Summary:**
-  - Improved shared `Screen` keyboard handling for tablet portrait so focused lower-half inputs are auto-scrolled above the keyboard.
-  - Reworked theming into separate Light and Dark preset catalogs with default + 6 custom options each, and renamed the settings label to `Theme style`.
-  - Updated `Member profile` Active students card to show clickable full names, added right-aligned underlined `Hide/Show`, and kept it expanded by default.
-- **Files changed:**
-  - `src/components/Screen.tsx`
-  - `src/theme/palettes.ts`
-  - `src/theme/theme.ts`
-  - `src/providers/ColorSchemeProvider.tsx`
-  - `src/navigation/screens/SettingsScreen.tsx`
-  - `src/features/profiles/api.ts`
-  - `src/navigation/screens/MemberProfileScreen.tsx`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Raw PROJECT_LOG.md`
-  - `Get-Content -Raw docs/logs/INDEX.md`
-  - `mcp__context7__resolve-library-id (react-native)`
-  - `mcp__context7__query-docs (/websites/reactnative_dev)`
-  - `npx tsc --noEmit`
-  - `PowerShell log entry update and active-log rotation`
-- **How to verify:**
-  - On tablet portrait, focus a lower-half input (for example in `Edit details`) and confirm the keyboard no longer covers the field.
-  - Open `Settings` -> `Themes`, switch Light/Dark, and confirm each category shows default + 6 custom presets in the dropdown.
-  - Open `Settings` -> `View members` -> a member profile and verify Active students names are tappable and `Hide/Show` collapses the list.
-

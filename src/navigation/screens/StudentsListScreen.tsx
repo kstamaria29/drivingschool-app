@@ -1,10 +1,11 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import dayjs from "dayjs";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, useWindowDimensions, View } from "react-native";
+import { Pressable, useWindowDimensions, View } from "react-native";
 import { ChevronRight, Mail, Phone, RefreshCw, UserPlus } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
+import { CenteredLoadingState, EmptyStateCard, ErrorStateCard } from "../../components/AsyncState";
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
 import { AppInput } from "../../components/AppInput";
@@ -446,29 +447,6 @@ export function StudentsListScreen({ navigation }: Props) {
     showInstructorStudents,
   ]);
 
-  function renderProfilesLoading(label: string) {
-    return (
-      <View className={cn("items-center justify-center py-8", theme.text.base)}>
-        <ActivityIndicator />
-        <AppText className="mt-3 text-center" variant="body">
-          {label}
-        </AppText>
-      </View>
-    );
-  }
-
-  function renderProfilesError(label: string) {
-    return (
-      <AppStack gap="md">
-        <AppCard className="gap-2">
-          <AppText variant="heading">{label}</AppText>
-          <AppText variant="body">{toErrorMessage(orgProfilesQuery.error)}</AppText>
-        </AppCard>
-        <AppButton width="auto" label="Retry" icon={RefreshCw} onPress={() => orgProfilesQuery.refetch()} />
-      </AppStack>
-    );
-  }
-
   return (
     <Screen scroll className={cn(isTabletLandscape && "max-w-[1100px]")}>
       <AppStack gap="lg">
@@ -553,20 +531,15 @@ export function StudentsListScreen({ navigation }: Props) {
         </AppCard>
 
         {query.isPending ? (
-          <View className={cn("items-center justify-center py-10", theme.text.base)}>
-            <ActivityIndicator />
-            <AppText className="mt-3 text-center" variant="body">
-              Loading students...
-            </AppText>
-          </View>
+          <CenteredLoadingState label="Loading students..." />
         ) : query.isError ? (
-          <AppStack gap="md">
-            <AppCard className="gap-2">
-              <AppText variant="heading">Couldn&apos;t load students</AppText>
-              <AppText variant="body">{toErrorMessage(query.error)}</AppText>
-            </AppCard>
-            <AppButton width="auto" label="Retry" icon={RefreshCw} onPress={() => query.refetch()} />
-          </AppStack>
+          <ErrorStateCard
+            title="Couldn't load students"
+            message={toErrorMessage(query.error)}
+            onRetry={() => query.refetch()}
+            retryIcon={RefreshCw}
+            retryVariant="primary"
+          />
         ) : isOwner ? (
           <AppStack gap="md">
             <StudentsSectionCard
@@ -580,18 +553,24 @@ export function StudentsListScreen({ navigation }: Props) {
 
             {showInstructorStudents ? (
               orgProfilesQuery.isPending ? (
-                renderProfilesLoading("Loading instructors...")
+                <CenteredLoadingState label="Loading instructors..." className="py-8" />
               ) : orgProfilesQuery.isError ? (
-                renderProfilesError("Couldn't load instructors")
+                <ErrorStateCard
+                  title="Couldn't load instructors"
+                  message={toErrorMessage(orgProfilesQuery.error)}
+                  onRetry={() => orgProfilesQuery.refetch()}
+                  retryIcon={RefreshCw}
+                  retryVariant="primary"
+                />
               ) : ownerInstructorSections.length === 0 ? (
-                <AppCard className="gap-2">
-                  <AppText variant="heading">Instructor students</AppText>
-                  <AppText variant="body">
-                    {archived
+                <EmptyStateCard
+                  title="Instructor students"
+                  message={
+                    archived
                       ? "No archived students are assigned to instructors."
-                      : "No active students are assigned to instructors."}
-                  </AppText>
-                </AppCard>
+                      : "No active students are assigned to instructors."
+                  }
+                />
               ) : (
                 <StudentsSectionList
                   sections={ownerInstructorSections}
@@ -604,18 +583,24 @@ export function StudentsListScreen({ navigation }: Props) {
           </AppStack>
         ) : shouldShowAdminFallback ? (
           orgProfilesQuery.isPending ? (
-            renderProfilesLoading("Loading organization members...")
+            <CenteredLoadingState label="Loading organization members..." className="py-8" />
           ) : orgProfilesQuery.isError ? (
-            renderProfilesError("Couldn't load organization members")
+            <ErrorStateCard
+              title="Couldn't load organization members"
+              message={toErrorMessage(orgProfilesQuery.error)}
+              onRetry={() => orgProfilesQuery.refetch()}
+              retryIcon={RefreshCw}
+              retryVariant="primary"
+            />
           ) : adminFallbackSections.length === 0 ? (
-            <AppCard className="gap-2">
-              <AppText variant="heading">No students</AppText>
-              <AppText variant="body">
-                {archived
+            <EmptyStateCard
+              title="No students"
+              message={
+                archived
                   ? "No archived students for owner or instructors."
-                  : "No active students for owner or instructors."}
-              </AppText>
-            </AppCard>
+                  : "No active students for owner or instructors."
+              }
+            />
           ) : (
             <StudentsSectionList
               sections={adminFallbackSections}
@@ -625,14 +610,12 @@ export function StudentsListScreen({ navigation }: Props) {
             />
           )
         ) : rows.length === 0 ? (
-          <AppCard className="gap-2">
-            <AppText variant="heading">No students</AppText>
-            <AppText variant="body">
-              {archived
-                ? "No archived students yet."
-                : "Create your first student to start scheduling lessons later."}
-            </AppText>
-          </AppCard>
+          <EmptyStateCard
+            title="No students"
+            message={
+              archived ? "No archived students yet." : "Create your first student to start scheduling lessons later."
+            }
+          />
         ) : (
           <StudentsSectionCard
             title="Students"

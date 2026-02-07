@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { invalidateQueriesByKey } from "../../utils/query";
 import {
   getOrganizationMemberDetails,
   listOrganizationProfiles,
@@ -10,6 +11,7 @@ import { authKeys } from "../auth/queries";
 
 export const profileKeys = {
   list: () => ["profiles"] as const,
+  memberRoot: () => ["profiles", "member"] as const,
   memberDetail: (memberId: string) => ["profiles", "member", { memberId }] as const,
 };
 
@@ -36,10 +38,10 @@ export function useUploadMyAvatarMutation(userId: string) {
     mutationFn: (input: Omit<UploadAvatarInput, "userId">) =>
       uploadMyAvatar({ userId, asset: input.asset }),
     onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: authKeys.profile(userId) }),
-        queryClient.invalidateQueries({ queryKey: profileKeys.list() }),
-        queryClient.invalidateQueries({ queryKey: ["profiles", "member"] }),
+      await invalidateQueriesByKey(queryClient, [
+        authKeys.profile(userId),
+        profileKeys.list(),
+        profileKeys.memberRoot(),
       ]);
     },
   });
