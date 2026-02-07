@@ -1,27 +1,6 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Reduce active project log cap to 20 entries
-- **Summary:**
-  - Updated logging policy to keep only the latest 20 entries in `PROJECT_LOG.md`.
-  - Archived older active entries into `docs/logs/PROJECT_LOG_ARCHIVE.md` to match the new cap.
-- **Files changed:**
-  - `AGENTS.md`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Raw PROJECT_LOG.md`
-  - `rg -n "30-entry|most recent 30|exceed 30" AGENTS.md`
-  - PowerShell archive script (append entry + keep latest 20)
-- **How to verify:**
-  - Confirm `PROJECT_LOG.md` contains only the most recent 20 entries.
-  - Confirm older entries are present in `docs/logs/PROJECT_LOG_ARCHIVE.md`.
-  - Confirm `AGENTS.md` references a 20-entry cap.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
 - **Task:** Add admin role with owner-equivalent permissions
 - **Summary:**
   - Added a new Supabase migration to allow `profiles.role = 'admin'` and apply owner-equivalent RLS behavior for admin users.
@@ -589,3 +568,34 @@
   - Open `Edit details`, update first/last name, email, contact no., address, and avatar; save and confirm values refresh in settings/member views.
   - In `Settings` -> `Themes`, confirm heading is `Themes`, Light/Dark toggle still works, and `Custom Themes` dropdown lists 6 new presets and applies colors app-wide.
   - Apply `supabase/migrations/015_profile_member_details.sql` before testing profile detail persistence against Supabase.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Tablet keyboard fix, mode-based themes, and member active student links
+- **Summary:**
+  - Improved shared `Screen` keyboard handling for tablet portrait so focused lower-half inputs are auto-scrolled above the keyboard.
+  - Reworked theming into separate Light and Dark preset catalogs with default + 6 custom options each, and renamed the settings label to `Theme style`.
+  - Updated `Member profile` Active students card to show clickable full names, added right-aligned underlined `Hide/Show`, and kept it expanded by default.
+- **Files changed:**
+  - `src/components/Screen.tsx`
+  - `src/theme/palettes.ts`
+  - `src/theme/theme.ts`
+  - `src/providers/ColorSchemeProvider.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/features/profiles/api.ts`
+  - `src/navigation/screens/MemberProfileScreen.tsx`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `Get-Content -Raw docs/logs/INDEX.md`
+  - `mcp__context7__resolve-library-id (react-native)`
+  - `mcp__context7__query-docs (/websites/reactnative_dev)`
+  - `npx tsc --noEmit`
+  - `PowerShell log entry update and active-log rotation`
+- **How to verify:**
+  - On tablet portrait, focus a lower-half input (for example in `Edit details`) and confirm the keyboard no longer covers the field.
+  - Open `Settings` -> `Themes`, switch Light/Dark, and confirm each category shows default + 6 custom presets in the dropdown.
+  - Open `Settings` -> `View members` -> a member profile and verify Active students names are tappable and `Hide/Show` collapses the list.

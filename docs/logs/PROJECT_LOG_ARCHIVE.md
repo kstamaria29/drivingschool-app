@@ -1835,3 +1835,24 @@
   - Confirm `PROJECT_LOG.md` contains only the most recent 30 entries.
   - Confirm older entries exist in `docs/logs/PROJECT_LOG_ARCHIVE.md`.
   - Confirm `AGENTS.md` includes the 30-entry archive rule.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Reduce active project log cap to 20 entries
+- **Summary:**
+  - Updated logging policy to keep only the latest 20 entries in `PROJECT_LOG.md`.
+  - Archived older active entries into `docs/logs/PROJECT_LOG_ARCHIVE.md` to match the new cap.
+- **Files changed:**
+  - `AGENTS.md`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `rg -n "30-entry|most recent 30|exceed 30" AGENTS.md`
+  - PowerShell archive script (append entry + keep latest 20)
+- **How to verify:**
+  - Confirm `PROJECT_LOG.md` contains only the most recent 20 entries.
+  - Confirm older entries are present in `docs/logs/PROJECT_LOG_ARCHIVE.md`.
+  - Confirm `AGENTS.md` references a 20-entry cap.

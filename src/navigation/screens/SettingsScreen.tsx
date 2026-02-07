@@ -1,6 +1,6 @@
 import * as ImagePicker from "expo-image-picker";
 import { ActivityIndicator, Pressable, View } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Building2,
   Check,
@@ -38,21 +38,21 @@ import { useAppColorScheme } from "../../providers/ColorSchemeProvider";
 import { AppSegmentedControl } from "../../components/AppSegmentedControl";
 import { getProfileFullName } from "../../utils/profileName";
 import {
-  APP_THEME_PRESETS,
-  CUSTOM_THEME_OPTIONS,
-  DEFAULT_APP_THEME_KEY,
-  type AppThemeKey,
+  DARK_THEME_OPTIONS,
+  LIGHT_THEME_OPTIONS,
+  type DarkThemeKey,
+  type LightThemeKey,
 } from "../../theme/palettes";
 import type { SettingsStackParamList } from "../SettingsStackNavigator";
 
-const themeOptions: Array<{ value: AppThemeKey; label: string; description: string }> = [
-  {
-    value: DEFAULT_APP_THEME_KEY,
-    label: `${APP_THEME_PRESETS[DEFAULT_APP_THEME_KEY].name} (Default)`,
-    description: APP_THEME_PRESETS[DEFAULT_APP_THEME_KEY].description,
-  },
-  ...CUSTOM_THEME_OPTIONS,
-];
+type ThemeOption = {
+  value: LightThemeKey | DarkThemeKey;
+  label: string;
+  description: string;
+};
+
+const lightThemeOptions: ThemeOption[] = LIGHT_THEME_OPTIONS;
+const darkThemeOptions: ThemeOption[] = DARK_THEME_OPTIONS;
 
 export function SettingsScreen() {
   const { profile } = useCurrentUser();
@@ -83,8 +83,13 @@ export function SettingsScreen() {
     return result.assets[0] ?? null;
   }
 
+  const activeThemeOptions = scheme === "dark" ? darkThemeOptions : lightThemeOptions;
   const selectedThemeOption =
-    themeOptions.find((option) => option.value === themeKey) ?? themeOptions[0];
+    activeThemeOptions.find((option) => option.value === themeKey) ?? activeThemeOptions[0];
+
+  useEffect(() => {
+    setThemeMenuOpen(false);
+  }, [scheme]);
 
   return (
     <Screen scroll>
@@ -239,7 +244,9 @@ export function SettingsScreen() {
 
         <AppCard className="gap-3">
           <AppText variant="heading">Themes</AppText>
-          <AppText variant="caption">Switch mode and choose a custom palette.</AppText>
+          <AppText variant="caption">
+            Switch mode and pick a dedicated style for that mode.
+          </AppText>
 
           <AppSegmentedControl
             value={scheme}
@@ -251,7 +258,7 @@ export function SettingsScreen() {
           />
 
           <View className="gap-2">
-            <AppText variant="label">Custom Themes</AppText>
+            <AppText variant="label">Theme style</AppText>
             <Pressable
               accessibilityRole="button"
               className="rounded-xl border border-border bg-card px-3 py-3 dark:border-borderDark dark:bg-cardDark"
@@ -262,7 +269,9 @@ export function SettingsScreen() {
                   <Palette size={18} color={iconMuted} />
                   <View className="flex-1">
                     <AppText variant="body">{selectedThemeOption.label}</AppText>
-                    <AppText variant="caption">{selectedThemeOption.description}</AppText>
+                    <AppText variant="caption">
+                      {selectedThemeOption.description}
+                    </AppText>
                   </View>
                 </View>
                 <ChevronDown size={18} color={iconMuted} />
@@ -271,14 +280,15 @@ export function SettingsScreen() {
 
             {themeMenuOpen ? (
               <View className="overflow-hidden rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark">
-                {themeOptions.map((option, index) => {
+                {activeThemeOptions.map((option, index) => {
                   const selected = option.value === themeKey;
                   return (
                     <Pressable
                       key={option.value}
                       className={cn(
                         "px-3 py-3",
-                        index < themeOptions.length - 1 && "border-b border-border dark:border-borderDark",
+                        index < activeThemeOptions.length - 1 &&
+                          "border-b border-border dark:border-borderDark",
                         selected && "bg-primary/10 dark:bg-primaryDark/20",
                       )}
                       onPress={() => {

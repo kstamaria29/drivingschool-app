@@ -22,9 +22,14 @@ export type MemberLessonPreview = Pick<
   students: Pick<Database["public"]["Tables"]["students"]["Row"], "first_name" | "last_name"> | null;
 };
 
+export type ActiveStudentPreview = Pick<
+  Database["public"]["Tables"]["students"]["Row"],
+  "id" | "first_name" | "last_name"
+>;
+
 export type OrganizationMemberDetails = {
   profile: OrgProfile | null;
-  activeStudentsCount: number;
+  activeStudents: ActiveStudentPreview[];
   nextLessons: MemberLessonPreview[];
 };
 
@@ -71,15 +76,18 @@ async function getOrganizationMemberProfile(memberId: string): Promise<OrgProfil
   return data ?? null;
 }
 
-async function getActiveStudentsCountForMember(memberId: string): Promise<number> {
-  const { count, error } = await supabase
+async function getActiveStudentsForMember(memberId: string): Promise<ActiveStudentPreview[]> {
+  const { data, error } = await supabase
     .from("students")
-    .select("id", { count: "exact", head: true })
+    .select("id, first_name, last_name")
     .eq("assigned_instructor_id", memberId)
-    .is("archived_at", null);
+    .is("archived_at", null)
+    .order("last_name", { ascending: true })
+    .order("first_name", { ascending: true })
+    .overrideTypes<ActiveStudentPreview[], { merge: false }>();
 
   if (error) throw error;
-  return count ?? 0;
+  return data ?? [];
 }
 
 async function getNextLessonsForMember(memberId: string): Promise<MemberLessonPreview[]> {
@@ -100,15 +108,15 @@ async function getNextLessonsForMember(memberId: string): Promise<MemberLessonPr
 export async function getOrganizationMemberDetails(
   memberId: string,
 ): Promise<OrganizationMemberDetails> {
-  const [profile, activeStudentsCount, nextLessons] = await Promise.all([
+  const [profile, activeStudents, nextLessons] = await Promise.all([
     getOrganizationMemberProfile(memberId),
-    getActiveStudentsCountForMember(memberId),
+    getActiveStudentsForMember(memberId),
     getNextLessonsForMember(memberId),
   ]);
 
   return {
     profile,
-    activeStudentsCount,
+    activeStudents,
     nextLessons,
   };
 }

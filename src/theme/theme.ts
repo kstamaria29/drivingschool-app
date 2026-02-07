@@ -1,4 +1,11 @@
-import { APP_THEME_PRESETS, DEFAULT_APP_THEME_KEY, type AppThemeKey } from "./palettes";
+import {
+  DARK_THEME_PRESETS,
+  DEFAULT_DARK_THEME_KEY,
+  DEFAULT_LIGHT_THEME_KEY,
+  LIGHT_THEME_PRESETS,
+  type DarkThemeKey,
+  type LightThemeKey,
+} from "./palettes";
 
 type ThemeColorSet = {
   placeholder: string;
@@ -21,27 +28,37 @@ type ThemeColorSet = {
   dangerDark: string;
 };
 
-function resolveThemeColors(themeKey: AppThemeKey): ThemeColorSet {
-  const palette = APP_THEME_PRESETS[themeKey];
+type ActiveScheme = "light" | "dark";
+
+function resolveThemeColors(
+  lightThemeKey: LightThemeKey,
+  darkThemeKey: DarkThemeKey,
+  activeScheme: ActiveScheme,
+): ThemeColorSet {
+  const lightPalette = LIGHT_THEME_PRESETS[lightThemeKey];
+  const darkPalette = DARK_THEME_PRESETS[darkThemeKey];
+  const accentPalette = activeScheme === "dark" ? darkPalette : lightPalette;
+
   return {
-    placeholder: palette.light.muted,
-    backgroundLight: palette.light.background,
-    backgroundDark: palette.dark.background,
-    foregroundLight: palette.light.foreground,
-    foregroundDark: palette.dark.foreground,
-    cardLight: palette.light.card,
-    cardDark: palette.dark.card,
-    borderLight: palette.light.border,
-    borderDark: palette.dark.border,
-    mutedLight: palette.light.muted,
-    mutedDark: palette.dark.muted,
-    primary: palette.light.primary,
-    primaryDark: palette.dark.primary,
+    placeholder: activeScheme === "dark" ? darkPalette.tone.muted : lightPalette.tone.muted,
+    backgroundLight: lightPalette.tone.background,
+    backgroundDark: darkPalette.tone.background,
+    foregroundLight: lightPalette.tone.foreground,
+    foregroundDark: darkPalette.tone.foreground,
+    cardLight: lightPalette.tone.card,
+    cardDark: darkPalette.tone.card,
+    borderLight: lightPalette.tone.border,
+    borderDark: darkPalette.tone.border,
+    mutedLight: lightPalette.tone.muted,
+    mutedDark: darkPalette.tone.muted,
+    primary: lightPalette.tone.primary,
+    primaryDark: darkPalette.tone.primary,
     primaryForeground: "#ffffff",
-    accent: palette.accent,
-    accentForeground: palette.dark.foreground,
-    danger: palette.light.danger,
-    dangerDark: palette.dark.danger,
+    accent: accentPalette.accent,
+    accentForeground:
+      activeScheme === "dark" ? darkPalette.tone.foreground : lightPalette.tone.foreground,
+    danger: lightPalette.tone.danger,
+    dangerDark: darkPalette.tone.danger,
   };
 }
 
@@ -62,8 +79,12 @@ function hexToRgbChannels(hex: string) {
   return `${r} ${g} ${b}`;
 }
 
-export function getThemeColorVariables(themeKey: AppThemeKey) {
-  const colors = resolveThemeColors(themeKey);
+export function getThemeColorVariables(
+  lightThemeKey: LightThemeKey,
+  darkThemeKey: DarkThemeKey,
+  activeScheme: ActiveScheme,
+) {
+  const colors = resolveThemeColors(lightThemeKey, darkThemeKey, activeScheme);
   return {
     "--color-placeholder": hexToRgbChannels(colors.placeholder),
     "--color-background": hexToRgbChannels(colors.backgroundLight),
@@ -86,10 +107,18 @@ export function getThemeColorVariables(themeKey: AppThemeKey) {
   } as const;
 }
 
-const activeColors: ThemeColorSet = resolveThemeColors(DEFAULT_APP_THEME_KEY);
+const activeColors: ThemeColorSet = resolveThemeColors(
+  DEFAULT_LIGHT_THEME_KEY,
+  DEFAULT_DARK_THEME_KEY,
+  "light",
+);
 
-export function applyThemeColors(themeKey: AppThemeKey) {
-  Object.assign(activeColors, resolveThemeColors(themeKey));
+export function applyThemeColors(
+  lightThemeKey: LightThemeKey,
+  darkThemeKey: DarkThemeKey,
+  activeScheme: ActiveScheme,
+) {
+  Object.assign(activeColors, resolveThemeColors(lightThemeKey, darkThemeKey, activeScheme));
 }
 
 export const theme = {

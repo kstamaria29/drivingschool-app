@@ -1,7 +1,9 @@
 import dayjs from "dayjs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { ActivityIndicator, View } from "react-native";
-import { Mail, MapPin, Phone, RefreshCw, Users } from "lucide-react-native";
+import { useState } from "react";
+import { ActivityIndicator, Pressable, View } from "react-native";
+import { ChevronRight, Mail, MapPin, Phone, RefreshCw, Users } from "lucide-react-native";
+import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import { useColorScheme } from "nativewind";
 
 import { Avatar } from "../../components/Avatar";
@@ -18,6 +20,7 @@ import { cn } from "../../utils/cn";
 import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
 
+import type { MainDrawerParamList } from "../MainDrawerNavigator";
 import type { SettingsStackParamList } from "../SettingsStackNavigator";
 
 type Props = NativeStackScreenProps<SettingsStackParamList, "MemberProfile">;
@@ -32,6 +35,10 @@ function lessonStatusLabel(status: "scheduled" | "completed" | "cancelled") {
   if (status === "scheduled") return "Scheduled";
   if (status === "completed") return "Completed";
   return "Cancelled";
+}
+
+function getStudentFullName(student: { first_name: string; last_name: string }) {
+  return `${student.first_name} ${student.last_name}`.trim() || "Student";
 }
 
 function DetailRow({
@@ -56,12 +63,14 @@ function DetailRow({
   );
 }
 
-export function MemberProfileScreen({ route }: Props) {
+export function MemberProfileScreen({ navigation, route }: Props) {
   const { memberId } = route.params;
   const { profile: currentProfile } = useCurrentUser();
   const { colorScheme } = useColorScheme();
+  const [activeStudentsExpanded, setActiveStudentsExpanded] = useState(true);
   const iconMuted = colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
   const canManageOrganization = isOwnerOrAdminRole(currentProfile.role);
+  const drawerNavigation = navigation.getParent<DrawerNavigationProp<MainDrawerParamList>>();
   const detailsQuery = useOrganizationMemberDetailsQuery(memberId, canManageOrganization);
 
   if (!canManageOrganization) {
@@ -141,13 +150,45 @@ export function MemberProfileScreen({ route }: Props) {
             </AppCard>
 
             <AppCard className="gap-3">
-              <View className="flex-row items-center gap-2">
-                <Users size={16} color={iconMuted} />
-                <AppText variant="heading">Active students</AppText>
+              <View className="flex-row items-center justify-between gap-3">
+                <View className="flex-row items-center gap-2">
+                  <Users size={16} color={iconMuted} />
+                  <AppText variant="heading">Active students</AppText>
+                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => setActiveStudentsExpanded((expanded) => !expanded)}
+                >
+                  <AppText className="underline" variant="caption">
+                    {activeStudentsExpanded ? "Hide" : "Show"}
+                  </AppText>
+                </Pressable>
               </View>
-              <AppText className="text-4xl" variant="title">
-                {detailsQuery.data?.activeStudentsCount ?? 0}
-              </AppText>
+              {activeStudentsExpanded ? (
+                detailsQuery.data?.activeStudents.length ? (
+                  <AppStack gap="sm">
+                    {detailsQuery.data.activeStudents.map((student) => (
+                      <Pressable
+                        key={student.id}
+                        className="flex-row items-center justify-between rounded-xl border border-border bg-background px-3 py-3 dark:border-borderDark dark:bg-backgroundDark"
+                        accessibilityRole="button"
+                        disabled={!drawerNavigation}
+                        onPress={() =>
+                          drawerNavigation?.navigate("Students", {
+                            screen: "StudentDetail",
+                            params: { studentId: student.id },
+                          })
+                        }
+                      >
+                        <AppText variant="body">{getStudentFullName(student)}</AppText>
+                        <ChevronRight size={16} color={iconMuted} />
+                      </Pressable>
+                    ))}
+                  </AppStack>
+                ) : (
+                  <AppText variant="caption">No active students for this member.</AppText>
+                )
+              ) : null}
             </AppCard>
 
             <AppCard className="gap-3">
