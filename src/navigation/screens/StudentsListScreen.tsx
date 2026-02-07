@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import dayjs from "dayjs";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
+import { ActivityIndicator, Pressable, useWindowDimensions, View } from "react-native";
 import { ChevronRight, Mail, Phone, RefreshCw, UserPlus } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
@@ -25,7 +25,7 @@ type SortKey = "name" | "recent";
 type StatusKey = "active" | "archived";
 
 function formatLicenseType(type: string | null) {
-  if (!type) return "Ã¢â‚¬â€";
+  if (!type) return "-";
   if (type === "learner") return "Learner";
   if (type === "restricted") return "Restricted";
   if (type === "full") return "Full";
@@ -36,7 +36,7 @@ function licenseTypeLetter(type: string | null) {
   if (type === "learner") return "L";
   if (type === "restricted") return "R";
   if (type === "full") return "F";
-  return "Ã¢â‚¬â€";
+  return "-";
 }
 
 function licenseTypeBadgeClasses(type: string | null) {
@@ -69,12 +69,7 @@ function licenseTypeBadgeClasses(type: string | null) {
 function LicenseTypeCircle({ type }: { type: string | null }) {
   const classes = licenseTypeBadgeClasses(type);
   return (
-    <View
-      className={cn(
-        "h-8 w-8 items-center justify-center rounded-full border",
-        classes.wrapper,
-      )}
-    >
+    <View className={cn("h-8 w-8 items-center justify-center rounded-full border", classes.wrapper)}>
       <AppText className={cn("text-xs font-semibold", classes.text)} variant="caption">
         {licenseTypeLetter(type)}
       </AppText>
@@ -207,6 +202,15 @@ export function StudentsListScreen({ navigation }: Props) {
                 ]}
               />
             </View>
+
+            <AppButton
+              width="auto"
+              variant="secondary"
+              label={query.isFetching ? "Refreshing..." : "Refresh"}
+              icon={RefreshCw}
+              disabled={query.isFetching}
+              onPress={() => query.refetch()}
+            />
           </View>
         </AppCard>
 
@@ -220,7 +224,7 @@ export function StudentsListScreen({ navigation }: Props) {
         ) : query.isError ? (
           <AppStack gap="md">
             <AppCard className="gap-2">
-              <AppText variant="heading">Couldn't load students</AppText>
+              <AppText variant="heading">Couldn&apos;t load students</AppText>
               <AppText variant="body">{toErrorMessage(query.error)}</AppText>
             </AppCard>
             <AppButton width="auto" label="Retry" icon={RefreshCw} onPress={() => query.refetch()} />
@@ -229,11 +233,13 @@ export function StudentsListScreen({ navigation }: Props) {
           <AppCard className="gap-2">
             <AppText variant="heading">No students</AppText>
             <AppText variant="body">
-              {archived ? "No archived students yet." : "Create your first student to start scheduling lessons later."}
+              {archived
+                ? "No archived students yet."
+                : "Create your first student to start scheduling lessons later."}
             </AppText>
           </AppCard>
         ) : (
-          <AppCard className={cn("overflow-hidden p-0", !isCompact && "flex-1")}>
+          <AppCard className="overflow-hidden p-0">
             {!isCompact ? (
               <View className="flex-row border-b border-border bg-background px-4 py-3 dark:border-borderDark dark:bg-backgroundDark">
                 <AppText className="flex-[5]" variant="label">
@@ -285,11 +291,7 @@ export function StudentsListScreen({ navigation }: Props) {
                 })}
               </View>
             ) : (
-              <ScrollView
-                className="flex-1"
-                keyboardShouldPersistTaps="handled"
-                contentContainerClassName="py-2"
-              >
+              <View className="py-2">
                 {rows.map((student) => {
                   const fullName = `${student.first_name} ${student.last_name}`.trim() || "Student";
                   const email = student.email ?? "";
@@ -319,13 +321,14 @@ export function StudentsListScreen({ navigation }: Props) {
                       </View>
 
                       <View className="flex-[2] flex-row items-center justify-end gap-2">
+                        <AppText variant="caption">{formatLicenseType(licenseType)}</AppText>
                         <LicenseTypeCircle type={licenseType} />
                         <ChevronRight size={18} color={iconMuted} />
                       </View>
                     </Pressable>
                   );
                 })}
-              </ScrollView>
+              </View>
             )}
           </AppCard>
         )}

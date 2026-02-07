@@ -20,3 +20,12 @@ export const changePasswordSchema = z
 
 export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 
+export const roleDisplaySchema = z.object({
+  roleDisplayName: z
+    .string()
+    .trim()
+    .min(2, "Enter at least 2 characters")
+    .max(40, "Use 40 characters or fewer"),
+});
+
+export type RoleDisplayFormValues = z.infer<typeof roleDisplaySchema>;

@@ -19,6 +19,7 @@ In the Supabase Dashboard:
    - `supabase/migrations/011_students_lessons_delete_policies.sql`
    - `supabase/migrations/012_map_pins.sql`
    - `supabase/migrations/013_map_annotations.sql`
+   - `supabase/migrations/014_role_display_name.sql`
 
 ## Edge Functions
 
@@ -58,9 +59,11 @@ Create 3 users in the same org:
 Checks:
 
 - `owner` and `admin` can read/write org data within org (students, lessons, organization_settings).
+- `owner` and `admin` can set a custom self role display label using `set_my_role_display_name`.
 - `instructor` can only read/write their own assigned students + lessons (per existing RLS policies).
 - `instructor` can only read/write their own assessments (assessments must match the student's assigned instructor).
 - `instructor` can only read/write their own student sessions (session history).
+- `instructor` cannot set custom role display label (RPC should reject).
 - `instructor` cannot upload/replace `org-logos/*` (Storage policy should reject).
 - `owner` and `admin` can upload/replace `org-logos/<organization_id>/logo.*`.
 - `owner`, `admin`, and `instructor` can upload/update only their own `avatars/<auth.uid()>/avatar.*`.

@@ -39,6 +39,10 @@ export type ChangeMyPasswordInput = {
   newPassword: string;
 };
 
+export type UpdateMyRoleDisplayInput = {
+  roleDisplayName: string;
+};
+
 export async function changeMyPassword(input: ChangeMyPasswordInput) {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError) throw userError;
@@ -63,3 +67,9 @@ export async function changeMyPassword(input: ChangeMyPasswordInput) {
   if (rpcError) throw rpcError;
 }
 
+export async function updateMyRoleDisplay(input: UpdateMyRoleDisplayInput) {
+  const { error } = await supabase.rpc("set_my_role_display_name", {
+    new_role_display_name: input.roleDisplayName,
+  });
+  if (error) throw error;
+}

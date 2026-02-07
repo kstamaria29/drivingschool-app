@@ -8,12 +8,16 @@ import { getNativeStackScreenOptions } from "./navigationTheme";
 import { AddInstructorScreen } from "./screens/AddInstructorScreen";
 import { ChangePasswordScreen } from "./screens/ChangePasswordScreen";
 import { EditNameScreen } from "./screens/EditNameScreen";
+import { EditOrganizationNameScreen } from "./screens/EditOrganizationNameScreen";
+import { EditRoleDisplayScreen } from "./screens/EditRoleDisplayScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
 
 export type SettingsStackParamList = {
   SettingsMain: undefined;
   EditName: undefined;
   ChangePassword: undefined;
+  EditOrganizationName: undefined;
+  EditRoleDisplay: undefined;
   AddInstructor: undefined;
 };
 
@@ -48,6 +52,16 @@ export function SettingsStackNavigator() {
         name="ChangePassword"
         component={ChangePasswordScreen}
         options={{ headerTitle: "Change password" }}
+      />
+      <Stack.Screen
+        name="EditOrganizationName"
+        component={EditOrganizationNameScreen}
+        options={{ headerTitle: "Change organization name" }}
+      />
+      <Stack.Screen
+        name="EditRoleDisplay"
+        component={EditRoleDisplayScreen}
+        options={{ headerTitle: "Change role display" }}
       />
       <Stack.Screen
         name="AddInstructor"

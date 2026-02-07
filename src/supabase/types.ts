@@ -39,6 +39,7 @@ export type Database = {
           id: string;
           organization_id: string;
           role: "owner" | "admin" | "instructor";
+          role_display_name: string | null;
           display_name: string;
           first_name: string | null;
           last_name: string | null;
@@ -51,6 +52,7 @@ export type Database = {
           id: string;
           organization_id: string;
           role: "owner" | "admin" | "instructor";
+          role_display_name?: string | null;
           display_name: string;
           first_name?: string | null;
           last_name?: string | null;
@@ -62,6 +64,7 @@ export type Database = {
         Update: {
           organization_id?: string;
           role?: "owner" | "admin" | "instructor";
+          role_display_name?: string | null;
           display_name?: string;
           first_name?: string | null;
           last_name?: string | null;
@@ -387,6 +390,12 @@ export type Database = {
         Args: {
           first_name: string;
           last_name: string;
+        };
+        Returns: null;
+      };
+      set_my_role_display_name: {
+        Args: {
+          new_role_display_name: string;
         };
         Returns: null;
       };

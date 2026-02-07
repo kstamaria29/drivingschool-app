@@ -1,8 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import type { NavigatorScreenParams } from "@react-navigation/native";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { useAppColorScheme } from "../providers/ColorSchemeProvider";
+import { listStudents } from "../features/students/api";
+import { studentKeys } from "../features/students/queries";
 
 import type { HomeStackParamList } from "./HomeStackNavigator";
 import { HomeStackNavigator } from "./HomeStackNavigator";
@@ -38,6 +41,7 @@ export function MainDrawerNavigator() {
   const { isSidebar } = useNavigationLayout();
   const [collapsed, setCollapsed] = useState(false);
   const { scheme } = useAppColorScheme();
+  const queryClient = useQueryClient();
 
   const drawerWidth = useMemo(() => {
     if (!isSidebar) return undefined;
@@ -48,6 +52,17 @@ export function MainDrawerNavigator() {
     () => getDrawerScreenOptions(scheme, drawerWidth),
     [drawerWidth, scheme],
   );
+
+  useEffect(() => {
+    void queryClient.prefetchQuery({
+      queryKey: studentKeys.list({ archived: false }),
+      queryFn: () => listStudents({ archived: false }),
+    });
+    void queryClient.prefetchQuery({
+      queryKey: studentKeys.list({ archived: true }),
+      queryFn: () => listStudents({ archived: true }),
+    });
+  }, [queryClient]);
 
   return (
     <Drawer.Navigator

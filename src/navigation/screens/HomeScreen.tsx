@@ -2,7 +2,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import dayjs from "dayjs";
 import { useMemo } from "react";
 import { ActivityIndicator, View } from "react-native";
-import { ArrowRight, ClipboardList, Users } from "lucide-react-native";
+import { BookOpen, ClipboardList, Map as MapIcon, Users } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -110,6 +110,24 @@ export function HomeScreen({ navigation }: Props) {
             onPress={() => parent?.navigate("Assessments")}
           />
         </View>
+        <View className="flex-row flex-wrap gap-2">
+          <AppButton
+            width="auto"
+            className="flex-1 min-w-48"
+            variant="secondary"
+            label="Lessons"
+            icon={BookOpen}
+            onPress={() => parent?.navigate("Lessons")}
+          />
+          <AppButton
+            width="auto"
+            className="flex-1 min-w-48"
+            variant="secondary"
+            label="Google Maps"
+            icon={MapIcon}
+            onPress={() => parent?.navigate("GoogleMaps")}
+          />
+        </View>
 
         {lessonsQuery.isPending ? (
           <View className={cn("items-center justify-center py-10", theme.text.base)}>
@@ -174,15 +192,6 @@ export function HomeScreen({ navigation }: Props) {
                 ) : null}
               </View>
             </View>
-
-            <AppButton
-              label="Open Lessons"
-              variant="ghost"
-              width="auto"
-              icon={ArrowRight}
-              iconPosition="right"
-              onPress={() => parent?.navigate("Lessons")}
-            />
           </AppCard>
         )}
 

@@ -2,7 +2,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { authKeys } from "../auth/queries";
 
-import { changeMyPassword, clearMyAvatar, updateMyName, type ChangeMyPasswordInput } from "./api";
+import {
+  changeMyPassword,
+  clearMyAvatar,
+  updateMyName,
+  updateMyRoleDisplay,
+  type ChangeMyPasswordInput,
+  type UpdateMyRoleDisplayInput,
+} from "./api";
 
 export function useUpdateMyNameMutation(userId: string) {
   const queryClient = useQueryClient();
@@ -37,3 +44,13 @@ export function useChangeMyPasswordMutation(userId: string) {
   });
 }
 
+export function useUpdateMyRoleDisplayMutation(userId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: UpdateMyRoleDisplayInput) => updateMyRoleDisplay(input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: authKeys.profile(userId) });
+    },
+  });
+}

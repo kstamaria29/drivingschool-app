@@ -1,7 +1,16 @@
 import * as ImagePicker from "expo-image-picker";
 import { ActivityIndicator, Alert, View } from "react-native";
 import { useState } from "react";
-import { ImageUp, KeyRound, RefreshCw, UserCircle2, UserPlus, UserRoundPen } from "lucide-react-native";
+import {
+  Building2,
+  IdCard,
+  ImageUp,
+  KeyRound,
+  RefreshCw,
+  UserCircle2,
+  UserPlus,
+  UserRoundPen,
+} from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -13,7 +22,7 @@ import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
-import { isOwnerOrAdminRole } from "../../features/auth/roles";
+import { getRoleDisplayLabel, isOwnerOrAdminRole } from "../../features/auth/roles";
 import { useUploadOrganizationLogoMutation } from "../../features/organization/queries";
 import {
   useOrganizationQuery,
@@ -152,6 +161,14 @@ export function SettingsScreen() {
           )}
 
           <AppButton
+            label="Change organization name"
+            variant="secondary"
+            icon={Building2}
+            disabled={!canManageOrganization}
+            onPress={() => navigation.navigate("EditOrganizationName")}
+          />
+
+          <AppButton
             label={
               uploadOrgLogoMutation.isPending ? "Uploading logo..." : "Change organization logo"
             }
@@ -183,7 +200,7 @@ export function SettingsScreen() {
             <Avatar uri={profile.avatar_url} size={64} label={getProfileFullName(profile)} />
             <View className="flex-1">
               <AppText variant="body">{getProfileFullName(profile) || profile.display_name}</AppText>
-              <AppText variant="caption">{profile.role}</AppText>
+              <AppText variant="caption">{getRoleDisplayLabel(profile)}</AppText>
             </View>
           </View>
 
@@ -275,6 +292,15 @@ export function SettingsScreen() {
             icon={KeyRound}
             onPress={() => navigation.navigate("ChangePassword")}
           />
+
+          {canManageOrganization ? (
+            <AppButton
+              label="Change role display"
+              variant="secondary"
+              icon={IdCard}
+              onPress={() => navigation.navigate("EditRoleDisplay")}
+            />
+          ) : null}
         </AppCard>
 
         {canManageOrganization ? (

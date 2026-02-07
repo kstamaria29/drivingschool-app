@@ -13,7 +13,7 @@ import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
 import { useMyProfileQuery } from "../../features/auth/queries";
-import { isOwnerOrAdminRole } from "../../features/auth/roles";
+import { isOwnerOrAdminRole, toRoleLabel } from "../../features/auth/roles";
 import { useAuthSession } from "../../features/auth/session";
 import { useOrganizationProfilesQuery } from "../../features/profiles/queries";
 import {
@@ -356,7 +356,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
                             key={profileOption.id}
                             label={`${profileOption.display_name}${
                               profileOption.role === "owner" || profileOption.role === "admin"
-                                ? ` (${profileOption.role})`
+                                ? ` (${toRoleLabel(profileOption.role)})`
                                 : ""
                             }`}
                             variant={field.value === profileOption.id ? "primary" : "secondary"}
