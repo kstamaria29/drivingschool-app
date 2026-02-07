@@ -10,10 +10,12 @@ import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
 import { AppDateInput } from "../../components/AppDateInput";
 import { AppInput } from "../../components/AppInput";
+import { AppSegmentedControl } from "../../components/AppSegmentedControl";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
+import { isOwnerOrAdminRole } from "../../features/auth/roles";
 import { useCreateAssessmentMutation } from "../../features/assessments/queries";
 import { drivingAssessmentCriteria, drivingAssessmentFeedbackOptions } from "../../features/assessments/driving-assessment/constants";
 import { exportDrivingAssessmentPdf } from "../../features/assessments/driving-assessment/pdf";
@@ -40,6 +42,7 @@ type Props = NativeStackScreenProps<AssessmentsStackParamList, "DrivingAssessmen
 
 type DrivingAssessmentStage = "details" | "confirm" | "test";
 type DrivingAssessmentCategoryKey = keyof typeof drivingAssessmentCriteria;
+type OtherInstructorStudentsVisibility = "hide" | "show";
 
 function scoreFieldName(
   category: DrivingAssessmentCategoryKey,
@@ -133,6 +136,11 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
   const [studentSearch, setStudentSearch] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [showStudentPicker, setShowStudentPicker] = useState<boolean>(() => !route.params?.studentId);
+  const [otherInstructorStudentsVisibility, setOtherInstructorStudentsVisibility] =
+    useState<OtherInstructorStudentsVisibility>("hide");
+
+  const canViewOtherInstructorStudents = isOwnerOrAdminRole(profile.role);
+  const showOtherInstructorStudents = otherInstructorStudentsVisibility === "show";
 
   const form = useForm<DrivingAssessmentFormValues>({
     resolver: zodResolver(drivingAssessmentFormSchema),
@@ -181,9 +189,15 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
     setStage("details");
   }, [selectedStudentId]);
 
+  const visibleStudents = useMemo(() => {
+    const all = studentsQuery.data ?? [];
+    if (!canViewOtherInstructorStudents || showOtherInstructorStudents) return all;
+    return all.filter((student) => student.assigned_instructor_id === profile.id);
+  }, [canViewOtherInstructorStudents, profile.id, showOtherInstructorStudents, studentsQuery.data]);
+
   const studentOptions = useMemo(() => {
     const needle = studentSearch.trim().toLowerCase();
-    const all = studentsQuery.data ?? [];
+    const all = visibleStudents;
     if (!needle) return all;
     return all.filter((s) => {
       const fullName = `${s.first_name} ${s.last_name}`.toLowerCase();
@@ -191,7 +205,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
       const phone = (s.phone ?? "").toLowerCase();
       return fullName.includes(needle) || email.includes(needle) || phone.includes(needle);
     });
-  }, [studentSearch, studentsQuery.data]);
+  }, [studentSearch, visibleStudents]);
 
   const scoreResult = useMemo(() => {
     return calculateDrivingAssessmentScore(watchedScores);
@@ -314,14 +328,35 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
         </View>
 
         <AppCard className="gap-4">
-          <View className="flex-row items-center justify-between gap-3">
+          <View className="flex-row items-start justify-between gap-3">
             <AppText variant="heading">Student</AppText>
-            {selectedStudent ? (
+            {canViewOtherInstructorStudents ? (
+              <View className="w-52 items-end">
+                <AppText variant="caption" className="text-right">
+                  Other Instructor&apos;s Students
+                </AppText>
+                <AppSegmentedControl<OtherInstructorStudentsVisibility>
+                  className="mt-2 w-full"
+                  value={otherInstructorStudentsVisibility}
+                  onChange={setOtherInstructorStudentsVisibility}
+                  options={[
+                    { value: "hide", label: "Hide" },
+                    { value: "show", label: "Show" },
+                  ]}
+                />
+              </View>
+            ) : selectedStudent ? (
               <AppText variant="heading" className="text-right">
                 {selectedStudent.first_name} {selectedStudent.last_name}
               </AppText>
             ) : null}
           </View>
+
+          {canViewOtherInstructorStudents && selectedStudent ? (
+            <AppText variant="heading" className="text-right">
+              {selectedStudent.first_name} {selectedStudent.last_name}
+            </AppText>
+          ) : null}
 
           {studentsQuery.isPending ? (
             <View className={cn("items-center justify-center py-6", theme.text.base)}>

@@ -19,6 +19,7 @@ import { AppText } from "../../components/AppText";
 import { AppTimeInput } from "../../components/AppTimeInput";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
+import { isOwnerOrAdminRole } from "../../features/auth/roles";
 import { ensureAndroidDownloadsDirectoryUri } from "../../features/assessments/android-downloads";
 import { useCreateAssessmentMutation } from "../../features/assessments/queries";
 import {
@@ -73,6 +74,7 @@ type Props = NativeStackScreenProps<AssessmentsStackParamList, "FullLicenseMockT
 
 type Stage = "details" | "confirm" | "run" | "summary";
 type PFValue = "P" | "F";
+type OtherInstructorStudentsVisibility = "hide" | "show";
 type HazardPickerTarget = {
   category: FullLicenseMockTestHazardCategory;
   direction: FullLicenseMockTestHazardDirection;
@@ -147,6 +149,11 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   const [studentSearch, setStudentSearch] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [showStudentPicker, setShowStudentPicker] = useState<boolean>(() => !route.params?.studentId);
+  const [otherInstructorStudentsVisibility, setOtherInstructorStudentsVisibility] =
+    useState<OtherInstructorStudentsVisibility>("hide");
+
+  const canViewOtherInstructorStudents = isOwnerOrAdminRole(profile.role);
+  const showOtherInstructorStudents = otherInstructorStudentsVisibility === "show";
 
   const [sessionId, setSessionId] = useState(() => uid("session"));
   const [startTimeISO, setStartTimeISO] = useState<string | null>(null);
@@ -311,8 +318,14 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     setStage("details");
   }, [selectedStudentId]);
 
+  const visibleStudents = useMemo(() => {
+    const all = studentsQuery.data ?? [];
+    if (!canViewOtherInstructorStudents || showOtherInstructorStudents) return all;
+    return all.filter((student) => student.assigned_instructor_id === profile.id);
+  }, [canViewOtherInstructorStudents, profile.id, showOtherInstructorStudents, studentsQuery.data]);
+
   const studentOptions = useMemo(() => {
-    const students = studentsQuery.data ?? [];
+    const students = visibleStudents;
     const needle = studentSearch.trim().toLowerCase();
     if (!needle) return students;
     return students.filter((s) => {
@@ -321,7 +334,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       const phone = (s.phone ?? "").toLowerCase();
       return fullName.includes(needle) || email.includes(needle) || phone.includes(needle);
     });
-  }, [studentSearch, studentsQuery.data]);
+  }, [studentSearch, visibleStudents]);
 
   const mode = form.watch("mode");
 
@@ -610,8 +623,6 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     if (!hasFullLicenseMockTestHazardResponse(hazardResponses)) {
       return "Select at least one hazard response (Yes/No) before recording this attempt.";
     }
-    if (!hazardsSpoken.trim()) return "Please enter the hazards spoken.";
-    if (!actionsSpoken.trim()) return "Please enter the action spoken.";
     if (mode === "drill") {
       if (taskId === "left_turn" && leftAttemptsCount >= drillLeftTarget) {
         return "Left-turn target already completed.";
@@ -803,14 +814,35 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
 
   const studentCard = (
     <AppCard className="gap-4">
-      <View className="flex-row items-center justify-between gap-3">
+      <View className="flex-row items-start justify-between gap-3">
         <AppText variant="heading">Student</AppText>
-        {selectedStudent ? (
+        {canViewOtherInstructorStudents ? (
+          <View className="w-52 items-end">
+            <AppText variant="caption" className="text-right">
+              Other Instructor&apos;s Students
+            </AppText>
+            <AppSegmentedControl<OtherInstructorStudentsVisibility>
+              className="mt-2 w-full"
+              value={otherInstructorStudentsVisibility}
+              onChange={setOtherInstructorStudentsVisibility}
+              options={[
+                { value: "hide", label: "Hide" },
+                { value: "show", label: "Show" },
+              ]}
+            />
+          </View>
+        ) : selectedStudent ? (
           <AppText variant="heading" className="text-right">
             {selectedStudent.first_name} {selectedStudent.last_name}
           </AppText>
         ) : null}
       </View>
+
+      {canViewOtherInstructorStudents && selectedStudent ? (
+        <AppText variant="heading" className="text-right">
+          {selectedStudent.first_name} {selectedStudent.last_name}
+        </AppText>
+      ) : null}
 
       {studentsQuery.isPending ? (
         <View className={cn("items-center justify-center py-4", theme.text.base)}>
@@ -1324,7 +1356,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       <AppDivider />
 
       <AppInput
-        label="Hazard(s) spoken (required)"
+        label="Hazard(s) spoken (optional)"
         value={hazardsSpoken}
         onChangeText={setHazardsSpoken}
         multiline
@@ -1355,7 +1387,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       ) : null}
 
       <AppInput
-        label="Action spoken (required)"
+        label="Action spoken (optional)"
         value={actionsSpoken}
         onChangeText={setActionsSpoken}
         multiline

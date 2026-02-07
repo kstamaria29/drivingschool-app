@@ -17,6 +17,7 @@ import { AppText } from "../../components/AppText";
 import { AppTimeInput } from "../../components/AppTimeInput";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
+import { isOwnerOrAdminRole } from "../../features/auth/roles";
 import { ensureAndroidDownloadsDirectoryUri } from "../../features/assessments/android-downloads";
 import { useCreateAssessmentMutation } from "../../features/assessments/queries";
 import {
@@ -57,6 +58,7 @@ type Props = NativeStackScreenProps<AssessmentsStackParamList, "RestrictedMockTe
 
 type Stage = "details" | "confirm" | "test";
 type FaultValue = "" | "fault";
+type OtherInstructorStudentsVisibility = "hide" | "show";
 
 const DRAFT_VERSION = 1;
 
@@ -134,6 +136,11 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   const [studentSearch, setStudentSearch] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [showStudentPicker, setShowStudentPicker] = useState<boolean>(() => !route.params?.studentId);
+  const [otherInstructorStudentsVisibility, setOtherInstructorStudentsVisibility] =
+    useState<OtherInstructorStudentsVisibility>("hide");
+
+  const canViewOtherInstructorStudents = isOwnerOrAdminRole(profile.role);
+  const showOtherInstructorStudents = otherInstructorStudentsVisibility === "show";
 
   const [stage2Enabled, setStage2Enabled] = useState(false);
   const [stagesState, setStagesState] = useState<RestrictedMockTestStagesState>(() =>
@@ -184,8 +191,14 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     setShowStudentPicker(false);
   }, [form, route.params?.studentId]);
 
+  const visibleStudents = useMemo(() => {
+    const all = studentsQuery.data ?? [];
+    if (!canViewOtherInstructorStudents || showOtherInstructorStudents) return all;
+    return all.filter((student) => student.assigned_instructor_id === profile.id);
+  }, [canViewOtherInstructorStudents, profile.id, showOtherInstructorStudents, studentsQuery.data]);
+
   const studentOptions = useMemo(() => {
-    const students = studentsQuery.data ?? [];
+    const students = visibleStudents;
     const needle = studentSearch.trim().toLowerCase();
     if (!needle) return students;
     return students.filter((s) => {
@@ -194,7 +207,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
       const phone = (s.phone ?? "").toLowerCase();
       return fullName.includes(needle) || email.includes(needle) || phone.includes(needle);
     });
-  }, [studentSearch, studentsQuery.data]);
+  }, [studentSearch, visibleStudents]);
 
   const summary = useMemo(() => {
     return calculateRestrictedMockTestSummary({ stagesState, critical, immediate });
@@ -442,14 +455,35 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   const studentCard = (
     <AppCard className="gap-4">
-      <View className="flex-row items-center justify-between gap-3">
+      <View className="flex-row items-start justify-between gap-3">
         <AppText variant="heading">Student</AppText>
-        {selectedStudent ? (
+        {canViewOtherInstructorStudents ? (
+          <View className="w-52 items-end">
+            <AppText variant="caption" className="text-right">
+              Other Instructor&apos;s Students
+            </AppText>
+            <AppSegmentedControl<OtherInstructorStudentsVisibility>
+              className="mt-2 w-full"
+              value={otherInstructorStudentsVisibility}
+              onChange={setOtherInstructorStudentsVisibility}
+              options={[
+                { value: "hide", label: "Hide" },
+                { value: "show", label: "Show" },
+              ]}
+            />
+          </View>
+        ) : selectedStudent ? (
           <AppText variant="heading" className="text-right">
             {selectedStudent.first_name} {selectedStudent.last_name}
           </AppText>
         ) : null}
       </View>
+
+      {canViewOtherInstructorStudents && selectedStudent ? (
+        <AppText variant="heading" className="text-right">
+          {selectedStudent.first_name} {selectedStudent.last_name}
+        </AppText>
+      ) : null}
 
       {studentsQuery.isPending ? (
         <View className={cn("items-center justify-center py-4", theme.text.base)}>

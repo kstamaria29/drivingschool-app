@@ -1,6 +1,37 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Assessments student filtering toggle + full mock optional spoken fields
+- **Summary:**
+  - Updated all three assessment student selectors (`Driving Assessment`, `Mock Test - Restricted Licence`, `Mock Test - Full License`) so owner/admin default view hides other instructors' students.
+  - Added a right-aligned `Other Instructor's Students` segmented toggle (`Hide`/`Show`) on the same row as the `Student` heading in those three assessment screens.
+  - Kept instructor behavior unchanged and applied filtering only to owner/admin by matching `assigned_instructor_id` to the current user when toggle is `Hide`.
+  - In `Mock Test - Full License`, made `Hazard(s) spoken` and `Action spoken` optional by removing blocking validation checks and updating field labels to optional.
+  - Updated Students screen owner toggle label text from `View Instructor's Students` to `View other instructor's students`.
+- **Files changed:**
+  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
+  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `rg -n "Hazard\(s\) spoken|Action spoken|studentsQuery|Student" src/navigation/screens src/features/assessments`
+  - `mcp__context7__resolve-library-id (react)`
+  - `mcp__context7__query-docs (/websites/react_dev)`
+  - `npx tsc --noEmit`
+  - `git status --short`
+  - `git diff --stat src/navigation/screens/DrivingAssessmentScreen.tsx src/navigation/screens/RestrictedMockTestScreen.tsx src/navigation/screens/FullLicenseMockTestScreen.tsx src/navigation/screens/StudentsListScreen.tsx`
+- **How to verify:**
+  - Open each assessment screen as owner/admin and confirm `Other Instructor's Students` toggle appears on the Student header row, defaulting to `Hide`.
+  - With toggle on `Hide`, confirm only self-assigned students are listed; switch to `Show` and confirm additional instructor-assigned students appear.
+  - Open `Mock Test - Full License` and confirm `Hazard(s) spoken` and `Action spoken` labels display `(optional)` and attempts can be recorded without entering those fields.
+  - Open `Students` as owner/admin and confirm label now reads `View other instructor's students`.
+  - Run `npx tsc --noEmit` and confirm no type errors.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
 - **Task:** Refactor Batch 2+3: query invalidation helpers + shared async UI states
 - **Summary:**
   - Added `invalidateQueriesByKey` helper to centralize parallel React Query cache invalidation calls and reduced duplicated invalidation blocks in account/profile/student/lesson mutations.
@@ -562,52 +593,3 @@
   - As owner, toggle `Show` and confirm instructor student groups appear below the owner block with each instructor name.
   - Sign in as admin with no students assigned to that admin account and confirm the default students list is replaced by owner/instructor grouped blocks.
   - Sign in as owner/admin, open `Settings` -> `Organization`, tap `View members`, and confirm members render in order: Owner, Instructors, Admin, with avatar and full name rows.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Member profile details flow + custom theme system
-- **Summary:**
-  - Reordered owner/admin Organization actions so `View members` appears below `Change organization logo`.
-  - Added owner/admin member tap-through profile screen with member avatar/name/contact details, active student count, and next 3 lessons.
-  - Replaced `Change name` with `Edit details` for all roles; new screen supports first/last name, avatar, email, contact no., and address.
-  - Removed `Change profile photo` from the main Settings screen and moved avatar management into `Edit details`.
-  - Renamed `Appearance` to `Themes`, added `Custom Themes` dropdown, and implemented six new named palettes with global runtime color-token theming.
-  - Added Supabase migration for profile detail columns and self-update RPC, plus instructor creation update to persist profile email.
-- **Files changed:**
-  - `src/navigation/screens/SettingsScreen.tsx`
-  - `src/navigation/screens/ViewMembersScreen.tsx`
-  - `src/navigation/screens/MemberProfileScreen.tsx`
-  - `src/navigation/screens/EditDetailsScreen.tsx`
-  - `src/navigation/SettingsStackNavigator.tsx`
-  - `src/features/profiles/api.ts`
-  - `src/features/profiles/queries.ts`
-  - `src/features/account/api.ts`
-  - `src/features/account/queries.ts`
-  - `src/features/account/schemas.ts`
-  - `src/providers/ColorSchemeProvider.tsx`
-  - `src/theme/theme.ts`
-  - `src/theme/palettes.ts`
-  - `tailwind.config.js`
-  - `src/navigation/RootNavigation.tsx`
-  - `src/supabase/types.ts`
-  - `supabase/migrations/015_profile_member_details.sql`
-  - `supabase/functions/create-instructor/index.ts`
-  - `supabase/README.md`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Raw PROJECT_LOG.md`
-  - `Get-Content -Raw docs/logs/INDEX.md`
-  - `mcp__context7__resolve-library-id (nativewind)`
-  - `mcp__context7__query-docs (/nativewind/nativewind)`
-  - `npx tsc --noEmit`
-  - `PowerShell log rotation script (append new entry + keep latest 20)`
-- **How to verify:**
-  - Open `Settings` as owner/admin and confirm in `Organization` card: `Change organization logo` appears above `View members`.
-  - Open `Settings` -> `View members`, tap any member, and confirm profile page shows avatar, name, email, contact no., address, active students, and next 3 lessons.
-  - Open `Settings` as any role and confirm `Account Settings` shows `Edit details` (not `Change name`) and does not show `Change profile photo`.
-  - Open `Edit details`, update first/last name, email, contact no., address, and avatar; save and confirm values refresh in settings/member views.
-  - In `Settings` -> `Themes`, confirm heading is `Themes`, Light/Dark toggle still works, and `Custom Themes` dropdown lists 6 new presets and applies colors app-wide.
-  - Apply `supabase/migrations/015_profile_member_details.sql` before testing profile detail persistence against Supabase.

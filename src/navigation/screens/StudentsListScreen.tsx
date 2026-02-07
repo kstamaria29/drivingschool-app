@@ -515,7 +515,7 @@ export function StudentsListScreen({ navigation }: Props) {
 
             {isOwner ? (
               <View className={cn(isCompact ? "w-full" : "ml-auto w-64")}>
-                <AppText variant="label">View Instructor&apos;s Students</AppText>
+                <AppText variant="label">View other instructor&apos;s students</AppText>
                 <AppSegmentedControl<InstructorViewState>
                   className="mt-2"
                   value={instructorView}
