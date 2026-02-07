@@ -1,4 +1,4 @@
-﻿# PROJECT_LOG archive
+# PROJECT_LOG archive
 
 - **Date:** 2026-02-04 (Pacific/Auckland)
 - **Task:** Initialize repo documentation
@@ -1812,3 +1812,26 @@
   - Open `Assessments` -> `Mock Test - Full License` -> start run -> `Record task attempt`.
   - In `Hazard Detection and Response`, confirm `L` boxes are vertically aligned across `Pedestrians`, `Vehicles`, and `Others`.
   - Confirm the same vertical alignment for `R`, `A`, `B`, and `O`.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Archive PROJECT_LOG and enforce 30-entry cap
+- **Summary:**
+  - Archived older entries from `PROJECT_LOG.md` into `docs/logs/PROJECT_LOG_ARCHIVE.md`.
+  - Added a 30-entry rolling cap rule and archive instructions in `AGENTS.md`.
+  - Added `docs/logs/INDEX.md` to document active vs archived log paths.
+- **Files changed:**
+  - `AGENTS.md`
+  - `PROJECT_LOG.md`
+  - `docs/logs/INDEX.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `rg --no-heading "^- \*\*Date:\*\*" PROJECT_LOG.md`
+  - PowerShell archive script (move old entries + keep latest 30)
+- **How to verify:**
+  - Confirm `PROJECT_LOG.md` contains only the most recent 30 entries.
+  - Confirm older entries exist in `docs/logs/PROJECT_LOG_ARCHIVE.md`.
+  - Confirm `AGENTS.md` includes the 30-entry archive rule.

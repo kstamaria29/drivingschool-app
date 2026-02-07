@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const withAlpha = (cssVar) => `rgb(var(${cssVar}) / <alpha-value>)`;
+
 module.exports = {
   content: ["./App.{js,jsx,ts,tsx}", "./src/**/*.{js,jsx,ts,tsx}"],
   darkMode: "class",
@@ -6,23 +8,24 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: "#f8fafc",
-        foreground: "#0f172a",
-        card: "#ffffff",
-        border: "#e2e8f0",
-        muted: "#64748b",
-        primary: "#1d4ed8",
-        primaryDark: "#3b82f6",
-        primaryForeground: "#ffffff",
-        accent: "#14b8a6",
-        accentForeground: "#042f2e",
-        danger: "#dc2626",
-        dangerDark: "#f87171",
-        backgroundDark: "#0b1220",
-        foregroundDark: "#e2e8f0",
-        cardDark: "#111a2a",
-        borderDark: "#23324a",
-        mutedDark: "#94a3b8",
+        placeholder: withAlpha("--color-placeholder"),
+        background: withAlpha("--color-background"),
+        foreground: withAlpha("--color-foreground"),
+        card: withAlpha("--color-card"),
+        border: withAlpha("--color-border"),
+        muted: withAlpha("--color-muted"),
+        primary: withAlpha("--color-primary"),
+        primaryDark: withAlpha("--color-primary-dark"),
+        primaryForeground: withAlpha("--color-primary-foreground"),
+        accent: withAlpha("--color-accent"),
+        accentForeground: withAlpha("--color-accent-foreground"),
+        danger: withAlpha("--color-danger"),
+        dangerDark: withAlpha("--color-danger-dark"),
+        backgroundDark: withAlpha("--color-background-dark"),
+        foregroundDark: withAlpha("--color-foreground-dark"),
+        cardDark: withAlpha("--color-card-dark"),
+        borderDark: withAlpha("--color-border-dark"),
+        mutedDark: withAlpha("--color-muted-dark"),
       },
     },
   },

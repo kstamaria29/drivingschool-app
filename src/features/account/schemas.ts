@@ -7,6 +7,16 @@ export const editNameSchema = z.object({
 
 export type EditNameFormValues = z.infer<typeof editNameSchema>;
 
+export const editDetailsSchema = z.object({
+  firstName: z.string().trim().min(2, "Enter a first name"),
+  lastName: z.string().trim().min(2, "Enter a last name"),
+  email: z.string().trim().email("Enter a valid email"),
+  contactNo: z.string().trim().max(30, "Use 30 characters or fewer"),
+  address: z.string().trim().max(200, "Use 200 characters or fewer"),
+});
+
+export type EditDetailsFormValues = z.infer<typeof editDetailsSchema>;
+
 export const changePasswordSchema = z
   .object({
     oldPassword: z.string().min(6, "Enter your current password"),

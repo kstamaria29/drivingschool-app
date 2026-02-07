@@ -1,4 +1,8 @@
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Pressable, View } from "react-native";
+import { ChevronRight } from "lucide-react-native";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useColorScheme } from "nativewind";
 
 import { Avatar } from "../../components/Avatar";
 import { AppButton } from "../../components/AppButton";
@@ -13,6 +17,7 @@ import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
+import type { SettingsStackParamList } from "../SettingsStackNavigator";
 
 function sortByFullName<T extends { first_name?: string | null; last_name?: string | null; display_name?: string | null }>(
   members: T[],
@@ -23,23 +28,37 @@ function sortByFullName<T extends { first_name?: string | null; last_name?: stri
 }
 
 function MemberRow({
+  id,
   name,
   avatarUrl,
+  onPress,
+  iconColor,
 }: {
+  id: string;
   name: string;
   avatarUrl?: string | null;
+  onPress: (memberId: string) => void;
+  iconColor: string;
 }) {
   return (
-    <View className="flex-row items-center gap-3 rounded-xl border border-border bg-background px-3 py-3 dark:border-borderDark dark:bg-backgroundDark">
+    <Pressable
+      onPress={() => onPress(id)}
+      className="flex-row items-center gap-3 rounded-xl border border-border bg-background px-3 py-3 dark:border-borderDark dark:bg-backgroundDark"
+    >
       <Avatar uri={avatarUrl} size={44} label={name} />
-      <AppText variant="body">{name}</AppText>
-    </View>
+      <AppText className="flex-1" variant="body">
+        {name}
+      </AppText>
+      <ChevronRight size={16} color={iconColor} />
+    </Pressable>
   );
 }
 
 function MemberGroup({
   title,
   members,
+  onPressMember,
+  iconColor,
 }: {
   title: string;
   members: Array<{
@@ -49,6 +68,8 @@ function MemberGroup({
     display_name?: string | null;
     avatar_url?: string | null;
   }>;
+  onPressMember: (memberId: string) => void;
+  iconColor: string;
 }) {
   return (
     <AppCard className="gap-3">
@@ -59,7 +80,16 @@ function MemberGroup({
         <AppStack gap="sm">
           {members.map((member) => {
             const name = getProfileFullName(member) || member.display_name || "Member";
-            return <MemberRow key={member.id} name={name} avatarUrl={member.avatar_url} />;
+            return (
+              <MemberRow
+                key={member.id}
+                id={member.id}
+                name={name}
+                avatarUrl={member.avatar_url}
+                onPress={onPressMember}
+                iconColor={iconColor}
+              />
+            );
           })}
         </AppStack>
       )}
@@ -69,6 +99,9 @@ function MemberGroup({
 
 export function ViewMembersScreen() {
   const { profile } = useCurrentUser();
+  const { colorScheme } = useColorScheme();
+  const navigation = useNavigation<NativeStackNavigationProp<SettingsStackParamList>>();
+  const iconColor = colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
   const canManageOrganization = isOwnerOrAdminRole(profile.role);
   const profilesQuery = useOrganizationProfilesQuery(canManageOrganization);
 
@@ -119,13 +152,27 @@ export function ViewMembersScreen() {
           </AppStack>
         ) : (
           <AppStack gap="md">
-            <MemberGroup title="Owner" members={owners} />
-            <MemberGroup title="Instructors" members={instructors} />
-            <MemberGroup title="Admin" members={admins} />
+            <MemberGroup
+              title="Owner"
+              members={owners}
+              onPressMember={(memberId) => navigation.navigate("MemberProfile", { memberId })}
+              iconColor={iconColor}
+            />
+            <MemberGroup
+              title="Instructors"
+              members={instructors}
+              onPressMember={(memberId) => navigation.navigate("MemberProfile", { memberId })}
+              iconColor={iconColor}
+            />
+            <MemberGroup
+              title="Admin"
+              members={admins}
+              onPressMember={(memberId) => navigation.navigate("MemberProfile", { memberId })}
+              iconColor={iconColor}
+            />
           </AppStack>
         )}
       </AppStack>
     </Screen>
   );
 }
-

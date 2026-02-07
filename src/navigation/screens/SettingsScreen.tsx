@@ -1,13 +1,15 @@
 import * as ImagePicker from "expo-image-picker";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, Pressable, View } from "react-native";
 import { useState } from "react";
 import {
   Building2,
+  Check,
+  ChevronDown,
   IdCard,
   ImageUp,
   KeyRound,
+  Palette,
   RefreshCw,
-  UserCircle2,
   UserPlus,
   UserRoundPen,
   Users,
@@ -29,29 +31,42 @@ import {
   useOrganizationQuery,
   useOrganizationSettingsQuery,
 } from "../../features/organization/queries";
-import { useUploadMyAvatarMutation } from "../../features/profiles/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { toErrorMessage } from "../../utils/errors";
 import { useAppColorScheme } from "../../providers/ColorSchemeProvider";
 import { AppSegmentedControl } from "../../components/AppSegmentedControl";
-import { useClearMyAvatarMutation } from "../../features/account/queries";
 import { getProfileFullName } from "../../utils/profileName";
+import {
+  APP_THEME_PRESETS,
+  CUSTOM_THEME_OPTIONS,
+  DEFAULT_APP_THEME_KEY,
+  type AppThemeKey,
+} from "../../theme/palettes";
 import type { SettingsStackParamList } from "../SettingsStackNavigator";
 
+const themeOptions: Array<{ value: AppThemeKey; label: string; description: string }> = [
+  {
+    value: DEFAULT_APP_THEME_KEY,
+    label: `${APP_THEME_PRESETS[DEFAULT_APP_THEME_KEY].name} (Default)`,
+    description: APP_THEME_PRESETS[DEFAULT_APP_THEME_KEY].description,
+  },
+  ...CUSTOM_THEME_OPTIONS,
+];
+
 export function SettingsScreen() {
-  const { userId, profile } = useCurrentUser();
+  const { profile } = useCurrentUser();
   const canManageOrganization = isOwnerOrAdminRole(profile.role);
   const [pickerError, setPickerError] = useState<string | null>(null);
-  const { scheme, setScheme } = useAppColorScheme();
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+  const { scheme, setScheme, themeKey, setThemeKey } = useAppColorScheme();
   const navigation = useNavigation<NativeStackNavigationProp<SettingsStackParamList>>();
+  const iconMuted = scheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
 
   const orgQuery = useOrganizationQuery(profile.organization_id);
   const orgSettingsQuery = useOrganizationSettingsQuery(profile.organization_id);
 
   const uploadOrgLogoMutation = useUploadOrganizationLogoMutation(profile.organization_id);
-  const uploadAvatarMutation = useUploadMyAvatarMutation(userId);
-  const clearAvatarMutation = useClearMyAvatarMutation(userId);
 
   async function pickOrgLogo() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -68,41 +83,8 @@ export function SettingsScreen() {
     return result.assets[0] ?? null;
   }
 
-  async function pickAvatarFromLibrary() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      throw new Error("Permission to access photos was denied.");
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "images",
-      allowsEditing: true,
-      aspect: [1, 1],
-      base64: true,
-      quality: 0.85,
-    });
-
-    if (result.canceled) return null;
-    return result.assets[0] ?? null;
-  }
-
-  async function pickAvatarFromCamera() {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      throw new Error("Permission to access the camera was denied.");
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: "images",
-      allowsEditing: true,
-      aspect: [1, 1],
-      base64: true,
-      quality: 0.85,
-    });
-
-    if (result.canceled) return null;
-    return result.assets[0] ?? null;
-  }
+  const selectedThemeOption =
+    themeOptions.find((option) => option.value === themeKey) ?? themeOptions[0];
 
   return (
     <Screen scroll>
@@ -171,14 +153,6 @@ export function SettingsScreen() {
             />
 
             <AppButton
-              label="View members"
-              variant="secondary"
-              icon={Users}
-              disabled={!canManageOrganization}
-              onPress={() => navigation.navigate("ViewMembers")}
-            />
-
-            <AppButton
               label={
                 uploadOrgLogoMutation.isPending ? "Uploading logo..." : "Change organization logo"
               }
@@ -195,6 +169,14 @@ export function SettingsScreen() {
                   setPickerError(toErrorMessage(error));
                 }
               }}
+            />
+
+            <AppButton
+              label="View members"
+              variant="secondary"
+              icon={Users}
+              disabled={!canManageOrganization}
+              onPress={() => navigation.navigate("ViewMembers")}
             />
 
             {uploadOrgLogoMutation.isError ? (
@@ -216,85 +198,10 @@ export function SettingsScreen() {
           </View>
 
           <AppButton
-            label={uploadAvatarMutation.isPending ? "Uploading photo..." : "Change profile photo"}
-            variant="secondary"
-            icon={UserCircle2}
-            disabled={uploadAvatarMutation.isPending || clearAvatarMutation.isPending}
-            onPress={() => {
-              const actions: Parameters<typeof Alert.alert>[2] = [
-                {
-                  text: "Take photo",
-                  onPress: () => {
-                    void (async () => {
-                      try {
-                        setPickerError(null);
-                        const asset = await pickAvatarFromCamera();
-                        if (!asset) return;
-                        uploadAvatarMutation.mutate({ asset });
-                      } catch (error) {
-                        setPickerError(toErrorMessage(error));
-                      }
-                    })();
-                  },
-                },
-                {
-                  text: "Choose from library",
-                  onPress: () => {
-                    void (async () => {
-                      try {
-                        setPickerError(null);
-                        const asset = await pickAvatarFromLibrary();
-                        if (!asset) return;
-                        uploadAvatarMutation.mutate({ asset });
-                      } catch (error) {
-                        setPickerError(toErrorMessage(error));
-                      }
-                    })();
-                  },
-                },
-              ];
-
-              if (profile.avatar_url) {
-                actions.push({
-                  text: "Remove photo",
-                  style: "destructive",
-                  onPress: () => {
-                    Alert.alert(
-                      "Remove photo",
-                      "Remove your profile photo?",
-                      [
-                        { text: "Cancel", style: "cancel" },
-                        {
-                          text: "Remove",
-                          style: "destructive",
-                          onPress: () => clearAvatarMutation.mutate(),
-                        },
-                      ],
-                      { cancelable: true },
-                    );
-                  },
-                });
-              }
-
-              actions.push({ text: "Cancel", style: "cancel" });
-
-              Alert.alert("Profile photo", "Choose an option", actions);
-            }}
-          />
-
-          {uploadAvatarMutation.isError ? (
-            <AppText variant="error">{toErrorMessage(uploadAvatarMutation.error)}</AppText>
-          ) : null}
-          {clearAvatarMutation.isError ? (
-            <AppText variant="error">{toErrorMessage(clearAvatarMutation.error)}</AppText>
-          ) : null}
-          {pickerError ? <AppText variant="error">{pickerError}</AppText> : null}
-
-          <AppButton
-            label="Change name"
+            label="Edit details"
             variant="secondary"
             icon={UserRoundPen}
-            onPress={() => navigation.navigate("EditName")}
+            onPress={() => navigation.navigate("EditDetails")}
           />
 
           <AppButton
@@ -331,8 +238,8 @@ export function SettingsScreen() {
         ) : null}
 
         <AppCard className="gap-3">
-          <AppText variant="heading">Appearance</AppText>
-          <AppText variant="caption">Choose a theme.</AppText>
+          <AppText variant="heading">Themes</AppText>
+          <AppText variant="caption">Switch mode and choose a custom palette.</AppText>
 
           <AppSegmentedControl
             value={scheme}
@@ -342,6 +249,56 @@ export function SettingsScreen() {
             ]}
             onChange={setScheme}
           />
+
+          <View className="gap-2">
+            <AppText variant="label">Custom Themes</AppText>
+            <Pressable
+              accessibilityRole="button"
+              className="rounded-xl border border-border bg-card px-3 py-3 dark:border-borderDark dark:bg-cardDark"
+              onPress={() => setThemeMenuOpen((open) => !open)}
+            >
+              <View className="flex-row items-center justify-between gap-3">
+                <View className="flex-1 flex-row items-center gap-2">
+                  <Palette size={18} color={iconMuted} />
+                  <View className="flex-1">
+                    <AppText variant="body">{selectedThemeOption.label}</AppText>
+                    <AppText variant="caption">{selectedThemeOption.description}</AppText>
+                  </View>
+                </View>
+                <ChevronDown size={18} color={iconMuted} />
+              </View>
+            </Pressable>
+
+            {themeMenuOpen ? (
+              <View className="overflow-hidden rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark">
+                {themeOptions.map((option, index) => {
+                  const selected = option.value === themeKey;
+                  return (
+                    <Pressable
+                      key={option.value}
+                      className={cn(
+                        "px-3 py-3",
+                        index < themeOptions.length - 1 && "border-b border-border dark:border-borderDark",
+                        selected && "bg-primary/10 dark:bg-primaryDark/20",
+                      )}
+                      onPress={() => {
+                        setThemeKey(option.value);
+                        setThemeMenuOpen(false);
+                      }}
+                    >
+                      <View className="flex-row items-start justify-between gap-2">
+                        <View className="flex-1">
+                          <AppText variant="body">{option.label}</AppText>
+                          <AppText variant="caption">{option.description}</AppText>
+                        </View>
+                        {selected ? <Check size={16} color={iconMuted} /> : null}
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : null}
+          </View>
         </AppCard>
       </AppStack>
     </Screen>

@@ -21,8 +21,8 @@ export function RootNavigation() {
     return <MissingSupabaseConfigScreen />;
   }
 
-  const { scheme, ready } = useAppColorScheme();
-  const navigationTheme = useMemo(() => getNavigationTheme(scheme), [scheme]);
+  const { scheme, themeKey, ready } = useAppColorScheme();
+  const navigationTheme = useMemo(() => getNavigationTheme(scheme), [scheme, themeKey]);
   const { session, isLoading } = useAuthSession();
   const profileQuery = useMyProfileQuery(session?.user.id);
   const signOutMutation = useSignOutMutation();

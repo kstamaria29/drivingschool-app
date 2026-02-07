@@ -114,6 +114,7 @@ Deno.serve(async (req) => {
     organization_id: callerProfile.organization_id,
     role: "instructor",
     display_name: displayName,
+    email,
     first_name: firstName,
     last_name: lastName,
     must_change_password: true,

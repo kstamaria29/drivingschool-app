@@ -1,27 +1,4 @@
-﻿# PROJECT_LOG.md
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Archive PROJECT_LOG and enforce 30-entry cap
-- **Summary:**
-  - Archived older entries from `PROJECT_LOG.md` into `docs/logs/PROJECT_LOG_ARCHIVE.md`.
-  - Added a 30-entry rolling cap rule and archive instructions in `AGENTS.md`.
-  - Added `docs/logs/INDEX.md` to document active vs archived log paths.
-- **Files changed:**
-  - `AGENTS.md`
-  - `PROJECT_LOG.md`
-  - `docs/logs/INDEX.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Raw PROJECT_LOG.md`
-  - `rg --no-heading "^- \*\*Date:\*\*" PROJECT_LOG.md`
-  - PowerShell archive script (move old entries + keep latest 30)
-- **How to verify:**
-  - Confirm `PROJECT_LOG.md` contains only the most recent 30 entries.
-  - Confirm older entries exist in `docs/logs/PROJECT_LOG_ARCHIVE.md`.
-  - Confirm `AGENTS.md` includes the 30-entry archive rule.
-
----
+# PROJECT_LOG.md
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
 - **Task:** Reduce active project log cap to 20 entries
@@ -563,3 +540,52 @@
   - As owner, toggle `Show` and confirm instructor student groups appear below the owner block with each instructor name.
   - Sign in as admin with no students assigned to that admin account and confirm the default students list is replaced by owner/instructor grouped blocks.
   - Sign in as owner/admin, open `Settings` -> `Organization`, tap `View members`, and confirm members render in order: Owner, Instructors, Admin, with avatar and full name rows.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Member profile details flow + custom theme system
+- **Summary:**
+  - Reordered owner/admin Organization actions so `View members` appears below `Change organization logo`.
+  - Added owner/admin member tap-through profile screen with member avatar/name/contact details, active student count, and next 3 lessons.
+  - Replaced `Change name` with `Edit details` for all roles; new screen supports first/last name, avatar, email, contact no., and address.
+  - Removed `Change profile photo` from the main Settings screen and moved avatar management into `Edit details`.
+  - Renamed `Appearance` to `Themes`, added `Custom Themes` dropdown, and implemented six new named palettes with global runtime color-token theming.
+  - Added Supabase migration for profile detail columns and self-update RPC, plus instructor creation update to persist profile email.
+- **Files changed:**
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/screens/ViewMembersScreen.tsx`
+  - `src/navigation/screens/MemberProfileScreen.tsx`
+  - `src/navigation/screens/EditDetailsScreen.tsx`
+  - `src/navigation/SettingsStackNavigator.tsx`
+  - `src/features/profiles/api.ts`
+  - `src/features/profiles/queries.ts`
+  - `src/features/account/api.ts`
+  - `src/features/account/queries.ts`
+  - `src/features/account/schemas.ts`
+  - `src/providers/ColorSchemeProvider.tsx`
+  - `src/theme/theme.ts`
+  - `src/theme/palettes.ts`
+  - `tailwind.config.js`
+  - `src/navigation/RootNavigation.tsx`
+  - `src/supabase/types.ts`
+  - `supabase/migrations/015_profile_member_details.sql`
+  - `supabase/functions/create-instructor/index.ts`
+  - `supabase/README.md`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `Get-Content -Raw docs/logs/INDEX.md`
+  - `mcp__context7__resolve-library-id (nativewind)`
+  - `mcp__context7__query-docs (/nativewind/nativewind)`
+  - `npx tsc --noEmit`
+  - `PowerShell log rotation script (append new entry + keep latest 20)`
+- **How to verify:**
+  - Open `Settings` as owner/admin and confirm in `Organization` card: `Change organization logo` appears above `View members`.
+  - Open `Settings` -> `View members`, tap any member, and confirm profile page shows avatar, name, email, contact no., address, active students, and next 3 lessons.
+  - Open `Settings` as any role and confirm `Account Settings` shows `Edit details` (not `Change name`) and does not show `Change profile photo`.
+  - Open `Edit details`, update first/last name, email, contact no., address, and avatar; save and confirm values refresh in settings/member views.
+  - In `Settings` -> `Themes`, confirm heading is `Themes`, Light/Dark toggle still works, and `Custom Themes` dropdown lists 6 new presets and applies colors app-wide.
+  - Apply `supabase/migrations/015_profile_member_details.sql` before testing profile detail persistence against Supabase.

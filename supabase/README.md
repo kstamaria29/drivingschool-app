@@ -20,6 +20,7 @@ In the Supabase Dashboard:
    - `supabase/migrations/012_map_pins.sql`
    - `supabase/migrations/013_map_annotations.sql`
    - `supabase/migrations/014_role_display_name.sql`
+   - `supabase/migrations/015_profile_member_details.sql`
 
 ## Edge Functions
 

@@ -41,8 +41,11 @@ export type Database = {
           role: "owner" | "admin" | "instructor";
           role_display_name: string | null;
           display_name: string;
+          email: string | null;
           first_name: string | null;
           last_name: string | null;
+          contact_no: string | null;
+          address: string | null;
           avatar_url: string | null;
           must_change_password: boolean;
           password_changed_at: string | null;
@@ -54,8 +57,11 @@ export type Database = {
           role: "owner" | "admin" | "instructor";
           role_display_name?: string | null;
           display_name: string;
+          email?: string | null;
           first_name?: string | null;
           last_name?: string | null;
+          contact_no?: string | null;
+          address?: string | null;
           avatar_url?: string | null;
           must_change_password?: boolean;
           password_changed_at?: string | null;
@@ -66,8 +72,11 @@ export type Database = {
           role?: "owner" | "admin" | "instructor";
           role_display_name?: string | null;
           display_name?: string;
+          email?: string | null;
           first_name?: string | null;
           last_name?: string | null;
+          contact_no?: string | null;
+          address?: string | null;
           avatar_url?: string | null;
           must_change_password?: boolean;
           password_changed_at?: string | null;
@@ -396,6 +405,16 @@ export type Database = {
       set_my_role_display_name: {
         Args: {
           new_role_display_name: string;
+        };
+        Returns: null;
+      };
+      set_my_profile_details: {
+        Args: {
+          first_name: string;
+          last_name: string;
+          email: string;
+          contact_no: string | null;
+          address: string | null;
         };
         Returns: null;
       };
