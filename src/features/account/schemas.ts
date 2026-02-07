@@ -1,12 +1,5 @@
 import { z } from "zod";
 
-export const editNameSchema = z.object({
-  firstName: z.string().min(2, "Enter a first name"),
-  lastName: z.string().min(2, "Enter a last name"),
-});
-
-export type EditNameFormValues = z.infer<typeof editNameSchema>;
-
 export const editDetailsSchema = z.object({
   firstName: z.string().trim().min(2, "Enter a first name"),
   lastName: z.string().trim().min(2, "Enter a last name"),

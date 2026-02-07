@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState } from "react";
-import { Controller, useForm, useWatch, type FieldErrors } from "react-hook-form";
+import { Controller, useForm, useWatch, type FieldErrors, type FieldPath } from "react-hook-form";
 import { ActivityIndicator, Alert, Platform, View } from "react-native";
 import { ArrowLeft, FileDown, Play, RefreshCw, Users, X } from "lucide-react-native";
 
@@ -39,6 +39,14 @@ import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
 type Props = NativeStackScreenProps<AssessmentsStackParamList, "DrivingAssessment">;
 
 type DrivingAssessmentStage = "details" | "confirm" | "test";
+type DrivingAssessmentCategoryKey = keyof typeof drivingAssessmentCriteria;
+
+function scoreFieldName(
+  category: DrivingAssessmentCategoryKey,
+  index: number,
+): FieldPath<DrivingAssessmentFormValues> {
+  return `scores.${category}.${index}` as FieldPath<DrivingAssessmentFormValues>;
+}
 
 function hydrateFromStudent(
   form: ReturnType<typeof useForm<DrivingAssessmentFormValues>>,
@@ -492,7 +500,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
               </AppText>
             </AppCard>
 
-            {(Object.keys(drivingAssessmentCriteria) as Array<keyof typeof drivingAssessmentCriteria>).map(
+            {(Object.keys(drivingAssessmentCriteria) as DrivingAssessmentCategoryKey[]).map(
               (category) => (
                 <AppCard key={category} className="gap-4">
                   <AppText variant="heading">
@@ -503,7 +511,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
                     <Controller
                       key={`${category}-${index}`}
                       control={form.control}
-                      name={`scores.${category}.${index}` as any}
+                      name={scoreFieldName(category, index)}
                       render={({ field }) => (
                         <AppStack gap="sm">
                           <AppText variant="body">{label}</AppText>

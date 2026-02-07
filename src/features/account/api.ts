@@ -1,10 +1,5 @@
 import { supabase } from "../../supabase/client";
 
-export type UpdateMyNameInput = {
-  firstName: string;
-  lastName: string;
-};
-
 export type UpdateMyDetailsInput = {
   firstName: string;
   lastName: string;
@@ -12,15 +7,6 @@ export type UpdateMyDetailsInput = {
   contactNo?: string;
   address?: string;
 };
-
-export async function updateMyName(input: UpdateMyNameInput) {
-  const { error } = await supabase.rpc("set_my_name", {
-    first_name: input.firstName,
-    last_name: input.lastName,
-  });
-
-  if (error) throw error;
-}
 
 export async function updateMyDetails(input: UpdateMyDetailsInput) {
   const normalizedEmail = input.email.trim().toLowerCase();

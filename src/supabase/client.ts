@@ -3,7 +3,7 @@ import { AppState, Platform } from "react-native";
 import "react-native-url-polyfill/auto";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createClient, processLock } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "./types";
 import { isSupabaseConfigured, SUPABASE_ANON_KEY, SUPABASE_URL } from "./env";
@@ -14,13 +14,12 @@ const createSupabaseClient = () =>
     isSupabaseConfigured ? SUPABASE_URL : "http://localhost",
     isSupabaseConfigured ? SUPABASE_ANON_KEY : "missing-supabase-anon-key",
     {
-    auth: {
-      ...(Platform.OS !== "web" ? { storage: AsyncStorage } : {}),
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: false,
-      // lock: processLock,
-    },
+      auth: {
+        ...(Platform.OS !== "web" ? { storage: AsyncStorage } : {}),
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: false,
+      },
     },
   );
 

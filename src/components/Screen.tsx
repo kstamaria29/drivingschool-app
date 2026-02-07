@@ -1,4 +1,4 @@
-import { useEffect, useRef, type PropsWithChildren } from "react";
+import { useEffect, useRef, type PropsWithChildren, type RefObject } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -7,6 +7,7 @@ import {
   TextInput,
   useWindowDimensions,
   View,
+  type ScrollViewProps,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   type ViewProps,
@@ -18,13 +19,23 @@ import { cn } from "../utils/cn";
 
 type Props = PropsWithChildren<ViewProps> & {
   scroll?: boolean;
+  scrollRef?: RefObject<ScrollView | null>;
+  scrollViewProps?: Omit<ScrollViewProps, "ref" | "children">;
 };
 
 const TABLET_MIN_WIDTH = 768;
 
-export function Screen({ scroll = false, className, children, ...props }: Props) {
+export function Screen({
+  scroll = false,
+  scrollRef: externalScrollRef,
+  scrollViewProps,
+  className,
+  children,
+  ...props
+}: Props) {
   const { width, height } = useWindowDimensions();
-  const scrollRef = useRef<ScrollView>(null);
+  const internalScrollRef = useRef<ScrollView>(null);
+  const scrollRef = externalScrollRef ?? internalScrollRef;
   const scrollOffsetYRef = useRef(0);
   const isTabletPortrait = Math.min(width, height) >= TABLET_MIN_WIDTH && height > width;
   const keyboardAwareEnabled = scroll && isTabletPortrait;
@@ -79,6 +90,7 @@ export function Screen({ scroll = false, className, children, ...props }: Props)
         >
           <ScrollView
             ref={scrollRef}
+            {...scrollViewProps}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
             automaticallyAdjustKeyboardInsets={Platform.OS === "ios" && keyboardAwareEnabled}

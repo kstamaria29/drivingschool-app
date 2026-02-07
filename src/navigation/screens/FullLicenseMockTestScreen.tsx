@@ -128,12 +128,6 @@ function immediateTotalFromCounts(counts: FullLicenseMockTestErrorCounts) {
   return fullLicenseMockTestImmediateErrors.reduce((sum, label) => sum + (counts[label] ?? 0), 0);
 }
 
-function hazardResponseLabel(value: FullLicenseMockTestHazardResponse) {
-  if (value === "yes") return "Yes";
-  if (value === "no") return "No";
-  return "N/A";
-}
-
 function hazardDirectionLabel(direction: FullLicenseMockTestHazardDirection) {
   if (direction === "left") return "Left";
   if (direction === "right") return "Right";

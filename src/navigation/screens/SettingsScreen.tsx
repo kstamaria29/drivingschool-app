@@ -1,6 +1,6 @@
 import * as ImagePicker from "expo-image-picker";
-import { ActivityIndicator, Pressable, View } from "react-native";
-import { useEffect, useState } from "react";
+import { ActivityIndicator, Pressable, View, type ScrollView } from "react-native";
+import { useEffect, useRef, useState } from "react";
 import {
   Building2,
   Check,
@@ -59,6 +59,7 @@ export function SettingsScreen() {
   const canManageOrganization = isOwnerOrAdminRole(profile.role);
   const [pickerError, setPickerError] = useState<string | null>(null);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+  const settingsScrollRef = useRef<ScrollView>(null);
   const { scheme, setScheme, themeKey, setThemeKey } = useAppColorScheme();
   const navigation = useNavigation<NativeStackNavigationProp<SettingsStackParamList>>();
   const iconMuted = scheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
@@ -91,8 +92,19 @@ export function SettingsScreen() {
     setThemeMenuOpen(false);
   }, [scheme]);
 
+  useEffect(() => {
+    if (!themeMenuOpen) return;
+    const timeoutId = setTimeout(() => {
+      settingsScrollRef.current?.scrollToEnd({ animated: true });
+    }, 50);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [themeMenuOpen]);
+
   return (
-    <Screen scroll>
+    <Screen scroll scrollRef={settingsScrollRef}>
       <AppStack gap="lg">
         <View>
           <AppText variant="title">Settings</AppText>

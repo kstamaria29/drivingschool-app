@@ -19,6 +19,27 @@ export type OpenMeteoForecast = {
   }>;
 };
 
+type OpenMeteoApiResponse = {
+  current_weather?: {
+    temperature?: number;
+    windspeed?: number;
+    weathercode?: number;
+    time?: string;
+  };
+  hourly?: {
+    time?: string[];
+    temperature_2m?: number[];
+    weathercode?: number[];
+    precipitation_probability?: number[];
+  };
+  daily?: {
+    time?: string[];
+    weathercode?: number[];
+    temperature_2m_max?: number[];
+    temperature_2m_min?: number[];
+  };
+};
+
 export function describeWeatherCode(code: number) {
   if (code === 0) return "Clear";
   if (code === 1) return "Mainly clear";
@@ -58,7 +79,7 @@ export async function fetchOpenMeteoForecast(input: {
     throw new Error(`Weather request failed (${response.status})`);
   }
 
-  const json: any = await response.json();
+  const json = (await response.json()) as OpenMeteoApiResponse;
   const current = json?.current_weather;
   const hourly = json?.hourly;
   const daily = json?.daily;

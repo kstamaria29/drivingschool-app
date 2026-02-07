@@ -7,27 +7,11 @@ import {
   changeMyPassword,
   clearMyAvatar,
   updateMyDetails,
-  updateMyName,
   updateMyRoleDisplay,
   type ChangeMyPasswordInput,
   type UpdateMyDetailsInput,
   type UpdateMyRoleDisplayInput,
 } from "./api";
-
-export function useUpdateMyNameMutation(userId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: updateMyName,
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: authKeys.profile(userId) }),
-        queryClient.invalidateQueries({ queryKey: profileKeys.list() }),
-        queryClient.invalidateQueries({ queryKey: ["profiles", "member"] }),
-      ]);
-    },
-  });
-}
 
 export function useUpdateMyDetailsMutation(userId: string) {
   const queryClient = useQueryClient();

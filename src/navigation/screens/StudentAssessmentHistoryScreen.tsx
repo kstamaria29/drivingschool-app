@@ -63,12 +63,6 @@ type Props = NativeStackScreenProps<StudentsStackParamList, "StudentAssessmentHi
 
 type AssessmentType = Assessment["assessment_type"];
 
-const assessmentTypesLegacy: Array<{ type: AssessmentType; label: string }> = [
-  { type: "driving_assessment", label: "Driving Assessment" },
-  { type: "second_assessment", label: "Mock Test – Restricted" },
-  { type: "third_assessment", label: "3rd Assessment" },
-];
-
 const assessmentTypes: Array<{ type: AssessmentType; label: string }> = [
   { type: "driving_assessment", label: "Driving Assessment" },
   { type: "second_assessment", label: "Mock Test - Restricted" },
@@ -122,7 +116,7 @@ function getRestrictedMockTestSummary(assessment: Assessment) {
   const s2 = summary.stage2Faults ?? 0;
   const crit = summary.criticalTotal ?? 0;
   const imm = summary.immediateTotal ?? 0;
-  return `Stage 1: ${s1} faults · Stage 2: ${s2} faults · Critical: ${crit} · Immediate: ${imm}`;
+  return `Stage 1: ${s1} faults \u00b7 Stage 2: ${s2} faults \u00b7 Critical: ${crit} \u00b7 Immediate: ${imm}`;
 }
 
 function getFullLicenseMockTestSummary(assessment: Assessment) {
@@ -138,7 +132,7 @@ function getFullLicenseMockTestSummary(assessment: Assessment) {
   });
 
   const readiness = values.summary?.readinessLabel ?? computed.readiness.label;
-  const score = computed.scorePercent == null ? "—" : `${computed.scorePercent}%`;
+  const score = computed.scorePercent == null ? "\u2014" : `${computed.scorePercent}%`;
   return `${readiness} - Score: ${score} - Attempts: ${computed.attemptsCount}`;
 }
 
@@ -606,7 +600,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         <AppStack gap="md">
           <View className="flex-row items-start justify-between gap-3">
             <View className="flex-1">
-              <AppText variant="heading">Mock Test – Restricted</AppText>
+              <AppText variant="heading">Mock Test \u2013 Restricted</AppText>
               <AppText className="mt-1" variant="caption">
                 Assessment on {formatAssessmentDate(assessment)}
               </AppText>
@@ -638,7 +632,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
           <AppCard className="gap-2">
             <AppText variant="heading">Overview</AppText>
             <AppText variant="body">
-              Stage 1 faults: {summary.stage1Faults ?? 0} · Stage 2 faults: {summary.stage2Faults ?? 0}
+              Stage 1 faults: {summary.stage1Faults ?? 0} {"\u00b7"} Stage 2 faults: {summary.stage2Faults ?? 0}
             </AppText>
             <AppText variant="body">Critical errors: {criticalTotal}</AppText>
             <AppText variant="body">Immediate failure errors: {immediateTotal}</AppText>
@@ -796,7 +790,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
             <AppText variant="body">Readiness: {readinessLabel}</AppText>
             <AppText variant="caption">{readinessReason}</AppText>
             <AppText variant="body">Attempts: {computed.attemptsCount}</AppText>
-            <AppText variant="body">Score: {computed.scorePercent == null ? "—" : `${computed.scorePercent}%`}</AppText>
+            <AppText variant="body">Score: {computed.scorePercent == null ? "\u2014" : `${computed.scorePercent}%`}</AppText>
             <AppText variant="body">Critical errors: {computed.criticalTotal}</AppText>
             <AppText variant="body">Immediate failure errors: {computed.immediateTotal}</AppText>
           </AppCard>
@@ -941,7 +935,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
           <View className="flex-1">
             <AppText variant="heading">Assessment on {formatAssessmentDate(assessment)}</AppText>
             <AppText className="mt-1" variant="caption">
-              Instructor: {values.instructor || "—"}
+              Instructor: {values.instructor || "\u2014"}
             </AppText>
           </View>
 
@@ -961,31 +955,31 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         <View className="flex-row flex-wrap gap-4">
           <View className="min-w-56 flex-1 gap-2">
             <AppText variant="label">Feedback summary</AppText>
-            <AppText variant="body">{feedbackSummary || "—"}</AppText>
+            <AppText variant="body">{feedbackSummary || "\u2014"}</AppText>
           </View>
 
           <View className="min-w-56 flex-1 gap-2">
             <AppText variant="label">Strengths</AppText>
-            <AppText variant="body">{values.strengths?.trim() ? values.strengths.trim() : "—"}</AppText>
+            <AppText variant="body">{values.strengths?.trim() ? values.strengths.trim() : "\u2014"}</AppText>
           </View>
 
           <View className="min-w-56 flex-1 gap-2">
             <AppText variant="label">Improvements</AppText>
             <AppText variant="body">
-              {values.improvements?.trim() ? values.improvements.trim() : "—"}
+              {values.improvements?.trim() ? values.improvements.trim() : "\u2014"}
             </AppText>
           </View>
 
           <View className="min-w-56 flex-1 gap-2">
             <AppText variant="label">Recommendation</AppText>
             <AppText variant="body">
-              {values.recommendation?.trim() ? values.recommendation.trim() : "—"}
+              {values.recommendation?.trim() ? values.recommendation.trim() : "\u2014"}
             </AppText>
           </View>
 
           <View className="min-w-56 flex-1 gap-2">
             <AppText variant="label">Next steps</AppText>
-            <AppText variant="body">{values.nextSteps?.trim() ? values.nextSteps.trim() : "—"}</AppText>
+            <AppText variant="body">{values.nextSteps?.trim() ? values.nextSteps.trim() : "\u2014"}</AppText>
           </View>
         </View>
 
@@ -1006,7 +1000,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
                   (Array.isArray(categoryScores)
                     ? categoryScores[index]
                     : (categoryScores as Record<string, string> | undefined)?.[String(index)]) ?? "";
-                const scoreText = raw?.trim() ? raw.trim() : "—";
+                const scoreText = raw?.trim() ? raw.trim() : "\u2014";
 
                 return (
                   <View key={`${category}-${index}`} className="flex-row items-start justify-between gap-3">

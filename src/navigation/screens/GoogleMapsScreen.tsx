@@ -37,8 +37,6 @@ import {
   serializeSnapshotAnnotation,
   type SnapshotAnnotationContent,
   type SnapshotPoint,
-  type SnapshotStroke,
-  type SnapshotText,
 } from "../../features/map-annotations/codec";
 import {
   useCreateMapAnnotationMutation,
