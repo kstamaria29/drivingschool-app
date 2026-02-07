@@ -52,6 +52,7 @@ function DrawerRow({
   onPress,
   disabled,
   labelClassName,
+  rightAligned,
 }: {
   collapsed: boolean;
   label: string;
@@ -60,6 +61,7 @@ function DrawerRow({
   onPress: () => void;
   disabled?: boolean;
   labelClassName?: string;
+  rightAligned?: boolean;
 }) {
   return (
     <Pressable
@@ -69,6 +71,7 @@ function DrawerRow({
         "mb-1 flex-row items-center gap-3 rounded-xl border px-3 py-3",
         active ? "border-primary bg-primary/10 dark:border-primaryDark dark:bg-primaryDark/10" : "border-transparent bg-transparent",
         disabled ? "opacity-50" : "",
+        rightAligned ? "justify-end" : "",
       )}
     >
       <View className="w-6 items-center justify-center">{icon}</View>
@@ -222,6 +225,9 @@ export function AppDrawerContent({
             active={currentRouteName === "GoogleMaps"}
             onPress={() => navigation.navigate("GoogleMaps")}
           />
+          <View className="my-2">
+            <AppDivider />
+          </View>
           <DrawerRow
             collapsed={collapsed}
             label="Settings"
@@ -260,6 +266,7 @@ export function AppDrawerContent({
               active={false}
               onPress={confirmSignOut}
               disabled={signOutMutation.isPending}
+              rightAligned
             />
           </View>
         </View>

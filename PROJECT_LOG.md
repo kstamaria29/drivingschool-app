@@ -1,25 +1,6 @@
 ﻿# PROJECT_LOG.md
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Align full mock test hazard columns vertically
-- **Summary:**
-  - Updated hazard matrix layout to use fixed direction columns (`L`, `R`, `A`, `B`, `O`) for every category row.
-  - Added empty placeholders for directions not used in a category so matching subcategory letters align vertically across rows.
-- **Files changed:**
-  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
-  - `PROJECT_LOG.md`
-- **Commands run:**
-  - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Tail 120 PROJECT_LOG.md`
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Open `Assessments` -> `Mock Test - Full License` -> start run -> `Record task attempt`.
-  - In `Hazard Detection and Response`, confirm `L` boxes are vertically aligned across `Pedestrians`, `Vehicles`, and `Others`.
-  - Confirm the same vertical alignment for `R`, `A`, `B`, and `O`.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
 - **Task:** Archive PROJECT_LOG and enforce 30-entry cap
 - **Summary:**
   - Archived older entries from `PROJECT_LOG.md` into `docs/logs/PROJECT_LOG_ARCHIVE.md`.
@@ -542,3 +523,43 @@
   - Open `Students` -> `New/Edit student` and confirm `Address (optional)` placeholder text is vertically centered.
   - Open `Google Maps` and confirm `Search address (NZ)` placeholder text is vertically centered.
   - Confirm multiline fields (for example `Notes`) remain top-aligned.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Drawer alignment, student role-grouping, and members directory screen
+- **Summary:**
+  - Updated drawer layout so `Sign out` is right-aligned and added a divider between `Google Maps` and `Settings`.
+  - Added owner-only `View Instructor's Students` toggle (`Hide`/`Show`) beside Sort in Students and grouped visible students into role-based blocks.
+  - Added admin fallback Students behavior: when admin has no assigned students, hide the main list and show owner/instructor student blocks with names.
+  - Added `View members` in Organization settings (owner/admin only) and a new members screen grouped top-to-bottom as Owner, Instructors, and Admin with avatar + full name cards.
+  - Extended organization profile query payload to include name/avatar fields needed for member and instructor labeling.
+- **Files changed:**
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/SettingsStackNavigator.tsx`
+  - `src/navigation/screens/ViewMembersScreen.tsx`
+  - `src/features/profiles/api.ts`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Raw PROJECT_LOG.md`
+  - `Get-Content -Raw docs/logs/INDEX.md`
+  - `git status -sb`
+  - `Get-Content -Raw src/navigation/components/AppDrawerContent.tsx`
+  - `Get-Content -Raw src/navigation/screens/StudentsListScreen.tsx`
+  - `Get-Content -Raw src/navigation/screens/SettingsScreen.tsx`
+  - `Get-Content -Raw src/navigation/SettingsStackNavigator.tsx`
+  - `Get-Content -Raw src/features/profiles/api.ts`
+  - `mcp__context7__resolve-library-id (react)`
+  - `mcp__context7__query-docs (/websites/react_dev)`
+  - `npx tsc --noEmit`
+  - `PowerShell UTF-8 log rotation script (append new entry + keep latest 20)`
+- **How to verify:**
+  - Open the drawer and confirm `Sign out` is right-aligned and there is a divider between `Google Maps` and `Settings`.
+  - Sign in as owner, open `Students`, and confirm `View Instructor's Students` toggle appears on the same controls row as `Sort`, defaulting to `Hide`.
+  - As owner, toggle `Show` and confirm instructor student groups appear below the owner block with each instructor name.
+  - Sign in as admin with no students assigned to that admin account and confirm the default students list is replaced by owner/instructor grouped blocks.
+  - Sign in as owner/admin, open `Settings` -> `Organization`, tap `View members`, and confirm members render in order: Owner, Instructors, Admin, with avatar and full name rows.

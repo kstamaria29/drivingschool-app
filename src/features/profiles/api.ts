@@ -4,7 +4,7 @@ import { base64ToUint8Array } from "../../utils/base64";
 
 export type OrgProfile = Pick<
   Database["public"]["Tables"]["profiles"]["Row"],
-  "id" | "display_name" | "role"
+  "id" | "display_name" | "role" | "first_name" | "last_name" | "avatar_url"
 >;
 
 export type UploadAvatarInput = {
@@ -30,7 +30,7 @@ function guessContentType(asset: UploadAvatarInput["asset"]) {
 export async function listOrganizationProfiles(): Promise<OrgProfile[]> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, display_name, role")
+    .select("id, display_name, role, first_name, last_name, avatar_url")
     .order("display_name", { ascending: true })
     .overrideTypes<OrgProfile[], { merge: false }>();
 

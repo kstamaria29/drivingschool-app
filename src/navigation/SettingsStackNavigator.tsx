@@ -11,12 +11,14 @@ import { EditNameScreen } from "./screens/EditNameScreen";
 import { EditOrganizationNameScreen } from "./screens/EditOrganizationNameScreen";
 import { EditRoleDisplayScreen } from "./screens/EditRoleDisplayScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
+import { ViewMembersScreen } from "./screens/ViewMembersScreen";
 
 export type SettingsStackParamList = {
   SettingsMain: undefined;
   EditName: undefined;
   ChangePassword: undefined;
   EditOrganizationName: undefined;
+  ViewMembers: undefined;
   EditRoleDisplay: undefined;
   AddInstructor: undefined;
 };
@@ -57,6 +59,11 @@ export function SettingsStackNavigator() {
         name="EditOrganizationName"
         component={EditOrganizationNameScreen}
         options={{ headerTitle: "Change organization name" }}
+      />
+      <Stack.Screen
+        name="ViewMembers"
+        component={ViewMembersScreen}
+        options={{ headerTitle: "View members" }}
       />
       <Stack.Screen
         name="EditRoleDisplay"

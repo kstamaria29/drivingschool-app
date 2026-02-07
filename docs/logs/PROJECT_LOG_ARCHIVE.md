@@ -1793,3 +1793,22 @@
   - Confirm selected box colors: green for `Yes`, red for `No`, neutral for `N/A`.
   - Leave all hazard boxes as `N/A`, tap `Record task attempt`, and confirm validation blocks save.
   - Set at least one hazard to `Yes` or `No`, then confirm the attempt records successfully.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Align full mock test hazard columns vertically
+- **Summary:**
+  - Updated hazard matrix layout to use fixed direction columns (`L`, `R`, `A`, `B`, `O`) for every category row.
+  - Added empty placeholders for directions not used in a category so matching subcategory letters align vertically across rows.
+- **Files changed:**
+  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
+  - `PROJECT_LOG.md`
+- **Commands run:**
+  - `Get-Content -Raw AGENTS.md`
+  - `Get-Content -Tail 120 PROJECT_LOG.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open `Assessments` -> `Mock Test - Full License` -> start run -> `Record task attempt`.
+  - In `Hazard Detection and Response`, confirm `L` boxes are vertically aligned across `Pedestrians`, `Vehicles`, and `Others`.
+  - Confirm the same vertical alignment for `R`, `A`, `B`, and `O`.

@@ -10,6 +10,7 @@ import {
   UserCircle2,
   UserPlus,
   UserRoundPen,
+  Users,
 } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -167,6 +168,14 @@ export function SettingsScreen() {
               icon={Building2}
               disabled={!canManageOrganization}
               onPress={() => navigation.navigate("EditOrganizationName")}
+            />
+
+            <AppButton
+              label="View members"
+              variant="secondary"
+              icon={Users}
+              disabled={!canManageOrganization}
+              onPress={() => navigation.navigate("ViewMembers")}
             />
 
             <AppButton
