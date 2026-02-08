@@ -1,6 +1,48 @@
 ﻿# PROJECT_LOG.md
 
 - **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Refine student licence photo management + add date of birth
+- **Summary:**
+  - Added `students.date_of_birth` support end-to-end (migration `018`, Supabase types, Add/Edit form field with date picker, save/update mapping, and profile display).
+  - Updated Student Profile to display `Address: <value>` inline, show date of birth and computed age, and capitalize licence type labels (`Learner`, `Restricted`, `Full`).
+  - Added profile-level licence photo management: each side now has `photo options` to take photo, pick from library, and delete existing photo.
+  - Updated Add/Edit Student licence photo options to support crop-enabled capture/picking (`allowsEditing` + aspect), side-by-side Front/Back layout, and delete-on-save behavior for existing photos.
+  - Removed `Clear issue date` and `Clear expiry date` buttons from Add/Edit Student.
+  - Added focused-notes keyboard assist on Add/Edit Student by scrolling to end on notes focus so lower input stays visible above the keyboard.
+- **Files changed:**
+  - src/features/students/api.ts
+  - src/features/students/queries.ts
+  - src/features/students/schemas.ts
+  - src/navigation/screens/StudentEditScreen.tsx
+  - src/navigation/screens/StudentDetailScreen.tsx
+  - src/supabase/types.ts
+  - supabase/migrations/018_students_date_of_birth.sql
+  - supabase/README.md
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - Get-Content -Raw AGENTS.md
+  - Get-Content -Raw PROJECT_LOG.md
+  - Get-Content -Raw docs/logs/INDEX.md
+  - rg -n "student licence|license|date of birth|StudentEditScreen|StudentDetailScreen|keyboard" docs/logs/PROJECT_LOG_ARCHIVE.md
+  - mcp__context7__resolve-library-id (expo-image-picker)
+  - mcp__context7__query-docs (/websites/expo_dev)
+  - npx prettier --write src/features/students/api.ts src/features/students/queries.ts src/features/students/schemas.ts src/supabase/types.ts src/navigation/screens/StudentEditScreen.tsx src/navigation/screens/StudentDetailScreen.tsx supabase/README.md
+  - npx tsc --noEmit
+- **How to verify:**
+  - Apply `supabase/migrations/018_students_date_of_birth.sql` in Supabase SQL Editor.
+  - Open `Students` -> `New student` and confirm `Date of birth` appears below `Last name`; save and verify DOB persists.
+  - Open a student profile and confirm `Address` shows inline (`Address: ...`), DOB displays when set, and Age shows correctly.
+  - Confirm Licence type text on profile is capitalized (`Learner`, `Restricted`, `Full`).
+  - In `New/Edit student`, open `Front photo options` and `Back photo options`, confirm camera/library opens with crop UI, and front/back sections render side-by-side.
+  - In `Edit student`, choose `Delete photo` for front/back and save; confirm deleted side is removed from profile.
+  - In `Student Profile`, use front/back `photo options` to replace or delete photos and confirm updates appear immediately.
+  - In `Edit student`, focus the `Notes` field on tablet portrait and confirm the input remains visible above keyboard.
+  - Run `npx tsc --noEmit` and confirm no type errors.
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
 - **Task:** Add student licence front/back photo upload + profile gallery viewer
 - **Summary:**
   - Added student licence photo upload support in the student feature API/query layer with storage upload + signed URL persistence (`license_front_image_url`, `license_back_image_url`).
@@ -599,34 +641,5 @@ px tsc --noEmit and confirm no type errors.
   - Open `Google Maps` screen.
   - Confirm the top-right blue add-pin button icon is visually centered.
   - Confirm other icon-only square buttons (e.g. snapshot camera) remain centered.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Harden icon-only button centering for map controls
-- **Summary:**
-  - Added a dedicated `icon` button size in shared theme/button primitives to avoid conflicting NativeWind utility classes for icon-only controls.
-  - Updated icon-only buttons on Google Maps, Snapshot Annotation modal, and Lessons month navigation to use `size="icon"` instead of class-based height/width overrides.
-  - This removes inherited `md` spacing conflicts and centers icons consistently inside square buttons.
-- **Files changed:**
-  - `src/theme/theme.ts`
-  - `src/components/AppButton.tsx`
-  - `src/navigation/screens/GoogleMapsScreen.tsx`
-  - `src/navigation/components/SnapshotAnnotationModal.tsx`
-  - `src/navigation/screens/LessonsListScreen.tsx`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `Get-Content -Raw src/navigation/screens/GoogleMapsScreen.tsx`
-  - `Get-Content -Raw src/navigation/components/SnapshotAnnotationModal.tsx`
-  - `Get-Content -Raw src/features/weather/WeatherWidget.tsx`
-  - `Get-Content -Raw src/components/AppButton.tsx`
-  - `Get-Content -Raw src/theme/theme.ts`
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Open `Google Maps` and confirm the top-right add-pin icon is centered inside its blue square button.
-  - In `Main Map Annotations`, confirm the camera icon is centered inside its square button.
-  - Open Snapshot Annotation and confirm Undo/Redo icons are centered in their square buttons.
-  - Open Lessons list and confirm month nav chevron icons are centered in square controls.
 
 

@@ -12,7 +12,12 @@ const dateString = z
 export const studentFormSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required"),
   lastName: z.string().trim().min(1, "Last name is required"),
-  email: z.string().trim().min(1, "Email is required").email("Enter a valid email"),
+  dateOfBirth: dateString,
+  email: z
+    .string()
+    .trim()
+    .min(1, "Email is required")
+    .email("Enter a valid email"),
   phone: z
     .string()
     .trim()
@@ -23,7 +28,10 @@ export const studentFormSchema = z.object({
   address: z.string().trim(),
   organization: z.string().trim().min(1, "Organization is required"),
   assignedInstructorId: z.string().uuid("Select an instructor"),
-  licenseType: z.enum(["learner", "restricted", "full"], "Select a licence type"),
+  licenseType: z.enum(
+    ["learner", "restricted", "full"],
+    "Select a licence type",
+  ),
   licenseNumber: z.string().trim(),
   licenseVersion: z.string().trim(),
   classHeld: z.string().trim(),

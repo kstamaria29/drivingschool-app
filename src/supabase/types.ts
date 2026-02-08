@@ -110,6 +110,7 @@ export type Database = {
           assigned_instructor_id: string;
           first_name: string;
           last_name: string;
+          date_of_birth: string | null;
           email: string | null;
           phone: string | null;
           address: string | null;
@@ -133,6 +134,7 @@ export type Database = {
           assigned_instructor_id: string;
           first_name: string;
           last_name: string;
+          date_of_birth?: string | null;
           email?: string | null;
           phone?: string | null;
           address?: string | null;
@@ -155,6 +157,7 @@ export type Database = {
           assigned_instructor_id?: string;
           first_name?: string;
           last_name?: string;
+          date_of_birth?: string | null;
           email?: string | null;
           phone?: string | null;
           address?: string | null;
@@ -308,7 +311,10 @@ export type Database = {
           organization_id: string;
           student_id: string;
           instructor_id: string;
-          assessment_type: "driving_assessment" | "second_assessment" | "third_assessment";
+          assessment_type:
+            | "driving_assessment"
+            | "second_assessment"
+            | "third_assessment";
           assessment_date: string | null;
           total_score: number | null;
           form_data: Record<string, unknown>;
@@ -320,7 +326,10 @@ export type Database = {
           organization_id: string;
           student_id: string;
           instructor_id: string;
-          assessment_type: "driving_assessment" | "second_assessment" | "third_assessment";
+          assessment_type:
+            | "driving_assessment"
+            | "second_assessment"
+            | "third_assessment";
           assessment_date?: string | null;
           total_score?: number | null;
           form_data?: Record<string, unknown>;
@@ -331,7 +340,10 @@ export type Database = {
           organization_id?: string;
           student_id?: string;
           instructor_id?: string;
-          assessment_type?: "driving_assessment" | "second_assessment" | "third_assessment";
+          assessment_type?:
+            | "driving_assessment"
+            | "second_assessment"
+            | "third_assessment";
           assessment_date?: string | null;
           total_score?: number | null;
           form_data?: Record<string, unknown>;

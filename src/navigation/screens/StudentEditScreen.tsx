@@ -1,9 +1,16 @@
 import * as ImagePicker from "expo-image-picker";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ActivityIndicator, Alert, Modal, Pressable, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  View,
+  type ScrollView,
+} from "react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -20,6 +27,7 @@ import { useAuthSession } from "../../features/auth/session";
 import { useOrganizationProfilesQuery } from "../../features/profiles/queries";
 import {
   useCreateStudentMutation,
+  useRemoveStudentLicenseImageMutation,
   useUploadStudentLicenseImageMutation,
   useStudentQuery,
   useUpdateStudentMutation,
@@ -71,6 +79,7 @@ function emptyToNull(value: string) {
 export function StudentEditScreen({ navigation, route }: Props) {
   const studentId =
     route.name === "StudentEdit" ? route.params.studentId : undefined;
+  const studentEditScrollRef = useRef<ScrollView>(null);
 
   const { session } = useAuthSession();
   const userId = session?.user.id;
@@ -80,6 +89,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
   const createMutation = useCreateStudentMutation();
   const updateMutation = useUpdateStudentMutation();
   const uploadLicenseImageMutation = useUploadStudentLicenseImageMutation();
+  const removeLicenseImageMutation = useRemoveStudentLicenseImageMutation();
 
   const role = profileQuery.data?.role ?? null;
   const canManageStudentAssignments = isOwnerOrAdminRole(role);
@@ -119,6 +129,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
     defaultValues: {
       firstName: "",
       lastName: "",
+      dateOfBirth: "",
       email: "",
       phone: "",
       address: "",
@@ -145,6 +156,9 @@ export function StudentEditScreen({ navigation, route }: Props) {
     useState<ImagePicker.ImagePickerAsset | null>(null);
   const [pendingLicenseBackAsset, setPendingLicenseBackAsset] =
     useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [removeLicenseFrontOnSave, setRemoveLicenseFrontOnSave] =
+    useState(false);
+  const [removeLicenseBackOnSave, setRemoveLicenseBackOnSave] = useState(false);
 
   useEffect(() => {
     if (defaultAssignedInstructorId) {
@@ -192,6 +206,9 @@ export function StudentEditScreen({ navigation, route }: Props) {
     form.reset({
       firstName: studentQuery.data.first_name,
       lastName: studentQuery.data.last_name,
+      dateOfBirth: studentQuery.data.date_of_birth
+        ? formatIsoDateToDisplay(studentQuery.data.date_of_birth)
+        : "",
       email: studentQuery.data.email ?? "",
       phone: studentQuery.data.phone ?? "",
       address: studentQuery.data.address ?? "",
@@ -210,6 +227,8 @@ export function StudentEditScreen({ navigation, route }: Props) {
         : "",
       notes: studentQuery.data.notes ?? "",
     });
+    setRemoveLicenseFrontOnSave(false);
+    setRemoveLicenseBackOnSave(false);
   }, [form, studentId, studentQuery.data]);
 
   const isLoading =
@@ -264,7 +283,8 @@ export function StudentEditScreen({ navigation, route }: Props) {
   const mutationError =
     createMutation.error ??
     updateMutation.error ??
-    uploadLicenseImageMutation.error;
+    uploadLicenseImageMutation.error ??
+    removeLicenseImageMutation.error;
   const showCreateInstructorDropdown =
     canManageStudentAssignments && !isEditing && instructorProfiles.length > 0;
   const hideAssignedInstructorCard =
@@ -279,6 +299,9 @@ export function StudentEditScreen({ navigation, route }: Props) {
       assigned_instructor_id: values.assignedInstructorId,
       first_name: values.firstName.trim(),
       last_name: values.lastName.trim(),
+      date_of_birth: values.dateOfBirth.trim()
+        ? parseDateInputToISODate(values.dateOfBirth)
+        : null,
       email: values.email.trim(),
       phone: values.phone.trim(),
       address: emptyToNull(values.address),
@@ -353,9 +376,22 @@ export function StudentEditScreen({ navigation, route }: Props) {
   ) {
     if (side === "front") {
       setPendingLicenseFrontAsset(asset);
+      if (asset) setRemoveLicenseFrontOnSave(false);
       return;
     }
     setPendingLicenseBackAsset(asset);
+    if (asset) setRemoveLicenseBackOnSave(false);
+  }
+
+  function setRemoveLicenseOnSave(
+    side: StudentLicenseImageSide,
+    shouldRemove: boolean,
+  ) {
+    if (side === "front") {
+      setRemoveLicenseFrontOnSave(shouldRemove);
+      return;
+    }
+    setRemoveLicenseBackOnSave(shouldRemove);
   }
 
   async function pickLicenseAssetFromLibrary() {
@@ -366,7 +402,8 @@ export function StudentEditScreen({ navigation, route }: Props) {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: "images",
-      allowsEditing: false,
+      allowsEditing: true,
+      aspect: [4, 3],
       quality: 0.85,
     });
 
@@ -382,7 +419,8 @@ export function StudentEditScreen({ navigation, route }: Props) {
 
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: "images",
-      allowsEditing: false,
+      allowsEditing: true,
+      aspect: [4, 3],
       quality: 0.85,
     });
 
@@ -413,6 +451,11 @@ export function StudentEditScreen({ navigation, route }: Props) {
       side === "front"
         ? pendingLicenseFrontAsset != null
         : pendingLicenseBackAsset != null;
+    const existingAssetUri =
+      side === "front" ? existingLicenseFrontUri : existingLicenseBackUri;
+    const removalPending =
+      side === "front" ? removeLicenseFrontOnSave : removeLicenseBackOnSave;
+    const hasExistingAsset = Boolean(existingAssetUri) && !removalPending;
 
     const actions: Parameters<typeof Alert.alert>[2] = [
       {
@@ -432,9 +475,32 @@ export function StudentEditScreen({ navigation, route }: Props) {
     if (hasPendingAsset) {
       actions.push({
         text: "Clear selected",
-        style: "destructive",
         onPress: () => {
           setPendingLicenseAsset(side, null);
+        },
+      });
+    }
+
+    if (hasPendingAsset || hasExistingAsset) {
+      actions.push({
+        text: "Delete photo",
+        style: "destructive",
+        onPress: () => {
+          Alert.alert(
+            `Delete ${sideLabel} photo`,
+            "This photo will be removed when you save this student.",
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Delete",
+                style: "destructive",
+                onPress: () => {
+                  setPendingLicenseAsset(side, null);
+                  setRemoveLicenseOnSave(side, Boolean(existingAssetUri));
+                },
+              },
+            ],
+          );
         },
       });
     }
@@ -443,8 +509,14 @@ export function StudentEditScreen({ navigation, route }: Props) {
     Alert.alert(`Licence card ${sideLabel}`, "Choose an option", actions);
   }
 
-  async function uploadPendingLicenseImages(studentIdToUpload: string) {
-    if (pendingLicenseFrontAsset) {
+  async function applyPendingLicenseImageChanges(studentIdToUpload: string) {
+    if (removeLicenseFrontOnSave && !pendingLicenseFrontAsset) {
+      await removeLicenseImageMutation.mutateAsync({
+        organizationId,
+        studentId: studentIdToUpload,
+        side: "front",
+      });
+    } else if (pendingLicenseFrontAsset) {
       await uploadLicenseImageMutation.mutateAsync({
         organizationId,
         studentId: studentIdToUpload,
@@ -453,7 +525,13 @@ export function StudentEditScreen({ navigation, route }: Props) {
       });
     }
 
-    if (pendingLicenseBackAsset) {
+    if (removeLicenseBackOnSave && !pendingLicenseBackAsset) {
+      await removeLicenseImageMutation.mutateAsync({
+        organizationId,
+        studentId: studentIdToUpload,
+        side: "back",
+      });
+    } else if (pendingLicenseBackAsset) {
       await uploadLicenseImageMutation.mutateAsync({
         organizationId,
         studentId: studentIdToUpload,
@@ -469,7 +547,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
       organization_id: organizationId,
       ...base,
     });
-    await uploadPendingLicenseImages(created.id);
+    await applyPendingLicenseImageChanges(created.id);
     navigation.replace("StudentDetail", { studentId: created.id });
   }
 
@@ -478,7 +556,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
       studentId: studentId!,
       input: mapStudentInput(values),
     });
-    await uploadPendingLicenseImages(updated.id);
+    await applyPendingLicenseImageChanges(updated.id);
     navigation.replace("StudentDetail", { studentId: updated.id });
   }
 
@@ -513,22 +591,33 @@ export function StudentEditScreen({ navigation, route }: Props) {
     ]);
   }
 
+  function onNotesFocus() {
+    setTimeout(() => {
+      studentEditScrollRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }
+
   const saving =
     createMutation.isPending ||
     updateMutation.isPending ||
-    uploadLicenseImageMutation.isPending;
+    uploadLicenseImageMutation.isPending ||
+    removeLicenseImageMutation.isPending;
+  const existingLicenseFrontUri =
+    studentQuery.data?.license_front_image_url ?? null;
+  const existingLicenseBackUri =
+    studentQuery.data?.license_back_image_url ?? null;
   const licenseFrontPreviewUri =
     pendingLicenseFrontAsset?.uri ??
-    studentQuery.data?.license_front_image_url ??
+    (removeLicenseFrontOnSave ? null : existingLicenseFrontUri) ??
     null;
   const licenseBackPreviewUri =
     pendingLicenseBackAsset?.uri ??
-    studentQuery.data?.license_back_image_url ??
+    (removeLicenseBackOnSave ? null : existingLicenseBackUri) ??
     null;
 
   return (
     <>
-      <Screen scroll>
+      <Screen scroll scrollRef={studentEditScrollRef}>
         <AppStack gap="lg">
           <View>
             <AppText variant="title">
@@ -567,6 +656,19 @@ export function StudentEditScreen({ navigation, route }: Props) {
                   value={field.value}
                   onChangeText={field.onChange}
                   onBlur={field.onBlur}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+
+            <Controller
+              control={form.control}
+              name="dateOfBirth"
+              render={({ field, fieldState }) => (
+                <AppDateInput
+                  label="Date of birth"
+                  value={field.value}
+                  onChangeText={field.onChange}
                   error={fieldState.error?.message}
                 />
               )}
@@ -925,22 +1027,12 @@ export function StudentEditScreen({ navigation, route }: Props) {
               control={form.control}
               name="issueDate"
               render={({ field, fieldState }) => (
-                <AppStack gap="sm">
-                  <AppDateInput
-                    label="Issue date"
-                    value={field.value}
-                    onChangeText={field.onChange}
-                    error={fieldState.error?.message}
-                  />
-                  {isEditing && field.value.trim() ? (
-                    <AppButton
-                      width="auto"
-                      variant="ghost"
-                      label="Clear issue date"
-                      onPress={() => field.onChange("")}
-                    />
-                  ) : null}
-                </AppStack>
+                <AppDateInput
+                  label="Issue date"
+                  value={field.value}
+                  onChangeText={field.onChange}
+                  error={fieldState.error?.message}
+                />
               )}
             />
 
@@ -948,22 +1040,12 @@ export function StudentEditScreen({ navigation, route }: Props) {
               control={form.control}
               name="expiryDate"
               render={({ field, fieldState }) => (
-                <AppStack gap="sm">
-                  <AppDateInput
-                    label="Expiry date"
-                    value={field.value}
-                    onChangeText={field.onChange}
-                    error={fieldState.error?.message}
-                  />
-                  {isEditing && field.value.trim() ? (
-                    <AppButton
-                      width="auto"
-                      variant="ghost"
-                      label="Clear expiry date"
-                      onPress={() => field.onChange("")}
-                    />
-                  ) : null}
-                </AppStack>
+                <AppDateInput
+                  label="Expiry date"
+                  value={field.value}
+                  onChangeText={field.onChange}
+                  error={fieldState.error?.message}
+                />
               )}
             />
 
@@ -973,19 +1055,21 @@ export function StudentEditScreen({ navigation, route }: Props) {
                 Add front/back photos. Selected photos upload when you save.
               </AppText>
 
-              <AppStack gap="md">
-                <AppStack gap="sm">
+              <View className="flex-row gap-3">
+                <AppStack className="flex-1" gap="sm">
                   <AppText variant="caption">Front</AppText>
                   {licenseFrontPreviewUri ? (
                     <AppImage
                       source={{ uri: licenseFrontPreviewUri }}
                       resizeMode="contain"
-                      className="h-40 w-full rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark"
+                      className="h-36 w-full rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark"
                     />
                   ) : (
-                    <View className="h-32 items-center justify-center rounded-xl border border-dashed border-border bg-card dark:border-borderDark dark:bg-cardDark">
+                    <View className="h-36 items-center justify-center rounded-xl border border-dashed border-border bg-card dark:border-borderDark dark:bg-cardDark">
                       <AppText variant="caption">
-                        No front image selected.
+                        {removeLicenseFrontOnSave
+                          ? "Front photo will be removed."
+                          : "No front image selected."}
                       </AppText>
                     </View>
                   )}
@@ -996,18 +1080,20 @@ export function StudentEditScreen({ navigation, route }: Props) {
                   />
                 </AppStack>
 
-                <AppStack gap="sm">
+                <AppStack className="flex-1" gap="sm">
                   <AppText variant="caption">Back</AppText>
                   {licenseBackPreviewUri ? (
                     <AppImage
                       source={{ uri: licenseBackPreviewUri }}
                       resizeMode="contain"
-                      className="h-40 w-full rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark"
+                      className="h-36 w-full rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark"
                     />
                   ) : (
-                    <View className="h-32 items-center justify-center rounded-xl border border-dashed border-border bg-card dark:border-borderDark dark:bg-cardDark">
+                    <View className="h-36 items-center justify-center rounded-xl border border-dashed border-border bg-card dark:border-borderDark dark:bg-cardDark">
                       <AppText variant="caption">
-                        No back image selected.
+                        {removeLicenseBackOnSave
+                          ? "Back photo will be removed."
+                          : "No back image selected."}
                       </AppText>
                     </View>
                   )}
@@ -1017,7 +1103,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
                     onPress={() => openLicenseImageActions("back")}
                   />
                 </AppStack>
-              </AppStack>
+              </View>
 
               {licensePickerError ? (
                 <AppText variant="error">{licensePickerError}</AppText>
@@ -1038,6 +1124,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
                   inputClassName="h-28 py-3"
                   value={field.value}
                   onChangeText={field.onChange}
+                  onFocus={onNotesFocus}
                   onBlur={field.onBlur}
                 />
               )}

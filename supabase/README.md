@@ -23,6 +23,7 @@ In the Supabase Dashboard:
    - `supabase/migrations/015_profile_member_details.sql`
    - `supabase/migrations/016_students_organization_name.sql`
    - `supabase/migrations/017_students_license_images.sql`
+   - `supabase/migrations/018_students_date_of_birth.sql`
 
 ## Edge Functions
 
@@ -40,6 +41,7 @@ Deploy (requires Supabase CLI):
   - `SUPABASE_SERVICE_ROLE_KEY`
 
 Notes:
+
 - `create-instructor` validates caller JWT inside the function (`auth.getUser(accessToken)`), so gateway `verify_jwt` is intentionally disabled to avoid edge pre-auth mismatches.
 
 ## Storage buckets + policies
