@@ -25,6 +25,7 @@ export function AppInput({
   const { colorScheme } = useColorScheme();
   const placeholderTextColor =
     colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
+  const isMultiline = Boolean(props.multiline);
 
   return (
     <View className={cn(theme.input.wrapper, containerClassName)}>
@@ -32,7 +33,11 @@ export function AppInput({
       <TextInput
         className={cn(theme.input.base, error && theme.input.error, inputClassName)}
         placeholderTextColor={placeholderTextColor}
-        style={[{ fontFamily: fonts.regular }, style]}
+        style={[
+          { fontFamily: fonts.regular },
+          !isMultiline ? { paddingVertical: 0, textAlignVertical: "center" } : null,
+          style,
+        ]}
         {...props}
       />
       {error ? (

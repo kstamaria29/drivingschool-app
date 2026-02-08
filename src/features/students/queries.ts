@@ -1,5 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 
+import { invalidateQueriesByKey } from "../../utils/query";
 import {
   archiveStudent,
   createStudent,
@@ -7,9 +8,11 @@ import {
   getStudent,
   listStudents,
   unarchiveStudent,
+  uploadStudentLicenseImage,
   updateStudent,
   type ListStudentsInput,
   type StudentInsert,
+  type UploadStudentLicenseImageInput,
   type StudentUpdate,
 } from "./api";
 
@@ -17,6 +20,12 @@ export const studentKeys = {
   list: (input: ListStudentsInput) => ["students", input] as const,
   detail: (studentId: string) => ["student", { studentId }] as const,
 };
+
+const studentsRootKey = ["students"] as const;
+
+function invalidateStudentListAndDetail(queryClient: QueryClient, studentId: string) {
+  return invalidateQueriesByKey(queryClient, [studentsRootKey, studentKeys.detail(studentId)]);
+}
 
 export function useStudentsQuery(input: ListStudentsInput) {
   return useQuery({
@@ -39,7 +48,7 @@ export function useCreateStudentMutation() {
   return useMutation({
     mutationFn: (input: StudentInsert) => createStudent(input),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["students"] });
+      await queryClient.invalidateQueries({ queryKey: studentsRootKey });
     },
   });
 }
@@ -51,10 +60,7 @@ export function useUpdateStudentMutation() {
     mutationFn: ({ studentId, input }: { studentId: string; input: StudentUpdate }) =>
       updateStudent(studentId, input),
     onSuccess: async (student) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["students"] }),
-        queryClient.invalidateQueries({ queryKey: studentKeys.detail(student.id) }),
-      ]);
+      await invalidateStudentListAndDetail(queryClient, student.id);
     },
   });
 }
@@ -65,10 +71,7 @@ export function useArchiveStudentMutation() {
   return useMutation({
     mutationFn: (studentId: string) => archiveStudent(studentId),
     onSuccess: async (student) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["students"] }),
-        queryClient.invalidateQueries({ queryKey: studentKeys.detail(student.id) }),
-      ]);
+      await invalidateStudentListAndDetail(queryClient, student.id);
     },
   });
 }
@@ -79,10 +82,7 @@ export function useUnarchiveStudentMutation() {
   return useMutation({
     mutationFn: (studentId: string) => unarchiveStudent(studentId),
     onSuccess: async (student) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["students"] }),
-        queryClient.invalidateQueries({ queryKey: studentKeys.detail(student.id) }),
-      ]);
+      await invalidateStudentListAndDetail(queryClient, student.id);
     },
   });
 }
@@ -93,10 +93,19 @@ export function useDeleteStudentMutation() {
   return useMutation({
     mutationFn: (studentId: string) => deleteStudent(studentId),
     onSuccess: async (_data, studentId) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["students"] }),
-        queryClient.invalidateQueries({ queryKey: studentKeys.detail(studentId) }),
-      ]);
+      await invalidateStudentListAndDetail(queryClient, studentId);
+    },
+  });
+}
+
+export function useUploadStudentLicenseImageMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: UploadStudentLicenseImageInput) =>
+      uploadStudentLicenseImage(input),
+    onSuccess: async (student) => {
+      await invalidateStudentListAndDetail(queryClient, student.id);
     },
   });
 }

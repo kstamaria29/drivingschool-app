@@ -4,8 +4,34 @@ import { base64ToUint8Array } from "../../utils/base64";
 
 export type OrgProfile = Pick<
   Database["public"]["Tables"]["profiles"]["Row"],
-  "id" | "display_name" | "role"
+  | "id"
+  | "display_name"
+  | "role"
+  | "first_name"
+  | "last_name"
+  | "avatar_url"
+  | "email"
+  | "contact_no"
+  | "address"
 >;
+
+export type MemberLessonPreview = Pick<
+  Database["public"]["Tables"]["lessons"]["Row"],
+  "id" | "start_time" | "end_time" | "status" | "location"
+> & {
+  students: Pick<Database["public"]["Tables"]["students"]["Row"], "first_name" | "last_name"> | null;
+};
+
+export type ActiveStudentPreview = Pick<
+  Database["public"]["Tables"]["students"]["Row"],
+  "id" | "first_name" | "last_name"
+>;
+
+export type OrganizationMemberDetails = {
+  profile: OrgProfile | null;
+  activeStudents: ActiveStudentPreview[];
+  nextLessons: MemberLessonPreview[];
+};
 
 export type UploadAvatarInput = {
   userId: string;
@@ -30,12 +56,69 @@ function guessContentType(asset: UploadAvatarInput["asset"]) {
 export async function listOrganizationProfiles(): Promise<OrgProfile[]> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, display_name, role")
+    .select("id, display_name, role, first_name, last_name, avatar_url, email, contact_no, address")
     .order("display_name", { ascending: true })
     .overrideTypes<OrgProfile[], { merge: false }>();
 
   if (error) throw error;
   return data ?? [];
+}
+
+async function getOrganizationMemberProfile(memberId: string): Promise<OrgProfile | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, display_name, role, first_name, last_name, avatar_url, email, contact_no, address")
+    .eq("id", memberId)
+    .maybeSingle()
+    .overrideTypes<OrgProfile, { merge: false }>();
+
+  if (error) throw error;
+  return data ?? null;
+}
+
+async function getActiveStudentsForMember(memberId: string): Promise<ActiveStudentPreview[]> {
+  const { data, error } = await supabase
+    .from("students")
+    .select("id, first_name, last_name")
+    .eq("assigned_instructor_id", memberId)
+    .is("archived_at", null)
+    .order("last_name", { ascending: true })
+    .order("first_name", { ascending: true })
+    .overrideTypes<ActiveStudentPreview[], { merge: false }>();
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+async function getNextLessonsForMember(memberId: string): Promise<MemberLessonPreview[]> {
+  const nowIso = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("lessons")
+    .select("id, start_time, end_time, status, location, students(first_name, last_name)")
+    .eq("instructor_id", memberId)
+    .gte("start_time", nowIso)
+    .order("start_time", { ascending: true })
+    .limit(3)
+    .overrideTypes<MemberLessonPreview[], { merge: false }>();
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getOrganizationMemberDetails(
+  memberId: string,
+): Promise<OrganizationMemberDetails> {
+  const [profile, activeStudents, nextLessons] = await Promise.all([
+    getOrganizationMemberProfile(memberId),
+    getActiveStudentsForMember(memberId),
+    getNextLessonsForMember(memberId),
+  ]);
+
+  return {
+    profile,
+    activeStudents,
+    nextLessons,
+  };
 }
 
 export async function uploadMyAvatar(input: UploadAvatarInput) {

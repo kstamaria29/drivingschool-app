@@ -23,6 +23,7 @@ import { cn } from "../../utils/cn";
 import { getProfileFullName } from "../../utils/profileName";
 import { useCurrentUser } from "../../features/auth/current-user";
 import { useSignOutMutation } from "../../features/auth/queries";
+import { getRoleDisplayLabel } from "../../features/auth/roles";
 import { useAppColorScheme } from "../../providers/ColorSchemeProvider";
 import {
   useOrganizationQuery,
@@ -50,6 +51,8 @@ function DrawerRow({
   active,
   onPress,
   disabled,
+  labelClassName,
+  rightAligned,
 }: {
   collapsed: boolean;
   label: string;
@@ -57,6 +60,8 @@ function DrawerRow({
   active: boolean;
   onPress: () => void;
   disabled?: boolean;
+  labelClassName?: string;
+  rightAligned?: boolean;
 }) {
   return (
     <Pressable
@@ -66,10 +71,15 @@ function DrawerRow({
         "mb-1 flex-row items-center gap-3 rounded-xl border px-3 py-3",
         active ? "border-primary bg-primary/10 dark:border-primaryDark dark:bg-primaryDark/10" : "border-transparent bg-transparent",
         disabled ? "opacity-50" : "",
+        rightAligned ? "justify-end" : "",
       )}
     >
       <View className="w-6 items-center justify-center">{icon}</View>
-      {collapsed ? null : <AppText variant="body">{label}</AppText>}
+      {collapsed ? null : (
+        <AppText variant="body" className={labelClassName}>
+          {label}
+        </AppText>
+      )}
     </Pressable>
   );
 }
@@ -135,7 +145,7 @@ export function AppDrawerContent({
                 {collapsed ? null : (
                   <View>
                     <AppText variant="label">{orgName}</AppText>
-                    <AppText variant="caption">{profile.role}</AppText>
+                    <AppText variant="caption">{getRoleDisplayLabel(profile)}</AppText>
                   </View>
                 )}
               </View>
@@ -215,29 +225,25 @@ export function AppDrawerContent({
             active={currentRouteName === "GoogleMaps"}
             onPress={() => navigation.navigate("GoogleMaps")}
           />
+          <View className="my-2">
+            <AppDivider />
+          </View>
+          <DrawerRow
+            collapsed={collapsed}
+            label="Settings"
+            icon={<Settings color={iconColor} size={20} />}
+            active={currentRouteName === "Settings"}
+            onPress={() => navigation.navigate("Settings")}
+          />
         </View>
-
-        <DrawerRow
-          collapsed={collapsed}
-          label={signOutMutation.isPending ? "Signing out..." : "Sign out"}
-          icon={<LogOut color={iconColor} size={20} />}
-          active={false}
-          onPress={confirmSignOut}
-          disabled={signOutMutation.isPending}
-        />
 
         <View className="mt-2">
           <AppDivider />
           <View className="mt-3">
-            <DrawerRow
-              collapsed={collapsed}
-              label="Settings"
-              icon={<Settings color={iconColor} size={20} />}
-              active={currentRouteName === "Settings"}
+            <Pressable
               onPress={() => navigation.navigate("Settings")}
-            />
-
-            <View
+              accessibilityRole="button"
+              accessibilityLabel="Open settings"
               className={cn(
                 "mt-2 flex-row items-center gap-3 px-3",
                 collapsed ? "py-2" : "",
@@ -247,10 +253,21 @@ export function AppDrawerContent({
               {collapsed ? null : (
                 <View className="flex-1">
                   <AppText variant="label">{getProfileFullName(profile)}</AppText>
-                  <AppText variant="caption">{profile.role}</AppText>
+                  <AppText variant="caption">{getRoleDisplayLabel(profile)}</AppText>
                 </View>
               )}
-            </View>
+            </Pressable>
+
+            <DrawerRow
+              collapsed={collapsed}
+              label={signOutMutation.isPending ? "Signing out..." : "Sign out"}
+              icon={<LogOut color={theme.colors.danger} size={20} />}
+              labelClassName="text-danger dark:text-dangerDark"
+              active={false}
+              onPress={confirmSignOut}
+              disabled={signOutMutation.isPending}
+              rightAligned
+            />
           </View>
         </View>
       </View>

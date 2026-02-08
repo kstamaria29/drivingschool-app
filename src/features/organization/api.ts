@@ -72,6 +72,20 @@ export async function updateOrganizationLogoUrl(organizationId: string, logoUrl:
   if (error) throw error;
 }
 
+export async function updateOrganizationName(organizationId: string, name: string) {
+  const trimmedName = name.trim();
+  if (!trimmedName) {
+    throw new Error("Organization name is required.");
+  }
+
+  const { error } = await supabase
+    .from("organizations")
+    .update({ name: trimmedName })
+    .eq("id", organizationId);
+
+  if (error) throw error;
+}
+
 export async function uploadOrganizationLogo(input: UploadOrganizationLogoInput) {
   const extension = guessFileExtension(input.asset);
   const contentType = guessContentType(input.asset);

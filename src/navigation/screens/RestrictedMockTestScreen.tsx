@@ -50,6 +50,7 @@ import { parseDateInputToISODate } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
 import { openPdfUri } from "../../utils/open-pdf";
+import { AssessmentStudentDropdown } from "../components/AssessmentStudentDropdown";
 
 import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
 
@@ -131,9 +132,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   const createAssessment = useCreateAssessmentMutation();
 
   const [stage, setStage] = useState<Stage>("details");
-  const [studentSearch, setStudentSearch] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
-  const [showStudentPicker, setShowStudentPicker] = useState<boolean>(() => !route.params?.studentId);
 
   const [stage2Enabled, setStage2Enabled] = useState(false);
   const [stagesState, setStagesState] = useState<RestrictedMockTestStagesState>(() =>
@@ -170,31 +169,17 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   const selectedStudent = useMemo(() => {
     const students = studentsQuery.data ?? [];
-    if (route.params?.studentId) {
-      return students.find((s) => s.id === route.params?.studentId) ?? null;
-    }
     if (!selectedStudentId) return null;
     return students.find((s) => s.id === selectedStudentId) ?? null;
-  }, [route.params?.studentId, selectedStudentId, studentsQuery.data]);
+  }, [selectedStudentId, studentsQuery.data]);
 
   useEffect(() => {
-    if (!route.params?.studentId) return;
-    setSelectedStudentId(route.params.studentId);
-    form.setValue("studentId", route.params.studentId, { shouldValidate: true });
-    setShowStudentPicker(false);
-  }, [form, route.params?.studentId]);
-
-  const studentOptions = useMemo(() => {
-    const students = studentsQuery.data ?? [];
-    const needle = studentSearch.trim().toLowerCase();
-    if (!needle) return students;
-    return students.filter((s) => {
-      const fullName = `${s.first_name} ${s.last_name}`.toLowerCase();
-      const email = (s.email ?? "").toLowerCase();
-      const phone = (s.phone ?? "").toLowerCase();
-      return fullName.includes(needle) || email.includes(needle) || phone.includes(needle);
-    });
-  }, [studentSearch, studentsQuery.data]);
+    const initialStudentId = route.params?.studentId ?? null;
+    if (!initialStudentId) return;
+    if (selectedStudentId) return;
+    setSelectedStudentId(initialStudentId);
+    form.setValue("studentId", initialStudentId, { shouldValidate: true });
+  }, [form, route.params?.studentId, selectedStudentId]);
 
   const summary = useMemo(() => {
     return calculateRestrictedMockTestSummary({ stagesState, critical, immediate });
@@ -442,7 +427,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   const studentCard = (
     <AppCard className="gap-4">
-      <View className="flex-row items-center justify-between gap-3">
+      <View className="flex-row items-start justify-between gap-3">
         <AppText variant="heading">Student</AppText>
         {selectedStudent ? (
           <AppText variant="heading" className="text-right">
@@ -474,48 +459,16 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             <AppText variant="error">{form.formState.errors.studentId.message}</AppText>
           ) : null}
 
-          {selectedStudent && stage === "details" ? (
-            <AppButton
-              width="auto"
-              variant="ghost"
-              label={showStudentPicker ? "Hide student list" : "Change student"}
-              onPress={() => setShowStudentPicker((s) => !s)}
+          {stage === "details" ? (
+            <AssessmentStudentDropdown
+              students={studentsQuery.data ?? []}
+              selectedStudentId={selectedStudentId}
+              currentUserId={profile.id}
+              onSelectStudent={(student) => {
+                setSelectedStudentId(student.id);
+                form.setValue("studentId", student.id, { shouldValidate: true });
+              }}
             />
-          ) : null}
-
-          {stage === "details" && (showStudentPicker || !selectedStudent) ? (
-            <>
-              <AppInput
-                label="Search"
-                autoCapitalize="none"
-                value={studentSearch}
-                onChangeText={setStudentSearch}
-              />
-
-              {studentOptions.length === 0 ? (
-                <AppText variant="caption">No students match this search.</AppText>
-              ) : (
-                <AppStack gap="sm">
-                  {studentOptions.slice(0, 30).map((student) => (
-                    <AppButton
-                      key={student.id}
-                      variant={selectedStudentId === student.id ? "primary" : "secondary"}
-                      label={`${student.first_name} ${student.last_name}`}
-                      onPress={() => {
-                        setSelectedStudentId(student.id);
-                        setShowStudentPicker(false);
-                        setStudentSearch("");
-                        form.setValue("studentId", student.id, { shouldValidate: true });
-                      }}
-                    />
-                  ))}
-                </AppStack>
-              )}
-
-              {studentOptions.length > 30 ? (
-                <AppText variant="caption">Refine search to see more results.</AppText>
-              ) : null}
-            </>
           ) : null}
         </>
       )}

@@ -1,7 +1,19 @@
 import * as ImagePicker from "expo-image-picker";
-import { ActivityIndicator, Alert, View } from "react-native";
-import { useState } from "react";
-import { ImageUp, KeyRound, RefreshCw, UserCircle2, UserPlus, UserRoundPen } from "lucide-react-native";
+import { ActivityIndicator, Pressable, View, type ScrollView } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  Building2,
+  Check,
+  ChevronDown,
+  IdCard,
+  ImageUp,
+  KeyRound,
+  Palette,
+  RefreshCw,
+  UserPlus,
+  UserRoundPen,
+  Users,
+} from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
@@ -13,35 +25,49 @@ import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
-import { isOwnerOrAdminRole } from "../../features/auth/roles";
+import { getRoleDisplayLabel, isOwnerOrAdminRole } from "../../features/auth/roles";
 import { useUploadOrganizationLogoMutation } from "../../features/organization/queries";
 import {
   useOrganizationQuery,
   useOrganizationSettingsQuery,
 } from "../../features/organization/queries";
-import { useUploadMyAvatarMutation } from "../../features/profiles/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { toErrorMessage } from "../../utils/errors";
 import { useAppColorScheme } from "../../providers/ColorSchemeProvider";
 import { AppSegmentedControl } from "../../components/AppSegmentedControl";
-import { useClearMyAvatarMutation } from "../../features/account/queries";
 import { getProfileFullName } from "../../utils/profileName";
+import {
+  DARK_THEME_OPTIONS,
+  LIGHT_THEME_OPTIONS,
+  type DarkThemeKey,
+  type LightThemeKey,
+} from "../../theme/palettes";
 import type { SettingsStackParamList } from "../SettingsStackNavigator";
 
+type ThemeOption = {
+  value: LightThemeKey | DarkThemeKey;
+  label: string;
+  description: string;
+};
+
+const lightThemeOptions: ThemeOption[] = LIGHT_THEME_OPTIONS;
+const darkThemeOptions: ThemeOption[] = DARK_THEME_OPTIONS;
+
 export function SettingsScreen() {
-  const { userId, profile } = useCurrentUser();
+  const { profile } = useCurrentUser();
   const canManageOrganization = isOwnerOrAdminRole(profile.role);
   const [pickerError, setPickerError] = useState<string | null>(null);
-  const { scheme, setScheme } = useAppColorScheme();
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+  const settingsScrollRef = useRef<ScrollView>(null);
+  const { scheme, setScheme, themeKey, setThemeKey } = useAppColorScheme();
   const navigation = useNavigation<NativeStackNavigationProp<SettingsStackParamList>>();
+  const iconMuted = scheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
 
   const orgQuery = useOrganizationQuery(profile.organization_id);
   const orgSettingsQuery = useOrganizationSettingsQuery(profile.organization_id);
 
   const uploadOrgLogoMutation = useUploadOrganizationLogoMutation(profile.organization_id);
-  const uploadAvatarMutation = useUploadMyAvatarMutation(userId);
-  const clearAvatarMutation = useClearMyAvatarMutation(userId);
 
   async function pickOrgLogo() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -58,123 +84,124 @@ export function SettingsScreen() {
     return result.assets[0] ?? null;
   }
 
-  async function pickAvatarFromLibrary() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      throw new Error("Permission to access photos was denied.");
-    }
+  const activeThemeOptions = scheme === "dark" ? darkThemeOptions : lightThemeOptions;
+  const selectedThemeOption =
+    activeThemeOptions.find((option) => option.value === themeKey) ?? activeThemeOptions[0];
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "images",
-      allowsEditing: true,
-      aspect: [1, 1],
-      base64: true,
-      quality: 0.85,
-    });
+  useEffect(() => {
+    setThemeMenuOpen(false);
+  }, [scheme]);
 
-    if (result.canceled) return null;
-    return result.assets[0] ?? null;
-  }
+  useEffect(() => {
+    if (!themeMenuOpen) return;
+    const timeoutId = setTimeout(() => {
+      settingsScrollRef.current?.scrollToEnd({ animated: true });
+    }, 50);
 
-  async function pickAvatarFromCamera() {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      throw new Error("Permission to access the camera was denied.");
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: "images",
-      allowsEditing: true,
-      aspect: [1, 1],
-      base64: true,
-      quality: 0.85,
-    });
-
-    if (result.canceled) return null;
-    return result.assets[0] ?? null;
-  }
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [themeMenuOpen]);
 
   return (
-    <Screen scroll>
+    <Screen scroll scrollRef={settingsScrollRef}>
       <AppStack gap="lg">
         <View>
           <AppText variant="title">Settings</AppText>
           <AppText className="mt-2" variant="body">
-            Manage your organization and profile.
+            {canManageOrganization
+              ? "Manage your organization and profile."
+              : "Manage your profile."}
           </AppText>
         </View>
 
-        <AppCard className="gap-3">
-          <AppText variant="heading">Organization</AppText>
+        {canManageOrganization ? (
+          <AppCard className="gap-3">
+            <AppText variant="heading">Organization</AppText>
 
-          {orgQuery.isPending || orgSettingsQuery.isPending ? (
-            <View className={cn("items-center justify-center py-6", theme.text.base)}>
-              <ActivityIndicator />
-              <AppText className="mt-3 text-center" variant="body">
-                Loading organization...
-              </AppText>
-            </View>
-          ) : orgQuery.isError || orgSettingsQuery.isError ? (
-            <AppStack gap="md">
-              <AppText variant="body">
-                {toErrorMessage(orgQuery.error ?? orgSettingsQuery.error)}
-              </AppText>
-              <AppButton
-                label="Retry"
-                variant="secondary"
-                icon={RefreshCw}
-                onPress={() => {
-                  void orgQuery.refetch();
-                  void orgSettingsQuery.refetch();
-                }}
-              />
-            </AppStack>
-          ) : (
-            <View className="flex-row items-center gap-4">
-              {orgSettingsQuery.data?.logo_url ? (
-                <AppImage
-                  source={{ uri: orgSettingsQuery.data.logo_url }}
-                  resizeMode="contain"
-                  className="h-16 w-16 bg-transparent"
-                />
-              ) : (
-                <View className="h-16 w-16 border border-border bg-card dark:border-borderDark dark:bg-cardDark" />
-              )}
-              <View className="flex-1">
-                <AppText variant="body">{orgQuery.data?.name ?? "Organization"}</AppText>
-                <AppText variant="caption">
-                  {canManageOrganization
-                    ? "Owners and admins can update the organization logo."
-                    : "Only owners and admins can update the organization logo."}
+            {orgQuery.isPending || orgSettingsQuery.isPending ? (
+              <View className={cn("items-center justify-center py-6", theme.text.base)}>
+                <ActivityIndicator />
+                <AppText className="mt-3 text-center" variant="body">
+                  Loading organization...
                 </AppText>
               </View>
-            </View>
-          )}
+            ) : orgQuery.isError || orgSettingsQuery.isError ? (
+              <AppStack gap="md">
+                <AppText variant="body">
+                  {toErrorMessage(orgQuery.error ?? orgSettingsQuery.error)}
+                </AppText>
+                <AppButton
+                  label="Retry"
+                  variant="secondary"
+                  icon={RefreshCw}
+                  onPress={() => {
+                    void orgQuery.refetch();
+                    void orgSettingsQuery.refetch();
+                  }}
+                />
+              </AppStack>
+            ) : (
+              <View className="flex-row items-center gap-4">
+                {orgSettingsQuery.data?.logo_url ? (
+                  <AppImage
+                    source={{ uri: orgSettingsQuery.data.logo_url }}
+                    resizeMode="contain"
+                    className="h-16 w-16 bg-transparent"
+                  />
+                ) : (
+                  <View className="h-16 w-16 border border-border bg-card dark:border-borderDark dark:bg-cardDark" />
+                )}
+                <View className="flex-1">
+                  <AppText variant="body">{orgQuery.data?.name ?? "Organization"}</AppText>
+                  <AppText variant="caption">
+                    Owners and admins can update the organization logo.
+                  </AppText>
+                </View>
+              </View>
+            )}
 
-          <AppButton
-            label={
-              uploadOrgLogoMutation.isPending ? "Uploading logo..." : "Change organization logo"
-            }
-            variant="secondary"
-            icon={ImageUp}
-            disabled={!canManageOrganization || uploadOrgLogoMutation.isPending}
-            onPress={async () => {
-              try {
-                setPickerError(null);
-                const asset = await pickOrgLogo();
-                if (!asset) return;
-                uploadOrgLogoMutation.mutate({ asset });
-              } catch (error) {
-                setPickerError(toErrorMessage(error));
+            <AppButton
+              label="Change organization name"
+              variant="secondary"
+              icon={Building2}
+              disabled={!canManageOrganization}
+              onPress={() => navigation.navigate("EditOrganizationName")}
+            />
+
+            <AppButton
+              label={
+                uploadOrgLogoMutation.isPending ? "Uploading logo..." : "Change organization logo"
               }
-            }}
-          />
+              variant="secondary"
+              icon={ImageUp}
+              disabled={!canManageOrganization || uploadOrgLogoMutation.isPending}
+              onPress={async () => {
+                try {
+                  setPickerError(null);
+                  const asset = await pickOrgLogo();
+                  if (!asset) return;
+                  uploadOrgLogoMutation.mutate({ asset });
+                } catch (error) {
+                  setPickerError(toErrorMessage(error));
+                }
+              }}
+            />
 
-          {uploadOrgLogoMutation.isError ? (
-            <AppText variant="error">{toErrorMessage(uploadOrgLogoMutation.error)}</AppText>
-          ) : null}
-          {pickerError ? <AppText variant="error">{pickerError}</AppText> : null}
-        </AppCard>
+            <AppButton
+              label="View members"
+              variant="secondary"
+              icon={Users}
+              disabled={!canManageOrganization}
+              onPress={() => navigation.navigate("ViewMembers")}
+            />
+
+            {uploadOrgLogoMutation.isError ? (
+              <AppText variant="error">{toErrorMessage(uploadOrgLogoMutation.error)}</AppText>
+            ) : null}
+            {pickerError ? <AppText variant="error">{pickerError}</AppText> : null}
+          </AppCard>
+        ) : null}
 
         <AppCard className="gap-3">
           <AppText variant="heading">Account Settings</AppText>
@@ -183,90 +210,15 @@ export function SettingsScreen() {
             <Avatar uri={profile.avatar_url} size={64} label={getProfileFullName(profile)} />
             <View className="flex-1">
               <AppText variant="body">{getProfileFullName(profile) || profile.display_name}</AppText>
-              <AppText variant="caption">{profile.role}</AppText>
+              <AppText variant="caption">{getRoleDisplayLabel(profile)}</AppText>
             </View>
           </View>
 
           <AppButton
-            label={uploadAvatarMutation.isPending ? "Uploading photo..." : "Change profile photo"}
-            variant="secondary"
-            icon={UserCircle2}
-            disabled={uploadAvatarMutation.isPending || clearAvatarMutation.isPending}
-            onPress={() => {
-              const actions: Parameters<typeof Alert.alert>[2] = [
-                {
-                  text: "Take photo",
-                  onPress: () => {
-                    void (async () => {
-                      try {
-                        setPickerError(null);
-                        const asset = await pickAvatarFromCamera();
-                        if (!asset) return;
-                        uploadAvatarMutation.mutate({ asset });
-                      } catch (error) {
-                        setPickerError(toErrorMessage(error));
-                      }
-                    })();
-                  },
-                },
-                {
-                  text: "Choose from library",
-                  onPress: () => {
-                    void (async () => {
-                      try {
-                        setPickerError(null);
-                        const asset = await pickAvatarFromLibrary();
-                        if (!asset) return;
-                        uploadAvatarMutation.mutate({ asset });
-                      } catch (error) {
-                        setPickerError(toErrorMessage(error));
-                      }
-                    })();
-                  },
-                },
-              ];
-
-              if (profile.avatar_url) {
-                actions.push({
-                  text: "Remove photo",
-                  style: "destructive",
-                  onPress: () => {
-                    Alert.alert(
-                      "Remove photo",
-                      "Remove your profile photo?",
-                      [
-                        { text: "Cancel", style: "cancel" },
-                        {
-                          text: "Remove",
-                          style: "destructive",
-                          onPress: () => clearAvatarMutation.mutate(),
-                        },
-                      ],
-                      { cancelable: true },
-                    );
-                  },
-                });
-              }
-
-              actions.push({ text: "Cancel", style: "cancel" });
-
-              Alert.alert("Profile photo", "Choose an option", actions);
-            }}
-          />
-
-          {uploadAvatarMutation.isError ? (
-            <AppText variant="error">{toErrorMessage(uploadAvatarMutation.error)}</AppText>
-          ) : null}
-          {clearAvatarMutation.isError ? (
-            <AppText variant="error">{toErrorMessage(clearAvatarMutation.error)}</AppText>
-          ) : null}
-          {pickerError ? <AppText variant="error">{pickerError}</AppText> : null}
-
-          <AppButton
-            label="Change name"
+            label="Edit details"
             variant="secondary"
             icon={UserRoundPen}
-            onPress={() => navigation.navigate("EditName")}
+            onPress={() => navigation.navigate("EditDetails")}
           />
 
           <AppButton
@@ -275,6 +227,15 @@ export function SettingsScreen() {
             icon={KeyRound}
             onPress={() => navigation.navigate("ChangePassword")}
           />
+
+          {canManageOrganization ? (
+            <AppButton
+              label="Change role display"
+              variant="secondary"
+              icon={IdCard}
+              onPress={() => navigation.navigate("EditRoleDisplay")}
+            />
+          ) : null}
         </AppCard>
 
         {canManageOrganization ? (
@@ -294,8 +255,10 @@ export function SettingsScreen() {
         ) : null}
 
         <AppCard className="gap-3">
-          <AppText variant="heading">Appearance</AppText>
-          <AppText variant="caption">Choose a theme.</AppText>
+          <AppText variant="heading">Themes</AppText>
+          <AppText variant="caption">
+            Switch mode and pick a dedicated style for that mode.
+          </AppText>
 
           <AppSegmentedControl
             value={scheme}
@@ -305,6 +268,59 @@ export function SettingsScreen() {
             ]}
             onChange={setScheme}
           />
+
+          <View className="gap-2">
+            <AppText variant="label">Theme style</AppText>
+            <Pressable
+              accessibilityRole="button"
+              className="rounded-xl border border-border bg-card px-3 py-3 dark:border-borderDark dark:bg-cardDark"
+              onPress={() => setThemeMenuOpen((open) => !open)}
+            >
+              <View className="flex-row items-center justify-between gap-3">
+                <View className="flex-1 flex-row items-center gap-2">
+                  <Palette size={18} color={iconMuted} />
+                  <View className="flex-1">
+                    <AppText variant="body">{selectedThemeOption.label}</AppText>
+                    <AppText variant="caption">
+                      {selectedThemeOption.description}
+                    </AppText>
+                  </View>
+                </View>
+                <ChevronDown size={18} color={iconMuted} />
+              </View>
+            </Pressable>
+
+            {themeMenuOpen ? (
+              <View className="overflow-hidden rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark">
+                {activeThemeOptions.map((option, index) => {
+                  const selected = option.value === themeKey;
+                  return (
+                    <Pressable
+                      key={option.value}
+                      className={cn(
+                        "px-3 py-3",
+                        index < activeThemeOptions.length - 1 &&
+                          "border-b border-border dark:border-borderDark",
+                        selected && "bg-primary/10 dark:bg-primaryDark/20",
+                      )}
+                      onPress={() => {
+                        setThemeKey(option.value);
+                        setThemeMenuOpen(false);
+                      }}
+                    >
+                      <View className="flex-row items-start justify-between gap-2">
+                        <View className="flex-1">
+                          <AppText variant="body">{option.label}</AppText>
+                          <AppText variant="caption">{option.description}</AppText>
+                        </View>
+                        {selected ? <Check size={16} color={iconMuted} /> : null}
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : null}
+          </View>
         </AppCard>
       </AppStack>
     </Screen>

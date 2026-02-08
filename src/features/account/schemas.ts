@@ -1,11 +1,14 @@
 import { z } from "zod";
 
-export const editNameSchema = z.object({
-  firstName: z.string().min(2, "Enter a first name"),
-  lastName: z.string().min(2, "Enter a last name"),
+export const editDetailsSchema = z.object({
+  firstName: z.string().trim().min(2, "Enter a first name"),
+  lastName: z.string().trim().min(2, "Enter a last name"),
+  email: z.string().trim().email("Enter a valid email"),
+  contactNo: z.string().trim().max(30, "Use 30 characters or fewer"),
+  address: z.string().trim().max(200, "Use 200 characters or fewer"),
 });
 
-export type EditNameFormValues = z.infer<typeof editNameSchema>;
+export type EditDetailsFormValues = z.infer<typeof editDetailsSchema>;
 
 export const changePasswordSchema = z
   .object({
@@ -20,3 +23,12 @@ export const changePasswordSchema = z
 
 export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 
+export const roleDisplaySchema = z.object({
+  roleDisplayName: z
+    .string()
+    .trim()
+    .min(2, "Enter at least 2 characters")
+    .max(40, "Use 40 characters or fewer"),
+});
+
+export type RoleDisplayFormValues = z.infer<typeof roleDisplaySchema>;

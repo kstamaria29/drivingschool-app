@@ -39,19 +39,22 @@ Deno.serve(async (req) => {
   }
 
   const authHeader = req.headers.get("Authorization") ?? "";
-  if (!authHeader) {
+  if (!authHeader.toLowerCase().startsWith("bearer ")) {
+    return json(401, { error: "missing_authorization" });
+  }
+  const accessToken = authHeader.slice(7).trim();
+  if (!accessToken) {
     return json(401, { error: "missing_authorization" });
   }
 
   const supabase = createClient(supabaseUrl, serviceRoleKey, {
-    global: { headers: { Authorization: authHeader } },
     auth: { persistSession: false },
   });
 
   const {
     data: { user: caller },
     error: callerError,
-  } = await supabase.auth.getUser();
+  } = await supabase.auth.getUser(accessToken);
 
   if (callerError || !caller) {
     return json(401, { error: "invalid_token" });
@@ -111,6 +114,7 @@ Deno.serve(async (req) => {
     organization_id: callerProfile.organization_id,
     role: "instructor",
     display_name: displayName,
+    email,
     first_name: firstName,
     last_name: lastName,
     must_change_password: true,

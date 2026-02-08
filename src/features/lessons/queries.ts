@@ -1,5 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 
+import { invalidateQueriesByKey } from "../../utils/query";
 import {
   createLesson,
   deleteLesson,
@@ -15,6 +16,12 @@ export const lessonKeys = {
   list: (input: ListLessonsInput) => ["lessons", input] as const,
   detail: (lessonId: string) => ["lesson", { lessonId }] as const,
 };
+
+const lessonsRootKey = ["lessons"] as const;
+
+function invalidateLessonListAndDetail(queryClient: QueryClient, lessonId: string) {
+  return invalidateQueriesByKey(queryClient, [lessonsRootKey, lessonKeys.detail(lessonId)]);
+}
 
 export function useLessonsQuery(input: ListLessonsInput) {
   return useQuery({
@@ -37,7 +44,7 @@ export function useCreateLessonMutation() {
   return useMutation({
     mutationFn: (input: LessonInsert) => createLesson(input),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["lessons"] });
+      await queryClient.invalidateQueries({ queryKey: lessonsRootKey });
     },
   });
 }
@@ -49,10 +56,7 @@ export function useUpdateLessonMutation() {
     mutationFn: ({ lessonId, input }: { lessonId: string; input: LessonUpdate }) =>
       updateLesson(lessonId, input),
     onSuccess: async (lesson) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["lessons"] }),
-        queryClient.invalidateQueries({ queryKey: lessonKeys.detail(lesson.id) }),
-      ]);
+      await invalidateLessonListAndDetail(queryClient, lesson.id);
     },
   });
 }
@@ -63,10 +67,7 @@ export function useDeleteLessonMutation() {
   return useMutation({
     mutationFn: (lessonId: string) => deleteLesson(lessonId),
     onSuccess: async (_data, lessonId) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["lessons"] }),
-        queryClient.invalidateQueries({ queryKey: lessonKeys.detail(lessonId) }),
-      ]);
+      await invalidateLessonListAndDetail(queryClient, lessonId);
     },
   });
 }

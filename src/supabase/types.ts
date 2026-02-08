@@ -39,9 +39,13 @@ export type Database = {
           id: string;
           organization_id: string;
           role: "owner" | "admin" | "instructor";
+          role_display_name: string | null;
           display_name: string;
+          email: string | null;
           first_name: string | null;
           last_name: string | null;
+          contact_no: string | null;
+          address: string | null;
           avatar_url: string | null;
           must_change_password: boolean;
           password_changed_at: string | null;
@@ -51,9 +55,13 @@ export type Database = {
           id: string;
           organization_id: string;
           role: "owner" | "admin" | "instructor";
+          role_display_name?: string | null;
           display_name: string;
+          email?: string | null;
           first_name?: string | null;
           last_name?: string | null;
+          contact_no?: string | null;
+          address?: string | null;
           avatar_url?: string | null;
           must_change_password?: boolean;
           password_changed_at?: string | null;
@@ -62,9 +70,13 @@ export type Database = {
         Update: {
           organization_id?: string;
           role?: "owner" | "admin" | "instructor";
+          role_display_name?: string | null;
           display_name?: string;
+          email?: string | null;
           first_name?: string | null;
           last_name?: string | null;
+          contact_no?: string | null;
+          address?: string | null;
           avatar_url?: string | null;
           must_change_password?: boolean;
           password_changed_at?: string | null;
@@ -101,9 +113,12 @@ export type Database = {
           email: string | null;
           phone: string | null;
           address: string | null;
+          organization_name: string;
           license_type: "learner" | "restricted" | "full" | null;
           license_number: string | null;
           license_version: string | null;
+          license_front_image_url: string | null;
+          license_back_image_url: string | null;
           class_held: string | null;
           issue_date: string | null;
           expiry_date: string | null;
@@ -121,9 +136,12 @@ export type Database = {
           email?: string | null;
           phone?: string | null;
           address?: string | null;
+          organization_name?: string;
           license_type?: "learner" | "restricted" | "full" | null;
           license_number?: string | null;
           license_version?: string | null;
+          license_front_image_url?: string | null;
+          license_back_image_url?: string | null;
           class_held?: string | null;
           issue_date?: string | null;
           expiry_date?: string | null;
@@ -140,9 +158,12 @@ export type Database = {
           email?: string | null;
           phone?: string | null;
           address?: string | null;
+          organization_name?: string;
           license_type?: "learner" | "restricted" | "full" | null;
           license_number?: string | null;
           license_version?: string | null;
+          license_front_image_url?: string | null;
+          license_back_image_url?: string | null;
           class_held?: string | null;
           issue_date?: string | null;
           expiry_date?: string | null;
@@ -387,6 +408,22 @@ export type Database = {
         Args: {
           first_name: string;
           last_name: string;
+        };
+        Returns: null;
+      };
+      set_my_role_display_name: {
+        Args: {
+          new_role_display_name: string;
+        };
+        Returns: null;
+      };
+      set_my_profile_details: {
+        Args: {
+          first_name: string;
+          last_name: string;
+          email: string;
+          contact_no: string | null;
+          address: string | null;
         };
         Returns: null;
       };

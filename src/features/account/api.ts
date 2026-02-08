@@ -1,14 +1,36 @@
 import { supabase } from "../../supabase/client";
 
-export type UpdateMyNameInput = {
+export type UpdateMyDetailsInput = {
   firstName: string;
   lastName: string;
+  email: string;
+  contactNo?: string;
+  address?: string;
 };
 
-export async function updateMyName(input: UpdateMyNameInput) {
-  const { error } = await supabase.rpc("set_my_name", {
-    first_name: input.firstName,
-    last_name: input.lastName,
+export async function updateMyDetails(input: UpdateMyDetailsInput) {
+  const normalizedEmail = input.email.trim().toLowerCase();
+  const normalizedContact = input.contactNo?.trim() ?? "";
+  const normalizedAddress = input.address?.trim() ?? "";
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError) throw userError;
+
+  const currentAuthEmail = user?.email?.trim().toLowerCase() ?? null;
+  if (currentAuthEmail && currentAuthEmail !== normalizedEmail) {
+    const { error: updateEmailError } = await supabase.auth.updateUser({ email: normalizedEmail });
+    if (updateEmailError) throw updateEmailError;
+  }
+
+  const { error } = await supabase.rpc("set_my_profile_details", {
+    first_name: input.firstName.trim(),
+    last_name: input.lastName.trim(),
+    email: normalizedEmail,
+    contact_no: normalizedContact.length ? normalizedContact : null,
+    address: normalizedAddress.length ? normalizedAddress : null,
   });
 
   if (error) throw error;
@@ -39,6 +61,10 @@ export type ChangeMyPasswordInput = {
   newPassword: string;
 };
 
+export type UpdateMyRoleDisplayInput = {
+  roleDisplayName: string;
+};
+
 export async function changeMyPassword(input: ChangeMyPasswordInput) {
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError) throw userError;
@@ -63,3 +89,9 @@ export async function changeMyPassword(input: ChangeMyPasswordInput) {
   if (rpcError) throw rpcError;
 }
 
+export async function updateMyRoleDisplay(input: UpdateMyRoleDisplayInput) {
+  const { error } = await supabase.rpc("set_my_role_display_name", {
+    new_role_display_name: input.roleDisplayName,
+  });
+  if (error) throw error;
+}

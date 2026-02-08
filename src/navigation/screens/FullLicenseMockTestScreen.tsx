@@ -65,6 +65,7 @@ import { DISPLAY_DATE_FORMAT, parseDateInputToISODate } from "../../utils/dates"
 import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
 import { openPdfUri } from "../../utils/open-pdf";
+import { AssessmentStudentDropdown } from "../components/AssessmentStudentDropdown";
 import { useNavigationLayout } from "../useNavigationLayout";
 
 import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
@@ -128,12 +129,6 @@ function immediateTotalFromCounts(counts: FullLicenseMockTestErrorCounts) {
   return fullLicenseMockTestImmediateErrors.reduce((sum, label) => sum + (counts[label] ?? 0), 0);
 }
 
-function hazardResponseLabel(value: FullLicenseMockTestHazardResponse) {
-  if (value === "yes") return "Yes";
-  if (value === "no") return "No";
-  return "N/A";
-}
-
 function hazardDirectionLabel(direction: FullLicenseMockTestHazardDirection) {
   if (direction === "left") return "Left";
   if (direction === "right") return "Right";
@@ -150,9 +145,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   const createAssessment = useCreateAssessmentMutation();
 
   const [stage, setStage] = useState<Stage>("details");
-  const [studentSearch, setStudentSearch] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
-  const [showStudentPicker, setShowStudentPicker] = useState<boolean>(() => !route.params?.studentId);
 
   const [sessionId, setSessionId] = useState(() => uid("session"));
   const [startTimeISO, setStartTimeISO] = useState<string | null>(null);
@@ -298,36 +291,22 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
 
   const selectedStudent = useMemo(() => {
     const students = studentsQuery.data ?? [];
-    if (route.params?.studentId) {
-      return students.find((s) => s.id === route.params?.studentId) ?? null;
-    }
     if (!selectedStudentId) return null;
     return students.find((s) => s.id === selectedStudentId) ?? null;
-  }, [route.params?.studentId, selectedStudentId, studentsQuery.data]);
+  }, [selectedStudentId, studentsQuery.data]);
 
   useEffect(() => {
-    if (!route.params?.studentId) return;
-    setSelectedStudentId(route.params.studentId);
-    form.setValue("studentId", route.params.studentId, { shouldValidate: true });
-    setShowStudentPicker(false);
-  }, [form, route.params?.studentId]);
+    const initialStudentId = route.params?.studentId ?? null;
+    if (!initialStudentId) return;
+    if (selectedStudentId) return;
+    setSelectedStudentId(initialStudentId);
+    form.setValue("studentId", initialStudentId, { shouldValidate: true });
+  }, [form, route.params?.studentId, selectedStudentId]);
 
   useEffect(() => {
     if (!selectedStudentId) return;
     setStage("details");
   }, [selectedStudentId]);
-
-  const studentOptions = useMemo(() => {
-    const students = studentsQuery.data ?? [];
-    const needle = studentSearch.trim().toLowerCase();
-    if (!needle) return students;
-    return students.filter((s) => {
-      const fullName = `${s.first_name} ${s.last_name}`.toLowerCase();
-      const email = (s.email ?? "").toLowerCase();
-      const phone = (s.phone ?? "").toLowerCase();
-      return fullName.includes(needle) || email.includes(needle) || phone.includes(needle);
-    });
-  }, [studentSearch, studentsQuery.data]);
 
   const mode = form.watch("mode");
 
@@ -616,8 +595,6 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     if (!hasFullLicenseMockTestHazardResponse(hazardResponses)) {
       return "Select at least one hazard response (Yes/No) before recording this attempt.";
     }
-    if (!hazardsSpoken.trim()) return "Please enter the hazards spoken.";
-    if (!actionsSpoken.trim()) return "Please enter the action spoken.";
     if (mode === "drill") {
       if (taskId === "left_turn" && leftAttemptsCount >= drillLeftTarget) {
         return "Left-turn target already completed.";
@@ -809,7 +786,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
 
   const studentCard = (
     <AppCard className="gap-4">
-      <View className="flex-row items-center justify-between gap-3">
+      <View className="flex-row items-start justify-between gap-3">
         <AppText variant="heading">Student</AppText>
         {selectedStudent ? (
           <AppText variant="heading" className="text-right">
@@ -841,48 +818,16 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
             <AppText variant="error">{form.formState.errors.studentId.message}</AppText>
           ) : null}
 
-          {selectedStudent && stage === "details" ? (
-            <AppButton
-              width="auto"
-              variant="ghost"
-              label={showStudentPicker ? "Hide student list" : "Change student"}
-              onPress={() => setShowStudentPicker((s) => !s)}
+          {stage === "details" ? (
+            <AssessmentStudentDropdown
+              students={studentsQuery.data ?? []}
+              selectedStudentId={selectedStudentId}
+              currentUserId={profile.id}
+              onSelectStudent={(student) => {
+                setSelectedStudentId(student.id);
+                form.setValue("studentId", student.id, { shouldValidate: true });
+              }}
             />
-          ) : null}
-
-          {stage === "details" && (showStudentPicker || !selectedStudent) ? (
-            <>
-              <AppInput
-                label="Search"
-                autoCapitalize="none"
-                value={studentSearch}
-                onChangeText={setStudentSearch}
-              />
-
-              {studentOptions.length === 0 ? (
-                <AppText variant="caption">No students match this search.</AppText>
-              ) : (
-                <AppStack gap="sm">
-                  {studentOptions.slice(0, 30).map((student) => (
-                    <AppButton
-                      key={student.id}
-                      variant={selectedStudentId === student.id ? "primary" : "secondary"}
-                      label={`${student.first_name} ${student.last_name}`}
-                      onPress={() => {
-                        setSelectedStudentId(student.id);
-                        setShowStudentPicker(false);
-                        setStudentSearch("");
-                        form.setValue("studentId", student.id, { shouldValidate: true });
-                      }}
-                    />
-                  ))}
-                </AppStack>
-              )}
-
-              {studentOptions.length > 30 ? (
-                <AppText variant="caption">Refine search to see more results.</AppText>
-              ) : null}
-            </>
           ) : null}
         </>
       )}
@@ -1330,7 +1275,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       <AppDivider />
 
       <AppInput
-        label="Hazard(s) spoken (required)"
+        label="Hazard(s) spoken (optional)"
         value={hazardsSpoken}
         onChangeText={setHazardsSpoken}
         multiline
@@ -1361,7 +1306,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       ) : null}
 
       <AppInput
-        label="Action spoken (required)"
+        label="Action spoken (optional)"
         value={actionsSpoken}
         onChangeText={setActionsSpoken}
         multiline

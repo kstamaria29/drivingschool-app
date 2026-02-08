@@ -7,13 +7,21 @@ import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButto
 import { getNativeStackScreenOptions } from "./navigationTheme";
 import { AddInstructorScreen } from "./screens/AddInstructorScreen";
 import { ChangePasswordScreen } from "./screens/ChangePasswordScreen";
-import { EditNameScreen } from "./screens/EditNameScreen";
+import { EditDetailsScreen } from "./screens/EditDetailsScreen";
+import { EditOrganizationNameScreen } from "./screens/EditOrganizationNameScreen";
+import { EditRoleDisplayScreen } from "./screens/EditRoleDisplayScreen";
+import { MemberProfileScreen } from "./screens/MemberProfileScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
+import { ViewMembersScreen } from "./screens/ViewMembersScreen";
 
 export type SettingsStackParamList = {
   SettingsMain: undefined;
-  EditName: undefined;
+  EditDetails: undefined;
   ChangePassword: undefined;
+  EditOrganizationName: undefined;
+  ViewMembers: undefined;
+  MemberProfile: { memberId: string };
+  EditRoleDisplay: undefined;
   AddInstructor: undefined;
 };
 
@@ -40,14 +48,34 @@ export function SettingsStackNavigator() {
         }}
       />
       <Stack.Screen
-        name="EditName"
-        component={EditNameScreen}
-        options={{ headerTitle: "Change name" }}
+        name="EditDetails"
+        component={EditDetailsScreen}
+        options={{ headerTitle: "Edit details" }}
       />
       <Stack.Screen
         name="ChangePassword"
         component={ChangePasswordScreen}
         options={{ headerTitle: "Change password" }}
+      />
+      <Stack.Screen
+        name="EditOrganizationName"
+        component={EditOrganizationNameScreen}
+        options={{ headerTitle: "Change organization name" }}
+      />
+      <Stack.Screen
+        name="ViewMembers"
+        component={ViewMembersScreen}
+        options={{ headerTitle: "View members" }}
+      />
+      <Stack.Screen
+        name="MemberProfile"
+        component={MemberProfileScreen}
+        options={{ headerTitle: "Member profile" }}
+      />
+      <Stack.Screen
+        name="EditRoleDisplay"
+        component={EditRoleDisplayScreen}
+        options={{ headerTitle: "Change role display" }}
       />
       <Stack.Screen
         name="AddInstructor"

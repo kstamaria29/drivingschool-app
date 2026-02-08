@@ -19,6 +19,10 @@ In the Supabase Dashboard:
    - `supabase/migrations/011_students_lessons_delete_policies.sql`
    - `supabase/migrations/012_map_pins.sql`
    - `supabase/migrations/013_map_annotations.sql`
+   - `supabase/migrations/014_role_display_name.sql`
+   - `supabase/migrations/015_profile_member_details.sql`
+   - `supabase/migrations/016_students_organization_name.sql`
+   - `supabase/migrations/017_students_license_images.sql`
 
 ## Edge Functions
 
@@ -30,10 +34,13 @@ This Edge Function allows an `owner` or `admin` to create an instructor login an
 
 Deploy (requires Supabase CLI):
 
-- `supabase functions deploy create-instructor`
+- `supabase functions deploy create-instructor --no-verify-jwt`
 - Set secrets (Dashboard or CLI):
   - `SUPABASE_URL`
   - `SUPABASE_SERVICE_ROLE_KEY`
+
+Notes:
+- `create-instructor` validates caller JWT inside the function (`auth.getUser(accessToken)`), so gateway `verify_jwt` is intentionally disabled to avoid edge pre-auth mismatches.
 
 ## Storage buckets + policies
 
@@ -41,11 +48,13 @@ Create buckets (Dashboard → `Storage` → `New bucket`):
 
 - `org-logos` (private)
 - `avatars` (private)
+- `student-licenses` (private)
 
 Then apply policies (Dashboard → `SQL Editor`):
 
 - `supabase/storage/org-logos.sql`
 - `supabase/storage/avatars.sql`
+- `supabase/storage/student-licenses.sql`
 
 ## Verify RLS + permissions
 
@@ -58,10 +67,14 @@ Create 3 users in the same org:
 Checks:
 
 - `owner` and `admin` can read/write org data within org (students, lessons, organization_settings).
+- `owner` and `admin` can set a custom self role display label using `set_my_role_display_name`.
 - `instructor` can only read/write their own assigned students + lessons (per existing RLS policies).
 - `instructor` can only read/write their own assessments (assessments must match the student's assigned instructor).
 - `instructor` can only read/write their own student sessions (session history).
+- `instructor` cannot set custom role display label (RPC should reject).
 - `instructor` cannot upload/replace `org-logos/*` (Storage policy should reject).
 - `owner` and `admin` can upload/replace `org-logos/<organization_id>/logo.*`.
 - `owner`, `admin`, and `instructor` can upload/update only their own `avatars/<auth.uid()>/avatar.*`.
 - Users can read avatars of other users in the same org (drawer/header avatar display).
+- `owner` and `admin` can upload/update/delete `student-licenses/<organization_id>/<student_id>/<front|back>.*` for any student in their org.
+- `instructor` can upload/update/delete/read licence images only for students assigned to them.

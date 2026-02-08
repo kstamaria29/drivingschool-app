@@ -21,6 +21,7 @@ export const studentFormSchema = z.object({
       message: "Enter a valid phone",
     }),
   address: z.string().trim(),
+  organization: z.string().trim().min(1, "Organization is required"),
   assignedInstructorId: z.string().uuid("Select an instructor"),
   licenseType: z.enum(["learner", "restricted", "full"], "Select a licence type"),
   licenseNumber: z.string().trim(),
