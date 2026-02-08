@@ -146,6 +146,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
 
   const [stage, setStage] = useState<Stage>("details");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [startTestModalVisible, setStartTestModalVisible] = useState(false);
 
   const [sessionId, setSessionId] = useState(() => uid("session"));
   const [startTimeISO, setStartTimeISO] = useState<string | null>(null);
@@ -294,6 +295,12 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     if (!selectedStudentId) return null;
     return students.find((s) => s.id === selectedStudentId) ?? null;
   }, [selectedStudentId, studentsQuery.data]);
+
+  useEffect(() => {
+    if (!selectedStudent) {
+      setStartTestModalVisible(false);
+    }
+  }, [selectedStudent]);
 
   useEffect(() => {
     const initialStudentId = route.params?.studentId ?? null;
@@ -998,7 +1005,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
               Alert.alert("Select a student", "Please select a student first.");
               return;
             }
-            setStage("confirm");
+            setStartTestModalVisible(true);
           }}
         />
         <AppButton label="Cancel" variant="ghost" onPress={() => navigation.goBack()} />
@@ -1714,6 +1721,51 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       </View>
     </Modal>
   );
+  const startTestModal = (
+    <Modal
+      visible={startTestModalVisible}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setStartTestModalVisible(false)}
+    >
+      <Pressable
+        className="flex-1 bg-black/40 px-6 py-10"
+        onPress={() => setStartTestModalVisible(false)}
+      >
+        <Pressable
+          className="m-auto w-full max-w-md"
+          onPress={(event) => event.stopPropagation()}
+        >
+          <AppCard className="gap-3">
+            <AppText variant="heading">Start test?</AppText>
+            <AppText variant="body">
+              {selectedStudent
+                ? `You are about to start assessing ${selectedStudent.first_name} ${selectedStudent.last_name}.`
+                : "Select a student first."}
+            </AppText>
+            <AppStack gap="sm">
+              <AppButton
+                width="auto"
+                variant="secondary"
+                label="Cancel"
+                onPress={() => setStartTestModalVisible(false)}
+              />
+              <AppButton
+                width="auto"
+                label="Start"
+                disabled={!selectedStudent}
+                onPress={() => {
+                  setStartTestModalVisible(false);
+                  resetSession({ keepDetails: true });
+                  startSession();
+                }}
+              />
+            </AppStack>
+          </AppCard>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
 
   return (
     <>
@@ -1748,6 +1800,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
         </AppStack>
       </Screen>
       {hazardPickerModal}
+      {startTestModal}
     </>
   );
 }

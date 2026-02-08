@@ -1,4 +1,5 @@
 import * as ImagePicker from "expo-image-picker";
+import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
@@ -45,6 +46,7 @@ import { formatIsoDateToDisplay } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
 
 import type { StudentsStackParamList } from "../StudentsStackNavigator";
+import type { MainDrawerParamList } from "../MainDrawerNavigator";
 
 type Props = NativeStackScreenProps<StudentsStackParamList, "StudentDetail">;
 type LicenceImageItem = { key: "front" | "back"; label: string; uri: string };
@@ -81,6 +83,8 @@ function toSentenceCase(value: string) {
 export function StudentDetailScreen({ navigation, route }: Props) {
   const { studentId } = route.params;
   const colorScheme = useColorScheme();
+  const drawerNavigation =
+    navigation.getParent<DrawerNavigationProp<MainDrawerParamList>>();
   const organizationIconColor =
     colorScheme === "dark"
       ? theme.colors.foregroundDark
@@ -107,6 +111,8 @@ export function StudentDetailScreen({ navigation, route }: Props) {
   const [licenseGalleryIndex, setLicenseGalleryIndex] = useState(0);
   const [licenseActionModalSide, setLicenseActionModalSide] =
     useState<StudentLicenseImageSide | null>(null);
+  const [startAssessmentModalVisible, setStartAssessmentModalVisible] =
+    useState(false);
   const studentDobDisplay = student?.date_of_birth
     ? formatIsoDateToDisplay(student.date_of_birth)
     : "-";
@@ -276,6 +282,28 @@ export function StudentDetailScreen({ navigation, route }: Props) {
     setLicenseActionModalSide(side);
   }
 
+  function closeStartAssessmentModal() {
+    setStartAssessmentModalVisible(false);
+  }
+
+  function onStartAssessmentPress() {
+    setStartAssessmentModalVisible(true);
+  }
+
+  function navigateToAssessment(
+    routeName:
+      | "DrivingAssessment"
+      | "RestrictedMockTest"
+      | "FullLicenseMockTest",
+  ) {
+    if (!student) return;
+    closeStartAssessmentModal();
+    drawerNavigation?.navigate("Assessments", {
+      screen: routeName,
+      params: { studentId: student.id },
+    });
+  }
+
   function onArchivePress() {
     if (!student) return;
     Alert.alert("Archive student", "This student will be moved to Archived.", [
@@ -380,7 +408,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                       color={organizationIconColor}
                       strokeWidth={2}
                     />
-                    <AppText className="text-[28px]" numberOfLines={1}>
+                    <AppText className="text-[25px]" numberOfLines={1}>
                       {student.organization_name ?? "-"}
                     </AppText>
                   </View>
@@ -616,6 +644,13 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                       })
                     }
                   />
+
+                  <AppButton
+                    label="Start Assessment"
+                    variant="secondary"
+                    disabled={!drawerNavigation}
+                    onPress={onStartAssessmentPress}
+                  />
                 </AppStack>
 
                 <View className="flex-1" />
@@ -669,6 +704,52 @@ export function StudentDetailScreen({ navigation, route }: Props) {
           )}
         </AppStack>
       </Screen>
+
+      <Modal
+        visible={startAssessmentModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeStartAssessmentModal}
+      >
+        <Pressable
+          className="flex-1 bg-black/40 px-6 py-10"
+          onPress={closeStartAssessmentModal}
+        >
+          <Pressable
+            className="m-auto w-full max-w-md"
+            onPress={(event) => event.stopPropagation()}
+          >
+            <AppCard className="gap-3">
+              <AppText variant="heading">Start Assessment</AppText>
+              <AppText variant="body">
+                Choose the assessment to start for this student.
+              </AppText>
+              <AppStack gap="sm">
+                <AppButton
+                  variant="secondary"
+                  label="Driving Assessment"
+                  onPress={() => navigateToAssessment("DrivingAssessment")}
+                />
+                <AppButton
+                  variant="secondary"
+                  label="Mock Test - Restricted Licence"
+                  onPress={() => navigateToAssessment("RestrictedMockTest")}
+                />
+                <AppButton
+                  variant="secondary"
+                  label="Mock Test - Full License"
+                  onPress={() => navigateToAssessment("FullLicenseMockTest")}
+                />
+                <AppButton
+                  variant="ghost"
+                  label="Cancel"
+                  onPress={closeStartAssessmentModal}
+                />
+              </AppStack>
+            </AppCard>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       <Modal
         visible={licenseActionModalSide != null}

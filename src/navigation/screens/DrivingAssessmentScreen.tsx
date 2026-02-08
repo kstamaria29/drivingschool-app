@@ -713,7 +713,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
               <AppText variant="heading">Start test?</AppText>
               <AppText variant="body">
                 {selectedStudent
-                  ? `You're about to start scoring ${selectedStudent.first_name} ${selectedStudent.last_name}.`
+                  ? `You are about to start assessing ${selectedStudent.first_name} ${selectedStudent.last_name}.`
                   : "Select a student first."}
               </AppText>
               <AppStack gap="sm">

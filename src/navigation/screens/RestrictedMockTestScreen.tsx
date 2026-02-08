@@ -3,7 +3,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Platform, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Platform,
+  Pressable,
+  View,
+} from "react-native";
 import { Controller, useForm } from "react-hook-form";
 
 import { AppButton } from "../../components/AppButton";
@@ -133,6 +140,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   const [stage, setStage] = useState<Stage>("details");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [startTestModalVisible, setStartTestModalVisible] = useState(false);
 
   const [stage2Enabled, setStage2Enabled] = useState(false);
   const [stagesState, setStagesState] = useState<RestrictedMockTestStagesState>(() =>
@@ -172,6 +180,12 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     if (!selectedStudentId) return null;
     return students.find((s) => s.id === selectedStudentId) ?? null;
   }, [selectedStudentId, studentsQuery.data]);
+
+  useEffect(() => {
+    if (!selectedStudent) {
+      setStartTestModalVisible(false);
+    }
+  }, [selectedStudent]);
 
   useEffect(() => {
     const initialStudentId = route.params?.studentId ?? null;
@@ -810,7 +824,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
               Alert.alert("Select a student", "Please select a student first.");
               return;
             }
-            setStage("confirm");
+            setStartTestModalVisible(true);
           }}
         />
         <AppButton label="Cancel" variant="ghost" onPress={() => navigation.goBack()} />
@@ -856,29 +870,74 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     );
 
   return (
-    <Screen scroll>
-      <AppStack gap="lg">
-        {header}
-        {studentCard}
+    <>
+      <Screen scroll>
+        <AppStack gap="lg">
+          {header}
+          {studentCard}
 
-        {stage === "details" ? preDriveCard : null}
-        {stage === "confirm" ? stageActions : null}
+          {stage === "details" ? preDriveCard : null}
+          {stage === "confirm" ? stageActions : null}
 
-        {stage === "test" ? (
-          <>
-            {summaryCard}
+          {stage === "test" ? (
+            <>
+              {summaryCard}
 
-            {renderStageTasks("stage1")}
+              {renderStageTasks("stage1")}
 
-            {renderStageTasks("stage2")}
+              {renderStageTasks("stage2")}
 
-            {errorsCard}
-            {stageActions}
-          </>
-        ) : null}
+              {errorsCard}
+              {stageActions}
+            </>
+          ) : null}
 
-        {stage === "details" ? stageActions : null}
-      </AppStack>
-    </Screen>
+          {stage === "details" ? stageActions : null}
+        </AppStack>
+      </Screen>
+
+      <Modal
+        visible={startTestModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setStartTestModalVisible(false)}
+      >
+        <Pressable
+          className="flex-1 bg-black/40 px-6 py-10"
+          onPress={() => setStartTestModalVisible(false)}
+        >
+          <Pressable
+            className="m-auto w-full max-w-md"
+            onPress={(event) => event.stopPropagation()}
+          >
+            <AppCard className="gap-3">
+              <AppText variant="heading">Start test?</AppText>
+              <AppText variant="body">
+                {selectedStudent
+                  ? `You are about to start assessing ${selectedStudent.first_name} ${selectedStudent.last_name}.`
+                  : "Select a student first."}
+              </AppText>
+              <AppStack gap="sm">
+                <AppButton
+                  width="auto"
+                  variant="secondary"
+                  label="Cancel"
+                  onPress={() => setStartTestModalVisible(false)}
+                />
+                <AppButton
+                  width="auto"
+                  label="Start"
+                  disabled={!selectedStudent}
+                  onPress={() => {
+                    setStartTestModalVisible(false);
+                    setStage("test");
+                  }}
+                />
+              </AppStack>
+            </AppCard>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
   );
 }

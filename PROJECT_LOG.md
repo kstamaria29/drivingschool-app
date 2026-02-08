@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student assessment launch modal + mock-test start modals
+- **Summary:**
+  - Set Student Profile organization text to `25px`, added a `Start Assessment` action button, and added an assessment-type modal that deep-links into Driving/Restricted/Full screens with the student pre-selected.
+  - Updated Driving Assessment modal wording to `You are about to start assessing ...` and added equivalent start-confirmation modals to Restricted and Full mock tests.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Maps pin-panel redesign + assessment picker and start-flow updates
 - **Summary:**
   - Removed Google Maps top `Pin colors` panel, redesigned selected-pin actions/details (icon-only delete, color picker button, tip + right-aligned snapshot count), and made the no-selection camera action much larger and more visible.
@@ -149,13 +157,5 @@
 - **Summary:**
   - Removed unreachable navigation/screen code (`MainTabsNavigator`, `EditNameScreen`) and related unused account name-update schema/query/api p...
   - Replaced remaining real `any` usages with typed alternatives in weather parsing and driving-assessment RHF field-path wiring.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Add drawer sign-out with confirmation
-- **Summary:**
-  - Added a `Sign out` action in the sidebar menu above the bottom divider/settings block.
-  - Added a confirmation alert (`Cancel` / `Sign out`) before signing out.
 
 

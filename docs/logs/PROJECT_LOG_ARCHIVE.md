@@ -832,3 +832,11 @@
 - **Summary:**
   - Excluded `admin` from assignable instructor options on `New student` and `New lesson` screens.
   - Added save confirmations for `Edit student` and for both `New lesson`/`Edit lesson` submissions.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Add drawer sign-out with confirmation
+- **Summary:**
+  - Added a `Sign out` action in the sidebar menu above the bottom divider/settings block.
+  - Added a confirmation alert (`Cancel` / `Sign out`) before signing out.
