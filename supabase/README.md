@@ -24,6 +24,7 @@ In the Supabase Dashboard:
    - `supabase/migrations/016_students_organization_name.sql`
    - `supabase/migrations/017_students_license_images.sql`
    - `supabase/migrations/018_students_date_of_birth.sql`
+   - `supabase/migrations/019_student_reminders.sql`
 
 ## Edge Functions
 
@@ -73,6 +74,7 @@ Checks:
 - `instructor` can only read/write their own assigned students + lessons (per existing RLS policies).
 - `instructor` can only read/write their own assessments (assessments must match the student's assigned instructor).
 - `instructor` can only read/write their own student sessions (session history).
+- `instructor` can only read/write their own student reminders.
 - `instructor` cannot set custom role display label (RPC should reject).
 - `instructor` cannot upload/replace `org-logos/*` (Storage policy should reject).
 - `owner` and `admin` can upload/replace `org-logos/<organization_id>/logo.*`.

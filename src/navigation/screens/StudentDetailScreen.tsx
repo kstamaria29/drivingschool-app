@@ -13,12 +13,12 @@ import {
 } from "react-native";
 import {
   Archive,
+  Bell,
   Building2,
   ClipboardList,
   Clock,
   Pencil,
   Play,
-  Plus,
   RefreshCw,
   Trash2,
   Undo2,
@@ -422,13 +422,14 @@ export function StudentDetailScreen({ navigation, route }: Props) {
 
                 <AppButton
                   width="auto"
+                  size="icon"
                   variant="secondary"
-                  label="Add session"
-                  icon={Plus}
+                  label=""
+                  accessibilityLabel="Edit student"
+                  icon={Pencil}
                   onPress={() =>
-                    navigation.navigate("StudentSessionHistory", {
+                    navigation.navigate("StudentEdit", {
                       studentId: student.id,
-                      openNewSession: true,
                     })
                   }
                 />
@@ -669,11 +670,11 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                     <AppButton
                       width="auto"
                       className="flex-1"
-                      label="Edit"
+                      label="Reminders"
                       variant="secondary"
-                      icon={Pencil}
+                      icon={Bell}
                       onPress={() =>
-                        navigation.navigate("StudentEdit", {
+                        navigation.navigate("StudentReminders", {
                           studentId: student.id,
                         })
                       }

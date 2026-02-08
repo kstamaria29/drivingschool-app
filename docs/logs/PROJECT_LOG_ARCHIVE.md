@@ -896,3 +896,11 @@
 - **Summary:**
   - Updated shared `Screen` keyboard behavior so tablet portrait keyboard avoidance now applies to both scroll and non-scroll screens.
   - Lowered tablet detection threshold from `768` to `600` width to cover common Android tablet sizes.
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Add student organization field + list filtering
+- **Summary:**
+  - Added `Organization` input to `New/Edit student` directly below Address, with quick-pick options (`Private`, `UMMA Trust`, `Renaissance`, `L...
+  - Persisted `organization_name` in students CRUD payloads and added schema/type support across form validation and Supabase table typings.

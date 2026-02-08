@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student reminders feature + Student Profile action-row redesign
+- **Summary:**
+  - Added a new student Reminders flow: dedicated screen, reminder list, create/delete actions, reminder date, and notification lead-time options.
+  - Updated Student Profile actions by replacing top-right `Add session` with icon-only Edit and replacing the lower `Edit` button with `Reminders`.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Student Profile organization size, dark-green archive buttons, and safer bottom-action spacing
 - **Summary:**
   - Updated Student Profile organization subtitle text under the student name to `23px` and changed Archive/Unarchive buttons to dark green.
@@ -149,11 +157,3 @@
 - **Summary:**
   - Updated `New student` owner/admin assignment UX to use an instructor dropdown instead of listing all instructor buttons.
   - Added a left-aligned trigger button label (`Assign new student to an Instructor`) with centered dropdown choices and centered selected state...
-
----
-
-- **Date:** 2026-02-08 (Pacific/Auckland)
-- **Task:** Add student organization field + list filtering
-- **Summary:**
-  - Added `Organization` input to `New/Edit student` directly below Address, with quick-pick options (`Private`, `UMMA Trust`, `Renaissance`, `L...
-  - Persisted `organization_name` in students CRUD payloads and added schema/type support across form validation and Supabase table typings.

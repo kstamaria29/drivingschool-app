@@ -391,6 +391,40 @@ export type Database = {
         };
         Relationships: [];
       };
+      student_reminders: {
+        Row: {
+          id: string;
+          organization_id: string;
+          student_id: string;
+          instructor_id: string;
+          title: string;
+          reminder_date: string;
+          notification_offsets_minutes: number[];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          student_id: string;
+          instructor_id: string;
+          title: string;
+          reminder_date: string;
+          notification_offsets_minutes?: number[];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          organization_id?: string;
+          student_id?: string;
+          instructor_id?: string;
+          title?: string;
+          reminder_date?: string;
+          notification_offsets_minutes?: number[];
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       [key: string]: SupabaseTable;
     };
     Views: Record<string, never>;
