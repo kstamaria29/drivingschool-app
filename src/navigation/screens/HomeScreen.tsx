@@ -11,6 +11,7 @@ import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
+import { isOwnerOrAdminRole } from "../../features/auth/roles";
 import type { LessonWithStudent } from "../../features/lessons/api";
 import { useLessonsQuery } from "../../features/lessons/queries";
 import { WeatherWidget } from "../../features/weather/WeatherWidget";
@@ -43,7 +44,11 @@ export function HomeScreen({ navigation }: Props) {
   const toISO = startOfToday.add(4, "day").toISOString();
 
   const lessonsQuery = useLessonsQuery({ fromISO, toISO });
-  const lessons: LessonWithStudent[] = lessonsQuery.data ?? [];
+  const lessons: LessonWithStudent[] = useMemo(() => {
+    const all = lessonsQuery.data ?? [];
+    if (!isOwnerOrAdminRole(profile.role)) return all;
+    return all.filter((lesson) => lesson.instructor_id === profile.id);
+  }, [lessonsQuery.data, profile.id, profile.role]);
 
   const todayLessons = useMemo(() => {
     return lessons.filter((lesson) => {
@@ -139,7 +144,7 @@ export function HomeScreen({ navigation }: Props) {
           />
         ) : (
           <AppCard className="gap-3">
-            <AppText variant="heading">Upcoming Lessons Today</AppText>
+            <AppText variant="heading">Lessons Today</AppText>
             {todayLessons.length === 0 ? (
               <AppText variant="body">No lessons scheduled today.</AppText>
             ) : (

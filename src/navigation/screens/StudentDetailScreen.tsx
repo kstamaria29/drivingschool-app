@@ -1,12 +1,23 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Alert, ActivityIndicator, View } from "react-native";
-import { Archive, ClipboardList, Clock, Pencil, Plus, RefreshCw, Trash2, Undo2 } from "lucide-react-native";
+import {
+  Archive,
+  ClipboardList,
+  Clock,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Trash2,
+  Undo2,
+} from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
+import { useAssessmentsQuery } from "../../features/assessments/queries";
+import { useStudentSessionsQuery } from "../../features/sessions/queries";
 import {
   useArchiveStudentMutation,
   useDeleteStudentMutation,
@@ -22,13 +33,7 @@ import type { StudentsStackParamList } from "../StudentsStackNavigator";
 
 type Props = NativeStackScreenProps<StudentsStackParamList, "StudentDetail">;
 
-function InlineDetailRow({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function InlineDetailRow({ label, value }: { label: string; value: string }) {
   return (
     <View className="flex-row flex-wrap items-baseline">
       <AppText className="text-muted dark:text-mutedDark" variant="label">
@@ -45,6 +50,8 @@ export function StudentDetailScreen({ navigation, route }: Props) {
   const { studentId } = route.params;
 
   const query = useStudentQuery(studentId);
+  const sessionsQuery = useStudentSessionsQuery({ studentId });
+  const assessmentsQuery = useAssessmentsQuery({ studentId });
   const archiveMutation = useArchiveStudentMutation();
   const unarchiveMutation = useUnarchiveStudentMutation();
   const deleteMutation = useDeleteStudentMutation();
@@ -52,6 +59,8 @@ export function StudentDetailScreen({ navigation, route }: Props) {
   const student = query.data ?? null;
   const isArchived = Boolean(student?.archived_at);
   const notes = student?.notes?.trim() ? student.notes.trim() : "";
+  const sessionCount = sessionsQuery.data?.length ?? 0;
+  const assessmentCount = assessmentsQuery.data?.length ?? 0;
 
   function onArchivePress() {
     if (!student) return;
@@ -72,19 +81,24 @@ export function StudentDetailScreen({ navigation, route }: Props) {
 
   function onDeletePress() {
     if (!student) return;
-    Alert.alert("Delete student", "Permanently delete this student? This cannot be undone.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => {
-          deleteMutation.mutate(student.id, {
-            onSuccess: () => navigation.popToTop(),
-            onError: (error) => Alert.alert("Couldn't delete student", toErrorMessage(error)),
-          });
+    Alert.alert(
+      "Delete student",
+      "Permanently delete this student? This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            deleteMutation.mutate(student.id, {
+              onSuccess: () => navigation.popToTop(),
+              onError: (error) =>
+                Alert.alert("Couldn't delete student", toErrorMessage(error)),
+            });
+          },
         },
-      },
-    ]);
+      ],
+    );
   }
 
   return (
@@ -98,17 +112,19 @@ export function StudentDetailScreen({ navigation, route }: Props) {
             </AppText>
           </View>
         ) : query.isError ? (
-            <AppStack gap="md">
-              <AppCard className="gap-2">
-                <AppText variant="heading">Couldn't load student</AppText>
-                <AppText variant="body">{toErrorMessage(query.error)}</AppText>
-              </AppCard>
+          <AppStack gap="md">
+            <AppCard className="gap-2">
+              <AppText variant="heading">Couldn't load student</AppText>
+              <AppText variant="body">{toErrorMessage(query.error)}</AppText>
+            </AppCard>
             <AppButton label="Retry" icon={RefreshCw} onPress={() => query.refetch()} />
-            </AppStack>
+          </AppStack>
         ) : !student ? (
           <AppCard className="gap-2">
             <AppText variant="heading">Student not found</AppText>
-            <AppText variant="body">This student may have been deleted or you may not have access.</AppText>
+            <AppText variant="body">
+              This student may have been deleted or you may not have access.
+            </AppText>
           </AppCard>
         ) : (
           <>
@@ -167,26 +183,41 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                     <InlineDetailRow label="Type" value={student.license_type ?? "-"} />
                   </View>
                   <View className="min-w-56 flex-1 gap-2">
-                    <InlineDetailRow label="Number" value={student.license_number ?? "-"} />
+                    <InlineDetailRow
+                      label="Number"
+                      value={student.license_number ?? "-"}
+                    />
                   </View>
                 </View>
 
                 <View className="flex-row flex-wrap gap-4">
                   <View className="min-w-56 flex-1 gap-2">
-                    <InlineDetailRow label="Version" value={student.license_version ?? "-"} />
+                    <InlineDetailRow
+                      label="Version"
+                      value={student.license_version ?? "-"}
+                    />
                   </View>
                   <View className="min-w-56 flex-1 gap-2">
-                    <InlineDetailRow label="Class held" value={student.class_held ?? "-"} />
+                    <InlineDetailRow
+                      label="Class held"
+                      value={student.class_held ?? "-"}
+                    />
                   </View>
                 </View>
 
                 <InlineDetailRow
                   label="Issue date"
-                  value={student.issue_date ? formatIsoDateToDisplay(student.issue_date) : "-"}
+                  value={
+                    student.issue_date ? formatIsoDateToDisplay(student.issue_date) : "-"
+                  }
                 />
                 <InlineDetailRow
                   label="Expiry date"
-                  value={student.expiry_date ? formatIsoDateToDisplay(student.expiry_date) : "-"}
+                  value={
+                    student.expiry_date
+                      ? formatIsoDateToDisplay(student.expiry_date)
+                      : "-"
+                  }
                 />
               </AppCard>
 
@@ -203,21 +234,31 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                 label="Edit"
                 variant="secondary"
                 icon={Pencil}
-                onPress={() => navigation.navigate("StudentEdit", { studentId: student.id })}
+                onPress={() =>
+                  navigation.navigate("StudentEdit", { studentId: student.id })
+                }
               />
 
               <AppButton
                 label="Session History"
                 variant="secondary"
                 icon={Clock}
-                onPress={() => navigation.navigate("StudentSessionHistory", { studentId: student.id })}
+                badgeCount={sessionsQuery.isPending ? undefined : sessionCount}
+                onPress={() =>
+                  navigation.navigate("StudentSessionHistory", { studentId: student.id })
+                }
               />
 
               <AppButton
                 label="Assessment History"
                 variant="secondary"
                 icon={ClipboardList}
-                onPress={() => navigation.navigate("StudentAssessmentHistory", { studentId: student.id })}
+                badgeCount={assessmentsQuery.isPending ? undefined : assessmentCount}
+                onPress={() =>
+                  navigation.navigate("StudentAssessmentHistory", {
+                    studentId: student.id,
+                  })
+                }
               />
 
               {isArchived ? (
@@ -240,7 +281,11 @@ export function StudentDetailScreen({ navigation, route }: Props) {
               <AppButton
                 label={deleteMutation.isPending ? "Deleting..." : "Delete student"}
                 variant="danger"
-                disabled={deleteMutation.isPending || archiveMutation.isPending || unarchiveMutation.isPending}
+                disabled={
+                  deleteMutation.isPending ||
+                  archiveMutation.isPending ||
+                  unarchiveMutation.isPending
+                }
                 icon={Trash2}
                 onPress={onDeletePress}
               />

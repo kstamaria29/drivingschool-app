@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState, type ReactElement } from "react";
 import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, View } from "react-native";
-import { Download, RefreshCw, Trash2 } from "lucide-react-native";
+import { ClipboardList, Download, RefreshCw, Trash2 } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -159,6 +159,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
 
   const studentQuery = useStudentQuery(studentId);
   const organizationQuery = useOrganizationQuery(profile.organization_id);
+  const allAssessmentsQuery = useAssessmentsQuery({ studentId });
   const assessmentsQuery = useAssessmentsQuery({ studentId, assessmentType });
   const deleteAssessmentMutation = useDeleteAssessmentMutation();
 
@@ -179,6 +180,16 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
     if (!selectedAssessmentId) return null;
     return list.find((a) => a.id === selectedAssessmentId) ?? null;
   }, [assessmentsQuery.data, selectedAssessmentId]);
+
+  const assessmentTypeCounts = useMemo(() => {
+    const counts: Partial<Record<AssessmentType, number>> = {};
+
+    for (const assessment of allAssessmentsQuery.data ?? []) {
+      counts[assessment.assessment_type] = (counts[assessment.assessment_type] ?? 0) + 1;
+    }
+
+    return counts;
+  }, [allAssessmentsQuery.data]);
 
   function onDeletePress(assessment: Assessment) {
     Alert.alert(
@@ -399,6 +410,8 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
           key={tab.type}
           width="auto"
           variant={tab.type === assessmentType ? "primary" : "secondary"}
+          icon={ClipboardList}
+          badgeCount={allAssessmentsQuery.isPending ? undefined : (assessmentTypeCounts[tab.type] ?? 0)}
           label={tab.label}
           onPress={() => setAssessmentType(tab.type)}
         />

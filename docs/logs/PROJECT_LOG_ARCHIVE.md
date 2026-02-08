@@ -2023,3 +2023,29 @@
   - As owner, toggle `Show` and confirm instructor student groups appear below the owner block with each instructor name.
   - Sign in as admin with no students assigned to that admin account and confirm the default students list is replaced by owner/instructor grouped blocks.
   - Sign in as owner/admin, open `Settings` -> `Organization`, tap `View members`, and confirm members render in order: Owner, Instructors, Admin, with avatar and full name rows.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Fix create-instructor Invalid JWT gateway rejection
+- **Summary:**
+  - Updated `create-instructor` edge function to parse bearer token explicitly and validate caller identity with `auth.getUser(accessToken)`.
+  - Removed dependency on forwarding global authorization headers inside the service-role client for caller validation.
+  - Added `supabase/config.toml` function config to disable gateway `verify_jwt` for `create-instructor` because JWT is validated explicitly inside function code.
+  - Updated Supabase README deploy command to include `--no-verify-jwt` for this function and documented why.
+- **Files changed:**
+  - `supabase/functions/create-instructor/index.ts`
+  - `supabase/config.toml`
+  - `supabase/README.md`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Path AGENTS.md`
+  - `Get-Content -Path PROJECT_LOG.md`
+  - `Get-Content -Path docs/logs/INDEX.md`
+  - `Get-Content -Path docs/logs/PROJECT_LOG_ARCHIVE.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Deploy function with no gateway JWT verification: `supabase functions deploy create-instructor --project-ref djwuraqzrmpcvjidtgfb --no-verify-jwt`.
+  - Re-run `Add instructor` as owner/admin.
+  - In Supabase invocations, confirm `execution_id` is no longer `null` and status is not blocked with gateway `401 Invalid JWT`.

@@ -22,6 +22,7 @@ type Props = Omit<PressableProps, "children"> & {
   iconSize?: number;
   iconColor?: string;
   iconStrokeWidth?: number;
+  badgeCount?: number;
   renderIcon?: (input: { size: number; color: string; strokeWidth: number }) => ReactNode;
 };
 
@@ -35,6 +36,7 @@ export function AppButton({
   iconSize,
   iconColor,
   iconStrokeWidth = 2,
+  badgeCount,
   renderIcon,
   className,
   disabled,
@@ -71,6 +73,24 @@ export function AppButton({
           />
         )
       : null;
+
+  const resolvedBadgeCount =
+    typeof badgeCount === "number" && Number.isFinite(badgeCount) && badgeCount > 0
+      ? Math.min(Math.floor(badgeCount), 99)
+      : null;
+
+  const iconWithBadge = iconNode ? (
+    <View className="relative">
+      {iconNode}
+      {resolvedBadgeCount != null ? (
+        <View className="absolute -right-2 -top-2 min-w-[18px] items-center rounded-full bg-danger px-1 py-0.5 dark:bg-dangerDark">
+          <AppText className="text-[10px] font-semibold leading-none text-primaryForeground" variant="caption">
+            {badgeCount != null && badgeCount > 99 ? "99+" : String(resolvedBadgeCount)}
+          </AppText>
+        </View>
+      ) : null}
+    </View>
+  ) : null;
   const showContentGap = hasLabel && iconNode != null;
 
   return (
@@ -94,7 +114,7 @@ export function AppButton({
           showContentGap && "gap-2",
         )}
       >
-        {iconPosition === "left" ? iconNode : null}
+        {iconPosition === "left" ? iconWithBadge : null}
         {hasLabel ? (
           <AppText
             variant="button"
@@ -103,7 +123,7 @@ export function AppButton({
             {label}
           </AppText>
         ) : null}
-        {iconPosition === "right" ? iconNode : null}
+        {iconPosition === "right" ? iconWithBadge : null}
       </View>
     </Pressable>
   );

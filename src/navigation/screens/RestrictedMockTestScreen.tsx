@@ -17,7 +17,6 @@ import { AppText } from "../../components/AppText";
 import { AppTimeInput } from "../../components/AppTimeInput";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
-import { isOwnerOrAdminRole } from "../../features/auth/roles";
 import { ensureAndroidDownloadsDirectoryUri } from "../../features/assessments/android-downloads";
 import { useCreateAssessmentMutation } from "../../features/assessments/queries";
 import {
@@ -44,7 +43,6 @@ import {
 } from "../../features/assessments/restricted-mock-test/schema";
 import { notifyPdfSaved } from "../../features/notifications/download-notifications";
 import { useOrganizationQuery } from "../../features/organization/queries";
-import { useOrganizationProfilesQuery } from "../../features/profiles/queries";
 import { useStudentsQuery } from "../../features/students/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
@@ -52,6 +50,7 @@ import { parseDateInputToISODate } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
 import { openPdfUri } from "../../utils/open-pdf";
+import { AssessmentStudentDropdown } from "../components/AssessmentStudentDropdown";
 
 import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
 
@@ -59,7 +58,6 @@ type Props = NativeStackScreenProps<AssessmentsStackParamList, "RestrictedMockTe
 
 type Stage = "details" | "confirm" | "test";
 type FaultValue = "" | "fault";
-type OtherInstructorStudentsVisibility = "hide" | "show";
 
 const DRAFT_VERSION = 1;
 
@@ -131,18 +129,10 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   const { profile, userId } = useCurrentUser();
   const organizationQuery = useOrganizationQuery(profile.organization_id);
   const studentsQuery = useStudentsQuery({ archived: false });
-  const organizationProfilesQuery = useOrganizationProfilesQuery(isOwnerOrAdminRole(profile.role));
   const createAssessment = useCreateAssessmentMutation();
 
   const [stage, setStage] = useState<Stage>("details");
-  const [studentSearch, setStudentSearch] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
-  const [showStudentPicker, setShowStudentPicker] = useState<boolean>(() => !route.params?.studentId);
-  const [otherInstructorStudentsVisibility, setOtherInstructorStudentsVisibility] =
-    useState<OtherInstructorStudentsVisibility>("hide");
-
-  const canViewOtherInstructorStudents = isOwnerOrAdminRole(profile.role);
-  const showOtherInstructorStudents = otherInstructorStudentsVisibility === "show";
 
   const [stage2Enabled, setStage2Enabled] = useState(false);
   const [stagesState, setStagesState] = useState<RestrictedMockTestStagesState>(() =>
@@ -179,80 +169,17 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   const selectedStudent = useMemo(() => {
     const students = studentsQuery.data ?? [];
-    if (route.params?.studentId) {
-      return students.find((s) => s.id === route.params?.studentId) ?? null;
-    }
     if (!selectedStudentId) return null;
     return students.find((s) => s.id === selectedStudentId) ?? null;
-  }, [route.params?.studentId, selectedStudentId, studentsQuery.data]);
+  }, [selectedStudentId, studentsQuery.data]);
 
   useEffect(() => {
-    if (!route.params?.studentId) return;
-    setSelectedStudentId(route.params.studentId);
-    form.setValue("studentId", route.params.studentId, { shouldValidate: true });
-    setShowStudentPicker(false);
-  }, [form, route.params?.studentId]);
-
-  const visibleStudents = useMemo(() => {
-    const all = studentsQuery.data ?? [];
-    if (!canViewOtherInstructorStudents || showOtherInstructorStudents) return all;
-    return all.filter((student) => student.assigned_instructor_id === profile.id);
-  }, [canViewOtherInstructorStudents, profile.id, showOtherInstructorStudents, studentsQuery.data]);
-
-  const studentOptions = useMemo(() => {
-    const students = visibleStudents;
-    const needle = studentSearch.trim().toLowerCase();
-    if (!needle) return students;
-    return students.filter((s) => {
-      const fullName = `${s.first_name} ${s.last_name}`.toLowerCase();
-      const email = (s.email ?? "").toLowerCase();
-      const phone = (s.phone ?? "").toLowerCase();
-      return fullName.includes(needle) || email.includes(needle) || phone.includes(needle);
-    });
-  }, [studentSearch, visibleStudents]);
-
-  const limitedStudentOptions = useMemo(() => studentOptions.slice(0, 30), [studentOptions]);
-  const shouldGroupStudentOptions = canViewOtherInstructorStudents && showOtherInstructorStudents;
-
-  const instructorNameById = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const member of organizationProfilesQuery.data ?? []) {
-      const fullName = getProfileFullName(member) || member.display_name || "Instructor";
-      map.set(member.id, fullName);
-    }
-    return map;
-  }, [organizationProfilesQuery.data]);
-
-  const selfStudentOptions = useMemo(() => {
-    if (!shouldGroupStudentOptions) return [];
-    return limitedStudentOptions.filter((student) => student.assigned_instructor_id === profile.id);
-  }, [limitedStudentOptions, profile.id, shouldGroupStudentOptions]);
-
-  const otherInstructorStudentGroups = useMemo(() => {
-    if (!shouldGroupStudentOptions) return [];
-
-    const groups = new Map<string, typeof limitedStudentOptions>();
-    for (const student of limitedStudentOptions) {
-      if (student.assigned_instructor_id === profile.id) continue;
-      const instructorId = student.assigned_instructor_id ?? "__unassigned__";
-      const existing = groups.get(instructorId) ?? [];
-      groups.set(instructorId, [...existing, student]);
-    }
-
-    return Array.from(groups.entries())
-      .map(([instructorId, students]) => {
-        const name =
-          instructorId === "__unassigned__"
-            ? "Unassigned"
-            : (instructorNameById.get(instructorId) ?? "Unknown instructor");
-        return {
-          key: instructorId,
-          instructorName: name,
-          students,
-        };
-      })
-      .sort((a, b) => a.instructorName.localeCompare(b.instructorName, undefined, { sensitivity: "base" }));
-  }, [instructorNameById, limitedStudentOptions, profile.id, shouldGroupStudentOptions]);
+    const initialStudentId = route.params?.studentId ?? null;
+    if (!initialStudentId) return;
+    if (selectedStudentId) return;
+    setSelectedStudentId(initialStudentId);
+    form.setValue("studentId", initialStudentId, { shouldValidate: true });
+  }, [form, route.params?.studentId, selectedStudentId]);
 
   const summary = useMemo(() => {
     return calculateRestrictedMockTestSummary({ stagesState, critical, immediate });
@@ -502,33 +429,12 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     <AppCard className="gap-4">
       <View className="flex-row items-start justify-between gap-3">
         <AppText variant="heading">Student</AppText>
-        {canViewOtherInstructorStudents ? (
-          <View className="w-52 items-end">
-            <AppText variant="caption" className="text-right">
-              Other Instructor&apos;s Students
-            </AppText>
-            <AppSegmentedControl<OtherInstructorStudentsVisibility>
-              className="mt-2 w-full"
-              value={otherInstructorStudentsVisibility}
-              onChange={setOtherInstructorStudentsVisibility}
-              options={[
-                { value: "hide", label: "Hide" },
-                { value: "show", label: "Show" },
-              ]}
-            />
-          </View>
-        ) : selectedStudent ? (
+        {selectedStudent ? (
           <AppText variant="heading" className="text-right">
             {selectedStudent.first_name} {selectedStudent.last_name}
           </AppText>
         ) : null}
       </View>
-
-      {canViewOtherInstructorStudents && selectedStudent ? (
-        <AppText variant="heading" className="text-right">
-          {selectedStudent.first_name} {selectedStudent.last_name}
-        </AppText>
-      ) : null}
 
       {studentsQuery.isPending ? (
         <View className={cn("items-center justify-center py-4", theme.text.base)}>
@@ -553,94 +459,16 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             <AppText variant="error">{form.formState.errors.studentId.message}</AppText>
           ) : null}
 
-          {selectedStudent && stage === "details" ? (
-            <AppButton
-              width="auto"
-              variant="ghost"
-              label={showStudentPicker ? "Hide student list" : "Change student"}
-              onPress={() => setShowStudentPicker((s) => !s)}
+          {stage === "details" ? (
+            <AssessmentStudentDropdown
+              students={studentsQuery.data ?? []}
+              selectedStudentId={selectedStudentId}
+              currentUserId={profile.id}
+              onSelectStudent={(student) => {
+                setSelectedStudentId(student.id);
+                form.setValue("studentId", student.id, { shouldValidate: true });
+              }}
             />
-          ) : null}
-
-          {stage === "details" && (showStudentPicker || !selectedStudent) ? (
-            <>
-              <AppInput
-                label="Search"
-                autoCapitalize="none"
-                value={studentSearch}
-                onChangeText={setStudentSearch}
-              />
-
-              {studentOptions.length === 0 ? (
-                <AppText variant="caption">No students match this search.</AppText>
-              ) : shouldGroupStudentOptions ? (
-                <AppStack gap="md">
-                  <AppCard className="gap-3">
-                    <AppText variant="heading">Your students</AppText>
-                    {selfStudentOptions.length === 0 ? (
-                      <AppText variant="caption">No students assigned to you match this search.</AppText>
-                    ) : (
-                      <AppStack gap="sm">
-                        {selfStudentOptions.map((student) => (
-                          <AppButton
-                            key={student.id}
-                            variant={selectedStudentId === student.id ? "primary" : "secondary"}
-                            label={`${student.first_name} ${student.last_name}`}
-                            onPress={() => {
-                              setSelectedStudentId(student.id);
-                              setShowStudentPicker(false);
-                              setStudentSearch("");
-                              form.setValue("studentId", student.id, { shouldValidate: true });
-                            }}
-                          />
-                        ))}
-                      </AppStack>
-                    )}
-                  </AppCard>
-
-                  {otherInstructorStudentGroups.map((group) => (
-                    <AppCard key={group.key} className="gap-3">
-                      <AppText variant="heading">{group.instructorName}</AppText>
-                      <AppStack gap="sm">
-                        {group.students.map((student) => (
-                          <AppButton
-                            key={student.id}
-                            variant={selectedStudentId === student.id ? "primary" : "secondary"}
-                            label={`${student.first_name} ${student.last_name}`}
-                            onPress={() => {
-                              setSelectedStudentId(student.id);
-                              setShowStudentPicker(false);
-                              setStudentSearch("");
-                              form.setValue("studentId", student.id, { shouldValidate: true });
-                            }}
-                          />
-                        ))}
-                      </AppStack>
-                    </AppCard>
-                  ))}
-                </AppStack>
-              ) : (
-                <AppStack gap="sm">
-                  {limitedStudentOptions.map((student) => (
-                    <AppButton
-                      key={student.id}
-                      variant={selectedStudentId === student.id ? "primary" : "secondary"}
-                      label={`${student.first_name} ${student.last_name}`}
-                      onPress={() => {
-                        setSelectedStudentId(student.id);
-                        setShowStudentPicker(false);
-                        setStudentSearch("");
-                        form.setValue("studentId", student.id, { shouldValidate: true });
-                      }}
-                    />
-                  ))}
-                </AppStack>
-              )}
-
-              {studentOptions.length > 30 ? (
-                <AppText variant="caption">Refine search to see more results.</AppText>
-              ) : null}
-            </>
           ) : null}
         </>
       )}

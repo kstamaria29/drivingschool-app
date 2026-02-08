@@ -1,11 +1,23 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useFocusEffect } from "@react-navigation/native";
 import dayjs from "dayjs";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Pressable, useWindowDimensions, View } from "react-native";
-import { ChevronRight, Mail, Phone, RefreshCw, UserPlus } from "lucide-react-native";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Mail,
+  Phone,
+  RefreshCw,
+  UserPlus,
+} from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
-import { CenteredLoadingState, EmptyStateCard, ErrorStateCard } from "../../components/AsyncState";
+import {
+  CenteredLoadingState,
+  EmptyStateCard,
+  ErrorStateCard,
+} from "../../components/AsyncState";
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
 import { AppInput } from "../../components/AppInput";
@@ -37,6 +49,38 @@ type StudentSection = {
   emptyMessage?: string;
 };
 
+const STUDENTS_PAGE_SIZE = 10;
+
+function paginateSections(
+  sections: StudentSection[],
+  page: number,
+  pageSize: number,
+): StudentSection[] {
+  const pageStart = Math.max(0, (page - 1) * pageSize);
+  const pageEnd = pageStart + pageSize;
+  const paginated: StudentSection[] = [];
+
+  let runningIndex = 0;
+  for (const section of sections) {
+    const sectionStart = runningIndex;
+    const sectionEnd = runningIndex + section.students.length;
+    runningIndex = sectionEnd;
+
+    const overlapStart = Math.max(pageStart, sectionStart);
+    const overlapEnd = Math.min(pageEnd, sectionEnd);
+    if (overlapStart >= overlapEnd) continue;
+
+    const startInSection = overlapStart - sectionStart;
+    const endInSection = overlapEnd - sectionStart;
+    paginated.push({
+      ...section,
+      students: section.students.slice(startInSection, endInSection),
+    });
+  }
+
+  return paginated;
+}
+
 function formatLicenseType(type: string | null) {
   if (!type) return "-";
   if (type === "learner") return "Learner";
@@ -55,13 +99,15 @@ function licenseTypeLetter(type: string | null) {
 function licenseTypeBadgeClasses(type: string | null) {
   if (type === "learner") {
     return {
-      wrapper: "border-blue-500/30 bg-blue-500/15 dark:border-blue-400/30 dark:bg-blue-400/15",
+      wrapper:
+        "border-blue-500/30 bg-blue-500/15 dark:border-blue-400/30 dark:bg-blue-400/15",
       text: "text-blue-700 dark:text-blue-300",
     };
   }
   if (type === "restricted") {
     return {
-      wrapper: "border-amber-500/30 bg-amber-500/15 dark:border-amber-400/30 dark:bg-amber-400/15",
+      wrapper:
+        "border-amber-500/30 bg-amber-500/15 dark:border-amber-400/30 dark:bg-amber-400/15",
       text: "text-amber-800 dark:text-amber-200",
     };
   }
@@ -82,7 +128,12 @@ function licenseTypeBadgeClasses(type: string | null) {
 function LicenseTypeCircle({ type }: { type: string | null }) {
   const classes = licenseTypeBadgeClasses(type);
   return (
-    <View className={cn("h-8 w-8 items-center justify-center rounded-full border", classes.wrapper)}>
+    <View
+      className={cn(
+        "h-8 w-8 items-center justify-center rounded-full border",
+        classes.wrapper,
+      )}
+    >
       <AppText className={cn("text-xs font-semibold", classes.text)} variant="caption">
         {licenseTypeLetter(type)}
       </AppText>
@@ -125,6 +176,7 @@ function StudentsSectionCard({
   isCompact,
   iconMuted,
   onPressStudent,
+  headerRight,
 }: {
   title: string;
   students: Student[];
@@ -132,11 +184,15 @@ function StudentsSectionCard({
   isCompact: boolean;
   iconMuted: string;
   onPressStudent: (studentId: string) => void;
+  headerRight?: ReactNode;
 }) {
   return (
     <AppCard className="overflow-hidden p-0">
-      <View className="border-b border-border px-4 py-3 dark:border-borderDark">
-        <AppText variant="heading">{title}</AppText>
+      <View className="flex-row items-center justify-between gap-3 border-b border-border px-4 py-3 dark:border-borderDark">
+        <AppText className="flex-1" variant="heading">
+          {title}
+        </AppText>
+        {headerRight}
       </View>
 
       {students.length === 0 ? (
@@ -146,11 +202,13 @@ function StudentsSectionCard({
       ) : isCompact ? (
         <View className="gap-2 px-2 py-2">
           {students.map((student) => {
-            const fullName = `${student.first_name} ${student.last_name}`.trim() || "Student";
+            const fullName =
+              `${student.first_name} ${student.last_name}`.trim() || "Student";
             const email = student.email ?? "";
             const phone = student.phone ?? "";
             const licenseType = student.license_type;
-            const rowBase = "border-border bg-card dark:border-borderDark dark:bg-cardDark";
+            const rowBase =
+              "border-border bg-card dark:border-borderDark dark:bg-cardDark";
 
             return (
               <Pressable
@@ -195,11 +253,13 @@ function StudentsSectionCard({
 
           <View className="py-2">
             {students.map((student) => {
-              const fullName = `${student.first_name} ${student.last_name}`.trim() || "Student";
+              const fullName =
+                `${student.first_name} ${student.last_name}`.trim() || "Student";
               const email = student.email ?? "";
               const phone = student.phone ?? "";
               const licenseType = student.license_type;
-              const rowBase = "border-border bg-card dark:border-borderDark dark:bg-cardDark";
+              const rowBase =
+                "border-border bg-card dark:border-borderDark dark:bg-cardDark";
 
               return (
                 <Pressable
@@ -212,7 +272,11 @@ function StudentsSectionCard({
                       {fullName}
                     </AppText>
                     <View className="mt-1">
-                      <ContactLine icon={Mail} text={email || "-"} iconColor={iconMuted} />
+                      <ContactLine
+                        icon={Mail}
+                        text={email || "-"}
+                        iconColor={iconMuted}
+                      />
                     </View>
                   </View>
 
@@ -271,19 +335,33 @@ export function StudentsListScreen({ navigation }: Props) {
   const isCompact = Math.min(width, height) < 600;
   const isTabletLandscape = !isCompact && width > height;
   const { colorScheme } = useColorScheme();
-  const iconMuted = colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
+  const iconMuted =
+    colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
 
   const isOwner = profile.role === "owner";
   const isAdmin = profile.role === "admin";
   const orgProfilesQuery = useOrganizationProfilesQuery(isOwner || isAdmin);
+
+  const hasInstructorRole = useMemo(() => {
+    return (orgProfilesQuery.data ?? []).some((p) => p.role === "instructor");
+  }, [orgProfilesQuery.data]);
 
   const [status, setStatus] = useState<StatusKey>("active");
   const archived = status === "archived";
   const query = useStudentsQuery({ archived });
 
   const [search, setSearch] = useState("");
-  const [sort, setSort] = useState<SortKey>("name");
+
+  useFocusEffect(
+    useCallback(() => {
+      // Always clear search when entering the Students screen
+      setSearch("");
+    }, []),
+  );
+
+  const [sort, setSort] = useState<SortKey>("recent");
   const [instructorView, setInstructorView] = useState<InstructorViewState>("hide");
+  const [page, setPage] = useState(1);
   const showInstructorStudents = instructorView === "show";
 
   const rows = useMemo(() => {
@@ -322,22 +400,33 @@ export function StudentsListScreen({ navigation }: Props) {
   }, [query.data, search, sort]);
 
   const ownerSelfStudents = useMemo(
-    () => (isOwner ? rows.filter((student) => student.assigned_instructor_id === profile.id) : []),
+    () =>
+      isOwner
+        ? rows.filter((student) => student.assigned_instructor_id === profile.id)
+        : [],
     [isOwner, profile.id, rows],
   );
 
   const adminSelfStudents = useMemo(
-    () => (isAdmin ? rows.filter((student) => student.assigned_instructor_id === profile.id) : []),
+    () =>
+      isAdmin
+        ? rows.filter((student) => student.assigned_instructor_id === profile.id)
+        : [],
     [isAdmin, profile.id, rows],
   );
 
   const ownerRecord = useMemo(
-    () => (orgProfilesQuery.data ?? []).find((orgProfile) => orgProfile.role === "owner") ?? null,
+    () =>
+      (orgProfilesQuery.data ?? []).find((orgProfile) => orgProfile.role === "owner") ??
+      null,
     [orgProfilesQuery.data],
   );
 
   const instructorRecords = useMemo(
-    () => (orgProfilesQuery.data ?? []).filter((orgProfile) => orgProfile.role === "instructor"),
+    () =>
+      (orgProfilesQuery.data ?? []).filter(
+        (orgProfile) => orgProfile.role === "instructor",
+      ),
     [orgProfilesQuery.data],
   );
 
@@ -354,13 +443,20 @@ export function StudentsListScreen({ navigation }: Props) {
   );
 
   const ownerInstructorSections = useMemo<StudentSection[]>(() => {
-    if (!isOwner || !showInstructorStudents || orgProfilesQuery.isPending || orgProfilesQuery.isError) {
+    if (
+      !isOwner ||
+      !showInstructorStudents ||
+      orgProfilesQuery.isPending ||
+      orgProfilesQuery.isError
+    ) {
       return [];
     }
 
     return instructorRecords
       .map((instructor) => {
-        const students = rows.filter((student) => student.assigned_instructor_id === instructor.id);
+        const students = rows.filter(
+          (student) => student.assigned_instructor_id === instructor.id,
+        );
         return {
           key: `owner-instructor-${instructor.id}`,
           title: `Instructor: ${getMemberName(instructor)}`,
@@ -383,7 +479,11 @@ export function StudentsListScreen({ navigation }: Props) {
 
   const shouldShowAdminFallback = isAdmin && adminSelfStudents.length === 0;
   const adminFallbackSections = useMemo<StudentSection[]>(() => {
-    if (!shouldShowAdminFallback || orgProfilesQuery.isPending || orgProfilesQuery.isError) {
+    if (
+      !shouldShowAdminFallback ||
+      orgProfilesQuery.isPending ||
+      orgProfilesQuery.isError
+    ) {
       return [];
     }
 
@@ -392,7 +492,9 @@ export function StudentsListScreen({ navigation }: Props) {
       sections.push({
         key: `admin-owner-${ownerRecord.id}`,
         title: `Owner: ${getMemberName(ownerRecord)}`,
-        students: rows.filter((student) => student.assigned_instructor_id === ownerRecord.id),
+        students: rows.filter(
+          (student) => student.assigned_instructor_id === ownerRecord.id,
+        ),
         emptyMessage: archived
           ? "No archived students assigned to the owner."
           : "No active students assigned to the owner.",
@@ -401,7 +503,9 @@ export function StudentsListScreen({ navigation }: Props) {
 
     const instructorSections = instructorRecords
       .map((instructor) => {
-        const students = rows.filter((student) => student.assigned_instructor_id === instructor.id);
+        const students = rows.filter(
+          (student) => student.assigned_instructor_id === instructor.id,
+        );
         return {
           key: `admin-instructor-${instructor.id}`,
           title: `Instructor: ${getMemberName(instructor)}`,
@@ -427,13 +531,19 @@ export function StudentsListScreen({ navigation }: Props) {
   const shownCount = useMemo(() => {
     if (isOwner) {
       const instructorCount = showInstructorStudents
-        ? ownerInstructorSections.reduce((total, section) => total + section.students.length, 0)
+        ? ownerInstructorSections.reduce(
+            (total, section) => total + section.students.length,
+            0,
+          )
         : 0;
       return ownerBaseSection.students.length + instructorCount;
     }
 
     if (shouldShowAdminFallback) {
-      return adminFallbackSections.reduce((total, section) => total + section.students.length, 0);
+      return adminFallbackSections.reduce(
+        (total, section) => total + section.students.length,
+        0,
+      );
     }
 
     return rows.length;
@@ -446,6 +556,114 @@ export function StudentsListScreen({ navigation }: Props) {
     shouldShowAdminFallback,
     showInstructorStudents,
   ]);
+
+  const allDisplaySections = useMemo<StudentSection[]>(() => {
+    if (isOwner) {
+      return [
+        ownerBaseSection,
+        ...(showInstructorStudents ? ownerInstructorSections : []),
+      ];
+    }
+
+    if (shouldShowAdminFallback) {
+      return adminFallbackSections;
+    }
+
+    return [
+      {
+        key: "students-default",
+        title: "Students",
+        students: rows,
+        emptyMessage: archived ? "No archived students yet." : "No active students yet.",
+      },
+    ];
+  }, [
+    adminFallbackSections,
+    archived,
+    isOwner,
+    ownerBaseSection,
+    ownerInstructorSections,
+    rows,
+    shouldShowAdminFallback,
+    showInstructorStudents,
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(shownCount / STUDENTS_PAGE_SIZE));
+  const canPaginate = shownCount > 0;
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, sort, status, instructorView]);
+
+  useEffect(() => {
+    setPage((current) => {
+      if (!canPaginate) return 1;
+      return Math.min(Math.max(current, 1), totalPages);
+    });
+  }, [canPaginate, totalPages]);
+
+  const pagedSections = useMemo(
+    () => paginateSections(allDisplaySections, page, STUDENTS_PAGE_SIZE),
+    [allDisplaySections, page],
+  );
+  const ownerPageSection = isOwner
+    ? (pagedSections.find((section) => section.key === ownerBaseSection.key) ?? null)
+    : null;
+  const ownerOtherPageSections = isOwner
+    ? pagedSections.filter((section) => section.key !== ownerBaseSection.key)
+    : pagedSections;
+
+  const canGoPrev = canPaginate && page > 1;
+  const canGoNext = canPaginate && page < totalPages;
+
+  const topPaginationControls = canPaginate ? (
+    <View className="flex-row items-center gap-1">
+      <AppButton
+        label=""
+        size="icon"
+        width="auto"
+        variant="secondary"
+        icon={ChevronLeft}
+        disabled={!canGoPrev}
+        onPress={() => setPage((current) => Math.max(1, current - 1))}
+      />
+      <AppButton
+        label=""
+        size="icon"
+        width="auto"
+        variant="secondary"
+        icon={ChevronRight}
+        disabled={!canGoNext}
+        onPress={() => setPage((current) => Math.min(totalPages, current + 1))}
+      />
+    </View>
+  ) : null;
+
+  const bottomPaginationControls = canPaginate ? (
+    <View className="mt-2 flex-row items-center justify-center gap-3">
+      <AppButton
+        label=""
+        size="icon"
+        width="auto"
+        variant="secondary"
+        icon={ChevronLeft}
+        disabled={!canGoPrev}
+        onPress={() => setPage((current) => Math.max(1, current - 1))}
+      />
+      <View className="rounded-xl border border-border bg-card px-3 py-2 dark:border-borderDark dark:bg-cardDark">
+        <AppText variant="caption">{`Page ${page} / ${totalPages}`}</AppText>
+      </View>
+      <AppButton
+        label=""
+        size="icon"
+        width="auto"
+        variant="secondary"
+        icon={ChevronRight}
+        disabled={!canGoNext}
+        onPress={() => setPage((current) => Math.min(totalPages, current + 1))}
+      />
+    </View>
+  ) : null;
 
   return (
     <Screen scroll className={cn(isTabletLandscape && "max-w-[1100px]")}>
@@ -498,8 +716,8 @@ export function StudentsListScreen({ navigation }: Props) {
                 value={sort}
                 onChange={(next) => setSort(next)}
                 options={[
-                  { value: "name", label: "Name" },
                   { value: "recent", label: "Recent" },
+                  { value: "name", label: "Name" },
                 ]}
               />
             </View>
@@ -507,13 +725,14 @@ export function StudentsListScreen({ navigation }: Props) {
             <AppButton
               width="auto"
               variant="secondary"
-              label={query.isFetching ? "Refreshing..." : "Refresh"}
+              label=""
+              accessibilityLabel="Refresh students"
               icon={RefreshCw}
               disabled={query.isFetching}
               onPress={() => query.refetch()}
             />
 
-            {isOwner ? (
+            {isOwner && hasInstructorRole ? (
               <View className={cn(isCompact ? "w-full" : "ml-auto w-64")}>
                 <AppText variant="label">View other instructor&apos;s students</AppText>
                 <AppSegmentedControl<InstructorViewState>
@@ -542,14 +761,42 @@ export function StudentsListScreen({ navigation }: Props) {
           />
         ) : isOwner ? (
           <AppStack gap="md">
-            <StudentsSectionCard
-              title={ownerBaseSection.title}
-              students={ownerBaseSection.students}
-              emptyMessage={ownerBaseSection.emptyMessage ?? "No students in this group."}
-              isCompact={isCompact}
-              iconMuted={iconMuted}
-              onPressStudent={(studentId) => navigation.navigate("StudentDetail", { studentId })}
-            />
+            {shownCount === 0 ? (
+              <EmptyStateCard
+                title="No students"
+                message={
+                  archived
+                    ? "No archived students available for this page."
+                    : "No active students available for this page."
+                }
+              />
+            ) : (
+              <>
+                <StudentsSectionCard
+                  title={ownerBaseSection.title}
+                  students={ownerPageSection?.students ?? []}
+                  emptyMessage={
+                    ownerBaseSection.emptyMessage ?? "No students in this group."
+                  }
+                  isCompact={isCompact}
+                  iconMuted={iconMuted}
+                  headerRight={topPaginationControls}
+                  onPressStudent={(studentId) =>
+                    navigation.navigate("StudentDetail", { studentId })
+                  }
+                />
+                {ownerOtherPageSections.length > 0 ? (
+                  <StudentsSectionList
+                    sections={ownerOtherPageSections}
+                    isCompact={isCompact}
+                    iconMuted={iconMuted}
+                    onPressStudent={(studentId) =>
+                      navigation.navigate("StudentDetail", { studentId })
+                    }
+                  />
+                ) : null}
+              </>
+            )}
 
             {showInstructorStudents ? (
               orgProfilesQuery.isPending ? (
@@ -571,19 +818,17 @@ export function StudentsListScreen({ navigation }: Props) {
                       : "No active students are assigned to instructors."
                   }
                 />
-              ) : (
-                <StudentsSectionList
-                  sections={ownerInstructorSections}
-                  isCompact={isCompact}
-                  iconMuted={iconMuted}
-                  onPressStudent={(studentId) => navigation.navigate("StudentDetail", { studentId })}
-                />
-              )
+              ) : null
             ) : null}
+
+            {bottomPaginationControls}
           </AppStack>
         ) : shouldShowAdminFallback ? (
           orgProfilesQuery.isPending ? (
-            <CenteredLoadingState label="Loading organization members..." className="py-8" />
+            <CenteredLoadingState
+              label="Loading organization members..."
+              className="py-8"
+            />
           ) : orgProfilesQuery.isError ? (
             <ErrorStateCard
               title="Couldn't load organization members"
@@ -602,29 +847,39 @@ export function StudentsListScreen({ navigation }: Props) {
               }
             />
           ) : (
-            <StudentsSectionList
-              sections={adminFallbackSections}
-              isCompact={isCompact}
-              iconMuted={iconMuted}
-              onPressStudent={(studentId) => navigation.navigate("StudentDetail", { studentId })}
-            />
+            <AppStack gap="md">
+              <StudentsSectionList
+                sections={pagedSections}
+                isCompact={isCompact}
+                iconMuted={iconMuted}
+                onPressStudent={(studentId) =>
+                  navigation.navigate("StudentDetail", { studentId })
+                }
+              />
+              {bottomPaginationControls}
+            </AppStack>
           )
         ) : rows.length === 0 ? (
           <EmptyStateCard
             title="No students"
             message={
-              archived ? "No archived students yet." : "Create your first student to start scheduling lessons later."
+              archived
+                ? "No archived students yet."
+                : "Create your first student to start scheduling lessons later."
             }
           />
         ) : (
-          <StudentsSectionCard
-            title="Students"
-            students={rows}
-            emptyMessage={archived ? "No archived students yet." : "No active students yet."}
-            isCompact={isCompact}
-            iconMuted={iconMuted}
-            onPressStudent={(studentId) => navigation.navigate("StudentDetail", { studentId })}
-          />
+          <AppStack gap="md">
+            <StudentsSectionList
+              sections={pagedSections}
+              isCompact={isCompact}
+              iconMuted={iconMuted}
+              onPressStudent={(studentId) =>
+                navigation.navigate("StudentDetail", { studentId })
+              }
+            />
+            {bottomPaginationControls}
+          </AppStack>
         )}
       </AppStack>
     </Screen>

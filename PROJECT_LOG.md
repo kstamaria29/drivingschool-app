@@ -1,5 +1,83 @@
 # PROJECT_LOG.md
 
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Google Maps pin color categories + configurable defaults
+- **Summary:**
+  - Added marker color categories on Google Maps so pins are visually differentiated for active students, other instructor's students, custom pins, and the draft/new pin marker.
+  - Added a Pin colors editor in the top Google Maps panel with color swatches, plus a Reset action.
+  - Added per-user/per-organization persistence for pin color defaults using AsyncStorage so selected defaults remain after app restarts.
+  - Updated marker rendering to resolve color by pin category instead of a single hardcoded color.
+- **Files changed:**
+  - src/navigation/screens/GoogleMapsScreen.tsx
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - Get-Content -Raw AGENTS.md
+  - Get-Content -Raw PROJECT_LOG.md
+  - Get-Content -Raw docs/logs/INDEX.md
+  - rg -n "GoogleMapsScreen|Marker|pinColor|map pins|custom pin|student" src/navigation/screens src/features -g "*.ts" -g "*.tsx"
+  - mcp__context7__resolve-library-id (react-native-maps)
+  - npx tsc --noEmit
+  - git status --short
+  - git diff -- src/navigation/screens/GoogleMapsScreen.tsx
+- **How to verify:**
+  - Open drawer -> Google Maps.
+  - Confirm existing pins render with different colors for active student pins, other instructor student pins, and custom pins.
+  - Add a new draft pin and confirm draft marker color is distinct.
+  - In the top card, open Pin colors -> Edit and change each category color; confirm markers update immediately.
+  - Close and reopen the app, then return to Google Maps and confirm chosen pin colors persist.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Students pagination, assessment dropdown picker, optional driving scoring UX, and lesson/profile count badges
+- **Summary:**
+  - Added a new reusable assessment student dropdown with search and scrollable list behavior, showing up to 6 visible rows, alphabetized with the logged-in instructor students first and other instructors students after.
+  - Replaced the old button-list student selectors in all three assessment start screens with the dropdown flow.
+  - Updated Driving Assessment scoring UX to support explicit N/A per criterion and clarified total scoring as based on answered criteria; updated feedback suggestion chips to multi-select toggle behavior for Strengths, Improvements, Recommendation, and Next steps.
+  - Added students paging at 10 per page with chevron controls and bottom centered Page x / y navigator; top-right chevrons appear on the owner row.
+  - Replaced Class held text input with toggle buttons (1L, 1R, 1H, 1F) on Add/Edit Student.
+  - Added count badges for Session/Assessment history buttons on Student Profile and count badges on Assessment History tabs.
+  - Updated Home lessons widget to show only the current owner/admin instructor lessons (not other instructors students) and renamed heading to Lessons Today.
+  - Extended AppButton to support optional icon badge counts for reuse across profile/history surfaces.
+- **Files changed:**
+  - src/navigation/components/AssessmentStudentDropdown.tsx
+  - src/components/AppButton.tsx
+  - src/navigation/screens/DrivingAssessmentScreen.tsx
+  - src/navigation/screens/RestrictedMockTestScreen.tsx
+  - src/navigation/screens/FullLicenseMockTestScreen.tsx
+  - src/navigation/screens/StudentsListScreen.tsx
+  - src/navigation/screens/StudentEditScreen.tsx
+  - src/navigation/screens/StudentDetailScreen.tsx
+  - src/navigation/screens/StudentAssessmentHistoryScreen.tsx
+  - src/navigation/screens/HomeScreen.tsx
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - Get-Content -Raw AGENTS.md
+  - Get-Content -Raw PROJECT_LOG.md
+  - Get-Content -Raw docs/logs/INDEX.md
+  - 
+g -n "StudentsListScreen|DrivingAssessmentScreen|RestrictedMockTestScreen|FullLicenseMockTestScreen|StudentDetailScreen|StudentAssessmentHistoryScreen|HomeScreen" src -g "*.tsx"
+  - mcp__context7__resolve-library-id (react-native)
+  - mcp__context7__query-docs (/websites/reactnative_dev)
+  - 
+px tsc --noEmit
+  - git status --short
+  - git diff --stat
+  - PowerShell log rotation script (append new entry + keep latest 20)
+- **How to verify:**
+  - Open Students and confirm only 10 students render per page, top-right chevrons are shown on the owner row, and the bottom centered pager reads Page x / y with working left/right navigation.
+  - Open each assessment start screen (Driving Assessment, Mock Test - Restricted Licence, Mock Test - Full License) and confirm student selection is via dropdown with search and scrollable list (6 visible rows), ordered as your students first then other instructors.
+  - In Driving Assessment test stage, mark one criterion N/A, confirm total percent remains based on answered criteria, and verify feedback suggestions toggle multiple selected lines in each feedback field.
+  - Open Students -> New/Edit student and confirm Class held shows 4 toggle buttons: 1L, 1R, 1H, 1F.
+  - Open a Student Profile and confirm badge counts appear on Session History and Assessment History buttons; open Assessment History and confirm badge counts appear on all three tabs.
+  - Open Home as owner/admin and confirm lessons shown in Lessons Today / Next 3 days belong only to the logged-in instructor.
+  - Run 
+px tsc --noEmit and confirm no type errors.
+
+---
+
 - **Date:** 2026-02-07 (Pacific/Auckland)
 - **Task:** Group other instructors' students in assessment pickers
 - **Summary:**
@@ -531,58 +609,3 @@
   - Open `Settings` -> `Add instructor`, submit valid details.
   - Confirm failure message now includes status + backend error code/message (if any), not only generic non-2xx text.
   - In Supabase invocations, confirm header-auth failures can be diagnosed from returned body content shown in-app.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Fix create-instructor Invalid JWT gateway rejection
-- **Summary:**
-  - Updated `create-instructor` edge function to parse bearer token explicitly and validate caller identity with `auth.getUser(accessToken)`.
-  - Removed dependency on forwarding global authorization headers inside the service-role client for caller validation.
-  - Added `supabase/config.toml` function config to disable gateway `verify_jwt` for `create-instructor` because JWT is validated explicitly inside function code.
-  - Updated Supabase README deploy command to include `--no-verify-jwt` for this function and documented why.
-- **Files changed:**
-  - `supabase/functions/create-instructor/index.ts`
-  - `supabase/config.toml`
-  - `supabase/README.md`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `Get-Content -Path AGENTS.md`
-  - `Get-Content -Path PROJECT_LOG.md`
-  - `Get-Content -Path docs/logs/INDEX.md`
-  - `Get-Content -Path docs/logs/PROJECT_LOG_ARCHIVE.md`
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Deploy function with no gateway JWT verification: `supabase functions deploy create-instructor --project-ref djwuraqzrmpcvjidtgfb --no-verify-jwt`.
-  - Re-run `Add instructor` as owner/admin.
-  - In Supabase invocations, confirm `execution_id` is no longer `null` and status is not blocked with gateway `401 Invalid JWT`.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Center address input placeholders vertically
-- **Summary:**
-  - Updated shared `AppInput` styling so single-line text inputs use vertical centering for text/placeholder content.
-  - Kept multiline behavior unchanged so notes/textarea fields remain top-aligned.
-  - Address inputs that use `AddressAutocompleteInput` now render vertically centered placeholders.
-- **Files changed:**
-  - `src/components/AppInput.tsx`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Raw PROJECT_LOG.md`
-  - `Get-Content -Raw docs/logs/INDEX.md`
-  - `rg -n "Address|address|placeholder|TextInput|textAlignVertical|includeFontPadding" src/components src/navigation -g "*.tsx"`
-  - `Get-Content -Raw src/components/AddressAutocompleteInput.tsx`
-  - `Get-Content -Raw src/components/AppInput.tsx`
-  - `Get-Content -Raw src/theme/theme.ts`
-  - `mcp__context7__resolve-library-id (react-native)`
-  - `mcp__context7__query-docs (/websites/reactnative_dev)`
-  - `npx tsc --noEmit`
-  - `PowerShell UTF-8 log rotation script (append new entry + keep latest 20)`
-- **How to verify:**
-  - Open `Students` -> `New/Edit student` and confirm `Address (optional)` placeholder text is vertically centered.
-  - Open `Google Maps` and confirm `Search address (NZ)` placeholder text is vertically centered.
-  - Confirm multiline fields (for example `Notes`) remain top-aligned.

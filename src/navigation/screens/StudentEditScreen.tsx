@@ -21,18 +21,23 @@ import {
   useStudentQuery,
   useUpdateStudentMutation,
 } from "../../features/students/queries";
-import { studentFormSchema, type StudentFormValues } from "../../features/students/schemas";
+import {
+  studentFormSchema,
+  type StudentFormValues,
+} from "../../features/students/schemas";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import { formatIsoDateToDisplay, parseDateInputToISODate } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
+import { normalizeLicenseNumberInput } from "../../utils/licenseNumber";
 
 import type { StudentsStackParamList } from "../StudentsStackNavigator";
 
 type CreateProps = NativeStackScreenProps<StudentsStackParamList, "StudentCreate">;
 type EditProps = NativeStackScreenProps<StudentsStackParamList, "StudentEdit">;
 type Props = CreateProps | EditProps;
+const classHeldOptions = ["1L", "1R", "1H", "1F"] as const;
 
 function emptyToNull(value: string) {
   const trimmed = value.trim();
@@ -65,7 +70,9 @@ export function StudentEditScreen({ navigation, route }: Props) {
     () =>
       studentId
         ? (orgProfilesQuery.data ?? [])
-        : (orgProfilesQuery.data ?? []).filter((profileOption) => profileOption.role !== "admin"),
+        : (orgProfilesQuery.data ?? []).filter(
+            (profileOption) => profileOption.role !== "admin",
+          ),
     [orgProfilesQuery.data, studentId],
   );
 
@@ -90,7 +97,9 @@ export function StudentEditScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     if (defaultAssignedInstructorId) {
-      form.setValue("assignedInstructorId", defaultAssignedInstructorId, { shouldValidate: true });
+      form.setValue("assignedInstructorId", defaultAssignedInstructorId, {
+        shouldValidate: true,
+      });
     }
   }, [defaultAssignedInstructorId, form]);
 
@@ -109,8 +118,12 @@ export function StudentEditScreen({ navigation, route }: Props) {
       licenseNumber: studentQuery.data.license_number ?? "",
       licenseVersion: studentQuery.data.license_version ?? "",
       classHeld: studentQuery.data.class_held ?? "",
-      issueDate: studentQuery.data.issue_date ? formatIsoDateToDisplay(studentQuery.data.issue_date) : "",
-      expiryDate: studentQuery.data.expiry_date ? formatIsoDateToDisplay(studentQuery.data.expiry_date) : "",
+      issueDate: studentQuery.data.issue_date
+        ? formatIsoDateToDisplay(studentQuery.data.issue_date)
+        : "",
+      expiryDate: studentQuery.data.expiry_date
+        ? formatIsoDateToDisplay(studentQuery.data.expiry_date)
+        : "",
       notes: studentQuery.data.notes ?? "",
     });
   }, [form, studentId, studentQuery.data]);
@@ -173,8 +186,12 @@ export function StudentEditScreen({ navigation, route }: Props) {
       license_number: emptyToNull(values.licenseNumber),
       license_version: emptyToNull(values.licenseVersion),
       class_held: emptyToNull(values.classHeld),
-      issue_date: values.issueDate.trim() ? parseDateInputToISODate(values.issueDate) : null,
-      expiry_date: values.expiryDate.trim() ? parseDateInputToISODate(values.expiryDate) : null,
+      issue_date: values.issueDate.trim()
+        ? parseDateInputToISODate(values.issueDate)
+        : null,
+      expiry_date: values.expiryDate.trim()
+        ? parseDateInputToISODate(values.expiryDate)
+        : null,
       notes: emptyToNull(values.notes),
     } as const;
     return base;
@@ -339,7 +356,9 @@ export function StudentEditScreen({ navigation, route }: Props) {
                     <AppText variant="caption">Loading instructors…</AppText>
                   ) : orgProfilesQuery.isError ? (
                     <AppStack gap="md">
-                      <AppText variant="error">{toErrorMessage(orgProfilesQuery.error)}</AppText>
+                      <AppText variant="error">
+                        {toErrorMessage(orgProfilesQuery.error)}
+                      </AppText>
                       <AppButton
                         label="Retry instructors"
                         variant="secondary"
@@ -355,11 +374,14 @@ export function StudentEditScreen({ navigation, route }: Props) {
                           <AppButton
                             key={profileOption.id}
                             label={`${profileOption.display_name}${
-                              profileOption.role === "owner" || profileOption.role === "admin"
+                              profileOption.role === "owner" ||
+                              profileOption.role === "admin"
                                 ? ` (${toRoleLabel(profileOption.role)})`
                                 : ""
                             }`}
-                            variant={field.value === profileOption.id ? "primary" : "secondary"}
+                            variant={
+                              field.value === profileOption.id ? "primary" : "secondary"
+                            }
                             onPress={() => field.onChange(profileOption.id)}
                           />
                         ))
@@ -422,7 +444,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
                 label="Licence number"
                 autoCapitalize="characters"
                 value={field.value}
-                onChangeText={field.onChange}
+                onChangeText={(next) => field.onChange(normalizeLicenseNumberInput(next))}
                 onBlur={field.onBlur}
               />
             )}
@@ -444,13 +466,25 @@ export function StudentEditScreen({ navigation, route }: Props) {
           <Controller
             control={form.control}
             name="classHeld"
-            render={({ field }) => (
-              <AppInput
-                label="Class held"
-                value={field.value}
-                onChangeText={field.onChange}
-                onBlur={field.onBlur}
-              />
+            render={({ field, fieldState }) => (
+              <AppStack gap="sm">
+                <AppText variant="label">Class held</AppText>
+                {fieldState.error?.message ? (
+                  <AppText variant="error">{fieldState.error.message}</AppText>
+                ) : null}
+                <View className="flex-row gap-2">
+                  {classHeldOptions.map((option) => (
+                    <AppButton
+                      key={option}
+                      width="auto"
+                      className="flex-1"
+                      label={option}
+                      variant={field.value === option ? "primary" : "secondary"}
+                      onPress={() => field.onChange(option)}
+                    />
+                  ))}
+                </View>
+              </AppStack>
             )}
           />
 
@@ -520,7 +554,9 @@ export function StudentEditScreen({ navigation, route }: Props) {
           />
         </AppCard>
 
-        {mutationError ? <AppText variant="error">{toErrorMessage(mutationError)}</AppText> : null}
+        {mutationError ? (
+          <AppText variant="error">{toErrorMessage(mutationError)}</AppText>
+        ) : null}
 
         <AppButton
           label={saving ? "Saving..." : isEditing ? "Save student" : "Add student"}
