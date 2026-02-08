@@ -1,6 +1,22 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Students drawer reset + Student Profile bottom action grid
+- **Summary:**
+  - Updated sidebar `Students` navigation to always open `StudentsList` instead of returning to previously viewed student profile screens.
+  - Reworked Student Profile bottom actions into 2-column rows with requested order and styling, including blue `Start Assessment` with icon and green Archive/Unarchive action in the bottom row.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student profile address layout stabilization + assessment picker collapse
+- **Summary:**
+  - Refactored Student Profile detail-field sizing so full-width Address renders consistently inside the Contact card and reduced organization name text under the student title to `20px`.
+  - Updated assessment student dropdown behavior to auto-collapse when a student is pre-selected (including launches from Student Profile `Start Assessment`).
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Student assessment launch modal + mock-test start modals
 - **Summary:**
   - Set Student Profile organization text to `25px`, added a `Start Assessment` action button, and added an assessment-type modal that deep-links into Driving/Restricted/Full screens with the student pre-selected.
@@ -141,21 +157,5 @@
 - **Summary:**
   - Updated all three assessment student selectors (`Driving Assessment`, `Mock Test - Restricted Licence`, `Mock Test - Full License`) so owner...
   - Added a right-aligned `Other Instructor's Students` segmented toggle (`Hide`/`Show`) on the same row as the `Student` heading in those three...
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Refactor Batch 2+3: query invalidation helpers + shared async UI states
-- **Summary:**
-  - Added `invalidateQueriesByKey` helper to centralize parallel React Query cache invalidation calls and reduced duplicated invalidation blocks...
-  - Added reusable async-state UI primitives (`CenteredLoadingState`, `ErrorStateCard`, `EmptyStateCard`) for consistent loading/error/empty ren...
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Batch 1 refactor: dead code cleanup + type safety hardening
-- **Summary:**
-  - Removed unreachable navigation/screen code (`MainTabsNavigator`, `EditNameScreen`) and related unused account name-update schema/query/api p...
-  - Replaced remaining real `any` usages with typed alternatives in weather parsing and driving-assessment RHF field-path wiring.
 
 

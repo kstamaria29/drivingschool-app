@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { ChevronDown, ChevronUp, User } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
@@ -59,6 +59,12 @@ export function AssessmentStudentDropdown({
     () => students.find((student) => student.id === selectedStudentId) ?? null,
     [selectedStudentId, students],
   );
+
+  useEffect(() => {
+    if (selectedStudentId) {
+      setOpen(false);
+    }
+  }, [selectedStudentId]);
 
   const sortedStudents = useMemo(
     () => sortStudentsWithOwnFirst(students, currentUserId),

@@ -17,6 +17,7 @@ import {
   ClipboardList,
   Clock,
   Pencil,
+  Play,
   Plus,
   RefreshCw,
   Trash2,
@@ -63,10 +64,10 @@ function DetailValueField({
   className?: string;
 }) {
   return (
-    <View className={cn("min-w-56 flex-1 gap-2", className)}>
+    <View className={cn("gap-2", className)}>
       <AppText variant="label">{label}</AppText>
-      <View className="min-h-12 justify-center rounded-xl border border-border bg-card px-4 shadow-sm shadow-black/5 dark:border-borderDark dark:bg-cardDark dark:shadow-black/30">
-        <AppText className="text-left" variant="body">
+      <View className="min-h-12 justify-center rounded-xl border border-border bg-card px-4 py-3 shadow-sm shadow-black/5 dark:border-borderDark dark:bg-cardDark dark:shadow-black/30">
+        <AppText className="flex-shrink text-left" variant="body">
           {value}
         </AppText>
       </View>
@@ -408,7 +409,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                       color={organizationIconColor}
                       strokeWidth={2}
                     />
-                    <AppText className="text-[25px]" numberOfLines={1}>
+                    <AppText className="text-[20px]" numberOfLines={1}>
                       {student.organization_name ?? "-"}
                     </AppText>
                   </View>
@@ -438,19 +439,35 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                   <AppText variant="heading">Contact</AppText>
 
                   <View className="flex-row flex-wrap gap-3">
-                    <DetailValueField label="Email" value={student.email ?? "-"} />
-                    <DetailValueField label="Phone" value={student.phone ?? "-"} />
+                    <DetailValueField
+                      className="min-w-56 flex-1"
+                      label="Email"
+                      value={student.email ?? "-"}
+                    />
+                    <DetailValueField
+                      className="min-w-56 flex-1"
+                      label="Phone"
+                      value={student.phone ?? "-"}
+                    />
                   </View>
 
                   <View className="flex-row flex-wrap gap-3">
-                    <DetailValueField label="Date of birth" value={studentDobDisplay} />
-                    <DetailValueField label="Age" value={studentAgeDisplay} />
+                    <DetailValueField
+                      className="min-w-56 flex-1"
+                      label="Date of birth"
+                      value={studentDobDisplay}
+                    />
+                    <DetailValueField
+                      className="min-w-56 flex-1"
+                      label="Age"
+                      value={studentAgeDisplay}
+                    />
                   </View>
 
                   <DetailValueField
-                    className="w-full min-w-full"
+                    className="w-full"
                     label="Address"
-                    value={student.address ?? "-"}
+                    value={student.address?.trim() ? student.address : "-"}
                   />
                 </AppCard>
 
@@ -459,10 +476,12 @@ export function StudentDetailScreen({ navigation, route }: Props) {
 
                   <View className="flex-row flex-wrap gap-3">
                     <DetailValueField
+                      className="min-w-56 flex-1"
                       label="Type"
                       value={toSentenceCase(student.license_type ?? "")}
                     />
                     <DetailValueField
+                      className="min-w-56 flex-1"
                       label="Number"
                       value={student.license_number ?? "-"}
                     />
@@ -470,10 +489,12 @@ export function StudentDetailScreen({ navigation, route }: Props) {
 
                   <View className="flex-row flex-wrap gap-3">
                     <DetailValueField
+                      className="min-w-56 flex-1"
                       label="Version"
                       value={student.license_version ?? "-"}
                     />
                     <DetailValueField
+                      className="min-w-56 flex-1"
                       label="Class held"
                       value={student.class_held ?? "-"}
                     />
@@ -481,6 +502,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
 
                   <View className="flex-row flex-wrap gap-3">
                     <DetailValueField
+                      className="min-w-56 flex-1"
                       label="Issue date"
                       value={
                         student.issue_date
@@ -489,6 +511,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                       }
                     />
                     <DetailValueField
+                      className="min-w-56 flex-1"
                       label="Expiry date"
                       value={
                         student.expiry_date
@@ -606,63 +629,79 @@ export function StudentDetailScreen({ navigation, route }: Props) {
 
               <View className="flex-1">
                 <AppStack gap="md">
-                  <AppButton
-                    label="Edit"
-                    variant="secondary"
-                    icon={Pencil}
-                    onPress={() =>
-                      navigation.navigate("StudentEdit", {
-                        studentId: student.id,
-                      })
-                    }
-                  />
+                  <View className="flex-row gap-3">
+                    <AppButton
+                      width="auto"
+                      className="flex-1"
+                      label="Session History"
+                      variant="secondary"
+                      icon={Clock}
+                      badgeCount={
+                        sessionsQuery.isPending ? undefined : sessionCount
+                      }
+                      onPress={() =>
+                        navigation.navigate("StudentSessionHistory", {
+                          studentId: student.id,
+                        })
+                      }
+                    />
 
-                  <AppButton
-                    label="Session History"
-                    variant="secondary"
-                    icon={Clock}
-                    badgeCount={
-                      sessionsQuery.isPending ? undefined : sessionCount
-                    }
-                    onPress={() =>
-                      navigation.navigate("StudentSessionHistory", {
-                        studentId: student.id,
-                      })
-                    }
-                  />
+                    <AppButton
+                      width="auto"
+                      className="flex-1"
+                      label="Assessment History"
+                      variant="secondary"
+                      icon={ClipboardList}
+                      badgeCount={
+                        assessmentsQuery.isPending ? undefined : assessmentCount
+                      }
+                      onPress={() =>
+                        navigation.navigate("StudentAssessmentHistory", {
+                          studentId: student.id,
+                        })
+                      }
+                    />
+                  </View>
 
-                  <AppButton
-                    label="Assessment History"
-                    variant="secondary"
-                    icon={ClipboardList}
-                    badgeCount={
-                      assessmentsQuery.isPending ? undefined : assessmentCount
-                    }
-                    onPress={() =>
-                      navigation.navigate("StudentAssessmentHistory", {
-                        studentId: student.id,
-                      })
-                    }
-                  />
+                  <View className="flex-row gap-3">
+                    <AppButton
+                      width="auto"
+                      className="flex-1"
+                      label="Edit"
+                      variant="secondary"
+                      icon={Pencil}
+                      onPress={() =>
+                        navigation.navigate("StudentEdit", {
+                          studentId: student.id,
+                        })
+                      }
+                    />
 
-                  <AppButton
-                    label="Start Assessment"
-                    variant="secondary"
-                    disabled={!drawerNavigation}
-                    onPress={onStartAssessmentPress}
-                  />
+                    <AppButton
+                      width="auto"
+                      className="flex-1"
+                      label="Start Assessment"
+                      variant="primary"
+                      icon={Play}
+                      disabled={!drawerNavigation}
+                      onPress={onStartAssessmentPress}
+                    />
+                  </View>
                 </AppStack>
 
                 <View className="flex-1" />
 
-                <AppStack gap="md">
+                <View className="flex-row gap-3">
                   {isArchived ? (
                     <AppButton
+                      width="auto"
+                      className="flex-1 bg-emerald-600 border-emerald-600 dark:bg-emerald-600 dark:border-emerald-600"
                       label={
                         unarchiveMutation.isPending
                           ? "Unarchiving..."
                           : "Unarchive"
                       }
+                      variant="primary"
                       disabled={
                         unarchiveMutation.isPending || deleteMutation.isPending
                       }
@@ -671,10 +710,12 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                     />
                   ) : (
                     <AppButton
+                      width="auto"
+                      className="flex-1 bg-emerald-600 border-emerald-600 dark:bg-emerald-600 dark:border-emerald-600"
                       label={
                         archiveMutation.isPending ? "Archiving..." : "Archive"
                       }
-                      variant="secondary"
+                      variant="primary"
                       disabled={
                         archiveMutation.isPending || deleteMutation.isPending
                       }
@@ -684,6 +725,8 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                   )}
 
                   <AppButton
+                    width="auto"
+                    className="flex-1"
                     label={
                       deleteMutation.isPending
                         ? "Deleting..."
@@ -698,7 +741,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                     icon={Trash2}
                     onPress={onDeletePress}
                   />
-                </AppStack>
+                </View>
               </View>
             </>
           )}

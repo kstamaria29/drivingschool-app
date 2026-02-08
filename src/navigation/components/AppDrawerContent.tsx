@@ -209,7 +209,11 @@ export function AppDrawerContent({
             label="Students"
             icon={<Users color={iconColor} size={20} />}
             active={currentRouteName === "Students"}
-            onPress={() => navigation.navigate("Students")}
+            onPress={() =>
+              navigation.navigate("Students", {
+                screen: "StudentsList",
+              })
+            }
           />
           <DrawerRow
             collapsed={collapsed}

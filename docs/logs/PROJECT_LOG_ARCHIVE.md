@@ -840,3 +840,19 @@
 - **Summary:**
   - Added a `Sign out` action in the sidebar menu above the bottom divider/settings block.
   - Added a confirmation alert (`Cancel` / `Sign out`) before signing out.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Batch 1 refactor: dead code cleanup + type safety hardening
+- **Summary:**
+  - Removed unreachable navigation/screen code (`MainTabsNavigator`, `EditNameScreen`) and related unused account name-update schema/query/api p...
+  - Replaced remaining real `any` usages with typed alternatives in weather parsing and driving-assessment RHF field-path wiring.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Refactor Batch 2+3: query invalidation helpers + shared async UI states
+- **Summary:**
+  - Added `invalidateQueriesByKey` helper to centralize parallel React Query cache invalidation calls and reduced duplicated invalidation blocks...
+  - Added reusable async-state UI primitives (`CenteredLoadingState`, `ErrorStateCard`, `EmptyStateCard`) for consistent loading/error/empty ren...
