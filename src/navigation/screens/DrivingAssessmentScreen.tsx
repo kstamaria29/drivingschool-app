@@ -47,6 +47,7 @@ import { ensureAndroidDownloadsDirectoryUri } from "../../features/assessments/a
 import { notifyPdfSaved } from "../../features/notifications/download-notifications";
 import { useOrganizationQuery } from "../../features/organization/queries";
 import { useStudentsQuery } from "../../features/students/queries";
+import type { Student } from "../../features/students/api";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import {
@@ -263,6 +264,67 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
     },
   });
 
+  function buildFreshFormValues(
+    overrides?: Partial<DrivingAssessmentFormValues>,
+  ): DrivingAssessmentFormValues {
+    return {
+      studentId: "",
+      clientName: "",
+      address: "",
+      contact: "",
+      email: "",
+      licenseNumber: "",
+      licenseVersion: "",
+      classHeld: "",
+      issueDate: "",
+      expiryDate: "",
+      date: dayjs().format(DISPLAY_DATE_FORMAT),
+      instructor: getProfileFullName(profile),
+      scores: {},
+      strengths: "",
+      improvements: "",
+      recommendation: "",
+      nextSteps: "",
+      ...overrides,
+    };
+  }
+
+  function resetAssessmentForStudent(student: Student) {
+    setStartTestModalVisible(false);
+    setOpenSuggestions(null);
+    setFeedbackFieldY({});
+    setStage("details");
+    setSelectedStudentId(student.id);
+
+    form.reset(
+      buildFreshFormValues({
+        studentId: student.id,
+        clientName: `${student.first_name} ${student.last_name}`.trim(),
+        address: student.address ?? "",
+        contact: student.phone ?? "",
+        email: student.email ?? "",
+        licenseNumber: student.license_number ?? "",
+        licenseVersion: student.license_version ?? "",
+        classHeld: student.class_held ?? "",
+        issueDate: student.issue_date
+          ? formatIsoDateToDisplay(student.issue_date)
+          : "",
+        expiryDate: student.expiry_date
+          ? formatIsoDateToDisplay(student.expiry_date)
+          : "",
+      }),
+    );
+  }
+
+  function resetAssessmentToBlank() {
+    setStartTestModalVisible(false);
+    setOpenSuggestions(null);
+    setFeedbackFieldY({});
+    setStage("details");
+    setSelectedStudentId(null);
+    form.reset(buildFreshFormValues());
+  }
+
   const watchedScores = useWatch({ control: form.control, name: "scores" });
 
   const selectedStudent = useMemo(() => {
@@ -280,14 +342,12 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
   useEffect(() => {
     const initialStudentId = route.params?.studentId ?? null;
     if (!initialStudentId) return;
-    if (selectedStudentId) return;
+    if (selectedStudentId === initialStudentId) return;
     const initialStudent = (studentsQuery.data ?? []).find(
       (student) => student.id === initialStudentId,
     );
     if (!initialStudent) return;
-    setSelectedStudentId(initialStudentId);
-    form.setValue("studentId", initialStudentId, { shouldValidate: true });
-    hydrateFromStudent(form, initialStudent);
+    resetAssessmentForStudent(initialStudent);
   }, [form, route.params?.studentId, selectedStudentId, studentsQuery.data]);
 
   useEffect(() => {
@@ -308,18 +368,18 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
 
   function navigateAfterSubmit() {
     leaveWithoutPrompt(() => {
+      resetAssessmentToBlank();
+      navigation.popToTop();
       if (returnToStudentId && drawerNavigation) {
         drawerNavigation.navigate("Students", {
           screen: "StudentDetail",
           params: { studentId: returnToStudentId },
         });
-        return;
       }
-      navigation.goBack();
     });
   }
 
-  async function submitAndGeneratePdf(values: DrivingAssessmentFormValues) {
+  async function saveAssessment(values: DrivingAssessmentFormValues) {
     if (!selectedStudent) {
       Alert.alert("Select a student", "Please select a student first.");
       return;
@@ -332,6 +392,11 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
         Alert.alert("Check the form", "Use DD/MM/YYYY for the assessment date.");
         return;
       }
+
+      const nextFeedbackSummary =
+        score.percentAnswered == null
+          ? ""
+          : generateDrivingAssessmentFeedbackSummary(score.percentAnswered);
 
       const assessment = await createAssessment.mutateAsync({
         organization_id: profile.organization_id,
@@ -348,62 +413,77 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
           scoredCount: score.scoredCount,
           totalCriteriaCount: score.totalCriteriaCount,
           maxRaw: score.maxRaw,
-          feedbackSummary,
+          feedbackSummary: nextFeedbackSummary,
           savedByUserId: userId,
         },
       });
 
-      try {
-        const fileName = `${selectedStudent.first_name} ${selectedStudent.last_name} ${dayjs(assessmentDateISO).format("DD-MM-YY")}`;
-        const androidDirectoryUri =
-          Platform.OS === "android"
-            ? await ensureAndroidDownloadsDirectoryUri()
-            : undefined;
-        const saved = await exportDrivingAssessmentPdf({
-          assessmentId: assessment.id,
-          organizationName,
-          fileName,
-          androidDirectoryUri: androidDirectoryUri ?? undefined,
-          criteria: drivingAssessmentCriteria,
-          values: {
-            ...values,
-            totalScorePercent: score.percentAnswered,
-            totalScoreRaw: score.totalRaw,
-            feedbackSummary,
-          },
-        });
-
-        await notifyPdfSaved({
-          fileName,
-          uri: saved.uri,
-          savedTo: saved.savedTo === "downloads" ? "Downloads" : "App storage",
-        });
-
-        Alert.alert(
-          "Submitted",
-          saved.savedTo === "downloads"
-            ? "Assessment saved and PDF saved to Downloads."
-            : "Assessment saved and PDF saved inside the app.",
-          [
-            {
-              text: "Open",
-              onPress: () => {
-                void openPdfUri(saved.uri);
-                navigateAfterSubmit();
-              },
-            },
-            { text: "Done", onPress: navigateAfterSubmit },
-          ],
-        );
-      } catch (error) {
-        Alert.alert(
-          "Saved, but couldn't generate the PDF",
-          `The assessment was saved successfully.\n\n${toErrorMessage(error)}`,
-          [{ text: "Done", onPress: navigateAfterSubmit }],
-        );
-      }
+      return { assessment, assessmentDateISO, score, feedbackSummary: nextFeedbackSummary };
     } catch (error) {
       Alert.alert("Couldn't submit assessment", toErrorMessage(error));
+      return;
+    }
+  }
+
+  async function submitOnly(values: DrivingAssessmentFormValues) {
+    const result = await saveAssessment(values);
+    if (!result) return;
+
+    Alert.alert("Submitted", "Assessment saved.", [
+      { text: "Done", onPress: navigateAfterSubmit },
+    ]);
+  }
+
+  async function submitAndGeneratePdf(values: DrivingAssessmentFormValues) {
+    const result = await saveAssessment(values);
+    if (!result || !selectedStudent) return;
+
+    try {
+      const fileName = `${selectedStudent.first_name} ${selectedStudent.last_name} ${dayjs(result.assessmentDateISO).format("DD-MM-YY")}`;
+      const androidDirectoryUri =
+        Platform.OS === "android" ? await ensureAndroidDownloadsDirectoryUri() : undefined;
+      const saved = await exportDrivingAssessmentPdf({
+        assessmentId: result.assessment.id,
+        organizationName,
+        fileName,
+        androidDirectoryUri: androidDirectoryUri ?? undefined,
+        criteria: drivingAssessmentCriteria,
+        values: {
+          ...values,
+          totalScorePercent: result.score.percentAnswered,
+          totalScoreRaw: result.score.totalRaw,
+          feedbackSummary: result.feedbackSummary,
+        },
+      });
+
+      await notifyPdfSaved({
+        fileName,
+        uri: saved.uri,
+        savedTo: saved.savedTo === "downloads" ? "Downloads" : "App storage",
+      });
+
+      Alert.alert(
+        "Submitted",
+        saved.savedTo === "downloads"
+          ? "Assessment saved and PDF saved to Downloads."
+          : "Assessment saved and PDF saved inside the app.",
+        [
+          {
+            text: "Open",
+            onPress: () => {
+              void openPdfUri(saved.uri);
+              navigateAfterSubmit();
+            },
+          },
+          { text: "Done", onPress: navigateAfterSubmit },
+        ],
+      );
+    } catch (error) {
+      Alert.alert(
+        "Saved, but couldn't generate the PDF",
+        `The assessment was saved successfully.\n\n${toErrorMessage(error)}`,
+        [{ text: "Done", onPress: navigateAfterSubmit }],
+      );
     }
   }
 
@@ -473,9 +553,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
                     selectedStudentId={selectedStudentId}
                     currentUserId={profile.id}
                     onSelectStudent={(student) => {
-                      setSelectedStudentId(student.id);
-                      form.setValue("studentId", student.id, { shouldValidate: true });
-                      hydrateFromStudent(form, student);
+                      resetAssessmentForStudent(student);
                     }}
                   />
                 ) : null}
@@ -686,18 +764,22 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
               ) : null}
 
               <AppButton
-                label={saving ? "Submitting..." : "Submit and generate PDF"}
+                label={saving ? "Submitting..." : "Submit"}
                 disabled={saving}
                 icon={FileDown}
                 onPress={form.handleSubmit(
                   (values) => {
                     Alert.alert(
                       "Submit assessment?",
-                      "This will save the assessment and open your device share sheet to export the PDF.",
+                      "Submit will save the assessment. Submit and Generate PDF will also export a PDF.",
                       [
                         { text: "Cancel", style: "cancel" },
                         {
                           text: "Submit",
+                          onPress: () => void submitOnly(values),
+                        },
+                        {
+                          text: "Submit and Generate PDF",
                           onPress: () => void submitAndGeneratePdf(values),
                         },
                       ],

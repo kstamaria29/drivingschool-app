@@ -173,14 +173,14 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   function navigateAfterSubmit() {
     leaveWithoutPrompt(() => {
+      resetMockTestToBlank();
+      navigation.popToTop();
       if (returnToStudentId && drawerNavigation) {
         drawerNavigation.navigate("Students", {
           screen: "StudentDetail",
           params: { studentId: returnToStudentId },
         });
-        return;
       }
-      navigation.goBack();
     });
   }
 
@@ -198,6 +198,54 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     },
   });
 
+  function resetMockTestForStudent(studentId: string) {
+    setStage("details");
+    setStartTestModalVisible(false);
+    setStage2Enabled(false);
+    setStagesState(createEmptyStagesState());
+    setCritical(createErrorCounts(restrictedMockTestCriticalErrors));
+    setImmediate(createErrorCounts(restrictedMockTestImmediateErrors));
+    setExpandedTaskKey(null);
+    setExpandedStages({ stage1: true, stage2: false });
+    setDraftResolvedStudentId(null);
+    setSelectedStudentId(studentId);
+
+    form.reset({
+      studentId,
+      date: dayjs().format("DD/MM/YYYY"),
+      time: "",
+      vehicleInfo: "",
+      routeInfo: "",
+      preDriveNotes: "",
+      criticalNotes: "",
+      immediateNotes: "",
+    });
+  }
+
+  function resetMockTestToBlank() {
+    setStage("details");
+    setStartTestModalVisible(false);
+    setStage2Enabled(false);
+    setStagesState(createEmptyStagesState());
+    setCritical(createErrorCounts(restrictedMockTestCriticalErrors));
+    setImmediate(createErrorCounts(restrictedMockTestImmediateErrors));
+    setExpandedTaskKey(null);
+    setExpandedStages({ stage1: true, stage2: false });
+    setDraftResolvedStudentId(null);
+    setSelectedStudentId(null);
+
+    form.reset({
+      studentId: "",
+      date: dayjs().format("DD/MM/YYYY"),
+      time: "",
+      vehicleInfo: "",
+      routeInfo: "",
+      preDriveNotes: "",
+      criticalNotes: "",
+      immediateNotes: "",
+    });
+  }
+
   const selectedStudent = useMemo(() => {
     const students = studentsQuery.data ?? [];
     if (!selectedStudentId) return null;
@@ -213,10 +261,13 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   useEffect(() => {
     const initialStudentId = route.params?.studentId ?? null;
     if (!initialStudentId) return;
-    if (selectedStudentId) return;
-    setSelectedStudentId(initialStudentId);
-    form.setValue("studentId", initialStudentId, { shouldValidate: true });
+    if (selectedStudentId === initialStudentId) return;
+    resetMockTestForStudent(initialStudentId);
   }, [form, route.params?.studentId, selectedStudentId]);
+
+  useEffect(() => {
+    setStage("details");
+  }, [selectedStudentId]);
 
   const summary = useMemo(() => {
     return calculateRestrictedMockTestSummary({ stagesState, critical, immediate });
@@ -353,94 +404,112 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     userId,
   ]);
 
-  async function submitAndGeneratePdf(values: RestrictedMockTestFormValues) {
-    if (!selectedStudent) {
+  async function saveAssessment(values: RestrictedMockTestFormValues) {
+    const student = selectedStudent;
+    if (!student) {
       Alert.alert("Select a student", "Please select a student first.");
-      return;
+      return null;
+    }
+
+    const assessmentDateISO = parseDateInputToISODate(values.date);
+    if (!assessmentDateISO) {
+      Alert.alert("Check the form", "Use DD/MM/YYYY for the assessment date.");
+      return null;
+    }
+
+    const candidateName = `${student.first_name} ${student.last_name}`.trim();
+    const storedData: RestrictedMockTestStoredData = {
+      ...values,
+      candidateName,
+      instructor: getProfileFullName(profile),
+      stage2Enabled,
+      stagesState,
+      critical,
+      immediate,
+      savedByUserId: userId,
+      summary,
+      version: DRAFT_VERSION,
+    };
+
+    const validated = restrictedMockTestStoredDataSchema.safeParse(storedData);
+    if (!validated.success) {
+      Alert.alert("Check the form", "Some required fields are missing.");
+      return null;
     }
 
     try {
-      const assessmentDateISO = parseDateInputToISODate(values.date);
-      if (!assessmentDateISO) {
-        Alert.alert("Check the form", "Use DD/MM/YYYY for the assessment date.");
-        return;
-      }
-
-      const candidateName = `${selectedStudent.first_name} ${selectedStudent.last_name}`.trim();
-      const storedData: RestrictedMockTestStoredData = {
-        ...values,
-        candidateName,
-        instructor: getProfileFullName(profile),
-        stage2Enabled,
-        stagesState,
-        critical,
-        immediate,
-        savedByUserId: userId,
-        summary,
-        version: DRAFT_VERSION,
-      };
-
-      const validated = restrictedMockTestStoredDataSchema.safeParse(storedData);
-      if (!validated.success) {
-        Alert.alert("Check the form", "Some required fields are missing.");
-        return;
-      }
-
       const assessment = await createAssessment.mutateAsync({
         organization_id: profile.organization_id,
-        student_id: selectedStudent.id,
-        instructor_id: selectedStudent.assigned_instructor_id,
+        student_id: student.id,
+        instructor_id: student.assigned_instructor_id,
         assessment_type: "second_assessment",
         assessment_date: assessmentDateISO,
         total_score: null,
         form_data: validated.data,
       });
 
-      try {
-        const fileName = `Mock Test Restricted ${selectedStudent.first_name} ${selectedStudent.last_name} ${dayjs(assessmentDateISO).format("DD-MM-YY")}`;
-        const androidDirectoryUri =
-          Platform.OS === "android" ? await ensureAndroidDownloadsDirectoryUri() : undefined;
-        const saved = await exportRestrictedMockTestPdf({
-          assessmentId: assessment.id,
-          organizationName,
-          fileName,
-          androidDirectoryUri: androidDirectoryUri ?? undefined,
-          values: validated.data,
-        });
+      await AsyncStorage.removeItem(draftKey(userId, student.id));
 
-        await notifyPdfSaved({
-          fileName,
-          uri: saved.uri,
-          savedTo: saved.savedTo === "downloads" ? "Downloads" : "App storage",
-        });
-
-        await AsyncStorage.removeItem(draftKey(userId, selectedStudent.id));
-
-        Alert.alert(
-          "Submitted",
-          saved.savedTo === "downloads"
-            ? "Assessment saved and PDF saved to Downloads."
-            : "Assessment saved and PDF saved inside the app.",
-          [
-            {
-              text: "Open",
-              onPress: () => {
-                void openPdfUri(saved.uri);
-                navigateAfterSubmit();
-              },
-            },
-            { text: "Done", onPress: navigateAfterSubmit },
-          ],
-        );
-      } catch (exportError) {
-        Alert.alert(
-          "Saved, but couldn't export PDF",
-          `Assessment saved, but PDF export failed: ${toErrorMessage(exportError)}`,
-          [{ text: "Done", onPress: navigateAfterSubmit }],
-        );
-      }
+      return { assessment, assessmentDateISO, values: validated.data, student };
     } catch (error) {
       Alert.alert("Couldn't submit assessment", toErrorMessage(error));
+      return null;
+    }
+  }
+
+  async function submitOnly(values: RestrictedMockTestFormValues) {
+    const result = await saveAssessment(values);
+    if (!result) return;
+
+    Alert.alert("Submitted", "Assessment saved.", [
+      { text: "Done", onPress: navigateAfterSubmit },
+    ]);
+  }
+
+  async function submitAndGeneratePdf(values: RestrictedMockTestFormValues) {
+    const result = await saveAssessment(values);
+    if (!result) return;
+
+    try {
+      const fileName = `Mock Test Restricted ${result.student.first_name} ${result.student.last_name} ${dayjs(result.assessmentDateISO).format("DD-MM-YY")}`;
+      const androidDirectoryUri =
+        Platform.OS === "android" ? await ensureAndroidDownloadsDirectoryUri() : undefined;
+      const saved = await exportRestrictedMockTestPdf({
+        assessmentId: result.assessment.id,
+        organizationName,
+        fileName,
+        androidDirectoryUri: androidDirectoryUri ?? undefined,
+        values: result.values,
+      });
+
+      await notifyPdfSaved({
+        fileName,
+        uri: saved.uri,
+        savedTo: saved.savedTo === "downloads" ? "Downloads" : "App storage",
+      });
+
+      Alert.alert(
+        "Submitted",
+        saved.savedTo === "downloads"
+          ? "Assessment saved and PDF saved to Downloads."
+          : "Assessment saved and PDF saved inside the app.",
+        [
+          {
+            text: "Open",
+            onPress: () => {
+              void openPdfUri(saved.uri);
+              navigateAfterSubmit();
+            },
+          },
+          { text: "Done", onPress: navigateAfterSubmit },
+        ],
+      );
+    } catch (exportError) {
+      Alert.alert(
+        "Saved, but couldn't export PDF",
+        `Assessment saved, but PDF export failed: ${toErrorMessage(exportError)}`,
+        [{ text: "Done", onPress: navigateAfterSubmit }],
+      );
     }
   }
 
@@ -502,8 +571,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
               selectedStudentId={selectedStudentId}
               currentUserId={profile.id}
               onSelectStudent={(student) => {
-                setSelectedStudentId(student.id);
-                form.setValue("studentId", student.id, { shouldValidate: true });
+                resetMockTestForStudent(student.id);
               }}
             />
           ) : null}
@@ -875,15 +943,19 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
           <AppText variant="error">{toErrorMessage(createAssessment.error)}</AppText>
         ) : null}
         <AppButton
-          label={saving ? "Submitting..." : "Submit and generate PDF"}
+          label={saving ? "Submitting..." : "Submit"}
           disabled={saving}
           onPress={form.handleSubmit((values) => {
             Alert.alert(
               "Submit mock test?",
-              "This will save the assessment and generate a PDF for export.",
+              "Submit will save the assessment. Submit and Generate PDF will also export a PDF.",
               [
                 { text: "Cancel", style: "cancel" },
-                { text: "Submit", onPress: () => void submitAndGeneratePdf(values) },
+                { text: "Submit", onPress: () => void submitOnly(values) },
+                {
+                  text: "Submit and Generate PDF",
+                  onPress: () => void submitAndGeneratePdf(values),
+                },
               ],
             );
           })}

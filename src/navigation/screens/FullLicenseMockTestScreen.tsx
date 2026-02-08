@@ -286,14 +286,14 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
 
   function navigateAfterSubmit() {
     leaveWithoutPrompt(() => {
+      resetMockTestToBlank();
+      navigation.popToTop();
       if (returnToStudentId && drawerNavigation) {
         drawerNavigation.navigate("Students", {
           screen: "StudentDetail",
           params: { studentId: returnToStudentId },
         });
-        return;
       }
-      navigation.goBack();
     });
   }
 
@@ -313,6 +313,48 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     },
   });
 
+  function resetMockTestForStudent(studentId: string) {
+    setStage("details");
+    setStartTestModalVisible(false);
+    setSelectedStudentId(studentId);
+
+    form.reset({
+      studentId,
+      date: dayjs().format(DISPLAY_DATE_FORMAT),
+      time: "",
+      locationArea: "Auckland - North Shore",
+      vehicle: "Driving school car",
+      mode: "official",
+      weather: "dry",
+      criticalNotes: "",
+      immediateNotes: "",
+      overallNotes: "",
+    });
+
+    resetSession();
+  }
+
+  function resetMockTestToBlank() {
+    setStage("details");
+    setStartTestModalVisible(false);
+    setSelectedStudentId(null);
+
+    form.reset({
+      studentId: "",
+      date: dayjs().format(DISPLAY_DATE_FORMAT),
+      time: "",
+      locationArea: "Auckland - North Shore",
+      vehicle: "Driving school car",
+      mode: "official",
+      weather: "dry",
+      criticalNotes: "",
+      immediateNotes: "",
+      overallNotes: "",
+    });
+
+    resetSession();
+  }
+
   const selectedStudent = useMemo(() => {
     const students = studentsQuery.data ?? [];
     if (!selectedStudentId) return null;
@@ -328,9 +370,8 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   useEffect(() => {
     const initialStudentId = route.params?.studentId ?? null;
     if (!initialStudentId) return;
-    if (selectedStudentId) return;
-    setSelectedStudentId(initialStudentId);
-    form.setValue("studentId", initialStudentId, { shouldValidate: true });
+    if (selectedStudentId === initialStudentId) return;
+    resetMockTestForStudent(initialStudentId);
   }, [form, route.params?.studentId, selectedStudentId]);
 
   useEffect(() => {
@@ -419,6 +460,8 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     setEndTimeISO(null);
     setTimerRunning(false);
     setImmediateFailTriggered(false);
+    setOpenSuggestions(null);
+    setExpandedErrors({ critical: true, immediate: false });
     setAttempts([]);
     setCritical(createErrorCounts(fullLicenseMockTestCriticalErrors));
     setImmediate(createErrorCounts(fullLicenseMockTestImmediateErrors));
@@ -697,110 +740,128 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     setStage("summary");
   }
 
-  async function submitAndGeneratePdf(values: FullLicenseMockTestFormValues) {
-    if (!selectedStudent) {
+  async function saveAssessment(values: FullLicenseMockTestFormValues) {
+    const student = selectedStudent;
+    if (!student) {
       Alert.alert("Select a student", "Please select a student first.");
-      return;
+      return null;
     }
 
     const assessmentDateISO = parseDateInputToISODate(values.date);
     if (!assessmentDateISO) {
       Alert.alert("Check the form", "Use DD/MM/YYYY for the assessment date.");
-      return;
+      return null;
     }
 
     const safeEndTimeISO = endTimeISO ?? new Date().toISOString();
 
+    const stored: FullLicenseMockTestStoredData = {
+      ...values,
+      version: DRAFT_VERSION,
+      candidateName: `${student.first_name} ${student.last_name}`,
+      instructor: getProfileFullName(profile),
+      drillLeftTarget,
+      drillRightTarget,
+      startTimeISO,
+      endTimeISO: safeEndTimeISO,
+      remainingSeconds: sessionSeconds,
+      attempts,
+      critical,
+      immediate,
+      summary: {
+        attemptsCount: summary.attemptsCount,
+        criticalTotal: summary.criticalTotal,
+        immediateTotal: summary.immediateTotal,
+        scorePercent: summary.scorePercent,
+        readinessLabel: summary.readiness.label,
+        readinessReason: summary.readiness.reason,
+      },
+      savedByUserId: userId,
+    };
+
+    const validated = fullLicenseMockTestStoredDataSchema.safeParse(stored);
+    if (!validated.success) {
+      Alert.alert("Check the form", "Some required details are missing.");
+      return null;
+    }
+
     try {
-      const stored: FullLicenseMockTestStoredData = {
-        ...values,
-        version: DRAFT_VERSION,
-        candidateName: `${selectedStudent.first_name} ${selectedStudent.last_name}`,
-        instructor: getProfileFullName(profile),
-        drillLeftTarget,
-        drillRightTarget,
-        startTimeISO,
-        endTimeISO: safeEndTimeISO,
-        remainingSeconds: sessionSeconds,
-        attempts,
-        critical,
-        immediate,
-        summary: {
-          attemptsCount: summary.attemptsCount,
-          criticalTotal: summary.criticalTotal,
-          immediateTotal: summary.immediateTotal,
-          scorePercent: summary.scorePercent,
-          readinessLabel: summary.readiness.label,
-          readinessReason: summary.readiness.reason,
-        },
-        savedByUserId: userId,
-      };
-
-      const validated = fullLicenseMockTestStoredDataSchema.safeParse(stored);
-      if (!validated.success) {
-        Alert.alert("Check the form", "Some required details are missing.");
-        return;
-      }
-
       const assessment = await createAssessment.mutateAsync({
         organization_id: profile.organization_id,
-        student_id: selectedStudent.id,
-        instructor_id: selectedStudent.assigned_instructor_id,
+        student_id: student.id,
+        instructor_id: student.assigned_instructor_id,
         assessment_type: "third_assessment",
         assessment_date: assessmentDateISO,
         total_score: summary.scorePercent,
         form_data: validated.data,
       });
 
-      try {
-        const androidDirectoryUri =
-          Platform.OS === "android" ? await ensureAndroidDownloadsDirectoryUri() : undefined;
+      await AsyncStorage.removeItem(draftKey(userId, student.id));
 
-        const fileName = `Mock Test Full License ${selectedStudent.first_name} ${selectedStudent.last_name} ${dayjs(
-          assessmentDateISO,
-        ).format("DD-MM-YY")}`;
-
-        const saved = await exportFullLicenseMockTestPdf({
-          assessmentId: assessment.id,
-          organizationName,
-          fileName,
-          androidDirectoryUri: androidDirectoryUri ?? undefined,
-          values: validated.data,
-        });
-
-        await notifyPdfSaved({
-          fileName,
-          uri: saved.uri,
-          savedTo: saved.savedTo === "downloads" ? "Downloads" : "App storage",
-        });
-
-        await AsyncStorage.removeItem(draftKey(userId, selectedStudent.id));
-
-        Alert.alert(
-          "Submitted",
-          saved.savedTo === "downloads"
-            ? "Assessment saved and PDF saved to Downloads."
-            : "Assessment saved and PDF saved inside the app.",
-          [
-            {
-              text: "Open",
-              onPress: () => {
-                void openPdfUri(saved.uri);
-                navigateAfterSubmit();
-              },
-            },
-            { text: "Done", onPress: navigateAfterSubmit },
-          ],
-        );
-      } catch (exportError) {
-        Alert.alert(
-          "Saved, but couldn't export PDF",
-          `Assessment saved, but PDF export failed: ${toErrorMessage(exportError)}`,
-          [{ text: "Done", onPress: navigateAfterSubmit }],
-        );
-      }
+      return { assessment, assessmentDateISO, values: validated.data, student };
     } catch (error) {
       Alert.alert("Couldn't submit assessment", toErrorMessage(error));
+      return null;
+    }
+  }
+
+  async function submitOnly(values: FullLicenseMockTestFormValues) {
+    const result = await saveAssessment(values);
+    if (!result) return;
+
+    Alert.alert("Submitted", "Assessment saved.", [
+      { text: "Done", onPress: navigateAfterSubmit },
+    ]);
+  }
+
+  async function submitAndGeneratePdf(values: FullLicenseMockTestFormValues) {
+    const result = await saveAssessment(values);
+    if (!result) return;
+
+    try {
+      const androidDirectoryUri =
+        Platform.OS === "android" ? await ensureAndroidDownloadsDirectoryUri() : undefined;
+
+      const fileName = `Mock Test Full License ${result.student.first_name} ${result.student.last_name} ${dayjs(
+        result.assessmentDateISO,
+      ).format("DD-MM-YY")}`;
+
+      const saved = await exportFullLicenseMockTestPdf({
+        assessmentId: result.assessment.id,
+        organizationName,
+        fileName,
+        androidDirectoryUri: androidDirectoryUri ?? undefined,
+        values: result.values,
+      });
+
+      await notifyPdfSaved({
+        fileName,
+        uri: saved.uri,
+        savedTo: saved.savedTo === "downloads" ? "Downloads" : "App storage",
+      });
+
+      Alert.alert(
+        "Submitted",
+        saved.savedTo === "downloads"
+          ? "Assessment saved and PDF saved to Downloads."
+          : "Assessment saved and PDF saved inside the app.",
+        [
+          {
+            text: "Open",
+            onPress: () => {
+              void openPdfUri(saved.uri);
+              navigateAfterSubmit();
+            },
+          },
+          { text: "Done", onPress: navigateAfterSubmit },
+        ],
+      );
+    } catch (exportError) {
+      Alert.alert(
+        "Saved, but couldn't export PDF",
+        `Assessment saved, but PDF export failed: ${toErrorMessage(exportError)}`,
+        [{ text: "Done", onPress: navigateAfterSubmit }],
+      );
     }
   }
 
@@ -854,8 +915,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
               selectedStudentId={selectedStudentId}
               currentUserId={profile.id}
               onSelectStudent={(student) => {
-                setSelectedStudentId(student.id);
-                form.setValue("studentId", student.id, { shouldValidate: true });
+                resetMockTestForStudent(student.id);
               }}
             />
           ) : null}
@@ -1073,14 +1133,22 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       <>
         {createAssessment.isError ? <AppText variant="error">{toErrorMessage(createAssessment.error)}</AppText> : null}
         <AppButton
-          label={saving ? "Submitting..." : "Submit and generate PDF"}
+          label={saving ? "Submitting..." : "Submit"}
           disabled={saving}
           icon={Timer}
           onPress={form.handleSubmit((values) => {
-            Alert.alert("Submit mock test?", "This will save the assessment and generate a PDF for export.", [
-              { text: "Cancel", style: "cancel" },
-              { text: "Submit", style: "destructive", onPress: () => void submitAndGeneratePdf(values) },
-            ]);
+            Alert.alert(
+              "Submit mock test?",
+              "Submit will save the assessment. Submit and Generate PDF will also export a PDF.",
+              [
+                { text: "Cancel", style: "cancel" },
+                { text: "Submit", onPress: () => void submitOnly(values) },
+                {
+                  text: "Submit and Generate PDF",
+                  onPress: () => void submitAndGeneratePdf(values),
+                },
+              ],
+            );
           })}
         />
         <AppButton width="auto" variant="secondary" label="Back to session" onPress={() => setStage("run")} />

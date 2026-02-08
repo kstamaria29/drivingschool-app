@@ -1,6 +1,22 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Assessment submit options + upcoming reminders
+- **Summary:**
+  - Added `Submit` vs `Submit and Generate PDF` options across assessments and hardened navigation/state resets so each new assessment starts cl...
+  - Added Home `Upcoming Reminders` (5 soonest) and sorted reminders by reminder date/time for consistent ordering.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Reminders modal time hint sync + assessment student switch fix
+- **Summary:**
+  - Updated Add Reminder modal title to `Add New Reminder` and made the notification helper text dynamically reflect the currently selected remi...
+  - Fixed assessment submit/start navigation so completed assessment screens are popped to `AssessmentsMain` on submit, preventing stale student...
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Reminders screen modal create flow + simplified layout
 - **Summary:**
   - Removed the top Reminders summary container and switched `Add new` to a full modal create flow with `Title`, input, `Date`, `Time`, and `Not...
@@ -141,19 +157,3 @@
 - **Summary:**
   - Updated student delete flow to first fetch the student's `organization_id`, delete all files under `student-licenses/<organization_id>/<stud...
   - This ensures licence front/back images are removed from Supabase Storage when a student is deleted.
-
----
-
-- **Date:** 2026-02-08 (Pacific/Auckland)
-- **Task:** Reset Students filters on revisit + student photo options UX polish
-- **Summary:**
-  - Updated `Students` screen focus behavior so every re-entry resets controls to defaults: `Status=Active`, `Sort=Recent`, `By organization=Off...
-  - Updated `Edit student` assignable instructor list to always exclude `admin` role entries.
-
----
-
-- **Date:** 2026-02-08 (Pacific/Auckland)
-- **Task:** Refine student licence photo management + add date of birth
-- **Summary:**
-  - Added `students.date_of_birth` support end-to-end (migration `018`, Supabase types, Add/Edit form field with date picker, save/update mappin...
-  - Updated Student Profile to display `Address: <value>` inline, show date of birth and computed age, and capitalize licence type labels (`Lear...

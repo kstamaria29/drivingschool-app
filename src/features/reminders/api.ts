@@ -5,6 +5,10 @@ export type StudentReminder = Database["public"]["Tables"]["student_reminders"][
 export type StudentReminderInsert = Database["public"]["Tables"]["student_reminders"]["Insert"];
 export type StudentReminderUpdate = Database["public"]["Tables"]["student_reminders"]["Update"];
 
+export type StudentReminderWithStudent = StudentReminder & {
+  students: Pick<Database["public"]["Tables"]["students"]["Row"], "first_name" | "last_name"> | null;
+};
+
 export type ListStudentRemindersInput = {
   studentId: string;
   limit?: number;
@@ -16,11 +20,37 @@ export async function listStudentReminders(input: ListStudentRemindersInput): Pr
     .select("*")
     .eq("student_id", input.studentId)
     .order("reminder_date", { ascending: true })
+    .order("reminder_time", { ascending: true })
     .order("created_at", { ascending: false });
 
   if (input.limit) query = query.limit(input.limit);
 
   const { data, error } = await query.overrideTypes<StudentReminder[], { merge: false }>();
+  if (error) throw error;
+  return data ?? [];
+}
+
+export type ListUpcomingRemindersInput = {
+  instructorId: string;
+  fromISODate: string;
+  limit?: number;
+};
+
+export async function listUpcomingReminders(
+  input: ListUpcomingRemindersInput,
+): Promise<StudentReminderWithStudent[]> {
+  let query = supabase
+    .from("student_reminders")
+    .select("*, students(first_name, last_name)")
+    .eq("instructor_id", input.instructorId)
+    .gte("reminder_date", input.fromISODate)
+    .order("reminder_date", { ascending: true })
+    .order("reminder_time", { ascending: true })
+    .order("created_at", { ascending: false });
+
+  if (input.limit) query = query.limit(input.limit);
+
+  const { data, error } = await query.overrideTypes<StudentReminderWithStudent[], { merge: false }>();
   if (error) throw error;
   return data ?? [];
 }
@@ -65,4 +95,3 @@ export async function updateStudentReminder(
   if (error) throw error;
   return data;
 }
-

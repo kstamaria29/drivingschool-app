@@ -920,3 +920,19 @@
 - **Summary:**
   - Added student licence photo upload support in the student feature API/query layer with storage upload + signed URL persistence (`license_fro...
   - Added Supabase migration `017_students_license_images.sql` and storage policy script for private `student-licenses` bucket paths (`<organiza...
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Refine student licence photo management + add date of birth
+- **Summary:**
+  - Added `students.date_of_birth` support end-to-end (migration `018`, Supabase types, Add/Edit form field with date picker, save/update mappin...
+  - Updated Student Profile to display `Address: <value>` inline, show date of birth and computed age, and capitalize licence type labels (`Lear...
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Reset Students filters on revisit + student photo options UX polish
+- **Summary:**
+  - Updated `Students` screen focus behavior so every re-entry resets controls to defaults: `Status=Active`, `Sort=Recent`, `By organization=Off...
+  - Updated `Edit student` assignable instructor list to always exclude `admin` role entries.

@@ -92,6 +92,37 @@ export function StudentRemindersScreen({ route }: Props) {
   const [deletingReminderId, setDeletingReminderId] = useState<string | null>(null);
 
   const reminders = remindersQuery.data ?? [];
+  const sortedReminders = useMemo(() => {
+    if (reminders.length <= 1) return reminders;
+
+    const now = dayjs();
+    const toTimeHHmm = (value: string) => {
+      const match = value.match(/^([01]\d|2[0-3]):[0-5]\d/);
+      return match ? match[0] : "09:00";
+    };
+
+    const items = reminders.map((reminder) => {
+      const time = toTimeHHmm(reminder.reminder_time);
+      const dateTime = dayjs(`${reminder.reminder_date}T${time}:00`);
+      return {
+        reminder,
+        dateTime: dateTime.isValid()
+          ? dateTime
+          : dayjs(reminder.reminder_date).startOf("day"),
+      };
+    });
+
+    items.sort((a, b) => a.dateTime.valueOf() - b.dateTime.valueOf());
+
+    const upcoming: typeof items = [];
+    const past: typeof items = [];
+    for (const item of items) {
+      if (item.dateTime.isBefore(now)) past.push(item);
+      else upcoming.push(item);
+    }
+
+    return [...upcoming, ...past].map((item) => item.reminder);
+  }, [reminders]);
   const studentName = studentQuery.data
     ? `${studentQuery.data.first_name} ${studentQuery.data.last_name}`
     : "Student";
@@ -117,6 +148,7 @@ export function StudentRemindersScreen({ route }: Props) {
     () => reminders.map((reminder) => `${reminder.id}:${reminder.updated_at}`).join("|"),
     [reminders],
   );
+  const watchedTime = form.watch("time");
 
   function resetCreateForm() {
     form.reset({
@@ -138,6 +170,12 @@ export function StudentRemindersScreen({ route }: Props) {
     const match = reminderTime.match(/^([01]\d|2[0-3]):[0-5]\d/);
     const value = match ? match[0] : "09:00";
     return dayjs(`2000-01-01T${value}:00`).format("h:mm A");
+  }
+
+  function formatReminderTimeHint(reminderTime: string) {
+    const match = reminderTime.match(/^([01]\d|2[0-3]):[0-5]\d/);
+    const value = match ? match[0] : "09:00";
+    return dayjs(`2000-01-01T${value}:00`).format("h:mm a");
   }
 
   useEffect(() => {
@@ -278,7 +316,7 @@ export function StudentRemindersScreen({ route }: Props) {
                 onPress={() => remindersQuery.refetch()}
               />
             </AppStack>
-          ) : reminders.length === 0 ? (
+          ) : sortedReminders.length === 0 ? (
             <AppCard className="gap-2">
               <AppText variant="heading">No reminders yet</AppText>
               <AppText variant="body">
@@ -287,8 +325,13 @@ export function StudentRemindersScreen({ route }: Props) {
             </AppCard>
           ) : (
             <AppStack gap="md">
-              {reminders.map((reminder) => {
-                const isPast = dayjs(reminder.reminder_date).endOf("day").isBefore(dayjs());
+              {sortedReminders.map((reminder) => {
+                const now = dayjs();
+                const timeHHmm = reminder.reminder_time.match(/^([01]\d|2[0-3]):[0-5]\d/)?.[0] ?? "09:00";
+                const reminderDateTime = dayjs(`${reminder.reminder_date}T${timeHHmm}:00`);
+                const isPast = reminderDateTime.isValid()
+                  ? reminderDateTime.isBefore(now)
+                  : dayjs(reminder.reminder_date).endOf("day").isBefore(now);
                 const reminderDateLabel = `${formatIsoDateToDisplay(reminder.reminder_date)} ${formatReminderTimeLabel(reminder.reminder_time)}`;
                 const offsetLabel = formatReminderOffsets(reminder.notification_offsets_minutes);
 
@@ -346,7 +389,7 @@ export function StudentRemindersScreen({ route }: Props) {
           >
             <AppCard className="gap-4">
               <View className="flex-row items-center justify-between gap-2">
-                <AppText variant="heading">Add new</AppText>
+                <AppText variant="heading">Add New Reminder</AppText>
                 <AppButton
                   label=""
                   width="auto"
@@ -423,7 +466,7 @@ export function StudentRemindersScreen({ route }: Props) {
                         <View className="flex-1">
                           <AppText variant="label">Notifications</AppText>
                           <AppText className="mt-1" variant="caption">
-                            Choose when to notify before the 9:00 am reminder time.
+                            {`Choose when to notify before the ${formatReminderTimeHint(watchedTime)} reminder time.`}
                           </AppText>
                         </View>
                         <AppText variant="caption">

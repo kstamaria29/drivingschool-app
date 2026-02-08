@@ -220,7 +220,11 @@ export function AppDrawerContent({
             label="Assessments"
             icon={<ClipboardList color={iconColor} size={20} />}
             active={currentRouteName === "Assessments"}
-            onPress={() => navigation.navigate("Assessments")}
+            onPress={() =>
+              navigation.navigate("Assessments", {
+                screen: "AssessmentsMain",
+              })
+            }
           />
           <DrawerRow
             collapsed={collapsed}
