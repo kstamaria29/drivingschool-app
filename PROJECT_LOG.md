@@ -1,4 +1,161 @@
-﻿# PROJECT_LOG.md
+# PROJECT_LOG.md
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Students list organization label + licence badge styling update
+- **Summary:**
+  - Replaced the Students table row text next to the licence badge from licence type labels to the student `organization_name`.
+  - Renamed the right-side column header from `Licence` to `Organization` while keeping the L/R/F circular badge visible.
+  - Increased the badge letter typography by roughly 2px and made it bold.
+  - Updated the `Restricted` badge color to green.
+- **Files changed:**
+  - src/navigation/screens/StudentsListScreen.tsx
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - Get-Content -Path AGENTS.md
+  - Get-Content -Path PROJECT_LOG.md
+  - Get-Content -Path docs/logs/INDEX.md
+  - mcp__context7__resolve-library-id (react-native)
+  - mcp__context7__query-docs (/websites/reactnative_dev)
+  - rg -n "Licence|license|organization_name|organization|badge|Learner|Restricted|Full|L\\)|R\\)|F\\)|circle|student row" src/navigation/screens/StudentsListScreen.tsx
+  - npx prettier --write src/navigation/screens/StudentsListScreen.tsx
+  - npx tsc --noEmit
+- **How to verify:**
+  - Open `Students` screen on tablet portrait.
+  - Confirm each row now shows organization text where licence type text was previously shown.
+  - Confirm the circular L/R/F badge still appears, with larger bold letters.
+  - Confirm `Restricted` badges render green.
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Organization picker modal UX + left-aligned selected value
+- **Summary:**
+  - Updated `New/Edit student` Organization field to show selected value left-aligned in the trigger button (e.g., `Private`).
+  - Replaced inline organization dropdown expansion with a modal action-sheet style picker (matching the photo options modal pattern).
+  - Added organization options modal with preset options plus `Custom`; selecting `Custom` opens the existing custom-organization input modal.
+- **Files changed:**
+  - src/navigation/screens/StudentEditScreen.tsx
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - Get-Content -Raw AGENTS.md
+  - Get-Content -Raw PROJECT_LOG.md
+  - Get-Content -Raw docs/logs/INDEX.md
+  - mcp__context7__resolve-library-id (react-native)
+  - mcp__context7__query-docs (/websites/reactnative_dev)
+  - rg -n "organizationMenuOpen|customOrganizationModalVisible|studentOrganizationMenuOptions|Organization" src/navigation/screens/StudentEditScreen.tsx
+  - npx prettier --write src/navigation/screens/StudentEditScreen.tsx
+  - npx tsc --noEmit
+- **How to verify:**
+  - Open `Students` -> `New student`.
+  - Confirm Organization selected text (e.g., `Private`) is left-aligned in its button.
+  - Tap Organization and confirm an overlay modal appears (not inline dropdown) with options and `Custom`.
+  - Tap `Custom`, enter a value, save, and confirm it becomes the selected Organization value.
+  - Run `npx tsc --noEmit` and confirm no type errors.
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Student delete warning + history cascade cleanup + licence photo UI polish
+- **Summary:**
+  - Updated student delete API flow to remove related `student_sessions` and `assessments` records before deleting the student row.
+  - Kept storage cleanup on delete and now removes all files under `student-licenses/<organization_id>/<student_id>/` as part of the delete flow.
+  - Updated Student Profile delete confirmation message to include an explicit warning when session history, assessment history, or licence photos exist, reminding users those records will be permanently removed.
+  - Updated Student Profile licence photo block so missing sides no longer render placeholders; each side now shows `Add Front Licence photo` / `Add Back Licence photo` when missing.
+  - Updated Add/Edit Student licence photo block with the same missing-side behavior and removed Front/Back caption labels.
+- **Files changed:**
+  - src/features/students/api.ts
+  - src/navigation/screens/StudentDetailScreen.tsx
+  - src/navigation/screens/StudentEditScreen.tsx
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - Get-Content -Raw AGENTS.md
+  - Get-Content -Raw PROJECT_LOG.md
+  - Get-Content -Raw docs/logs/INDEX.md
+  - Get-Content -Raw docs/logs/PROJECT_LOG_ARCHIVE.md
+  - rg -n "create table if not exists public\\.student_sessions|create table if not exists public\\.assessments|references public\\.students|on delete|policy|for delete" supabase/migrations -g "*.sql"
+  - Get-Content -Raw src/features/sessions/api.ts
+  - Get-Content -Raw src/features/assessments/api.ts
+  - Get-Content -Raw src/features/students/api.ts
+  - Get-Content -Raw src/navigation/screens/StudentDetailScreen.tsx
+  - Get-Content -Raw src/navigation/screens/StudentEditScreen.tsx
+  - npx prettier --write src/features/students/api.ts src/navigation/screens/StudentDetailScreen.tsx src/navigation/screens/StudentEditScreen.tsx
+  - npx tsc --noEmit
+- **How to verify:**
+  - In Student Profile, test delete for a student that has session history, assessment history, and/or licence photos; confirm confirmation text includes a warning that those records/photos will disappear forever.
+  - Delete that student and confirm their session and assessment history no longer appears in app queries.
+  - In Supabase Storage, confirm files under `student-licenses/<organization_id>/<student_id>/` are removed.
+  - In Student Profile and Add/Edit Student screens, confirm missing front/back photo sides show only `Add Front Licence photo` / `Add Back Licence photo` buttons without placeholders or Front/Back captions.
+  - Run `npx tsc --noEmit` and confirm no type errors.
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Delete student licence files on student delete + crop-label feasibility check
+- **Summary:**
+  - Updated student delete flow to first fetch the student's `organization_id`, delete all files under `student-licenses/<organization_id>/<student_id>/`, then delete the student row.
+  - This ensures licence front/back images are removed from Supabase Storage when a student is deleted.
+  - Verified `expo-image-picker` docs: crop UI action text is native/system-controlled; current Expo API does not expose a setting to rename `CROP` to `Ok`.
+- **Files changed:**
+  - src/features/students/api.ts
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - Get-Content -Raw AGENTS.md
+  - Get-Content -Raw PROJECT_LOG.md
+  - Get-Content -Raw docs/logs/INDEX.md
+  - rg -n "deleteStudent|student-licenses|license_front|license_back|ImagePicker|allowsEditing|CROP|crop" src/features src/navigation -g "*.ts" -g "*.tsx"
+  - Get-Content -Raw src/features/students/api.ts
+  - Get-Content -Raw src/navigation/screens/StudentEditScreen.tsx
+  - Get-Content -Raw src/navigation/screens/StudentDetailScreen.tsx
+  - mcp__context7__resolve-library-id (expo-image-picker)
+  - mcp__context7__resolve-library-id (expo)
+  - mcp__context7__query-docs (/websites/expo_dev)
+  - npx prettier --write src/features/students/api.ts
+  - npx tsc --noEmit
+- **How to verify:**
+  - Ensure `student-licenses` bucket exists and the student has front/back licence photos uploaded.
+  - Delete that student from `Student Profile`.
+  - In Supabase Storage, confirm files inside `student-licenses/<organization_id>/<student_id>/` are removed.
+  - Run `npx tsc --noEmit` and confirm no type errors.
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Reset Students filters on revisit + student photo options UX polish
+- **Summary:**
+  - Updated `Students` screen focus behavior so every re-entry resets controls to defaults: `Status=Active`, `Sort=Recent`, `By organization=Off`, organization selection reset, `View other instructor's students=Hide`, `Search` cleared, and pagination reset to page 1.
+  - Updated `Edit student` assignable instructor list to always exclude `admin` role entries.
+  - Replaced licence photo action alerts in both `Edit student` and `Student profile` with explicit modal action sheets that include top-right `X` close and `Cancel` button.
+  - Updated `Student profile` licence photos area:
+    - moved `Organization` below `Age`,
+    - added spacing between `Expiry date` and `Licence card photos`,
+    - centered `Front`/`Back` labels,
+    - when both photos are missing, hide front/back placeholders/headings and show `Add Front Licence photo` / `Add Back Licence photo` actions.
+- **Files changed:**
+  - src/navigation/screens/StudentsListScreen.tsx
+  - src/navigation/screens/StudentEditScreen.tsx
+  - src/navigation/screens/StudentDetailScreen.tsx
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - Get-Content -Raw AGENTS.md
+  - Get-Content -Raw PROJECT_LOG.md
+  - Get-Content -Raw docs/logs/INDEX.md
+  - rg -n "student licence|license|date of birth|StudentEditScreen|StudentDetailScreen|keyboard" docs/logs/PROJECT_LOG_ARCHIVE.md
+  - npx prettier --write src/navigation/screens/StudentsListScreen.tsx src/navigation/screens/StudentEditScreen.tsx src/navigation/screens/StudentDetailScreen.tsx
+  - npx tsc --noEmit
+- **How to verify:**
+  - Open `Students`, change `Status/Sort/By organization/Search/page`, navigate away, then return; confirm defaults are restored.
+  - Open `Students -> Edit student` as owner and confirm no `admin` entries appear in assignable instructor options.
+  - In both `Edit student` and `Student profile`, tap `Front/Back photo options` and confirm modal includes an `X` close and `Cancel` action.
+  - In `Student profile`, confirm `Organization` appears below `Age`, and there is visual spacing between `Expiry date` and `Licence card photos`.
+  - For a student with no licence photos, confirm no `Front/Back` placeholders/labels are shown and action buttons read `Add Front Licence photo` / `Add Back Licence photo`.
+  - Run `npx tsc --noEmit` and confirm no type errors.
+
+---
 
 - **Date:** 2026-02-08 (Pacific/Auckland)
 - **Task:** Refine student licence photo management + add date of birth
@@ -506,140 +663,4 @@ px tsc --noEmit and confirm no type errors.
   - Open drawer -> Google Maps and confirm the map renders full-screen with layer toggle controls.
   - Long-press map to add a pin, enter label/notes, optionally link a student, and save.
   - Tap an existing marker to view details, then delete it and confirm it disappears.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Fix react-native-maps config plugin startup error
-- **Summary:**
-  - Removed dynamic app config plugin injection for react-native-maps, which caused Expo startup to fail.
-  - Kept Google Maps key wiring in app config using native fields instead (ios config googleMapsApiKey and android config googleMaps apiKey).
-  - Verified Expo config resolves without PluginError and TypeScript compile still passes.
-- **Files changed:**
-  - app.config.ts
-  - PROJECT_LOG.md
-  - docs/logs/PROJECT_LOG_ARCHIVE.md
-- **Commands run:**
-  - npx expo config --type public
-  - npx tsc --noEmit
-- **How to verify:**
-  - Run npm start and confirm startup no longer throws PluginError for react-native-maps.
-  - Open the Google Maps screen from the drawer and confirm map renders.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Add anchored vectors, snapshots, and student address auto-pin in Google Maps
-- **Summary:**
-  - Added persistent map annotations with two modes: anchored vector drawings (lat/lng polylines) and snapshot annotations (map capture + doodle overlay).
-  - Added annotation data layer and query hooks plus a new Supabase migration/table for multi-tenant annotation storage with role-safe RLS policies.
-  - Added snapshot annotation editor modal and snapshot preview modal with stroke rendering.
-  - Added Auto-pin action that geocodes all active students with addresses and creates map pins for students not already pinned.
-  - Updated the Google Maps screen to render saved vector overlays, create/delete annotations, and expose the new annotation workflows.
-- **Files changed:**
-  - README.md
-  - supabase/README.md
-  - supabase/migrations/013_map_annotations.sql
-  - src/supabase/types.ts
-  - src/features/map-annotations/api.ts
-  - src/features/map-annotations/queries.ts
-  - src/features/map-annotations/codec.ts
-  - src/navigation/components/SnapshotAnnotationModal.tsx
-  - src/navigation/components/SnapshotPreviewModal.tsx
-  - src/navigation/screens/GoogleMapsScreen.tsx
-  - PROJECT_LOG.md
-  - docs/logs/PROJECT_LOG_ARCHIVE.md
-- **Commands run:**
-  - npx tsc --noEmit
-- **How to verify:**
-  - Apply supabase/migrations/013_map_annotations.sql in Supabase SQL Editor.
-  - Open drawer -> Google Maps, select a pin, tap Anchored vector, draw on map, and save; confirm saved lines re-render when reopening the pin.
-  - Select a pin, tap Snapshot, draw over the captured image, save, then tap the snapshot item to confirm preview rendering.
-  - Tap Auto-pin active student addresses and confirm pins are created for active students with addresses that were not already pinned.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Google Maps main-map annotations + NZ address autocomplete
-- **Summary:**
-  - Added main-map annotation support so anchored vectors and snapshots work even when no pin is selected.
-  - Added drawing controls for anchored vectors and snapshots: color, line thickness, text placement, undo, and redo.
-  - Added NZ-only Google address search/autocomplete on Google Maps and zoom-to-address behavior.
-  - Added reusable NZ address autocomplete input and integrated it into student address editing.
-  - Extended annotation payload parsing/serialization to persist styled strokes and text labels.
-- **Files changed:**
-  - `.env.example`
-  - `README.md`
-  - `app.config.ts`
-  - `src/components/AddressAutocompleteInput.tsx`
-  - `src/features/maps/places.ts`
-  - `src/features/map-annotations/codec.ts`
-  - `src/navigation/components/SnapshotAnnotationModal.tsx`
-  - `src/navigation/components/SnapshotPreviewModal.tsx`
-  - `src/navigation/screens/GoogleMapsScreen.tsx`
-  - `src/navigation/screens/StudentEditScreen.tsx`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-  - `npx expo config --type public`
-- **How to verify:**
-  - Open `Google Maps`, type an NZ address, pick autocomplete suggestion, and confirm the map zooms to that location.
-  - In `Google Maps`, use top-panel `Anchored vector` and `Snapshot` (without selecting a pin) and confirm color/width/text + undo/redo + save all work.
-  - Select an existing pin and confirm the same annotation tools still work for pin-scoped annotations.
-  - Open `Students` -> `New/Edit student` and confirm the Address field now shows NZ autocomplete suggestions while typing.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Google Maps cleanup: remove vectors + snapshot UI updates
-- **Summary:**
-  - Removed Anchored vector workflows from the Google Maps UI and map annotation codec, keeping snapshot annotations and pin workflows intact.
-  - Updated map controls layout: removed top-right refresh, changed add button icon to Lucide `Pin`, moved layer tabs above address search, and replaced the separate search button with inline Clear beside the address input.
-  - Moved snapshot capture controls into bottom annotation cards (main map + selected pin) as square icon buttons.
-  - Updated Snapshot Annotation modal: added line-thickness icons beside size labels, added black as a draw color option, switched Undo/Redo to icon-only buttons, and right-aligned Save snapshot.
-  - Hardened Auto-pin geocoding by trying Google geocode first (when configured), then Expo geocode fallback, and surfacing the first failure reason when insert errors occur.
-- **Files changed:**
-  - `src/navigation/screens/GoogleMapsScreen.tsx`
-  - `src/navigation/components/SnapshotAnnotationModal.tsx`
-  - `src/components/AddressAutocompleteInput.tsx`
-  - `src/features/map-annotations/codec.ts`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-  - `rg -n "anchored_vector|vector" src/navigation/screens/GoogleMapsScreen.tsx src/features/map-annotations/codec.ts`
-- **How to verify:**
-  - Open `Google Maps` and confirm top-right shows only one square add-pin icon button (no refresh button).
-  - Confirm map layer tabs are above the address input, and the Clear button is beside the input on the right.
-  - Confirm there is no Anchored vector button/workflow and no vector counts/listing in bottom cards.
-  - In `Main Map Annotations`, confirm Snapshot is a right-aligned square camera icon button; tap it and save a snapshot.
-  - Open Snapshot Annotation modal and confirm: black color is available, size options show an icon + px label, Undo/Redo are icon-only, and Save snapshot is right-aligned.
-  - Tap `Auto-pin active student addresses` and confirm it no longer reports generic unexpected failures for geocoder path issues.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Center Google Maps add-pin icon button
-- **Summary:**
-  - Fixed shared `AppButton` icon-only layout so internal content gap is only applied when both icon and label exist.
-  - This centers icon-only buttons, including the top-right Google Maps add-pin button.
-- **Files changed:**
-  - `src/components/AppButton.tsx`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Raw PROJECT_LOG.md`
-  - `Get-Content -Raw docs/logs/INDEX.md`
-  - `rg -n "add pin|Add pin|Pin|pin" src/navigation/screens/GoogleMapsScreen.tsx`
-  - `Get-Content -Raw src/navigation/screens/GoogleMapsScreen.tsx`
-  - `Get-Content -Raw src/components/AppButton.tsx`
-  - `Get-Content -Raw src/theme/theme.ts`
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Open `Google Maps` screen.
-  - Confirm the top-right blue add-pin button icon is visually centered.
-  - Confirm other icon-only square buttons (e.g. snapshot camera) remain centered.
-
 

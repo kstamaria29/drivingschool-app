@@ -1,7 +1,13 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import dayjs from "dayjs";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { Pressable, useWindowDimensions, View } from "react-native";
 import {
   ChevronLeft,
@@ -62,7 +68,10 @@ const ORGANIZATION_PRIORITY_ORDER = [
 const privateOrganizationLowercase = "private";
 
 function isPrivateOrganization(value: string) {
-  return normalizeStudentOrganization(value).toLowerCase() === privateOrganizationLowercase;
+  return (
+    normalizeStudentOrganization(value).toLowerCase() ===
+    privateOrganizationLowercase
+  );
 }
 
 function isPriorityOrganization(value: string) {
@@ -110,12 +119,10 @@ function paginateSections(
   return paginated;
 }
 
-function formatLicenseType(type: string | null) {
-  if (!type) return "-";
-  if (type === "learner") return "Learner";
-  if (type === "restricted") return "Restricted";
-  if (type === "full") return "Full";
-  return type;
+function formatOrganizationName(value: string | null) {
+  const normalized = normalizeStudentOrganization(value ?? "");
+  if (!normalized) return "-";
+  return normalized;
 }
 
 function licenseTypeLetter(type: string | null) {
@@ -136,8 +143,8 @@ function licenseTypeBadgeClasses(type: string | null) {
   if (type === "restricted") {
     return {
       wrapper:
-        "border-amber-500/30 bg-amber-500/15 dark:border-amber-400/30 dark:bg-amber-400/15",
-      text: "text-amber-800 dark:text-amber-200",
+        "border-green-600/30 bg-green-600/15 dark:border-green-500/30 dark:bg-green-500/15",
+      text: "text-green-800 dark:text-green-200",
     };
   }
   if (type === "full") {
@@ -149,7 +156,8 @@ function licenseTypeBadgeClasses(type: string | null) {
   }
 
   return {
-    wrapper: "border-border bg-background dark:border-borderDark dark:bg-backgroundDark",
+    wrapper:
+      "border-border bg-background dark:border-borderDark dark:bg-backgroundDark",
     text: "text-muted dark:text-mutedDark",
   };
 }
@@ -163,7 +171,10 @@ function LicenseTypeCircle({ type }: { type: string | null }) {
         classes.wrapper,
       )}
     >
-      <AppText className={cn("text-xs font-semibold", classes.text)} variant="caption">
+      <AppText
+        className={cn("text-sm font-bold", classes.text)}
+        variant="caption"
+      >
         {licenseTypeLetter(type)}
       </AppText>
     </View>
@@ -248,10 +259,18 @@ function StudentsSectionCard({
                 <View className="gap-3">
                   <View className="flex-row items-start justify-between gap-3">
                     <View className="flex-1 gap-2">
-                      <AppText numberOfLines={1} variant="heading" className="text-base">
+                      <AppText
+                        numberOfLines={1}
+                        variant="heading"
+                        className="text-base"
+                      >
                         {fullName}
                       </AppText>
-                      <ContactLine icon={Mail} text={email} iconColor={iconMuted} />
+                      <ContactLine
+                        icon={Mail}
+                        text={email}
+                        iconColor={iconMuted}
+                      />
                     </View>
                     <View className="flex-row items-center gap-2">
                       <LicenseTypeCircle type={licenseType} />
@@ -259,7 +278,9 @@ function StudentsSectionCard({
                     </View>
                   </View>
 
-                  {phone ? <AppText variant="caption">Phone: {phone}</AppText> : null}
+                  {phone ? (
+                    <AppText variant="caption">Phone: {phone}</AppText>
+                  ) : null}
                 </View>
               </Pressable>
             );
@@ -276,17 +297,21 @@ function StudentsSectionCard({
               <AppText variant="label">Phone</AppText>
             </View>
             <AppText className="flex-[2] text-right" variant="label">
-              Licence
+              Organization
             </AppText>
           </View>
 
           <View className="py-2">
             {students.map((student) => {
               const fullName =
-                `${student.first_name} ${student.last_name}`.trim() || "Student";
+                `${student.first_name} ${student.last_name}`.trim() ||
+                "Student";
               const email = student.email ?? "";
               const phone = student.phone ?? "";
               const licenseType = student.license_type;
+              const organizationName = formatOrganizationName(
+                student.organization_name,
+              );
               const rowBase =
                 "border-border bg-card dark:border-borderDark dark:bg-cardDark";
 
@@ -316,7 +341,13 @@ function StudentsSectionCard({
                   </View>
 
                   <View className="flex-[2] flex-row items-center justify-end gap-2">
-                    <AppText variant="caption">{formatLicenseType(licenseType)}</AppText>
+                    <AppText
+                      className="text-right"
+                      numberOfLines={1}
+                      variant="caption"
+                    >
+                      {organizationName}
+                    </AppText>
                     <LicenseTypeCircle type={licenseType} />
                     <ChevronRight size={18} color={iconMuted} />
                   </View>
@@ -380,16 +411,9 @@ export function StudentsListScreen({ navigation }: Props) {
   const query = useStudentsQuery({ archived });
 
   const [search, setSearch] = useState("");
-
-  useFocusEffect(
-    useCallback(() => {
-      // Always clear search when entering the Students screen
-      setSearch("");
-    }, []),
-  );
-
   const [sort, setSort] = useState<SortKey>("recent");
-  const [instructorView, setInstructorView] = useState<InstructorViewState>("hide");
+  const [instructorView, setInstructorView] =
+    useState<InstructorViewState>("hide");
   const [organizationFilter, setOrganizationFilter] =
     useState<OrganizationFilterState>("off");
   const [selectedOrganization, setSelectedOrganization] = useState<string>(
@@ -397,6 +421,19 @@ export function StudentsListScreen({ navigation }: Props) {
   );
   const [page, setPage] = useState(1);
   const showInstructorStudents = instructorView === "show";
+
+  useFocusEffect(
+    useCallback(() => {
+      // Always reset students screen controls when returning to this screen.
+      setSearch("");
+      setStatus("active");
+      setSort("recent");
+      setInstructorView("hide");
+      setOrganizationFilter("off");
+      setSelectedOrganization(ORGANIZATION_FILTER_SHOW_ALL);
+      setPage(1);
+    }, []),
+  );
 
   const organizationOptions = useMemo(
     () => [
@@ -435,7 +472,9 @@ export function StudentsListScreen({ navigation }: Props) {
     if (organizationFilterValue) {
       const selectedOrganizationValue = organizationFilterValue.toLowerCase();
 
-      if (selectedOrganizationValue === ORGANIZATION_FILTER_SHOW_ALL.toLowerCase()) {
+      if (
+        selectedOrganizationValue === ORGANIZATION_FILTER_SHOW_ALL.toLowerCase()
+      ) {
         data = data.filter(
           (student) => !isPrivateOrganization(student.organization_name ?? ""),
         );
@@ -480,7 +519,10 @@ export function StudentsListScreen({ navigation }: Props) {
 
     const sorted = [...data];
     sorted.sort((a, b) => {
-      if (organizationFilterValue.toLowerCase() === ORGANIZATION_FILTER_SHOW_ALL.toLowerCase()) {
+      if (
+        organizationFilterValue.toLowerCase() ===
+        ORGANIZATION_FILTER_SHOW_ALL.toLowerCase()
+      ) {
         const organizationRankDelta =
           organizationShowAllRank(a.organization_name ?? "") -
           organizationShowAllRank(b.organization_name ?? "");
@@ -504,7 +546,9 @@ export function StudentsListScreen({ navigation }: Props) {
   const ownerSelfStudents = useMemo(
     () =>
       isOwner
-        ? rows.filter((student) => student.assigned_instructor_id === profile.id)
+        ? rows.filter(
+            (student) => student.assigned_instructor_id === profile.id,
+          )
         : [],
     [isOwner, profile.id, rows],
   );
@@ -512,15 +556,18 @@ export function StudentsListScreen({ navigation }: Props) {
   const adminSelfStudents = useMemo(
     () =>
       isAdmin
-        ? rows.filter((student) => student.assigned_instructor_id === profile.id)
+        ? rows.filter(
+            (student) => student.assigned_instructor_id === profile.id,
+          )
         : [],
     [isAdmin, profile.id, rows],
   );
 
   const ownerRecord = useMemo(
     () =>
-      (orgProfilesQuery.data ?? []).find((orgProfile) => orgProfile.role === "owner") ??
-      null,
+      (orgProfilesQuery.data ?? []).find(
+        (orgProfile) => orgProfile.role === "owner",
+      ) ?? null,
     [orgProfilesQuery.data],
   );
 
@@ -676,7 +723,9 @@ export function StudentsListScreen({ navigation }: Props) {
         key: "students-default",
         title: "Students",
         students: rows,
-        emptyMessage: archived ? "No archived students yet." : "No active students yet.",
+        emptyMessage: archived
+          ? "No archived students yet."
+          : "No active students yet.",
       },
     ];
   }, [
@@ -695,7 +744,14 @@ export function StudentsListScreen({ navigation }: Props) {
 
   useEffect(() => {
     setPage(1);
-  }, [organizationFilter, search, selectedOrganization, sort, status, instructorView]);
+  }, [
+    organizationFilter,
+    search,
+    selectedOrganization,
+    sort,
+    status,
+    instructorView,
+  ]);
 
   useEffect(() => {
     setPage((current) => {
@@ -709,7 +765,8 @@ export function StudentsListScreen({ navigation }: Props) {
     [allDisplaySections, page],
   );
   const ownerPageSection = isOwner
-    ? (pagedSections.find((section) => section.key === ownerBaseSection.key) ?? null)
+    ? (pagedSections.find((section) => section.key === ownerBaseSection.key) ??
+      null)
     : null;
   const ownerOtherPageSections = isOwner
     ? pagedSections.filter((section) => section.key !== ownerBaseSection.key)
@@ -774,7 +831,8 @@ export function StudentsListScreen({ navigation }: Props) {
           <View className="min-w-56 flex-1">
             <AppText variant="title">Students</AppText>
             <AppText className="mt-1" variant="caption">
-              {archived ? "Archived students" : "Active students"} - {shownCount} shown
+              {archived ? "Archived students" : "Active students"} -{" "}
+              {shownCount} shown
             </AppText>
           </View>
 
@@ -787,7 +845,12 @@ export function StudentsListScreen({ navigation }: Props) {
         </View>
 
         <AppCard className="gap-4">
-          <View className={cn("flex-row flex-wrap gap-3", !isCompact && "items-end")}>
+          <View
+            className={cn(
+              "flex-row flex-wrap gap-3",
+              !isCompact && "items-end",
+            )}
+          >
             <View className={cn("flex-1", !isCompact && "min-w-80")}>
               <AppInput
                 label="Search"
@@ -847,7 +910,8 @@ export function StudentsListScreen({ navigation }: Props) {
                       width="auto"
                       label={option}
                       variant={
-                        selectedOrganization.toLowerCase() === option.toLowerCase()
+                        selectedOrganization.toLowerCase() ===
+                        option.toLowerCase()
                           ? "primary"
                           : "secondary"
                       }
@@ -870,7 +934,9 @@ export function StudentsListScreen({ navigation }: Props) {
 
             {isOwner && hasInstructorRole ? (
               <View className={cn(isCompact ? "w-full" : "ml-auto w-64")}>
-                <AppText variant="label">View other instructor&apos;s students</AppText>
+                <AppText variant="label">
+                  View other instructor&apos;s students
+                </AppText>
                 <AppSegmentedControl<InstructorViewState>
                   className="mt-2"
                   value={instructorView}
@@ -912,7 +978,8 @@ export function StudentsListScreen({ navigation }: Props) {
                   title={ownerBaseSection.title}
                   students={ownerPageSection?.students ?? []}
                   emptyMessage={
-                    ownerBaseSection.emptyMessage ?? "No students in this group."
+                    ownerBaseSection.emptyMessage ??
+                    "No students in this group."
                   }
                   isCompact={isCompact}
                   iconMuted={iconMuted}
@@ -936,7 +1003,10 @@ export function StudentsListScreen({ navigation }: Props) {
 
             {showInstructorStudents ? (
               orgProfilesQuery.isPending ? (
-                <CenteredLoadingState label="Loading instructors..." className="py-8" />
+                <CenteredLoadingState
+                  label="Loading instructors..."
+                  className="py-8"
+                />
               ) : orgProfilesQuery.isError ? (
                 <ErrorStateCard
                   title="Couldn't load instructors"

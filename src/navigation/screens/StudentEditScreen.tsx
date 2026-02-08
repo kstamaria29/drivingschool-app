@@ -11,6 +11,7 @@ import {
   View,
   type ScrollView,
 } from "react-native";
+import { X } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -116,12 +117,10 @@ export function StudentEditScreen({ navigation, route }: Props) {
 
   const assignableInstructorProfiles = useMemo(
     () =>
-      isEditing
-        ? (orgProfilesQuery.data ?? [])
-        : (orgProfilesQuery.data ?? []).filter(
-            (profileOption) => profileOption.role !== "admin",
-          ),
-    [isEditing, orgProfilesQuery.data],
+      (orgProfilesQuery.data ?? []).filter(
+        (profileOption) => profileOption.role !== "admin",
+      ),
+    [orgProfilesQuery.data],
   );
 
   const form = useForm<StudentFormValues>({
@@ -144,7 +143,8 @@ export function StudentEditScreen({ navigation, route }: Props) {
       notes: "",
     },
   });
-  const [organizationMenuOpen, setOrganizationMenuOpen] = useState(false);
+  const [organizationOptionsModalVisible, setOrganizationOptionsModalVisible] =
+    useState(false);
   const [customOrganizationModalVisible, setCustomOrganizationModalVisible] =
     useState(false);
   const [customOrganizationValue, setCustomOrganizationValue] = useState("");
@@ -159,6 +159,8 @@ export function StudentEditScreen({ navigation, route }: Props) {
   const [removeLicenseFrontOnSave, setRemoveLicenseFrontOnSave] =
     useState(false);
   const [removeLicenseBackOnSave, setRemoveLicenseBackOnSave] = useState(false);
+  const [licenseActionModalSide, setLicenseActionModalSide] =
+    useState<StudentLicenseImageSide | null>(null);
 
   useEffect(() => {
     if (defaultAssignedInstructorId) {
@@ -326,17 +328,25 @@ export function StudentEditScreen({ navigation, route }: Props) {
     setCustomOrganizationValue("");
   }
 
+  function closeOrganizationOptionsModal() {
+    setOrganizationOptionsModalVisible(false);
+  }
+
+  function openOrganizationOptionsModal() {
+    setOrganizationOptionsModalVisible(true);
+  }
+
   function applyOrganizationValue(nextValue: string) {
     form.setValue("organization", normalizeStudentOrganization(nextValue), {
       shouldDirty: true,
       shouldValidate: true,
     });
-    setOrganizationMenuOpen(false);
+    closeOrganizationOptionsModal();
   }
 
   function openCustomOrganizationModal(currentValue: string) {
     const normalizedCurrent = normalizeStudentOrganization(currentValue);
-    setOrganizationMenuOpen(false);
+    closeOrganizationOptionsModal();
     setCustomOrganizationValue(
       presetOrganizationLookup.has(normalizedCurrent.toLowerCase())
         ? ""
@@ -394,6 +404,10 @@ export function StudentEditScreen({ navigation, route }: Props) {
     setRemoveLicenseBackOnSave(shouldRemove);
   }
 
+  function closeLicenseActionModal() {
+    setLicenseActionModalSide(null);
+  }
+
   async function pickLicenseAssetFromLibrary() {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -446,67 +460,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
   }
 
   function openLicenseImageActions(side: StudentLicenseImageSide) {
-    const sideLabel = side === "front" ? "front" : "back";
-    const hasPendingAsset =
-      side === "front"
-        ? pendingLicenseFrontAsset != null
-        : pendingLicenseBackAsset != null;
-    const existingAssetUri =
-      side === "front" ? existingLicenseFrontUri : existingLicenseBackUri;
-    const removalPending =
-      side === "front" ? removeLicenseFrontOnSave : removeLicenseBackOnSave;
-    const hasExistingAsset = Boolean(existingAssetUri) && !removalPending;
-
-    const actions: Parameters<typeof Alert.alert>[2] = [
-      {
-        text: "Take photo",
-        onPress: () => {
-          void pickLicenseAsset(side, "camera");
-        },
-      },
-      {
-        text: "Choose from library",
-        onPress: () => {
-          void pickLicenseAsset(side, "library");
-        },
-      },
-    ];
-
-    if (hasPendingAsset) {
-      actions.push({
-        text: "Clear selected",
-        onPress: () => {
-          setPendingLicenseAsset(side, null);
-        },
-      });
-    }
-
-    if (hasPendingAsset || hasExistingAsset) {
-      actions.push({
-        text: "Delete photo",
-        style: "destructive",
-        onPress: () => {
-          Alert.alert(
-            `Delete ${sideLabel} photo`,
-            "This photo will be removed when you save this student.",
-            [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Delete",
-                style: "destructive",
-                onPress: () => {
-                  setPendingLicenseAsset(side, null);
-                  setRemoveLicenseOnSave(side, Boolean(existingAssetUri));
-                },
-              },
-            ],
-          );
-        },
-      });
-    }
-
-    actions.push({ text: "Cancel", style: "cancel" });
-    Alert.alert(`Licence card ${sideLabel}`, "Choose an option", actions);
+    setLicenseActionModalSide(side);
   }
 
   async function applyPendingLicenseImageChanges(studentIdToUpload: string) {
@@ -614,6 +568,39 @@ export function StudentEditScreen({ navigation, route }: Props) {
     pendingLicenseBackAsset?.uri ??
     (removeLicenseBackOnSave ? null : existingLicenseBackUri) ??
     null;
+  const licenseActionTitle =
+    licenseActionModalSide === "front"
+      ? "Front photo options"
+      : licenseActionModalSide === "back"
+        ? "Back photo options"
+        : "";
+  const licenseActionHasPending =
+    licenseActionModalSide === "front"
+      ? pendingLicenseFrontAsset != null
+      : licenseActionModalSide === "back"
+        ? pendingLicenseBackAsset != null
+        : false;
+  const licenseActionExistingUri =
+    licenseActionModalSide === "front"
+      ? existingLicenseFrontUri
+      : licenseActionModalSide === "back"
+        ? existingLicenseBackUri
+        : null;
+  const licenseActionMarkedForRemoval =
+    licenseActionModalSide === "front"
+      ? removeLicenseFrontOnSave
+      : licenseActionModalSide === "back"
+        ? removeLicenseBackOnSave
+        : false;
+  const licenseActionCanDelete =
+    licenseActionModalSide != null &&
+    (licenseActionHasPending ||
+      (Boolean(licenseActionExistingUri) && !licenseActionMarkedForRemoval));
+  const selectedOrganization = form.watch("organization")?.trim() ?? "";
+  const hasCustomOrganization =
+    selectedOrganization.length > 0 &&
+    !presetOrganizationLookup.has(selectedOrganization.toLowerCase());
+  const organizationLabel = selectedOrganization || "Select organization";
 
   return (
     <>
@@ -725,66 +712,37 @@ export function StudentEditScreen({ navigation, route }: Props) {
             <Controller
               control={form.control}
               name="organization"
-              render={({ field, fieldState }) => {
-                const selectedOrganization = field.value?.trim() ?? "";
-                const hasCustomOrganization =
-                  selectedOrganization.length > 0 &&
-                  !presetOrganizationLookup.has(
-                    selectedOrganization.toLowerCase(),
-                  );
-                const organizationLabel =
-                  selectedOrganization || "Select organization";
+              render={({ fieldState }) => (
+                <AppStack gap="sm">
+                  <AppText variant="label">Organization</AppText>
+                  <Pressable
+                    accessibilityRole="button"
+                    className={cn(
+                      theme.button.base,
+                      theme.button.variant.secondary,
+                      theme.button.size.md,
+                      "px-4",
+                    )}
+                    onPress={openOrganizationOptionsModal}
+                  >
+                    <AppText
+                      className={cn(
+                        "w-full text-left",
+                        theme.button.labelVariant.secondary,
+                      )}
+                      variant="button"
+                    >
+                      {organizationLabel}
+                    </AppText>
+                  </Pressable>
 
-                return (
-                  <AppStack gap="sm">
-                    <AppText variant="label">Organization</AppText>
-                    <AppButton
-                      variant="secondary"
-                      label={organizationLabel}
-                      onPress={() =>
-                        setOrganizationMenuOpen((previous) => !previous)
-                      }
-                    />
-
-                    {organizationMenuOpen ? (
-                      <AppStack gap="sm">
-                        {studentOrganizationMenuOptions.map((option) => (
-                          <AppButton
-                            key={option}
-                            variant={
-                              option === "Custom"
-                                ? hasCustomOrganization
-                                  ? "primary"
-                                  : "secondary"
-                                : selectedOrganization.toLowerCase() ===
-                                    option.toLowerCase()
-                                  ? "primary"
-                                  : "secondary"
-                            }
-                            label={
-                              option === "Custom" && hasCustomOrganization
-                                ? `Custom: ${selectedOrganization}`
-                                : option
-                            }
-                            onPress={() =>
-                              onSelectOrganizationOption(
-                                option,
-                                selectedOrganization,
-                              )
-                            }
-                          />
-                        ))}
-                      </AppStack>
-                    ) : null}
-
-                    {fieldState.error?.message ? (
-                      <AppText variant="error">
-                        {fieldState.error.message}
-                      </AppText>
-                    ) : null}
-                  </AppStack>
-                );
-              }}
+                  {fieldState.error?.message ? (
+                    <AppText variant="error">
+                      {fieldState.error.message}
+                    </AppText>
+                  ) : null}
+                </AppStack>
+              )}
             />
           </AppCard>
 
@@ -1057,49 +1015,39 @@ export function StudentEditScreen({ navigation, route }: Props) {
 
               <View className="flex-row gap-3">
                 <AppStack className="flex-1" gap="sm">
-                  <AppText variant="caption">Front</AppText>
                   {licenseFrontPreviewUri ? (
                     <AppImage
                       source={{ uri: licenseFrontPreviewUri }}
                       resizeMode="contain"
                       className="h-36 w-full rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark"
                     />
-                  ) : (
-                    <View className="h-36 items-center justify-center rounded-xl border border-dashed border-border bg-card dark:border-borderDark dark:bg-cardDark">
-                      <AppText variant="caption">
-                        {removeLicenseFrontOnSave
-                          ? "Front photo will be removed."
-                          : "No front image selected."}
-                      </AppText>
-                    </View>
-                  )}
+                  ) : null}
                   <AppButton
                     variant="secondary"
-                    label="Front photo options"
+                    label={
+                      licenseFrontPreviewUri
+                        ? "Front photo options"
+                        : "Add Front Licence photo"
+                    }
                     onPress={() => openLicenseImageActions("front")}
                   />
                 </AppStack>
 
                 <AppStack className="flex-1" gap="sm">
-                  <AppText variant="caption">Back</AppText>
                   {licenseBackPreviewUri ? (
                     <AppImage
                       source={{ uri: licenseBackPreviewUri }}
                       resizeMode="contain"
                       className="h-36 w-full rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark"
                     />
-                  ) : (
-                    <View className="h-36 items-center justify-center rounded-xl border border-dashed border-border bg-card dark:border-borderDark dark:bg-cardDark">
-                      <AppText variant="caption">
-                        {removeLicenseBackOnSave
-                          ? "Back photo will be removed."
-                          : "No back image selected."}
-                      </AppText>
-                    </View>
-                  )}
+                  ) : null}
                   <AppButton
                     variant="secondary"
-                    label="Back photo options"
+                    label={
+                      licenseBackPreviewUri
+                        ? "Back photo options"
+                        : "Add Back Licence photo"
+                    }
                     onPress={() => openLicenseImageActions("back")}
                   />
                 </AppStack>
@@ -1154,6 +1102,78 @@ export function StudentEditScreen({ navigation, route }: Props) {
       <Modal
         animationType="fade"
         transparent
+        visible={licenseActionModalSide != null}
+        onRequestClose={closeLicenseActionModal}
+      >
+        <Pressable
+          className="flex-1 bg-black/40 px-6 py-10"
+          onPress={closeLicenseActionModal}
+        >
+          <Pressable
+            className="m-auto w-full max-w-md"
+            onPress={(event) => event.stopPropagation()}
+          >
+            <AppCard className="gap-3">
+              <View className="flex-row items-center justify-between gap-2">
+                <AppText variant="heading">{licenseActionTitle}</AppText>
+                <AppButton
+                  label=""
+                  width="auto"
+                  size="icon"
+                  variant="ghost"
+                  icon={X}
+                  onPress={closeLicenseActionModal}
+                />
+              </View>
+
+              <AppButton
+                variant="secondary"
+                label="Take photo"
+                onPress={() => {
+                  const side = licenseActionModalSide;
+                  closeLicenseActionModal();
+                  if (!side) return;
+                  void pickLicenseAsset(side, "camera");
+                }}
+              />
+              <AppButton
+                variant="secondary"
+                label="Choose from library"
+                onPress={() => {
+                  const side = licenseActionModalSide;
+                  closeLicenseActionModal();
+                  if (!side) return;
+                  void pickLicenseAsset(side, "library");
+                }}
+              />
+              {licenseActionCanDelete ? (
+                <AppButton
+                  variant="danger"
+                  label="Delete photo"
+                  onPress={() => {
+                    const side = licenseActionModalSide;
+                    const existingUriForSide = licenseActionExistingUri;
+                    closeLicenseActionModal();
+                    if (!side) return;
+                    setPendingLicenseAsset(side, null);
+                    setRemoveLicenseOnSave(side, Boolean(existingUriForSide));
+                  }}
+                />
+              ) : null}
+
+              <AppButton
+                variant="ghost"
+                label="Cancel"
+                onPress={closeLicenseActionModal}
+              />
+            </AppCard>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        animationType="fade"
+        transparent
         visible={customOrganizationModalVisible}
         onRequestClose={closeCustomOrganizationModal}
       >
@@ -1190,6 +1210,67 @@ export function StudentEditScreen({ navigation, route }: Props) {
                   onPress={saveCustomOrganization}
                 />
               </View>
+            </AppCard>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        animationType="fade"
+        transparent
+        visible={organizationOptionsModalVisible}
+        onRequestClose={closeOrganizationOptionsModal}
+      >
+        <Pressable
+          className="flex-1 bg-black/40 px-6 py-10"
+          onPress={closeOrganizationOptionsModal}
+        >
+          <Pressable
+            className="m-auto w-full max-w-md"
+            onPress={(event) => event.stopPropagation()}
+          >
+            <AppCard className="gap-3">
+              <View className="flex-row items-center justify-between gap-2">
+                <AppText variant="heading">Organization</AppText>
+                <AppButton
+                  label=""
+                  width="auto"
+                  size="icon"
+                  variant="ghost"
+                  icon={X}
+                  onPress={closeOrganizationOptionsModal}
+                />
+              </View>
+
+              {studentOrganizationMenuOptions.map((option) => (
+                <AppButton
+                  key={option}
+                  variant={
+                    option === "Custom"
+                      ? hasCustomOrganization
+                        ? "primary"
+                        : "secondary"
+                      : selectedOrganization.toLowerCase() ===
+                          option.toLowerCase()
+                        ? "primary"
+                        : "secondary"
+                  }
+                  label={
+                    option === "Custom" && hasCustomOrganization
+                      ? `Custom: ${selectedOrganization}`
+                      : option
+                  }
+                  onPress={() =>
+                    onSelectOrganizationOption(option, selectedOrganization)
+                  }
+                />
+              ))}
+
+              <AppButton
+                variant="ghost"
+                label="Cancel"
+                onPress={closeOrganizationOptionsModal}
+              />
             </AppCard>
           </Pressable>
         </Pressable>

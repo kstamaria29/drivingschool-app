@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Trash2,
   Undo2,
+  X,
 } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
@@ -83,6 +84,8 @@ export function StudentDetailScreen({ navigation, route }: Props) {
   );
   const [licenseGalleryVisible, setLicenseGalleryVisible] = useState(false);
   const [licenseGalleryIndex, setLicenseGalleryIndex] = useState(0);
+  const [licenseActionModalSide, setLicenseActionModalSide] =
+    useState<StudentLicenseImageSide | null>(null);
   const studentDobDisplay = student?.date_of_birth
     ? formatIsoDateToDisplay(student.date_of_birth)
     : "-";
@@ -122,6 +125,18 @@ export function StudentDetailScreen({ navigation, route }: Props) {
   }, [licenseGalleryIndex, licenseImages.length]);
 
   const activeLicenseImage = licenseImages[licenseGalleryIndex] ?? null;
+  const licenseActionTitle =
+    licenseActionModalSide === "front"
+      ? "Front photo options"
+      : licenseActionModalSide === "back"
+        ? "Back photo options"
+        : "";
+  const licenseActionHasExisting =
+    licenseActionModalSide === "front"
+      ? Boolean(student?.license_front_image_url)
+      : licenseActionModalSide === "back"
+        ? Boolean(student?.license_back_image_url)
+        : false;
 
   function openLicenseGallery(startIndex: number) {
     if (licenseImages.length === 0) return;
@@ -232,38 +247,12 @@ export function StudentDetailScreen({ navigation, route }: Props) {
     );
   }
 
+  function closeLicenseActionModal() {
+    setLicenseActionModalSide(null);
+  }
+
   function openLicenseImageActions(side: StudentLicenseImageSide) {
-    const sideLabel = side === "front" ? "front" : "back";
-    const existingUri =
-      side === "front"
-        ? student?.license_front_image_url
-        : student?.license_back_image_url;
-
-    const actions: Parameters<typeof Alert.alert>[2] = [
-      {
-        text: "Take photo",
-        onPress: () => {
-          void pickAndUploadLicenseImage(side, "camera");
-        },
-      },
-      {
-        text: "Choose from library",
-        onPress: () => {
-          void pickAndUploadLicenseImage(side, "library");
-        },
-      },
-    ];
-
-    if (existingUri) {
-      actions.push({
-        text: "Delete photo",
-        style: "destructive",
-        onPress: () => deleteLicenseImage(side),
-      });
-    }
-
-    actions.push({ text: "Cancel", style: "cancel" });
-    Alert.alert(`Licence card ${sideLabel}`, "Choose an option", actions);
+    setLicenseActionModalSide(side);
   }
 
   function onArchivePress() {
@@ -285,24 +274,41 @@ export function StudentDetailScreen({ navigation, route }: Props) {
 
   function onDeletePress() {
     if (!student) return;
-    Alert.alert(
-      "Delete student",
-      "Permanently delete this student? This cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            deleteMutation.mutate(student.id, {
-              onSuccess: () => navigation.popToTop(),
-              onError: (error) =>
-                Alert.alert("Couldn't delete student", toErrorMessage(error)),
-            });
-          },
+
+    const warningDetails: string[] = [];
+    if (sessionCount > 0) {
+      warningDetails.push(
+        `${sessionCount} session histor${sessionCount === 1 ? "y" : "ies"}`,
+      );
+    }
+    if (assessmentCount > 0) {
+      warningDetails.push(
+        `${assessmentCount} assessment histor${assessmentCount === 1 ? "y" : "ies"}`,
+      );
+    }
+    if (student.license_front_image_url || student.license_back_image_url) {
+      warningDetails.push("uploaded licence card photos");
+    }
+
+    const deleteMessage =
+      warningDetails.length === 0
+        ? "Permanently delete this student? This cannot be undone."
+        : `Permanently delete this student? This cannot be undone.\n\nWarning: This student has ${warningDetails.join(", ")} that will disappear forever. Save or export them first if needed.`;
+
+    Alert.alert("Delete student", deleteMessage, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          deleteMutation.mutate(student.id, {
+            onSuccess: () => navigation.popToTop(),
+            onError: (error) =>
+              Alert.alert("Couldn't delete student", toErrorMessage(error)),
+          });
         },
-      ],
-    );
+      },
+    ]);
   }
 
   return (
@@ -392,14 +398,14 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                     value={student.address ?? "-"}
                   />
                   <InlineDetailRow
-                    label="Organization"
-                    value={student.organization_name ?? "-"}
-                  />
-                  <InlineDetailRow
                     label="Date of birth"
                     value={studentDobDisplay}
                   />
                   <InlineDetailRow label="Age" value={studentAgeDisplay} />
+                  <InlineDetailRow
+                    label="Organization"
+                    value={student.organization_name ?? "-"}
+                  />
                 </AppCard>
 
                 <AppCard className="gap-3">
@@ -451,12 +457,12 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                         : "-"
                     }
                   />
+                  <View className="h-2" />
 
                   <AppStack gap="sm">
                     <AppText variant="label">Licence card photos</AppText>
                     <View className="flex-row gap-3">
                       <AppStack className="flex-1" gap="sm">
-                        <AppText variant="caption">Front</AppText>
                         {student.license_front_image_url ? (
                           <Pressable
                             onPress={() => {
@@ -477,14 +483,14 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                               />
                             </View>
                           </Pressable>
-                        ) : (
-                          <View className="h-32 items-center justify-center rounded-xl border border-dashed border-border bg-card dark:border-borderDark dark:bg-cardDark">
-                            <AppText variant="caption">No front photo.</AppText>
-                          </View>
-                        )}
+                        ) : null}
                         <AppButton
                           variant="secondary"
-                          label="Front photo options"
+                          label={
+                            student.license_front_image_url
+                              ? "Front photo options"
+                              : "Add Front Licence photo"
+                          }
                           disabled={
                             uploadLicenseImageMutation.isPending ||
                             removeLicenseImageMutation.isPending
@@ -494,7 +500,6 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                       </AppStack>
 
                       <AppStack className="flex-1" gap="sm">
-                        <AppText variant="caption">Back</AppText>
                         {student.license_back_image_url ? (
                           <Pressable
                             onPress={() => {
@@ -506,20 +511,22 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                           >
                             <View className="h-32 overflow-hidden rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark">
                               <AppImage
-                                source={{ uri: student.license_back_image_url }}
+                                source={{
+                                  uri: student.license_back_image_url,
+                                }}
                                 resizeMode="cover"
                                 className="h-full w-full"
                               />
                             </View>
                           </Pressable>
-                        ) : (
-                          <View className="h-32 items-center justify-center rounded-xl border border-dashed border-border bg-card dark:border-borderDark dark:bg-cardDark">
-                            <AppText variant="caption">No back photo.</AppText>
-                          </View>
-                        )}
+                        ) : null}
                         <AppButton
                           variant="secondary"
-                          label="Back photo options"
+                          label={
+                            student.license_back_image_url
+                              ? "Back photo options"
+                              : "Add Back Licence photo"
+                          }
                           disabled={
                             uploadLicenseImageMutation.isPending ||
                             removeLicenseImageMutation.isPending
@@ -644,6 +651,87 @@ export function StudentDetailScreen({ navigation, route }: Props) {
           )}
         </AppStack>
       </Screen>
+
+      <Modal
+        visible={licenseActionModalSide != null}
+        transparent
+        animationType="fade"
+        onRequestClose={closeLicenseActionModal}
+      >
+        <Pressable
+          className="flex-1 bg-black/40 px-6 py-10"
+          onPress={closeLicenseActionModal}
+        >
+          <Pressable
+            className="m-auto w-full max-w-md"
+            onPress={(event) => event.stopPropagation()}
+          >
+            <AppCard className="gap-3">
+              <View className="flex-row items-center justify-between gap-2">
+                <AppText variant="heading">{licenseActionTitle}</AppText>
+                <AppButton
+                  label=""
+                  width="auto"
+                  size="icon"
+                  variant="ghost"
+                  icon={X}
+                  onPress={closeLicenseActionModal}
+                />
+              </View>
+
+              <AppButton
+                variant="secondary"
+                label="Take photo"
+                disabled={
+                  uploadLicenseImageMutation.isPending ||
+                  removeLicenseImageMutation.isPending
+                }
+                onPress={() => {
+                  const side = licenseActionModalSide;
+                  closeLicenseActionModal();
+                  if (!side) return;
+                  void pickAndUploadLicenseImage(side, "camera");
+                }}
+              />
+              <AppButton
+                variant="secondary"
+                label="Choose from library"
+                disabled={
+                  uploadLicenseImageMutation.isPending ||
+                  removeLicenseImageMutation.isPending
+                }
+                onPress={() => {
+                  const side = licenseActionModalSide;
+                  closeLicenseActionModal();
+                  if (!side) return;
+                  void pickAndUploadLicenseImage(side, "library");
+                }}
+              />
+              {licenseActionHasExisting ? (
+                <AppButton
+                  variant="danger"
+                  label="Delete photo"
+                  disabled={
+                    uploadLicenseImageMutation.isPending ||
+                    removeLicenseImageMutation.isPending
+                  }
+                  onPress={() => {
+                    const side = licenseActionModalSide;
+                    closeLicenseActionModal();
+                    if (!side) return;
+                    deleteLicenseImage(side);
+                  }}
+                />
+              ) : null}
+              <AppButton
+                variant="ghost"
+                label="Cancel"
+                onPress={closeLicenseActionModal}
+              />
+            </AppCard>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       <Modal
         visible={licenseGalleryVisible && activeLicenseImage != null}

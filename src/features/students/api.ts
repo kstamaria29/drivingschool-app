@@ -93,11 +93,45 @@ export async function unarchiveStudent(studentId: string): Promise<Student> {
 }
 
 export async function deleteStudent(studentId: string): Promise<void> {
+  const { data: student, error: studentError } = await supabase
+    .from("students")
+    .select("id, organization_id")
+    .eq("id", studentId)
+    .maybeSingle()
+    .overrideTypes<Pick<Student, "id" | "organization_id">, { merge: false }>();
+
+  if (studentError) throw studentError;
+
+  await removeStudentRelatedHistories(studentId);
+
+  if (student) {
+    await removeAllStudentLicenseImageFiles(
+      student.organization_id,
+      student.id,
+    );
+  }
+
   const { error } = await supabase
     .from("students")
     .delete()
     .eq("id", studentId);
   if (error) throw error;
+}
+
+async function removeStudentRelatedHistories(studentId: string) {
+  const { error: deleteSessionsError } = await supabase
+    .from("student_sessions")
+    .delete()
+    .eq("student_id", studentId);
+
+  if (deleteSessionsError) throw deleteSessionsError;
+
+  const { error: deleteAssessmentsError } = await supabase
+    .from("assessments")
+    .delete()
+    .eq("student_id", studentId);
+
+  if (deleteAssessmentsError) throw deleteAssessmentsError;
 }
 
 function guessFileExtension(asset: UploadStudentLicenseImageInput["asset"]) {
@@ -139,6 +173,28 @@ async function removeExistingLicenseImageFilesForSide(
     .filter((file) => file.name.startsWith(`${side}.`))
     .map((file) => `${folder}/${file.name}`);
 
+  if (toRemove.length === 0) return;
+
+  const { error: removeError } = await supabase.storage
+    .from("student-licenses")
+    .remove(toRemove);
+
+  if (removeError) throw removeError;
+}
+
+async function removeAllStudentLicenseImageFiles(
+  organizationId: string,
+  studentId: string,
+) {
+  const folder = `${organizationId}/${studentId}`;
+
+  const { data, error } = await supabase.storage
+    .from("student-licenses")
+    .list(folder, { limit: 100 });
+
+  if (error) throw error;
+
+  const toRemove = (data ?? []).map((file) => `${folder}/${file.name}`);
   if (toRemove.length === 0) return;
 
   const { error: removeError } = await supabase.storage
