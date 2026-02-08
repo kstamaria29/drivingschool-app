@@ -1,34 +1,42 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Lessons calendar square connected date cells
+- **Summary:**
+  - Updated the Lessons month calendar date cells to remove rounded corners and remove spacing so cells connect as a continuous grid.
+  - Updated the weekly date strip in the Lessons agenda card to use square, connected date boxes for consistent calendar styling.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Students drawer reset + Student Profile bottom action grid
 - **Summary:**
   - Updated sidebar `Students` navigation to always open `StudentsList` instead of returning to previously viewed student profile screens.
-  - Reworked Student Profile bottom actions into 2-column rows with requested order and styling, including blue `Start Assessment` with icon and green Archive/Unarchive action in the bottom row.
+  - Reworked Student Profile bottom actions into 2-column rows with requested order and styling, including blue `Start Assessment` with icon and...
 
 ---
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Student profile address layout stabilization + assessment picker collapse
 - **Summary:**
-  - Refactored Student Profile detail-field sizing so full-width Address renders consistently inside the Contact card and reduced organization name text under the student title to `20px`.
-  - Updated assessment student dropdown behavior to auto-collapse when a student is pre-selected (including launches from Student Profile `Start Assessment`).
+  - Refactored Student Profile detail-field sizing so full-width Address renders consistently inside the Contact card and reduced organization n...
+  - Updated assessment student dropdown behavior to auto-collapse when a student is pre-selected (including launches from Student Profile `Start...
 
 ---
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Student assessment launch modal + mock-test start modals
 - **Summary:**
-  - Set Student Profile organization text to `25px`, added a `Start Assessment` action button, and added an assessment-type modal that deep-links into Driving/Restricted/Full screens with the student pre-selected.
-  - Updated Driving Assessment modal wording to `You are about to start assessing ...` and added equivalent start-confirmation modals to Restricted and Full mock tests.
+  - Set Student Profile organization text to `25px`, added a `Start Assessment` action button, and added an assessment-type modal that deep-link...
+  - Updated Driving Assessment modal wording to `You are about to start assessing ...` and added equivalent start-confirmation modals to Restric...
 
 ---
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Maps pin-panel redesign + assessment picker and start-flow updates
 - **Summary:**
-  - Removed Google Maps top `Pin colors` panel, redesigned selected-pin actions/details (icon-only delete, color picker button, tip + right-aligned snapshot count), and made the no-selection camera action much larger and more visible.
-  - Updated assessment student picker behavior to only show results after typing search text, switched Driving Assessment start confirmation to a modal, and hid Assigned Instructor card in Student Edit when the organization has no instructors.
+  - Removed Google Maps top `Pin colors` panel, redesigned selected-pin actions/details (icon-only delete, color picker button, tip + right-alig...
+  - Updated assessment student picker behavior to only show results after typing search text, switched Driving Assessment start confirmation to...
 
 ---
 
@@ -36,7 +44,7 @@
 - **Task:** Student profile detail-card layout refresh
 - **Summary:**
   - Restyled Student Profile Contact and Licence details into left-aligned boxed fields that match the licence photo action button visual style.
-  - Reordered Contact/Licence rows to the requested 2-column structure, moved organization under the student name with an icon, and pushed Archive/Delete actions to the screen bottom.
+  - Reordered Contact/Licence rows to the requested 2-column structure, moved organization under the student name with an icon, and pushed Archi...
 
 ---
 
@@ -149,13 +157,3 @@
 - **Summary:**
   - Updated `Driving Assessment`, `Mock Test - Restricted Licence`, and `Mock Test - Full License` student pickers so owner/admin `Show` mode no...
   - Added grouped picker layout in `Show` mode: `Your students` block first, followed by separate instructor blocks below, each labeled with the...
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Assessments student filtering toggle + full mock optional spoken fields
-- **Summary:**
-  - Updated all three assessment student selectors (`Driving Assessment`, `Mock Test - Restricted Licence`, `Mock Test - Full License`) so owner...
-  - Added a right-aligned `Other Instructor's Students` segmented toggle (`Hide`/`Show`) on the same row as the `Student` heading in those three...
-
-

@@ -149,7 +149,7 @@ export function LessonsListScreen({ navigation }: Props) {
   const weekDays = useMemo(() => Array.from({ length: 7 }, (_, index) => weekStart.add(index, "day")), [weekStart]);
 
   const weekStrip = (
-    <View className="flex-row gap-2">
+    <View className="flex-row gap-0">
       {weekDays.map((date) => {
         const dateISO = date.format("YYYY-MM-DD");
         const isSelected = date.isSame(selectedDate, "day");
@@ -160,7 +160,7 @@ export function LessonsListScreen({ navigation }: Props) {
             key={dateISO}
             onPress={() => setSelectedDate(date.startOf("day"))}
             className={cn(
-              "flex-1 rounded-2xl border px-2 py-2",
+              "flex-1 rounded-none border px-2 py-2",
               isSelected
                 ? "border-primary bg-primary/10 dark:border-primaryDark dark:bg-primaryDark/10"
                 : "border-border bg-background dark:border-borderDark dark:bg-backgroundDark",

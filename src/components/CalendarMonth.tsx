@@ -77,11 +77,11 @@ export function CalendarMonth({
               const dots = Math.min(count, 3);
 
               return (
-                <View key={dateISO} className="flex-1 p-1">
+                <View key={dateISO} className="flex-1">
                   <Pressable
                     onPress={() => onSelectDate(date)}
                     className={cn(
-                      "h-16 justify-between rounded-xl border px-2 py-2",
+                      "h-16 justify-between rounded-none border px-2 py-2",
                       inMonth
                         ? "border-border bg-card dark:border-borderDark dark:bg-cardDark"
                         : "border-border/50 bg-card/60 dark:border-borderDark/50 dark:bg-cardDark/60",
