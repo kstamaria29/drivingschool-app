@@ -216,6 +216,12 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
     navigation.getParent<DrawerNavigationProp<MainDrawerParamList>>();
   const returnToStudentId = route.params?.returnToStudentId ?? null;
 
+  function scrollToTop(animated = false) {
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({ y: 0, animated });
+    });
+  }
+
   function onToggleSuggestions(key: FeedbackKey) {
     setOpenSuggestions((current) => (current === key ? null : key));
   }
@@ -240,6 +246,13 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
       scrollRef.current?.scrollTo({ y: Math.max(0, y - 20), animated: true });
     });
   }, [feedbackFieldY, openSuggestions]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      scrollToTop(false);
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const form = useForm<DrivingAssessmentFormValues>({
     resolver: zodResolver(drivingAssessmentFormSchema),
@@ -295,6 +308,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
     setFeedbackFieldY({});
     setStage("details");
     setSelectedStudentId(student.id);
+    scrollToTop(false);
 
     form.reset(
       buildFreshFormValues({
@@ -322,6 +336,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
     setFeedbackFieldY({});
     setStage("details");
     setSelectedStudentId(null);
+    scrollToTop(false);
     form.reset(buildFreshFormValues());
   }
 
@@ -352,6 +367,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     setStage("details");
+    scrollToTop(false);
   }, [selectedStudentId]);
 
   const scoreResult = useMemo(() => {

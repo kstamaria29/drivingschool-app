@@ -10,6 +10,7 @@ import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   View,
 } from "react-native";
 import { Controller, useForm } from "react-hook-form";
@@ -145,6 +146,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [startTestModalVisible, setStartTestModalVisible] = useState(false);
 
+  const scrollRef = useRef<ScrollView | null>(null);
   const [stage2Enabled, setStage2Enabled] = useState(false);
   const [stagesState, setStagesState] = useState<RestrictedMockTestStagesState>(() =>
     createEmptyStagesState(),
@@ -170,6 +172,12 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   const returnToStudentId = route.params?.returnToStudentId ?? null;
 
   const organizationName = organizationQuery.data?.name ?? "Driving School";
+
+  function scrollToTop(animated = false) {
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({ y: 0, animated });
+    });
+  }
 
   function navigateAfterSubmit() {
     leaveWithoutPrompt(() => {
@@ -198,6 +206,13 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     },
   });
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      scrollToTop(false);
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   function resetMockTestForStudent(studentId: string) {
     setStage("details");
     setStartTestModalVisible(false);
@@ -209,6 +224,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     setExpandedStages({ stage1: true, stage2: false });
     setDraftResolvedStudentId(null);
     setSelectedStudentId(studentId);
+    scrollToTop(false);
 
     form.reset({
       studentId,
@@ -233,6 +249,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     setExpandedStages({ stage1: true, stage2: false });
     setDraftResolvedStudentId(null);
     setSelectedStudentId(null);
+    scrollToTop(false);
 
     form.reset({
       studentId: "",
@@ -267,6 +284,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     setStage("details");
+    scrollToTop(false);
   }, [selectedStudentId]);
 
   const summary = useMemo(() => {
@@ -966,7 +984,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   return (
     <>
-      <Screen scroll>
+      <Screen scroll scrollRef={scrollRef}>
         <AppStack gap="lg">
           {header}
           {studentCard}

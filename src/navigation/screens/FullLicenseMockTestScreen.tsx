@@ -4,7 +4,7 @@ import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Modal, Platform, Pressable, View } from "react-native";
+import { ActivityIndicator, Alert, Modal, Platform, Pressable, ScrollView, View } from "react-native";
 import { Controller, useForm } from "react-hook-form";
 import { CircleStop, Flag, Pause, Play, RotateCcw, Timer, TriangleAlert } from "lucide-react-native";
 
@@ -150,6 +150,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   const [stage, setStage] = useState<Stage>("details");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [startTestModalVisible, setStartTestModalVisible] = useState(false);
+  const scrollRef = useRef<ScrollView | null>(null);
   const { leaveWithoutPrompt } = useAssessmentLeaveGuard({
     navigation,
     enabled: stage === "run" || stage === "summary",
@@ -284,6 +285,12 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
 
   const organizationName = organizationQuery.data?.name ?? "Driving School";
 
+  function scrollToTop(animated = false) {
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({ y: 0, animated });
+    });
+  }
+
   function navigateAfterSubmit() {
     leaveWithoutPrompt(() => {
       resetMockTestToBlank();
@@ -296,6 +303,13 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       }
     });
   }
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      scrollToTop(false);
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const form = useForm<FullLicenseMockTestFormValues>({
     resolver: zodResolver(fullLicenseMockTestFormSchema),
@@ -317,6 +331,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     setStage("details");
     setStartTestModalVisible(false);
     setSelectedStudentId(studentId);
+    scrollToTop(false);
 
     form.reset({
       studentId,
@@ -338,6 +353,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     setStage("details");
     setStartTestModalVisible(false);
     setSelectedStudentId(null);
+    scrollToTop(false);
 
     form.reset({
       studentId: "",
@@ -377,6 +393,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   useEffect(() => {
     if (!selectedStudentId) return;
     setStage("details");
+    scrollToTop(false);
   }, [selectedStudentId]);
 
   const mode = form.watch("mode");
@@ -1860,7 +1877,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
 
   return (
     <>
-      <Screen scroll className={cn(isSidebar && "max-w-6xl")}>
+      <Screen scroll scrollRef={scrollRef} className={cn(isSidebar && "max-w-6xl")}>
         <AppStack gap="lg">
           {header}
           {studentCard}

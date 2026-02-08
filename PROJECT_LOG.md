@@ -1,6 +1,13 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Assessment blank screen scroll fix
+- **Summary:**
+  - Fixed assessment screens rendering blank until you scroll by forcing the ScrollView to reset to top on focus and after student/test resets.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Assessment submit options + upcoming reminders
 - **Summary:**
   - Added `Submit` vs `Submit and Generate PDF` options across assessments and hardened navigation/state resets so each new assessment starts cl...
@@ -149,11 +156,3 @@
 - **Summary:**
   - Updated student delete API flow to remove related `student_sessions` and `assessments` records before deleting the student row.
   - Kept storage cleanup on delete and now removes all files under `student-licenses/<organization_id>/<student_id>/` as part of the delete flow...
-
----
-
-- **Date:** 2026-02-08 (Pacific/Auckland)
-- **Task:** Delete student licence files on student delete + crop-label feasibility check
-- **Summary:**
-  - Updated student delete flow to first fetch the student's `organization_id`, delete all files under `student-licenses/<organization_id>/<stud...
-  - This ensures licence front/back images are removed from Supabase Storage when a student is deleted.

@@ -936,3 +936,11 @@
 - **Summary:**
   - Updated `Students` screen focus behavior so every re-entry resets controls to defaults: `Status=Active`, `Sort=Recent`, `By organization=Off...
   - Updated `Edit student` assignable instructor list to always exclude `admin` role entries.
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Delete student licence files on student delete + crop-label feasibility check
+- **Summary:**
+  - Updated student delete flow to first fetch the student's `organization_id`, delete all files under `student-licenses/<organization_id>/<stud...
+  - This ensures licence front/back images are removed from Supabase Storage when a student is deleted.
