@@ -301,7 +301,10 @@ export function StudentDetailScreen({ navigation, route }: Props) {
     closeStartAssessmentModal();
     drawerNavigation?.navigate("Assessments", {
       screen: routeName,
-      params: { studentId: student.id },
+      params: {
+        studentId: student.id,
+        returnToStudentId: student.id,
+      },
     });
   }
 

@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -61,6 +62,7 @@ import { AssessmentStudentDropdown } from "../components/AssessmentStudentDropdo
 import { useAssessmentLeaveGuard } from "../useAssessmentLeaveGuard";
 
 import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
+import type { MainDrawerParamList } from "../MainDrawerNavigator";
 
 type Props = NativeStackScreenProps<AssessmentsStackParamList, "RestrictedMockTest">;
 
@@ -163,8 +165,24 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     navigation,
     enabled: stage === "test",
   });
+  const drawerNavigation =
+    navigation.getParent<DrawerNavigationProp<MainDrawerParamList>>();
+  const returnToStudentId = route.params?.returnToStudentId ?? null;
 
   const organizationName = organizationQuery.data?.name ?? "Driving School";
+
+  function navigateAfterSubmit() {
+    leaveWithoutPrompt(() => {
+      if (returnToStudentId && drawerNavigation) {
+        drawerNavigation.navigate("Students", {
+          screen: "StudentDetail",
+          params: { studentId: returnToStudentId },
+        });
+        return;
+      }
+      navigation.goBack();
+    });
+  }
 
   const form = useForm<RestrictedMockTestFormValues>({
     resolver: zodResolver(restrictedMockTestFormSchema),
@@ -408,18 +426,18 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
               text: "Open",
               onPress: () => {
                 void openPdfUri(saved.uri);
-                leaveWithoutPrompt(() => navigation.goBack());
+                navigateAfterSubmit();
               },
             },
-            { text: "Done", onPress: () => leaveWithoutPrompt(() => navigation.goBack()) },
+            { text: "Done", onPress: navigateAfterSubmit },
           ],
         );
       } catch (exportError) {
         Alert.alert(
           "Saved, but couldn't export PDF",
           `Assessment saved, but PDF export failed: ${toErrorMessage(exportError)}`,
+          [{ text: "Done", onPress: navigateAfterSubmit }],
         );
-        leaveWithoutPrompt(() => navigation.goBack());
       }
     } catch (error) {
       Alert.alert("Couldn't submit assessment", toErrorMessage(error));

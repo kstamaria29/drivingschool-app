@@ -12,9 +12,15 @@ import { RestrictedMockTestScreen } from "./screens/RestrictedMockTestScreen";
 
 export type AssessmentsStackParamList = {
   AssessmentsMain: undefined;
-  DrivingAssessment: { studentId?: string } | undefined;
-  RestrictedMockTest: { studentId?: string } | undefined;
-  FullLicenseMockTest: { studentId?: string } | undefined;
+  DrivingAssessment:
+    | { studentId?: string; returnToStudentId?: string }
+    | undefined;
+  RestrictedMockTest:
+    | { studentId?: string; returnToStudentId?: string }
+    | undefined;
+  FullLicenseMockTest:
+    | { studentId?: string; returnToStudentId?: string }
+    | undefined;
 };
 
 const Stack = createNativeStackNavigator<AssessmentsStackParamList>();

@@ -904,3 +904,11 @@
 - **Summary:**
   - Added `Organization` input to `New/Edit student` directly below Address, with quick-pick options (`Private`, `UMMA Trust`, `Renaissance`, `L...
   - Persisted `organization_name` in students CRUD payloads and added schema/type support across form validation and Supabase table typings.
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Refine student assignment dropdown + organization show-all order + profile action placement
+- **Summary:**
+  - Updated `New student` owner/admin assignment UX to use an instructor dropdown instead of listing all instructor buttons.
+  - Added a left-aligned trigger button label (`Assign new student to an Instructor`) with centered dropdown choices and centered selected state...

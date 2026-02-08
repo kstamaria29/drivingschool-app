@@ -53,6 +53,7 @@ export const drivingAssessmentFeedbackOptions = {
     "Handles Intersections Well – Makes safe and timely decisions at stop signs, give-way signs, and traffic lights.",
   ],
   improvements: [
+    "Smoother Steering Control – Avoid oversteering or sudden corrections; maintain smoother handling through turns.",
     "Earlier Hazard Detection – Needs to scan the road further ahead and respond sooner to developing situations.",
     "Improving Gap Selection – Should practice choosing safer gaps when turning, merging, or crossing intersections.",
     "More Consistent Mirror Checks – Needs to increase frequency of mirror use, especially before lane changes and turns.",
@@ -60,7 +61,6 @@ export const drivingAssessmentFeedbackOptions = {
     "Lane Positioning – Work on staying centered within the lane and avoiding drifting toward lane markings.",
     "Speed Management – Needs to maintain steady, appropriate speed, especially when approaching intersections or speed limit changes.",
     "Signal Timing – Practice signaling earlier and cancelling the signal after completing the maneuver.",
-    "Smoother Steering Control – Avoid oversteering or sudden corrections; maintain smoother handling through turns.",
     "Judgment at Roundabouts – Needs to build confidence in choosing the right time to enter and understanding lane discipline within multi-lane roundabouts.",
     "Parking Precision – Improve control and accuracy during parallel, angle, or reverse parking exercises.",
     "Hill Start and Stop Control – Practice smoother control when starting or stopping on inclines to avoid rolling back.",
@@ -97,4 +97,3 @@ export const drivingAssessmentFeedbackOptions = {
 } as const;
 
 export type DrivingAssessmentFeedbackField = keyof typeof drivingAssessmentFeedbackOptions;
-

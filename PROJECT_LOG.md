@@ -1,10 +1,18 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Assessment submit return-to-profile flow + driving suggestion priority
+- **Summary:**
+  - Updated all assessment submit flows to return to `StudentDetail` when launched from Student Profile, instead of dropping users on the Assess...
+  - Moved the "Smoother Steering Control - Avoid oversteering..." improvement suggestion to the top of the Driving Assessment suggestions list.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Student reminders feature + Student Profile action-row redesign
 - **Summary:**
-  - Added a new student Reminders flow: dedicated screen, reminder list, create/delete actions, reminder date, and notification lead-time options.
-  - Updated Student Profile actions by replacing top-right `Add session` with icon-only Edit and replacing the lower `Edit` button with `Reminders`.
+  - Added a new student Reminders flow: dedicated screen, reminder list, create/delete actions, reminder date, and notification lead-time option...
+  - Updated Student Profile actions by replacing top-right `Add session` with icon-only Edit and replacing the lower `Edit` button with `Reminde...
 
 ---
 
@@ -149,11 +157,3 @@
 - **Summary:**
   - Added student licence photo upload support in the student feature API/query layer with storage upload + signed URL persistence (`license_fro...
   - Added Supabase migration `017_students_license_images.sql` and storage policy script for private `student-licenses` bucket paths (`<organiza...
-
----
-
-- **Date:** 2026-02-08 (Pacific/Auckland)
-- **Task:** Refine student assignment dropdown + organization show-all order + profile action placement
-- **Summary:**
-  - Updated `New student` owner/admin assignment UX to use an instructor dropdown instead of listing all instructor buttons.
-  - Added a left-aligned trigger button label (`Assign new student to an Instructor`) with centered dropdown choices and centered selected state...

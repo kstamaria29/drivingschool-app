@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -60,6 +61,7 @@ import { AssessmentStudentDropdown } from "../components/AssessmentStudentDropdo
 import { useAssessmentLeaveGuard } from "../useAssessmentLeaveGuard";
 
 import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
+import type { MainDrawerParamList } from "../MainDrawerNavigator";
 
 type Props = NativeStackScreenProps<AssessmentsStackParamList, "DrivingAssessment">;
 
@@ -209,6 +211,9 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
     navigation,
     enabled: stage === "test",
   });
+  const drawerNavigation =
+    navigation.getParent<DrawerNavigationProp<MainDrawerParamList>>();
+  const returnToStudentId = route.params?.returnToStudentId ?? null;
 
   function onToggleSuggestions(key: FeedbackKey) {
     setOpenSuggestions((current) => (current === key ? null : key));
@@ -301,6 +306,19 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
   const saving = createAssessment.isPending;
   const organizationName = organizationQuery.data?.name ?? "Driving School";
 
+  function navigateAfterSubmit() {
+    leaveWithoutPrompt(() => {
+      if (returnToStudentId && drawerNavigation) {
+        drawerNavigation.navigate("Students", {
+          screen: "StudentDetail",
+          params: { studentId: returnToStudentId },
+        });
+        return;
+      }
+      navigation.goBack();
+    });
+  }
+
   async function submitAndGeneratePdf(values: DrivingAssessmentFormValues) {
     if (!selectedStudent) {
       Alert.alert("Select a student", "Please select a student first.");
@@ -371,16 +389,17 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
               text: "Open",
               onPress: () => {
                 void openPdfUri(saved.uri);
-                leaveWithoutPrompt(() => navigation.goBack());
+                navigateAfterSubmit();
               },
             },
-            { text: "Done", onPress: () => leaveWithoutPrompt(() => navigation.goBack()) },
+            { text: "Done", onPress: navigateAfterSubmit },
           ],
         );
       } catch (error) {
         Alert.alert(
           "Saved, but couldn't generate the PDF",
           `The assessment was saved successfully.\n\n${toErrorMessage(error)}`,
+          [{ text: "Done", onPress: navigateAfterSubmit }],
         );
       }
     } catch (error) {
