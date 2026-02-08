@@ -1,6 +1,39 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Refine student assignment dropdown + organization show-all order + profile action placement
+- **Summary:**
+  - Updated `New student` owner/admin assignment UX to use an instructor dropdown instead of listing all instructor buttons.
+  - Added a left-aligned trigger button label (`Assign new student to an Instructor`) with centered dropdown choices and centered selected state text.
+  - Added fallback behavior for owner/admin create flow: if no instructors exist in the organization, the Assigned Instructor block is hidden and assignment defaults to the logged-in user.
+  - Updated Students organization filtering with `Show all` and `Other's (not listed)` options; `Show all` now excludes `Private` and orders results as `Other's (not listed)` -> `Renaissance` -> `Lifeskill` -> `UMMA Trust`.
+  - Removed `1H` from Class held options on `New/Edit student`.
+  - Removed the `Danger zone` container and moved `Archive/Delete student` actions back to the bottom action stack under `Assessment History` with spacing.
+- **Files changed:**
+  - src/navigation/screens/StudentEditScreen.tsx
+  - src/navigation/screens/StudentsListScreen.tsx
+  - src/navigation/screens/StudentDetailScreen.tsx
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - Get-Content -Raw AGENTS.md
+  - Get-Content -Raw PROJECT_LOG.md
+  - Get-Content -Raw docs/logs/INDEX.md
+  - rg --line-number "organization|assignedInstructorId|classHeld|Danger zone" src/navigation/screens
+  - npx tsc --noEmit
+  - git diff -- src/navigation/screens/StudentEditScreen.tsx src/navigation/screens/StudentsListScreen.tsx src/navigation/screens/StudentDetailScreen.tsx
+- **How to verify:**
+  - Open `Students` -> `New student` as owner/admin with instructors in org; confirm `Assigned Instructor` shows dropdown trigger text `Assign new student to an Instructor`, left aligned.
+  - Tap the trigger and confirm instructor options render as centered buttons; select one and confirm selected text updates.
+  - Test owner/admin org with no instructors and confirm `Assigned Instructor` block is hidden and save still works.
+  - Open `Students`, toggle `By organization` to `On`, choose `Show all`, and confirm `Private` students are excluded and group ordering follows `Other's (not listed)` -> `Renaissance` -> `Lifeskill` -> `UMMA Trust`.
+  - Open `New/Edit student` and confirm `Class held` no longer shows `1H`.
+  - Open `Student Profile` and confirm Archive/Delete buttons are at the bottom under `Assessment History` with spacing.
+  - Run `npx tsc --noEmit` and confirm no type errors.
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
 - **Task:** Add student organization field + list filtering
 - **Summary:**
   - Added `Organization` input to `New/Edit student` directly below Address, with quick-pick options (`Private`, `UMMA Trust`, `Renaissance`, `Lifeskill`) plus `Custom` modal entry.
@@ -587,49 +620,3 @@ px tsc --noEmit and confirm no type errors.
   - Ensure there are active students with valid addresses and verify their pins appear automatically after map data loads.
   - Open Snapshot Annotation, enter text, choose different text sizes, place labels, save, and reopen preview.
   - Confirm placed labels render at the chosen font sizes both in editor and preview.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Navigation, students-load fix, home shortcuts, and settings role/org updates
-- **Summary:**
-  - Reordered drawer items so `Settings` is directly below `Google Maps`; moved `Sign out` to the very bottom under the user block; made sign-out icon/text red; made avatar/name open `Settings`.
-  - Fixed intermittent Students first-load blank state by removing nested table `ScrollView` rendering and simplifying row container rendering; added a temporary `Refresh` button near Sort.
-  - Added startup prefetch for active/archived students in `MainDrawerNavigator`.
-  - Updated Home shortcuts: added `Lessons` and `Google Maps` buttons on a new row below `Students`/`Assessments`; removed `Open Lessons` in `Upcoming Lessons Today`.
-  - Added organization-name editing flow in Settings and feature API/query layer.
-  - Added role-display customization for owner/admin accounts (with instructor restriction), including new Supabase migration + RPC, new settings screen, and role label capitalization fallback (`Owner/Admin/Instructor`).
-- **Files changed:**
-  - `src/navigation/components/AppDrawerContent.tsx`
-  - `src/navigation/MainDrawerNavigator.tsx`
-  - `src/navigation/screens/StudentsListScreen.tsx`
-  - `src/navigation/screens/HomeScreen.tsx`
-  - `src/navigation/screens/SettingsScreen.tsx`
-  - `src/navigation/SettingsStackNavigator.tsx`
-  - `src/navigation/screens/EditOrganizationNameScreen.tsx`
-  - `src/navigation/screens/EditRoleDisplayScreen.tsx`
-  - `src/features/organization/api.ts`
-  - `src/features/organization/queries.ts`
-  - `src/features/organization/schemas.ts`
-  - `src/features/account/api.ts`
-  - `src/features/account/queries.ts`
-  - `src/features/account/schemas.ts`
-  - `src/features/auth/roles.ts`
-  - `src/navigation/screens/StudentEditScreen.tsx`
-  - `src/navigation/screens/LessonEditScreen.tsx`
-  - `supabase/migrations/014_role_display_name.sql`
-  - `src/supabase/types.ts`
-  - `supabase/README.md`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `rg --files -g AGENTS.md`
-  - `git status -sb`
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Open drawer: confirm `Settings` is below `Google Maps`, avatar/name opens `Settings`, and red `Sign out` is below the avatar block.
-  - Open `Students` on first app load: confirm rows render immediately; use `Refresh` near Sort to force reload.
-  - Open `Home`: confirm second shortcut row has `Lessons` and `Google Maps`; confirm `Open Lessons` is removed from `Upcoming Lessons Today`.
-  - Open `Settings`: confirm `Change organization name` appears above `Change organization logo`.
-  - Open `Settings` as owner/admin: confirm `Change role display` is available and updates displayed role text; as instructor, confirm it is unavailable.
-  - Apply `supabase/migrations/014_role_display_name.sql` before testing role-display persistence against Supabase.

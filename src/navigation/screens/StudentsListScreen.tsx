@@ -28,10 +28,7 @@ import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
 import { useOrganizationProfilesQuery } from "../../features/profiles/queries";
 import type { Student } from "../../features/students/api";
-import {
-  normalizeStudentOrganization,
-  STUDENT_ORGANIZATION_OPTIONS,
-} from "../../features/students/constants";
+import { normalizeStudentOrganization } from "../../features/students/constants";
 import { useStudentsQuery } from "../../features/students/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
@@ -55,6 +52,33 @@ type StudentSection = {
 };
 
 const STUDENTS_PAGE_SIZE = 10;
+const ORGANIZATION_FILTER_SHOW_ALL = "Show all";
+const ORGANIZATION_FILTER_OTHERS = "Other's (not listed)";
+const ORGANIZATION_PRIORITY_ORDER = [
+  "Renaissance",
+  "Lifeskill",
+  "UMMA Trust",
+] as const;
+const privateOrganizationLowercase = "private";
+
+function isPrivateOrganization(value: string) {
+  return normalizeStudentOrganization(value).toLowerCase() === privateOrganizationLowercase;
+}
+
+function isPriorityOrganization(value: string) {
+  const normalized = normalizeStudentOrganization(value).toLowerCase();
+  return ORGANIZATION_PRIORITY_ORDER.some(
+    (organization) => organization.toLowerCase() === normalized,
+  );
+}
+
+function organizationShowAllRank(value: string) {
+  const normalized = normalizeStudentOrganization(value).toLowerCase();
+  if (normalized === "renaissance") return 1;
+  if (normalized === "lifeskill") return 2;
+  if (normalized === "umma trust") return 3;
+  return 0;
+}
 
 function paginateSections(
   sections: StudentSection[],
@@ -369,29 +393,19 @@ export function StudentsListScreen({ navigation }: Props) {
   const [organizationFilter, setOrganizationFilter] =
     useState<OrganizationFilterState>("off");
   const [selectedOrganization, setSelectedOrganization] = useState<string>(
-    STUDENT_ORGANIZATION_OPTIONS[0],
+    ORGANIZATION_FILTER_SHOW_ALL,
   );
   const [page, setPage] = useState(1);
   const showInstructorStudents = instructorView === "show";
 
-  const organizationOptions = useMemo(() => {
-    const knownOrganizationLookup = new Set(
-      STUDENT_ORGANIZATION_OPTIONS.map((option) => option.toLowerCase()),
-    );
-    const customOptions = Array.from(
-      new Set(
-        (query.data ?? [])
-          .map((student) => normalizeStudentOrganization(student.organization_name ?? ""))
-          .filter(
-            (organizationName) =>
-              organizationName.length > 0 &&
-              !knownOrganizationLookup.has(organizationName.toLowerCase()),
-          ),
-      ),
-    ).sort((a, b) => a.localeCompare(b));
-
-    return [...STUDENT_ORGANIZATION_OPTIONS, ...customOptions];
-  }, [query.data]);
+  const organizationOptions = useMemo(
+    () => [
+      ORGANIZATION_FILTER_SHOW_ALL,
+      ...ORGANIZATION_PRIORITY_ORDER,
+      ORGANIZATION_FILTER_OTHERS,
+    ],
+    [],
+  );
 
   useEffect(() => {
     if (organizationFilter !== "on") return;
@@ -406,7 +420,7 @@ export function StudentsListScreen({ navigation }: Props) {
       ) {
         return normalizedCurrent;
       }
-      return organizationOptions[0] ?? STUDENT_ORGANIZATION_OPTIONS[0];
+      return organizationOptions[0] ?? ORGANIZATION_FILTER_SHOW_ALL;
     });
   }, [organizationFilter, organizationOptions]);
 
@@ -414,17 +428,38 @@ export function StudentsListScreen({ navigation }: Props) {
     const q = search.trim().toLowerCase();
     const organizationFilterValue =
       organizationFilter === "on"
-        ? normalizeStudentOrganization(selectedOrganization).toLowerCase()
+        ? normalizeStudentOrganization(selectedOrganization)
         : "";
     let data = query.data ?? [];
 
     if (organizationFilterValue) {
-      data = data.filter((student) => {
-        const studentOrganization = normalizeStudentOrganization(
-          student.organization_name ?? "",
-        ).toLowerCase();
-        return studentOrganization === organizationFilterValue;
-      });
+      const selectedOrganizationValue = organizationFilterValue.toLowerCase();
+
+      if (selectedOrganizationValue === ORGANIZATION_FILTER_SHOW_ALL.toLowerCase()) {
+        data = data.filter(
+          (student) => !isPrivateOrganization(student.organization_name ?? ""),
+        );
+      } else if (
+        selectedOrganizationValue === ORGANIZATION_FILTER_OTHERS.toLowerCase()
+      ) {
+        data = data.filter((student) => {
+          const organizationName = normalizeStudentOrganization(
+            student.organization_name ?? "",
+          );
+          return (
+            organizationName.length > 0 &&
+            !isPrivateOrganization(organizationName) &&
+            !isPriorityOrganization(organizationName)
+          );
+        });
+      } else {
+        data = data.filter((student) => {
+          const studentOrganization = normalizeStudentOrganization(
+            student.organization_name ?? "",
+          ).toLowerCase();
+          return studentOrganization === selectedOrganizationValue;
+        });
+      }
     }
 
     if (q) {
@@ -445,6 +480,13 @@ export function StudentsListScreen({ navigation }: Props) {
 
     const sorted = [...data];
     sorted.sort((a, b) => {
+      if (organizationFilterValue.toLowerCase() === ORGANIZATION_FILTER_SHOW_ALL.toLowerCase()) {
+        const organizationRankDelta =
+          organizationShowAllRank(a.organization_name ?? "") -
+          organizationShowAllRank(b.organization_name ?? "");
+        if (organizationRankDelta !== 0) return organizationRankDelta;
+      }
+
       if (sort === "recent") {
         const aTime = a.updated_at ? dayjs(a.updated_at).valueOf() : 0;
         const bTime = b.updated_at ? dayjs(b.updated_at).valueOf() : 0;

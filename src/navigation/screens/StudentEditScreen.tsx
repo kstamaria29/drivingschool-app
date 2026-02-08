@@ -47,7 +47,7 @@ import type { StudentsStackParamList } from "../StudentsStackNavigator";
 type CreateProps = NativeStackScreenProps<StudentsStackParamList, "StudentCreate">;
 type EditProps = NativeStackScreenProps<StudentsStackParamList, "StudentEdit">;
 type Props = CreateProps | EditProps;
-const classHeldOptions = ["1L", "1R", "1H", "1F"] as const;
+const classHeldOptions = ["1L", "1R", "1F"] as const;
 const studentOrganizationMenuOptions = [...STUDENT_ORGANIZATION_OPTIONS, "Custom"] as const;
 type StudentOrganizationMenuOption = (typeof studentOrganizationMenuOptions)[number];
 const presetOrganizationLookup = new Set(
@@ -72,23 +72,33 @@ export function StudentEditScreen({ navigation, route }: Props) {
 
   const role = profileQuery.data?.role ?? null;
   const canManageStudentAssignments = isOwnerOrAdminRole(role);
+  const isEditing = Boolean(studentId);
 
   const orgProfilesQuery = useOrganizationProfilesQuery(canManageStudentAssignments);
 
   const defaultAssignedInstructorId = useMemo(() => {
-    if (role === "instructor") return userId ?? "";
-    if (role === "owner") return userId ?? "";
+    if (role === "instructor" || role === "owner" || role === "admin") {
+      return userId ?? "";
+    }
     return "";
   }, [role, userId]);
 
+  const instructorProfiles = useMemo(
+    () =>
+      (orgProfilesQuery.data ?? []).filter(
+        (profileOption) => profileOption.role === "instructor",
+      ),
+    [orgProfilesQuery.data],
+  );
+
   const assignableInstructorProfiles = useMemo(
     () =>
-      studentId
+      isEditing
         ? (orgProfilesQuery.data ?? [])
         : (orgProfilesQuery.data ?? []).filter(
             (profileOption) => profileOption.role !== "admin",
           ),
-    [orgProfilesQuery.data, studentId],
+    [isEditing, orgProfilesQuery.data],
   );
 
   const form = useForm<StudentFormValues>({
@@ -114,6 +124,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
   const [customOrganizationModalVisible, setCustomOrganizationModalVisible] =
     useState(false);
   const [customOrganizationValue, setCustomOrganizationValue] = useState("");
+  const [instructorMenuOpen, setInstructorMenuOpen] = useState(false);
 
   useEffect(() => {
     if (defaultAssignedInstructorId) {
@@ -122,6 +133,31 @@ export function StudentEditScreen({ navigation, route }: Props) {
       });
     }
   }, [defaultAssignedInstructorId, form]);
+
+  useEffect(() => {
+    if (!canManageStudentAssignments || isEditing) return;
+
+    const currentAssignedInstructorId = form.getValues("assignedInstructorId");
+
+    if (instructorProfiles.length === 0) {
+      if (userId && currentAssignedInstructorId !== userId) {
+        form.setValue("assignedInstructorId", userId, {
+          shouldValidate: true,
+        });
+      }
+      return;
+    }
+
+    const hasSelectedInstructor = instructorProfiles.some(
+      (profileOption) => profileOption.id === currentAssignedInstructorId,
+    );
+
+    if (!hasSelectedInstructor) {
+      form.setValue("assignedInstructorId", instructorProfiles[0].id, {
+        shouldValidate: true,
+      });
+    }
+  }, [canManageStudentAssignments, form, instructorProfiles, isEditing, userId]);
 
   useEffect(() => {
     if (!studentId) return;
@@ -193,8 +229,15 @@ export function StudentEditScreen({ navigation, route }: Props) {
   }
 
   const organizationId = profile.organization_id;
-  const isEditing = Boolean(studentId);
   const mutationError = createMutation.error ?? updateMutation.error;
+  const showCreateInstructorDropdown =
+    canManageStudentAssignments && !isEditing && instructorProfiles.length > 0;
+  const hideAssignedInstructorCard =
+    canManageStudentAssignments &&
+    !isEditing &&
+    !orgProfilesQuery.isPending &&
+    !orgProfilesQuery.isError &&
+    instructorProfiles.length === 0;
 
   function mapStudentInput(values: StudentFormValues) {
     const base = {
@@ -467,62 +510,119 @@ export function StudentEditScreen({ navigation, route }: Props) {
           />
         </AppCard>
 
-        <AppCard className="gap-4">
-          <AppText variant="heading">Assigned instructor</AppText>
+        {!hideAssignedInstructorCard ? (
+          <AppCard className="gap-4">
+            <AppText variant="heading">Assigned Instructor</AppText>
 
-          <Controller
-            control={form.control}
-            name="assignedInstructorId"
-            render={({ field, fieldState }) => (
-              <AppStack gap="sm">
-                {fieldState.error?.message ? (
-                  <AppText variant="error">{fieldState.error.message}</AppText>
-                ) : null}
+            <Controller
+              control={form.control}
+              name="assignedInstructorId"
+              render={({ field, fieldState }) => {
+                const selectedInstructorName =
+                  instructorProfiles.find((profileOption) => profileOption.id === field.value)
+                    ?.display_name ?? "";
 
-                {canManageStudentAssignments ? (
-                  orgProfilesQuery.isPending ? (
-                    <AppText variant="caption">Loading instructors…</AppText>
-                  ) : orgProfilesQuery.isError ? (
-                    <AppStack gap="md">
-                      <AppText variant="error">
-                        {toErrorMessage(orgProfilesQuery.error)}
-                      </AppText>
-                      <AppButton
-                        label="Retry instructors"
-                        variant="secondary"
-                        onPress={() => orgProfilesQuery.refetch()}
-                      />
-                    </AppStack>
-                  ) : (
-                    <AppStack gap="sm">
-                      {assignableInstructorProfiles.length === 0 ? (
-                        <AppText variant="caption">No instructors available.</AppText>
-                      ) : (
-                        assignableInstructorProfiles.map((profileOption) => (
+                return (
+                  <AppStack gap="sm">
+                    {fieldState.error?.message ? (
+                      <AppText variant="error">{fieldState.error.message}</AppText>
+                    ) : null}
+
+                    {canManageStudentAssignments ? (
+                      showCreateInstructorDropdown ? (
+                        <AppStack gap="sm">
+                          <Pressable
+                            accessibilityRole="button"
+                            className={cn(
+                              theme.button.base,
+                              theme.button.variant.secondary,
+                              theme.button.size.md,
+                              "px-4",
+                            )}
+                            onPress={() => setInstructorMenuOpen((previous) => !previous)}
+                          >
+                            <AppText
+                              className={cn(
+                                "w-full text-left",
+                                theme.button.labelVariant.secondary,
+                              )}
+                              variant="button"
+                            >
+                              Assign new student to an Instructor
+                            </AppText>
+                          </Pressable>
+
+                          <AppText className="text-center" variant="caption">
+                            {selectedInstructorName
+                              ? `Selected: ${selectedInstructorName}`
+                              : "Select an instructor"}
+                          </AppText>
+
+                          {instructorMenuOpen ? (
+                            <AppStack gap="sm">
+                              {instructorProfiles.map((profileOption) => (
+                                <AppButton
+                                  key={profileOption.id}
+                                  label={profileOption.display_name}
+                                  variant={
+                                    field.value === profileOption.id
+                                      ? "primary"
+                                      : "secondary"
+                                  }
+                                  onPress={() => {
+                                    field.onChange(profileOption.id);
+                                    setInstructorMenuOpen(false);
+                                  }}
+                                />
+                              ))}
+                            </AppStack>
+                          ) : null}
+                        </AppStack>
+                      ) : orgProfilesQuery.isPending ? (
+                        <AppText variant="caption">Loading instructors...</AppText>
+                      ) : orgProfilesQuery.isError ? (
+                        <AppStack gap="md">
+                          <AppText variant="error">
+                            {toErrorMessage(orgProfilesQuery.error)}
+                          </AppText>
                           <AppButton
-                            key={profileOption.id}
-                            label={`${profileOption.display_name}${
-                              profileOption.role === "owner" ||
-                              profileOption.role === "admin"
-                                ? ` (${toRoleLabel(profileOption.role)})`
-                                : ""
-                            }`}
-                            variant={
-                              field.value === profileOption.id ? "primary" : "secondary"
-                            }
-                            onPress={() => field.onChange(profileOption.id)}
+                            label="Retry instructors"
+                            variant="secondary"
+                            onPress={() => orgProfilesQuery.refetch()}
                           />
-                        ))
-                      )}
-                    </AppStack>
-                  )
-                ) : (
-                  <AppText variant="body">{getProfileFullName(profile)}</AppText>
-                )}
-              </AppStack>
-            )}
-          />
-        </AppCard>
+                        </AppStack>
+                      ) : (
+                        <AppStack gap="sm">
+                          {assignableInstructorProfiles.length === 0 ? (
+                            <AppText variant="caption">No instructors available.</AppText>
+                          ) : (
+                            assignableInstructorProfiles.map((profileOption) => (
+                              <AppButton
+                                key={profileOption.id}
+                                label={`${profileOption.display_name}${
+                                  profileOption.role === "owner" ||
+                                  profileOption.role === "admin"
+                                    ? ` (${toRoleLabel(profileOption.role)})`
+                                    : ""
+                                }`}
+                                variant={
+                                  field.value === profileOption.id ? "primary" : "secondary"
+                                }
+                                onPress={() => field.onChange(profileOption.id)}
+                              />
+                            ))
+                          )}
+                        </AppStack>
+                      )
+                    ) : (
+                      <AppText variant="body">{getProfileFullName(profile)}</AppText>
+                    )}
+                  </AppStack>
+                );
+              }}
+            />
+          </AppCard>
+        ) : null}
 
         <AppCard className="gap-4">
           <AppText variant="heading">Licence</AppText>

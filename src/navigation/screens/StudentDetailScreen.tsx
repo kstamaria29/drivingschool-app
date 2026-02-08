@@ -262,10 +262,9 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                   })
                 }
               />
-            </AppStack>
 
-            <AppCard className="gap-3">
-              <AppText variant="heading">Danger zone</AppText>
+              <View className="h-2" />
+
               {isArchived ? (
                 <AppButton
                   label={unarchiveMutation.isPending ? "Unarchiving..." : "Unarchive"}
@@ -294,7 +293,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                 icon={Trash2}
                 onPress={onDeletePress}
               />
-            </AppCard>
+            </AppStack>
           </>
         )}
       </AppStack>

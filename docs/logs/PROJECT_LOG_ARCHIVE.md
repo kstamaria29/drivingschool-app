@@ -2097,3 +2097,49 @@
   - Sign in as owner/admin and open `Settings` -> `Add instructor`.
   - Submit valid instructor details and confirm function no longer fails with generic non-2xx auth error.
   - If invocation still fails, open Supabase `Edge Functions` -> `create-instructor` -> `Invocations` and confirm response is no longer `401`.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Navigation, students-load fix, home shortcuts, and settings role/org updates
+- **Summary:**
+  - Reordered drawer items so `Settings` is directly below `Google Maps`; moved `Sign out` to the very bottom under the user block; made sign-out icon/text red; made avatar/name open `Settings`.
+  - Fixed intermittent Students first-load blank state by removing nested table `ScrollView` rendering and simplifying row container rendering; added a temporary `Refresh` button near Sort.
+  - Added startup prefetch for active/archived students in `MainDrawerNavigator`.
+  - Updated Home shortcuts: added `Lessons` and `Google Maps` buttons on a new row below `Students`/`Assessments`; removed `Open Lessons` in `Upcoming Lessons Today`.
+  - Added organization-name editing flow in Settings and feature API/query layer.
+  - Added role-display customization for owner/admin accounts (with instructor restriction), including new Supabase migration + RPC, new settings screen, and role label capitalization fallback (`Owner/Admin/Instructor`).
+- **Files changed:**
+  - `src/navigation/components/AppDrawerContent.tsx`
+  - `src/navigation/MainDrawerNavigator.tsx`
+  - `src/navigation/screens/StudentsListScreen.tsx`
+  - `src/navigation/screens/HomeScreen.tsx`
+  - `src/navigation/screens/SettingsScreen.tsx`
+  - `src/navigation/SettingsStackNavigator.tsx`
+  - `src/navigation/screens/EditOrganizationNameScreen.tsx`
+  - `src/navigation/screens/EditRoleDisplayScreen.tsx`
+  - `src/features/organization/api.ts`
+  - `src/features/organization/queries.ts`
+  - `src/features/organization/schemas.ts`
+  - `src/features/account/api.ts`
+  - `src/features/account/queries.ts`
+  - `src/features/account/schemas.ts`
+  - `src/features/auth/roles.ts`
+  - `src/navigation/screens/StudentEditScreen.tsx`
+  - `src/navigation/screens/LessonEditScreen.tsx`
+  - `supabase/migrations/014_role_display_name.sql`
+  - `src/supabase/types.ts`
+  - `supabase/README.md`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `rg --files -g AGENTS.md`
+  - `git status -sb`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Open drawer: confirm `Settings` is below `Google Maps`, avatar/name opens `Settings`, and red `Sign out` is below the avatar block.
+  - Open `Students` on first app load: confirm rows render immediately; use `Refresh` near Sort to force reload.
+  - Open `Home`: confirm second shortcut row has `Lessons` and `Google Maps`; confirm `Open Lessons` is removed from `Upcoming Lessons Today`.
+  - Open `Settings`: confirm `Change organization name` appears above `Change organization logo`.
+  - Open `Settings` as owner/admin: confirm `Change role display` is available and updates displayed role text; as instructor, confirm it is unavailable.
+  - Apply `supabase/migrations/014_role_display_name.sql` before testing role-display persistence against Supabase.
