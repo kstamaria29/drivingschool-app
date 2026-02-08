@@ -2049,3 +2049,51 @@
   - Deploy function with no gateway JWT verification: `supabase functions deploy create-instructor --project-ref djwuraqzrmpcvjidtgfb --no-verify-jwt`.
   - Re-run `Add instructor` as owner/admin.
   - In Supabase invocations, confirm `execution_id` is no longer `null` and status is not blocked with gateway `401 Invalid JWT`.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Harden Add Instructor function call with direct fetch + detailed errors
+- **Summary:**
+  - Replaced `supabase.functions.invoke` in instructor creation with direct `fetch` to `/functions/v1/create-instructor`.
+  - Sends explicit `Authorization`, `apikey`, and `Content-Type` headers on every request.
+  - Added structured non-2xx error parsing so the app surfaces the actual edge/gateway reason instead of the generic non-2xx message.
+  - Added response-shape validation to fail clearly on malformed function responses.
+- **Files changed:**
+  - `src/features/instructors/api.ts`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Path AGENTS.md`
+  - `Get-Content -Path PROJECT_LOG.md`
+  - `Get-Content -Path docs/logs/INDEX.md`
+  - `Get-Content -Path docs/logs/PROJECT_LOG_ARCHIVE.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Rebuild and install the app containing this patch.
+  - Open `Settings` -> `Add instructor`, submit valid details.
+  - Confirm failure message now includes status + backend error code/message (if any), not only generic non-2xx text.
+  - In Supabase invocations, confirm header-auth failures can be diagnosed from returned body content shown in-app.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Fix Add Instructor edge invocation auth headers
+- **Summary:**
+  - Updated instructor creation API call to explicitly attach the signed-in access token as `Authorization: Bearer <token>` for the `create-instructor` edge function.
+  - Added explicit `apikey` header (`SUPABASE_ANON_KEY`) on function invoke to avoid edge gateway auth/header mismatches.
+  - Added fail-fast handling when no active session token exists, with a clearer user-facing error.
+- **Files changed:**
+  - `src/features/instructors/api.ts`
+  - `PROJECT_LOG.md`
+  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
+- **Commands run:**
+  - `Get-Content -Path AGENTS.md`
+  - `Get-Content -Path PROJECT_LOG.md`
+  - `Get-Content -Path docs/logs/INDEX.md`
+  - `Get-Content -Path docs/logs/PROJECT_LOG_ARCHIVE.md`
+  - `npx tsc --noEmit`
+- **How to verify:**
+  - Sign in as owner/admin and open `Settings` -> `Add instructor`.
+  - Submit valid instructor details and confirm function no longer fails with generic non-2xx auth error.
+  - If invocation still fails, open Supabase `Edge Functions` -> `create-instructor` -> `Invocations` and confirm response is no longer `401`.

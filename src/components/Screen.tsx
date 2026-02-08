@@ -23,7 +23,7 @@ type Props = PropsWithChildren<ViewProps> & {
   scrollViewProps?: Omit<ScrollViewProps, "ref" | "children">;
 };
 
-const TABLET_MIN_WIDTH = 768;
+const TABLET_MIN_WIDTH = 600;
 
 export function Screen({
   scroll = false,
@@ -38,7 +38,8 @@ export function Screen({
   const scrollRef = externalScrollRef ?? internalScrollRef;
   const scrollOffsetYRef = useRef(0);
   const isTabletPortrait = Math.min(width, height) >= TABLET_MIN_WIDTH && height > width;
-  const keyboardAwareEnabled = scroll && isTabletPortrait;
+  const keyboardAvoidingEnabled = isTabletPortrait;
+  const keyboardAwareEnabled = scroll && keyboardAvoidingEnabled;
 
   useEffect(() => {
     if (!keyboardAwareEnabled) return;
@@ -82,12 +83,12 @@ export function Screen({
 
   return (
     <SafeAreaView className={theme.screen.safeArea}>
-      {scroll ? (
-        <KeyboardAvoidingView
-          className="flex-1"
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          enabled={keyboardAwareEnabled}
-        >
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        enabled={keyboardAvoidingEnabled}
+      >
+        {scroll ? (
           <ScrollView
             ref={scrollRef}
             {...scrollViewProps}
@@ -100,10 +101,10 @@ export function Screen({
           >
             {content}
           </ScrollView>
-        </KeyboardAvoidingView>
-      ) : (
-        content
-      )}
+        ) : (
+          content
+        )}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

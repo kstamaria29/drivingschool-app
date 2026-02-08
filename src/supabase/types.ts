@@ -113,6 +113,7 @@ export type Database = {
           email: string | null;
           phone: string | null;
           address: string | null;
+          organization_name: string;
           license_type: "learner" | "restricted" | "full" | null;
           license_number: string | null;
           license_version: string | null;
@@ -133,6 +134,7 @@ export type Database = {
           email?: string | null;
           phone?: string | null;
           address?: string | null;
+          organization_name?: string;
           license_type?: "learner" | "restricted" | "full" | null;
           license_number?: string | null;
           license_version?: string | null;
@@ -152,6 +154,7 @@ export type Database = {
           email?: string | null;
           phone?: string | null;
           address?: string | null;
+          organization_name?: string;
           license_type?: "learner" | "restricted" | "full" | null;
           license_number?: string | null;
           license_version?: string | null;

@@ -1,6 +1,78 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Add student organization field + list filtering
+- **Summary:**
+  - Added `Organization` input to `New/Edit student` directly below Address, with quick-pick options (`Private`, `UMMA Trust`, `Renaissance`, `Lifeskill`) plus `Custom` modal entry.
+  - Persisted `organization_name` in students CRUD payloads and added schema/type support across form validation and Supabase table typings.
+  - Added `students.organization_name` migration (`016`) with backfill/default/not-null/check/index updates.
+  - Added Students screen organization filter toggle (`Off/On`) with organization selection options and filtering behavior.
+  - Updated Name sorting in Students list to sort by first name first (then last name).
+  - Moved archive/delete actions into a bottom `Danger zone` section on Student Profile and displayed organization there.
+- **Files changed:**
+  - src/features/students/constants.ts
+  - src/features/students/schemas.ts
+  - src/navigation/screens/StudentEditScreen.tsx
+  - src/navigation/screens/StudentsListScreen.tsx
+  - src/navigation/screens/StudentDetailScreen.tsx
+  - src/supabase/types.ts
+  - supabase/migrations/016_students_organization_name.sql
+  - supabase/README.md
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - Get-Content -Raw AGENTS.md
+  - Get-Content -Raw PROJECT_LOG.md
+  - Get-Content -Raw docs/logs/INDEX.md
+  - Get-Content -Raw docs/logs/PROJECT_LOG_ARCHIVE.md
+  - rg --line-number "organization|students|StudentEditScreen|StudentsListScreen|StudentDetailScreen" src supabase
+  - mcp__context7__resolve-library-id (react-native)
+  - mcp__context7__query-docs (/websites/reactnative_dev)
+  - npx tsc --noEmit
+- **How to verify:**
+  - Open `Students` -> `New student` and confirm `Organization` appears below Address with listed options and a `Custom` modal flow.
+  - Save a new student with each organization type (preset + custom), reopen edit/detail screens, and confirm value persists.
+  - Open `Students` list, set `By organization` to `On`, select an organization, and confirm only matching students display.
+  - Switch Sort to `Name` and confirm list is ordered by first name (then last name).
+  - Open a Student Profile and confirm `Archive/Delete` actions are in the bottom `Danger zone` section.
+  - Run `npx tsc --noEmit` and confirm no type errors.
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** App-wide tablet keyboard avoidance for bottom-half inputs
+- **Summary:**
+  - Updated shared `Screen` keyboard behavior so tablet portrait keyboard avoidance now applies to both scroll and non-scroll screens.
+  - Lowered tablet detection threshold from `768` to `600` width to cover common Android tablet sizes.
+  - Wrapped `Google Maps` screen with `KeyboardAvoidingView` so its input surfaces follow the same tablet keyboard behavior as shared-screen routes.
+- **Files changed:**
+  - src/components/Screen.tsx
+  - src/navigation/screens/GoogleMapsScreen.tsx
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - Get-Content -Raw AGENTS.md
+  - Get-Content -Raw PROJECT_LOG.md
+  - Get-Content -Raw docs/logs/INDEX.md
+  - rg -n "keyboard|KeyboardAvoiding|softwareKeyboard|TextInput|input field|hide(s)? input|placeholder|KeyboardAware|adjustResize" docs/logs/PROJECT_LOG_ARCHIVE.md PROJECT_LOG.md
+  - rg -n "KeyboardAvoidingView|keyboardShouldPersistTaps|ScrollView|SafeAreaView|TextInput|softwareKeyboardLayoutMode|android.*keyboard|adjustResize" src app.config.ts app.json package.json -g "*.ts" -g "*.tsx" -g "*.json"
+  - Get-Content -Raw src/components/Screen.tsx
+  - mcp__context7__resolve-library-id (expo)
+  - mcp__context7__query-docs (/websites/expo_dev)
+  - mcp__context7__resolve-library-id (react-native)
+  - mcp__context7__query-docs (/websites/reactnative_dev)
+  - npx expo config --type public
+  - npx tsc --noEmit
+  - git diff -- src/components/Screen.tsx src/navigation/screens/GoogleMapsScreen.tsx
+- **How to verify:**
+  - On tablet portrait, open any form screen and focus an input in the lower half of the screen.
+  - Confirm the screen content shifts above the keyboard and the focused input remains visible while typing.
+  - Verify this on both screens that use shared `Screen` and `Google Maps` search input.
+  - Recheck key form screens: `Edit details`, `New/Edit student`, `New/Edit lesson`, `Assessments` screens.
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
 - **Task:** Google Maps pin color categories + configurable defaults
 - **Summary:**
   - Added marker color categories on Google Maps so pins are visually differentiated for active students, other instructor's students, custom pins, and the draft/new pin marker.
@@ -561,51 +633,3 @@ px tsc --noEmit and confirm no type errors.
   - Open `Settings`: confirm `Change organization name` appears above `Change organization logo`.
   - Open `Settings` as owner/admin: confirm `Change role display` is available and updates displayed role text; as instructor, confirm it is unavailable.
   - Apply `supabase/migrations/014_role_display_name.sql` before testing role-display persistence against Supabase.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Fix Add Instructor edge invocation auth headers
-- **Summary:**
-  - Updated instructor creation API call to explicitly attach the signed-in access token as `Authorization: Bearer <token>` for the `create-instructor` edge function.
-  - Added explicit `apikey` header (`SUPABASE_ANON_KEY`) on function invoke to avoid edge gateway auth/header mismatches.
-  - Added fail-fast handling when no active session token exists, with a clearer user-facing error.
-- **Files changed:**
-  - `src/features/instructors/api.ts`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `Get-Content -Path AGENTS.md`
-  - `Get-Content -Path PROJECT_LOG.md`
-  - `Get-Content -Path docs/logs/INDEX.md`
-  - `Get-Content -Path docs/logs/PROJECT_LOG_ARCHIVE.md`
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Sign in as owner/admin and open `Settings` -> `Add instructor`.
-  - Submit valid instructor details and confirm function no longer fails with generic non-2xx auth error.
-  - If invocation still fails, open Supabase `Edge Functions` -> `create-instructor` -> `Invocations` and confirm response is no longer `401`.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Harden Add Instructor function call with direct fetch + detailed errors
-- **Summary:**
-  - Replaced `supabase.functions.invoke` in instructor creation with direct `fetch` to `/functions/v1/create-instructor`.
-  - Sends explicit `Authorization`, `apikey`, and `Content-Type` headers on every request.
-  - Added structured non-2xx error parsing so the app surfaces the actual edge/gateway reason instead of the generic non-2xx message.
-  - Added response-shape validation to fail clearly on malformed function responses.
-- **Files changed:**
-  - `src/features/instructors/api.ts`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `Get-Content -Path AGENTS.md`
-  - `Get-Content -Path PROJECT_LOG.md`
-  - `Get-Content -Path docs/logs/INDEX.md`
-  - `Get-Content -Path docs/logs/PROJECT_LOG_ARCHIVE.md`
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Rebuild and install the app containing this patch.
-  - Open `Settings` -> `Add instructor`, submit valid details.
-  - Confirm failure message now includes status + backend error code/message (if any), not only generic non-2xx text.
-  - In Supabase invocations, confirm header-auth failures can be diagnosed from returned body content shown in-app.

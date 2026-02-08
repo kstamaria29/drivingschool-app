@@ -28,6 +28,10 @@ import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
 import { useOrganizationProfilesQuery } from "../../features/profiles/queries";
 import type { Student } from "../../features/students/api";
+import {
+  normalizeStudentOrganization,
+  STUDENT_ORGANIZATION_OPTIONS,
+} from "../../features/students/constants";
 import { useStudentsQuery } from "../../features/students/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
@@ -41,6 +45,7 @@ type Props = NativeStackScreenProps<StudentsStackParamList, "StudentsList">;
 type SortKey = "name" | "recent";
 type StatusKey = "active" | "archived";
 type InstructorViewState = "hide" | "show";
+type OrganizationFilterState = "off" | "on";
 
 type StudentSection = {
   key: string;
@@ -361,18 +366,73 @@ export function StudentsListScreen({ navigation }: Props) {
 
   const [sort, setSort] = useState<SortKey>("recent");
   const [instructorView, setInstructorView] = useState<InstructorViewState>("hide");
+  const [organizationFilter, setOrganizationFilter] =
+    useState<OrganizationFilterState>("off");
+  const [selectedOrganization, setSelectedOrganization] = useState<string>(
+    STUDENT_ORGANIZATION_OPTIONS[0],
+  );
   const [page, setPage] = useState(1);
   const showInstructorStudents = instructorView === "show";
 
+  const organizationOptions = useMemo(() => {
+    const knownOrganizationLookup = new Set(
+      STUDENT_ORGANIZATION_OPTIONS.map((option) => option.toLowerCase()),
+    );
+    const customOptions = Array.from(
+      new Set(
+        (query.data ?? [])
+          .map((student) => normalizeStudentOrganization(student.organization_name ?? ""))
+          .filter(
+            (organizationName) =>
+              organizationName.length > 0 &&
+              !knownOrganizationLookup.has(organizationName.toLowerCase()),
+          ),
+      ),
+    ).sort((a, b) => a.localeCompare(b));
+
+    return [...STUDENT_ORGANIZATION_OPTIONS, ...customOptions];
+  }, [query.data]);
+
+  useEffect(() => {
+    if (organizationFilter !== "on") return;
+
+    setSelectedOrganization((current) => {
+      const normalizedCurrent = normalizeStudentOrganization(current);
+      if (
+        normalizedCurrent.length > 0 &&
+        organizationOptions.some(
+          (option) => option.toLowerCase() === normalizedCurrent.toLowerCase(),
+        )
+      ) {
+        return normalizedCurrent;
+      }
+      return organizationOptions[0] ?? STUDENT_ORGANIZATION_OPTIONS[0];
+    });
+  }, [organizationFilter, organizationOptions]);
+
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const organizationFilterValue =
+      organizationFilter === "on"
+        ? normalizeStudentOrganization(selectedOrganization).toLowerCase()
+        : "";
     let data = query.data ?? [];
+
+    if (organizationFilterValue) {
+      data = data.filter((student) => {
+        const studentOrganization = normalizeStudentOrganization(
+          student.organization_name ?? "",
+        ).toLowerCase();
+        return studentOrganization === organizationFilterValue;
+      });
+    }
 
     if (q) {
       data = data.filter((student) => {
         const haystack = [
           student.first_name,
           student.last_name,
+          student.organization_name ?? "",
           student.email ?? "",
           student.phone ?? "",
           student.license_number ?? "",
@@ -391,13 +451,13 @@ export function StudentsListScreen({ navigation }: Props) {
         return bTime - aTime;
       }
 
-      const last = (a.last_name ?? "").localeCompare(b.last_name ?? "");
-      if (last !== 0) return last;
-      return (a.first_name ?? "").localeCompare(b.first_name ?? "");
+      const first = (a.first_name ?? "").localeCompare(b.first_name ?? "");
+      if (first !== 0) return first;
+      return (a.last_name ?? "").localeCompare(b.last_name ?? "");
     });
 
     return sorted;
-  }, [query.data, search, sort]);
+  }, [organizationFilter, query.data, search, selectedOrganization, sort]);
 
   const ownerSelfStudents = useMemo(
     () =>
@@ -593,7 +653,7 @@ export function StudentsListScreen({ navigation }: Props) {
 
   useEffect(() => {
     setPage(1);
-  }, [search, sort, status, instructorView]);
+  }, [organizationFilter, search, selectedOrganization, sort, status, instructorView]);
 
   useEffect(() => {
     setPage((current) => {
@@ -721,6 +781,40 @@ export function StudentsListScreen({ navigation }: Props) {
                 ]}
               />
             </View>
+
+            <View className={cn(isCompact ? "w-full" : "w-56")}>
+              <AppText variant="label">By organization</AppText>
+              <AppSegmentedControl<OrganizationFilterState>
+                className="mt-2"
+                value={organizationFilter}
+                onChange={setOrganizationFilter}
+                options={[
+                  { value: "off", label: "Off" },
+                  { value: "on", label: "On" },
+                ]}
+              />
+            </View>
+
+            {organizationFilter === "on" ? (
+              <View className={cn("w-full", !isCompact && "min-w-80 flex-1")}>
+                <AppText variant="label">Organization</AppText>
+                <View className="mt-2 flex-row flex-wrap gap-2">
+                  {organizationOptions.map((option) => (
+                    <AppButton
+                      key={option}
+                      width="auto"
+                      label={option}
+                      variant={
+                        selectedOrganization.toLowerCase() === option.toLowerCase()
+                          ? "primary"
+                          : "secondary"
+                      }
+                      onPress={() => setSelectedOrganization(option)}
+                    />
+                  ))}
+                </View>
+              </View>
+            ) : null}
 
             <AppButton
               width="auto"

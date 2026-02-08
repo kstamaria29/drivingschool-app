@@ -1,8 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ActivityIndicator, Alert, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  View,
+} from "react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -22,6 +28,10 @@ import {
   useUpdateStudentMutation,
 } from "../../features/students/queries";
 import {
+  normalizeStudentOrganization,
+  STUDENT_ORGANIZATION_OPTIONS,
+} from "../../features/students/constants";
+import {
   studentFormSchema,
   type StudentFormValues,
 } from "../../features/students/schemas";
@@ -38,6 +48,11 @@ type CreateProps = NativeStackScreenProps<StudentsStackParamList, "StudentCreate
 type EditProps = NativeStackScreenProps<StudentsStackParamList, "StudentEdit">;
 type Props = CreateProps | EditProps;
 const classHeldOptions = ["1L", "1R", "1H", "1F"] as const;
+const studentOrganizationMenuOptions = [...STUDENT_ORGANIZATION_OPTIONS, "Custom"] as const;
+type StudentOrganizationMenuOption = (typeof studentOrganizationMenuOptions)[number];
+const presetOrganizationLookup = new Set(
+  STUDENT_ORGANIZATION_OPTIONS.map((option) => option.toLowerCase()),
+);
 
 function emptyToNull(value: string) {
   const trimmed = value.trim();
@@ -84,6 +99,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
       email: "",
       phone: "",
       address: "",
+      organization: STUDENT_ORGANIZATION_OPTIONS[0],
       assignedInstructorId: defaultAssignedInstructorId,
       licenseType: "learner",
       licenseNumber: "",
@@ -94,6 +110,10 @@ export function StudentEditScreen({ navigation, route }: Props) {
       notes: "",
     },
   });
+  const [organizationMenuOpen, setOrganizationMenuOpen] = useState(false);
+  const [customOrganizationModalVisible, setCustomOrganizationModalVisible] =
+    useState(false);
+  const [customOrganizationValue, setCustomOrganizationValue] = useState("");
 
   useEffect(() => {
     if (defaultAssignedInstructorId) {
@@ -113,6 +133,8 @@ export function StudentEditScreen({ navigation, route }: Props) {
       email: studentQuery.data.email ?? "",
       phone: studentQuery.data.phone ?? "",
       address: studentQuery.data.address ?? "",
+      organization:
+        studentQuery.data.organization_name ?? STUDENT_ORGANIZATION_OPTIONS[0],
       assignedInstructorId: studentQuery.data.assigned_instructor_id,
       licenseType: studentQuery.data.license_type ?? "learner",
       licenseNumber: studentQuery.data.license_number ?? "",
@@ -182,6 +204,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
       email: values.email.trim(),
       phone: values.phone.trim(),
       address: emptyToNull(values.address),
+      organization_name: normalizeStudentOrganization(values.organization),
       license_type: values.licenseType,
       license_number: emptyToNull(values.licenseNumber),
       license_version: emptyToNull(values.licenseVersion),
@@ -195,6 +218,52 @@ export function StudentEditScreen({ navigation, route }: Props) {
       notes: emptyToNull(values.notes),
     } as const;
     return base;
+  }
+
+  function closeCustomOrganizationModal() {
+    setCustomOrganizationModalVisible(false);
+    setCustomOrganizationValue("");
+  }
+
+  function applyOrganizationValue(nextValue: string) {
+    form.setValue("organization", normalizeStudentOrganization(nextValue), {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    setOrganizationMenuOpen(false);
+  }
+
+  function openCustomOrganizationModal(currentValue: string) {
+    const normalizedCurrent = normalizeStudentOrganization(currentValue);
+    setOrganizationMenuOpen(false);
+    setCustomOrganizationValue(
+      presetOrganizationLookup.has(normalizedCurrent.toLowerCase())
+        ? ""
+        : normalizedCurrent,
+    );
+    setCustomOrganizationModalVisible(true);
+  }
+
+  function onSelectOrganizationOption(
+    option: StudentOrganizationMenuOption,
+    currentValue: string,
+  ) {
+    if (option === "Custom") {
+      openCustomOrganizationModal(currentValue);
+      return;
+    }
+    applyOrganizationValue(option);
+  }
+
+  function saveCustomOrganization() {
+    const normalized = normalizeStudentOrganization(customOrganizationValue);
+    if (!normalized) {
+      Alert.alert("Organization required", "Enter a custom organization name first.");
+      return;
+    }
+
+    applyOrganizationValue(normalized);
+    closeCustomOrganizationModal();
   }
 
   async function createStudentAndNavigate(values: StudentFormValues) {
@@ -248,8 +317,9 @@ export function StudentEditScreen({ navigation, route }: Props) {
   const saving = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <Screen scroll>
-      <AppStack gap="lg">
+    <>
+      <Screen scroll>
+        <AppStack gap="lg">
         <View>
           <AppText variant="title">{isEditing ? "Edit student" : "New student"}</AppText>
           <AppText className="mt-2" variant="body">
@@ -336,6 +406,64 @@ export function StudentEditScreen({ navigation, route }: Props) {
                 autoCapitalize="words"
               />
             )}
+          />
+
+          <Controller
+            control={form.control}
+            name="organization"
+            render={({ field, fieldState }) => {
+              const selectedOrganization = field.value?.trim() ?? "";
+              const hasCustomOrganization =
+                selectedOrganization.length > 0 &&
+                !presetOrganizationLookup.has(selectedOrganization.toLowerCase());
+              const organizationLabel =
+                selectedOrganization || "Select organization";
+
+              return (
+                <AppStack gap="sm">
+                  <AppText variant="label">Organization</AppText>
+                  <AppButton
+                    variant="secondary"
+                    label={organizationLabel}
+                    onPress={() =>
+                      setOrganizationMenuOpen((previous) => !previous)
+                    }
+                  />
+
+                  {organizationMenuOpen ? (
+                    <AppStack gap="sm">
+                      {studentOrganizationMenuOptions.map((option) => (
+                        <AppButton
+                          key={option}
+                          variant={
+                            option === "Custom"
+                              ? hasCustomOrganization
+                                ? "primary"
+                                : "secondary"
+                              : selectedOrganization.toLowerCase() ===
+                                  option.toLowerCase()
+                              ? "primary"
+                              : "secondary"
+                          }
+                          label={
+                            option === "Custom" && hasCustomOrganization
+                              ? `Custom: ${selectedOrganization}`
+                              : option
+                          }
+                          onPress={() =>
+                            onSelectOrganizationOption(option, selectedOrganization)
+                          }
+                        />
+                      ))}
+                    </AppStack>
+                  ) : null}
+
+                  {fieldState.error?.message ? (
+                    <AppText variant="error">{fieldState.error.message}</AppText>
+                  ) : null}
+                </AppStack>
+              );
+            }}
           />
         </AppCard>
 
@@ -565,7 +693,49 @@ export function StudentEditScreen({ navigation, route }: Props) {
         />
 
         <AppButton label="Cancel" variant="ghost" onPress={() => navigation.goBack()} />
-      </AppStack>
-    </Screen>
+        </AppStack>
+      </Screen>
+
+      <Modal
+        animationType="fade"
+        transparent
+        visible={customOrganizationModalVisible}
+        onRequestClose={closeCustomOrganizationModal}
+      >
+        <Pressable
+          className="flex-1 bg-black/40 px-6 py-10"
+          onPress={closeCustomOrganizationModal}
+        >
+          <Pressable className="m-auto w-full max-w-md" onPress={(event) => event.stopPropagation()}>
+            <AppCard className="gap-4">
+              <AppText variant="heading">Custom organization</AppText>
+              <AppInput
+                label="Organization name"
+                autoFocus
+                autoCapitalize="words"
+                value={customOrganizationValue}
+                onChangeText={setCustomOrganizationValue}
+                placeholder="Enter organization name"
+              />
+              <View className="flex-row gap-2">
+                <AppButton
+                  className="flex-1"
+                  width="auto"
+                  variant="secondary"
+                  label="Cancel"
+                  onPress={closeCustomOrganizationModal}
+                />
+                <AppButton
+                  className="flex-1"
+                  width="auto"
+                  label="Save"
+                  onPress={saveCustomOrganization}
+                />
+              </View>
+            </AppCard>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
   );
 }

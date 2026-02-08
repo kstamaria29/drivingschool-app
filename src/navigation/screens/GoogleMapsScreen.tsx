@@ -6,11 +6,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
   LayoutChangeEvent,
   PanResponder,
   Platform,
   Pressable,
   StyleSheet,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -100,6 +102,7 @@ const DRAW_WIDTH_OPTIONS = [2, 4, 6, 8] as const;
 const SNAPSHOT_TEXT_SIZE_OPTIONS = [12, 16, 20, 24, 28] as const;
 const SNAPSHOT_CAPTURE_SIZE = 1080;
 const SNAPSHOT_CAPTURE_QUALITY = 0.65;
+const TABLET_MIN_WIDTH = 600;
 const MAP_PIN_COLOR_STORAGE_KEY_PREFIX = "drivingschool.maps.pin-colors.v1";
 const MAP_PIN_COLOR_OPTIONS = [
   "#22c55e",
@@ -248,8 +251,10 @@ function redoHistoryState<T>(history: HistoryState<T>): HistoryState<T> {
 
 export function GoogleMapsScreen(_props: Props) {
   const mapRef = useRef<MapView | null>(null);
+  const { width, height } = useWindowDimensions();
   const { profile } = useCurrentUser();
   const placesConfigured = isGooglePlacesConfigured();
+  const keyboardAvoidingEnabled = Math.min(width, height) >= TABLET_MIN_WIDTH && height > width;
   const pinColorStorage = useMemo(
     () => mapPinColorStorageKey(profile.organization_id, profile.id),
     [profile.id, profile.organization_id],
@@ -1243,75 +1248,80 @@ export function GoogleMapsScreen(_props: Props) {
 
   return (
     <>
-      <SafeAreaView className={cn(theme.screen.safeArea, "px-0 py-0")} edges={["bottom"]}>
-        <View className="flex-1">
-          <MapView
-            ref={mapRef}
-            style={StyleSheet.absoluteFillObject}
-            provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
-            mapType={mapLayer}
-            initialRegion={DEFAULT_REGION}
-            onLongPress={(event) => startDraftAtCoordinate(event.nativeEvent.coordinate)}
-            onPress={(event) => {
-              if (event.nativeEvent.action === "marker-press") return;
-              setSelectedPinId(null);
-            }}
-            onRegionChangeComplete={(region) =>
-              setMapCenter({ latitude: region.latitude, longitude: region.longitude })
-            }
-            showsCompass
-            showsBuildings
-            showsTraffic={trafficMode === "on"}
-            showsUserLocation
-            toolbarEnabled
-          >
-            {(pinsQuery.data ?? []).map((pin) => {
-              const student = pin.student_id ? studentsById.get(pin.student_id) : null;
-              const descriptionParts = [
-                student ? `Student: ${student.first_name} ${student.last_name}` : null,
-                pin.notes,
-              ].filter(Boolean);
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        enabled={keyboardAvoidingEnabled}
+      >
+        <SafeAreaView className={cn(theme.screen.safeArea, "px-0 py-0")} edges={["bottom"]}>
+          <View className="flex-1">
+            <MapView
+              ref={mapRef}
+              style={StyleSheet.absoluteFillObject}
+              provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
+              mapType={mapLayer}
+              initialRegion={DEFAULT_REGION}
+              onLongPress={(event) => startDraftAtCoordinate(event.nativeEvent.coordinate)}
+              onPress={(event) => {
+                if (event.nativeEvent.action === "marker-press") return;
+                setSelectedPinId(null);
+              }}
+              onRegionChangeComplete={(region) =>
+                setMapCenter({ latitude: region.latitude, longitude: region.longitude })
+              }
+              showsCompass
+              showsBuildings
+              showsTraffic={trafficMode === "on"}
+              showsUserLocation
+              toolbarEnabled
+            >
+              {(pinsQuery.data ?? []).map((pin) => {
+                const student = pin.student_id ? studentsById.get(pin.student_id) : null;
+                const descriptionParts = [
+                  student ? `Student: ${student.first_name} ${student.last_name}` : null,
+                  pin.notes,
+                ].filter(Boolean);
 
-              return (
+                return (
+                  <Marker
+                    key={pin.id}
+                    coordinate={{ latitude: pin.latitude, longitude: pin.longitude }}
+                    title={pin.title}
+                    description={descriptionParts.join("\n") || undefined}
+                    pinColor={resolveMapPinColor(pin, profile.id, pinColors)}
+                    onPress={() => setSelectedPinId(pin.id)}
+                  />
+                );
+              })}
+
+              {draftCoordinate ? (
                 <Marker
-                  key={pin.id}
-                  coordinate={{ latitude: pin.latitude, longitude: pin.longitude }}
-                  title={pin.title}
-                  description={descriptionParts.join("\n") || undefined}
-                  pinColor={resolveMapPinColor(pin, profile.id, pinColors)}
-                  onPress={() => setSelectedPinId(pin.id)}
+                  coordinate={draftCoordinate}
+                  title="New pin"
+                  description="Tap Save pin in the panel below."
+                  pinColor={pinColors.draftPin}
                 />
-              );
-            })}
+              ) : null}
+            </MapView>
 
-            {draftCoordinate ? (
-              <Marker
-                coordinate={draftCoordinate}
-                title="New pin"
-                description="Tap Save pin in the panel below."
-                pinColor={pinColors.draftPin}
-              />
-            ) : null}
-          </MapView>
-
-          <View pointerEvents="box-none" className="absolute left-4 right-4 top-4 gap-3">
-            <AppCard className="gap-3">
-              <View className="flex-row items-center justify-between gap-3">
-                <View className="flex-1">
-                  <AppText variant="heading">Google Maps</AppText>
-                  <AppText variant="caption">
-                    Long-press to add pins. Use snapshots in the bottom annotation panel.
-                  </AppText>
+            <View pointerEvents="box-none" className="absolute left-4 right-4 top-4 gap-3">
+              <AppCard className="gap-3">
+                <View className="flex-row items-center justify-between gap-3">
+                  <View className="flex-1">
+                    <AppText variant="heading">Google Maps</AppText>
+                    <AppText variant="caption">
+                      Long-press to add pins. Use snapshots in the bottom annotation panel.
+                    </AppText>
+                  </View>
+                  <AppButton
+                    width="auto"
+                    size="icon"
+                    icon={Pin}
+                    label=""
+                    accessibilityLabel="Add pin at map center"
+                    onPress={() => startDraftAtCoordinate(mapCenter)}
+                  />
                 </View>
-                <AppButton
-                  width="auto"
-                  size="icon"
-                  icon={Pin}
-                  label=""
-                  accessibilityLabel="Add pin at map center"
-                  onPress={() => startDraftAtCoordinate(mapCenter)}
-                />
-              </View>
 
               <AppSegmentedControl<MapLayer>
                 value={mapLayer}
@@ -1451,8 +1461,9 @@ export function GoogleMapsScreen(_props: Props) {
               </AppCard>
             </View>
           ) : null}
-        </View>
-      </SafeAreaView>
+          </View>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
       {snapshotEditorModal}
       {snapshotPreviewModal}
     </>
