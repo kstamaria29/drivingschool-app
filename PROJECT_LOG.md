@@ -1,4 +1,40 @@
-# PROJECT_LOG.md
+﻿# PROJECT_LOG.md
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Add student licence front/back photo upload + profile gallery viewer
+- **Summary:**
+  - Added student licence photo upload support in the student feature API/query layer with storage upload + signed URL persistence (`license_front_image_url`, `license_back_image_url`).
+  - Added Supabase migration `017_students_license_images.sql` and storage policy script for private `student-licenses` bucket paths (`<organization_id>/<student_id>/<front|back>.<ext>`).
+  - Updated `New/Edit student` screen to let users take photo or choose from library for front/back licence card images, preview selected images, and upload them when saving.
+  - Updated `Student Profile` to display licence image thumbnails and open a maximized modal viewer with next/previous and close controls.
+- **Files changed:**
+  - src/features/students/api.ts
+  - src/features/students/queries.ts
+  - src/navigation/screens/StudentEditScreen.tsx
+  - src/navigation/screens/StudentDetailScreen.tsx
+  - src/supabase/types.ts
+  - supabase/migrations/017_students_license_images.sql
+  - supabase/storage/student-licenses.sql
+  - supabase/README.md
+  - PROJECT_LOG.md
+  - docs/logs/PROJECT_LOG_ARCHIVE.md
+- **Commands run:**
+  - Get-Content -Raw AGENTS.md
+  - Get-Content -Raw PROJECT_LOG.md
+  - Get-Content -Raw docs/logs/INDEX.md
+  - Get-Content -Raw docs/logs/PROJECT_LOG_ARCHIVE.md
+  - mcp__context7__resolve-library-id (expo-image-picker)
+  - mcp__context7__query-docs (/websites/expo_dev)
+  - npx prettier --write src/navigation/screens/StudentEditScreen.tsx src/navigation/screens/StudentDetailScreen.tsx
+  - npx tsc --noEmit
+- **How to verify:**
+  - Apply `supabase/migrations/017_students_license_images.sql` and run `supabase/storage/student-licenses.sql` in Supabase.
+  - In `Students` -> `New student`, set required fields, open `Front photo options` / `Back photo options`, choose camera or library images, save student, and confirm profile shows both images.
+  - In `Students` -> open an existing student -> `Edit`, replace front/back images, save, and confirm profile thumbnails update.
+  - In `Student Profile`, tap a licence image and confirm the fullscreen modal opens, `Next`/`Previous` switches images, and `Close` exits.
+  - Run `npx tsc --noEmit` and confirm no type errors.
+
+---
 
 - **Date:** 2026-02-08 (Pacific/Auckland)
 - **Task:** Refine student assignment dropdown + organization show-all order + profile action placement
@@ -593,30 +629,4 @@ px tsc --noEmit and confirm no type errors.
   - Open Snapshot Annotation and confirm Undo/Redo icons are centered in their square buttons.
   - Open Lessons list and confirm month nav chevron icons are centered in square controls.
 
----
 
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Snapshot text sizes + automatic student auto-pin
-- **Summary:**
-  - Added selectable text-size controls in Snapshot Annotation and persisted text size in annotation payloads.
-  - Updated snapshot editor and preview rendering to respect per-text font size, with backward-compatible default sizing for existing saved snapshots.
-  - Removed the manual `Auto-pin active student addresses` button and switched Google Maps to automatic background auto-pin for active students with addresses.
-- **Files changed:**
-  - `src/features/map-annotations/codec.ts`
-  - `src/navigation/components/SnapshotAnnotationModal.tsx`
-  - `src/navigation/components/SnapshotPreviewModal.tsx`
-  - `src/navigation/screens/GoogleMapsScreen.tsx`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Raw PROJECT_LOG.md`
-  - `Get-Content -Raw docs/logs/INDEX.md`
-  - `mcp__context7__resolve-library-id (react-native-svg)`
-  - `mcp__context7__query-docs (/software-mansion/react-native-svg)`
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Open `Google Maps` and confirm there is no `Auto-pin active student addresses` button.
-  - Ensure there are active students with valid addresses and verify their pins appear automatically after map data loads.
-  - Open Snapshot Annotation, enter text, choose different text sizes, place labels, save, and reopen preview.
-  - Confirm placed labels render at the chosen font sizes both in editor and preview.

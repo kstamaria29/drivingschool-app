@@ -117,6 +117,8 @@ export type Database = {
           license_type: "learner" | "restricted" | "full" | null;
           license_number: string | null;
           license_version: string | null;
+          license_front_image_url: string | null;
+          license_back_image_url: string | null;
           class_held: string | null;
           issue_date: string | null;
           expiry_date: string | null;
@@ -138,6 +140,8 @@ export type Database = {
           license_type?: "learner" | "restricted" | "full" | null;
           license_number?: string | null;
           license_version?: string | null;
+          license_front_image_url?: string | null;
+          license_back_image_url?: string | null;
           class_held?: string | null;
           issue_date?: string | null;
           expiry_date?: string | null;
@@ -158,6 +162,8 @@ export type Database = {
           license_type?: "learner" | "restricted" | "full" | null;
           license_number?: string | null;
           license_version?: string | null;
+          license_front_image_url?: string | null;
+          license_back_image_url?: string | null;
           class_held?: string | null;
           issue_date?: string | null;
           expiry_date?: string | null;

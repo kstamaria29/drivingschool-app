@@ -8,9 +8,11 @@ import {
   getStudent,
   listStudents,
   unarchiveStudent,
+  uploadStudentLicenseImage,
   updateStudent,
   type ListStudentsInput,
   type StudentInsert,
+  type UploadStudentLicenseImageInput,
   type StudentUpdate,
 } from "./api";
 
@@ -92,6 +94,18 @@ export function useDeleteStudentMutation() {
     mutationFn: (studentId: string) => deleteStudent(studentId),
     onSuccess: async (_data, studentId) => {
       await invalidateStudentListAndDetail(queryClient, studentId);
+    },
+  });
+}
+
+export function useUploadStudentLicenseImageMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: UploadStudentLicenseImageInput) =>
+      uploadStudentLicenseImage(input),
+    onSuccess: async (student) => {
+      await invalidateStudentListAndDetail(queryClient, student.id);
     },
   });
 }

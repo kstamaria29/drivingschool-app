@@ -22,6 +22,7 @@ In the Supabase Dashboard:
    - `supabase/migrations/014_role_display_name.sql`
    - `supabase/migrations/015_profile_member_details.sql`
    - `supabase/migrations/016_students_organization_name.sql`
+   - `supabase/migrations/017_students_license_images.sql`
 
 ## Edge Functions
 
@@ -47,11 +48,13 @@ Create buckets (Dashboard → `Storage` → `New bucket`):
 
 - `org-logos` (private)
 - `avatars` (private)
+- `student-licenses` (private)
 
 Then apply policies (Dashboard → `SQL Editor`):
 
 - `supabase/storage/org-logos.sql`
 - `supabase/storage/avatars.sql`
+- `supabase/storage/student-licenses.sql`
 
 ## Verify RLS + permissions
 
@@ -73,3 +76,5 @@ Checks:
 - `owner` and `admin` can upload/replace `org-logos/<organization_id>/logo.*`.
 - `owner`, `admin`, and `instructor` can upload/update only their own `avatars/<auth.uid()>/avatar.*`.
 - Users can read avatars of other users in the same org (drawer/header avatar display).
+- `owner` and `admin` can upload/update/delete `student-licenses/<organization_id>/<student_id>/<front|back>.*` for any student in their org.
+- `instructor` can upload/update/delete/read licence images only for students assigned to them.
