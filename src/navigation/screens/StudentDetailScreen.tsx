@@ -409,7 +409,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                       color={organizationIconColor}
                       strokeWidth={2}
                     />
-                    <AppText className="text-[20px]" numberOfLines={1}>
+                    <AppText className="text-[23px]" numberOfLines={1}>
                       {student.organization_name ?? "-"}
                     </AppText>
                   </View>
@@ -636,6 +636,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                       label="Session History"
                       variant="secondary"
                       icon={Clock}
+                      badgePosition="label-top-right"
                       badgeCount={
                         sessionsQuery.isPending ? undefined : sessionCount
                       }
@@ -652,6 +653,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                       label="Assessment History"
                       variant="secondary"
                       icon={ClipboardList}
+                      badgePosition="label-top-right"
                       badgeCount={
                         assessmentsQuery.isPending ? undefined : assessmentCount
                       }
@@ -689,13 +691,13 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                   </View>
                 </AppStack>
 
-                <View className="flex-1" />
+                <View className="min-h-28 flex-1" />
 
                 <View className="flex-row gap-3">
                   {isArchived ? (
                     <AppButton
                       width="auto"
-                      className="flex-1 bg-emerald-600 border-emerald-600 dark:bg-emerald-600 dark:border-emerald-600"
+                      className="flex-1 bg-green-700 border-green-700 dark:bg-green-700 dark:border-green-700"
                       label={
                         unarchiveMutation.isPending
                           ? "Unarchiving..."
@@ -711,7 +713,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                   ) : (
                     <AppButton
                       width="auto"
-                      className="flex-1 bg-emerald-600 border-emerald-600 dark:bg-emerald-600 dark:border-emerald-600"
+                      className="flex-1 bg-green-700 border-green-700 dark:bg-green-700 dark:border-green-700"
                       label={
                         archiveMutation.isPending ? "Archiving..." : "Archive"
                       }

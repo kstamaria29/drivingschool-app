@@ -57,6 +57,7 @@ import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
 import { openPdfUri } from "../../utils/open-pdf";
 import { AssessmentStudentDropdown } from "../components/AssessmentStudentDropdown";
+import { useAssessmentLeaveGuard } from "../useAssessmentLeaveGuard";
 
 import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
 
@@ -204,6 +205,10 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
   const [feedbackFieldY, setFeedbackFieldY] = useState<
     Partial<Record<FeedbackKey, number>>
   >({});
+  const { leaveWithoutPrompt } = useAssessmentLeaveGuard({
+    navigation,
+    enabled: stage === "test",
+  });
 
   function onToggleSuggestions(key: FeedbackKey) {
     setOpenSuggestions((current) => (current === key ? null : key));
@@ -366,10 +371,10 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
               text: "Open",
               onPress: () => {
                 void openPdfUri(saved.uri);
-                navigation.goBack();
+                leaveWithoutPrompt(() => navigation.goBack());
               },
             },
-            { text: "Done", onPress: () => navigation.goBack() },
+            { text: "Done", onPress: () => leaveWithoutPrompt(() => navigation.goBack()) },
           ],
         );
       } catch (error) {

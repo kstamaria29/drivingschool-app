@@ -66,6 +66,7 @@ import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
 import { openPdfUri } from "../../utils/open-pdf";
 import { AssessmentStudentDropdown } from "../components/AssessmentStudentDropdown";
+import { useAssessmentLeaveGuard } from "../useAssessmentLeaveGuard";
 import { useNavigationLayout } from "../useNavigationLayout";
 
 import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
@@ -147,6 +148,10 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   const [stage, setStage] = useState<Stage>("details");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [startTestModalVisible, setStartTestModalVisible] = useState(false);
+  const { leaveWithoutPrompt } = useAssessmentLeaveGuard({
+    navigation,
+    enabled: stage === "run" || stage === "summary",
+  });
 
   const [sessionId, setSessionId] = useState(() => uid("session"));
   const [startTimeISO, setStartTimeISO] = useState<string | null>(null);
@@ -763,10 +768,10 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
               text: "Open",
               onPress: () => {
                 void openPdfUri(saved.uri);
-                navigation.goBack();
+                leaveWithoutPrompt(() => navigation.goBack());
               },
             },
-            { text: "Done", onPress: () => navigation.goBack() },
+            { text: "Done", onPress: () => leaveWithoutPrompt(() => navigation.goBack()) },
           ],
         );
       } catch (exportError) {
@@ -774,7 +779,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
           "Saved, but couldn't export PDF",
           `Assessment saved, but PDF export failed: ${toErrorMessage(exportError)}`,
         );
-        navigation.goBack();
+        leaveWithoutPrompt(() => navigation.goBack());
       }
     } catch (error) {
       Alert.alert("Couldn't submit assessment", toErrorMessage(error));

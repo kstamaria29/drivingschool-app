@@ -58,6 +58,7 @@ import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
 import { openPdfUri } from "../../utils/open-pdf";
 import { AssessmentStudentDropdown } from "../components/AssessmentStudentDropdown";
+import { useAssessmentLeaveGuard } from "../useAssessmentLeaveGuard";
 
 import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
 
@@ -158,6 +159,10 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     stage2: false,
   });
   const [draftResolvedStudentId, setDraftResolvedStudentId] = useState<string | null>(null);
+  const { leaveWithoutPrompt } = useAssessmentLeaveGuard({
+    navigation,
+    enabled: stage === "test",
+  });
 
   const organizationName = organizationQuery.data?.name ?? "Driving School";
 
@@ -403,10 +408,10 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
               text: "Open",
               onPress: () => {
                 void openPdfUri(saved.uri);
-                navigation.goBack();
+                leaveWithoutPrompt(() => navigation.goBack());
               },
             },
-            { text: "Done", onPress: () => navigation.goBack() },
+            { text: "Done", onPress: () => leaveWithoutPrompt(() => navigation.goBack()) },
           ],
         );
       } catch (exportError) {
@@ -414,7 +419,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
           "Saved, but couldn't export PDF",
           `Assessment saved, but PDF export failed: ${toErrorMessage(exportError)}`,
         );
-        navigation.goBack();
+        leaveWithoutPrompt(() => navigation.goBack());
       }
     } catch (error) {
       Alert.alert("Couldn't submit assessment", toErrorMessage(error));

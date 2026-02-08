@@ -872,3 +872,27 @@
 - **Summary:**
   - Updated `Driving Assessment`, `Mock Test - Restricted Licence`, and `Mock Test - Full License` student pickers so owner/admin `Show` mode no...
   - Added grouped picker layout in `Show` mode: `Your students` block first, followed by separate instructor blocks below, each labeled with the...
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Students pagination, assessment dropdown picker, optional driving scoring UX, and lesson/profile cou...
+- **Summary:**
+  - Added a new reusable assessment student dropdown with search and scrollable list behavior, showing up to 6 visible rows, alphabetized with t...
+  - Replaced the old button-list student selectors in all three assessment start screens with the dropdown flow.
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Google Maps pin color categories + configurable defaults
+- **Summary:**
+  - Added marker color categories on Google Maps so pins are visually differentiated for active students, other instructor's students, custom pi...
+  - Added a Pin colors editor in the top Google Maps panel with color swatches, plus a Reset action.
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** App-wide tablet keyboard avoidance for bottom-half inputs
+- **Summary:**
+  - Updated shared `Screen` keyboard behavior so tablet portrait keyboard avoidance now applies to both scroll and non-scroll screens.
+  - Lowered tablet detection threshold from `768` to `600` width to cover common Android tablet sizes.

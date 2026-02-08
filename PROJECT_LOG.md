@@ -1,9 +1,33 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile organization size, dark-green archive buttons, and safer bottom-action spacing
+- **Summary:**
+  - Updated Student Profile organization subtitle text under the student name to `23px` and changed Archive/Unarchive buttons to dark green.
+  - Added a minimum spacer before Archive/Delete actions so destructive buttons are consistently lower and require scroll access on tighter prof...
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student profile style tweaks + active assessment back confirmation
+- **Summary:**
+  - Updated Student Profile organization text under the student name to `25px` and set Archive/Unarchive actions to green styling.
+  - Added a shared assessment leave-guard across Driving, Restricted, and Full mock test screens to confirm before leaving once a test is in pro...
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile history badge placement and 2-digit badge fix
+- **Summary:**
+  - Updated Student Profile `Session History` and `Assessment History` buttons so count badges sit at the top-right of the label text instead of...
+  - Hardened badge pill sizing/text behavior to keep multi-digit counts on one line.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Global back button beside header menu with Home fallback
 - **Summary:**
-  - Added a shared header-left menu+back control across main app stacks so screens include both hamburger and back buttons, while Home keeps no...
+  - Added a shared header-left menu+back control across main app stacks so screens include both hamburger and back buttons, while Home keeps no....
   - Back action now uses stack `goBack()` when possible and falls back to drawer navigation to `HomeDashboard` as the final destination.
 
 ---
@@ -133,27 +157,3 @@
 - **Summary:**
   - Added `Organization` input to `New/Edit student` directly below Address, with quick-pick options (`Private`, `UMMA Trust`, `Renaissance`, `L...
   - Persisted `organization_name` in students CRUD payloads and added schema/type support across form validation and Supabase table typings.
-
----
-
-- **Date:** 2026-02-08 (Pacific/Auckland)
-- **Task:** App-wide tablet keyboard avoidance for bottom-half inputs
-- **Summary:**
-  - Updated shared `Screen` keyboard behavior so tablet portrait keyboard avoidance now applies to both scroll and non-scroll screens.
-  - Lowered tablet detection threshold from `768` to `600` width to cover common Android tablet sizes.
-
----
-
-- **Date:** 2026-02-08 (Pacific/Auckland)
-- **Task:** Google Maps pin color categories + configurable defaults
-- **Summary:**
-  - Added marker color categories on Google Maps so pins are visually differentiated for active students, other instructor's students, custom pi...
-  - Added a Pin colors editor in the top Google Maps panel with color swatches, plus a Reset action.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Students pagination, assessment dropdown picker, optional driving scoring UX, and lesson/profile cou...
-- **Summary:**
-  - Added a new reusable assessment student dropdown with search and scrollable list behavior, showing up to 6 visible rows, alphabetized with t...
-  - Replaced the old button-list student selectors in all three assessment start screens with the dropdown flow.
