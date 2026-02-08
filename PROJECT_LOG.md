@@ -1,30 +1,18 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Full badge orange + compact logging system
+- **Summary:**
+  - Changed the Students screen `Full` licence badge color from green to orange.
+  - Replaced the heavy log format with compact `Date/Task/Summary` entries and reduced archive size significantly.
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
 - **Task:** Students list organization label + licence badge styling update
 - **Summary:**
   - Replaced the Students table row text next to the licence badge from licence type labels to the student `organization_name`.
   - Renamed the right-side column header from `Licence` to `Organization` while keeping the L/R/F circular badge visible.
-  - Increased the badge letter typography by roughly 2px and made it bold.
-  - Updated the `Restricted` badge color to green.
-- **Files changed:**
-  - src/navigation/screens/StudentsListScreen.tsx
-  - PROJECT_LOG.md
-  - docs/logs/PROJECT_LOG_ARCHIVE.md
-- **Commands run:**
-  - Get-Content -Path AGENTS.md
-  - Get-Content -Path PROJECT_LOG.md
-  - Get-Content -Path docs/logs/INDEX.md
-  - mcp__context7__resolve-library-id (react-native)
-  - mcp__context7__query-docs (/websites/reactnative_dev)
-  - rg -n "Licence|license|organization_name|organization|badge|Learner|Restricted|Full|L\\)|R\\)|F\\)|circle|student row" src/navigation/screens/StudentsListScreen.tsx
-  - npx prettier --write src/navigation/screens/StudentsListScreen.tsx
-  - npx tsc --noEmit
-- **How to verify:**
-  - Open `Students` screen on tablet portrait.
-  - Confirm each row now shows organization text where licence type text was previously shown.
-  - Confirm the circular L/R/F badge still appears, with larger bold letters.
-  - Confirm `Restricted` badges render green.
 
 ---
 
@@ -33,26 +21,6 @@
 - **Summary:**
   - Updated `New/Edit student` Organization field to show selected value left-aligned in the trigger button (e.g., `Private`).
   - Replaced inline organization dropdown expansion with a modal action-sheet style picker (matching the photo options modal pattern).
-  - Added organization options modal with preset options plus `Custom`; selecting `Custom` opens the existing custom-organization input modal.
-- **Files changed:**
-  - src/navigation/screens/StudentEditScreen.tsx
-  - PROJECT_LOG.md
-  - docs/logs/PROJECT_LOG_ARCHIVE.md
-- **Commands run:**
-  - Get-Content -Raw AGENTS.md
-  - Get-Content -Raw PROJECT_LOG.md
-  - Get-Content -Raw docs/logs/INDEX.md
-  - mcp__context7__resolve-library-id (react-native)
-  - mcp__context7__query-docs (/websites/reactnative_dev)
-  - rg -n "organizationMenuOpen|customOrganizationModalVisible|studentOrganizationMenuOptions|Organization" src/navigation/screens/StudentEditScreen.tsx
-  - npx prettier --write src/navigation/screens/StudentEditScreen.tsx
-  - npx tsc --noEmit
-- **How to verify:**
-  - Open `Students` -> `New student`.
-  - Confirm Organization selected text (e.g., `Private`) is left-aligned in its button.
-  - Tap Organization and confirm an overlay modal appears (not inline dropdown) with options and `Custom`.
-  - Tap `Custom`, enter a value, save, and confirm it becomes the selected Organization value.
-  - Run `npx tsc --noEmit` and confirm no type errors.
 
 ---
 
@@ -60,178 +28,39 @@
 - **Task:** Student delete warning + history cascade cleanup + licence photo UI polish
 - **Summary:**
   - Updated student delete API flow to remove related `student_sessions` and `assessments` records before deleting the student row.
-  - Kept storage cleanup on delete and now removes all files under `student-licenses/<organization_id>/<student_id>/` as part of the delete flow.
-  - Updated Student Profile delete confirmation message to include an explicit warning when session history, assessment history, or licence photos exist, reminding users those records will be permanently removed.
-  - Updated Student Profile licence photo block so missing sides no longer render placeholders; each side now shows `Add Front Licence photo` / `Add Back Licence photo` when missing.
-  - Updated Add/Edit Student licence photo block with the same missing-side behavior and removed Front/Back caption labels.
-- **Files changed:**
-  - src/features/students/api.ts
-  - src/navigation/screens/StudentDetailScreen.tsx
-  - src/navigation/screens/StudentEditScreen.tsx
-  - PROJECT_LOG.md
-  - docs/logs/PROJECT_LOG_ARCHIVE.md
-- **Commands run:**
-  - Get-Content -Raw AGENTS.md
-  - Get-Content -Raw PROJECT_LOG.md
-  - Get-Content -Raw docs/logs/INDEX.md
-  - Get-Content -Raw docs/logs/PROJECT_LOG_ARCHIVE.md
-  - rg -n "create table if not exists public\\.student_sessions|create table if not exists public\\.assessments|references public\\.students|on delete|policy|for delete" supabase/migrations -g "*.sql"
-  - Get-Content -Raw src/features/sessions/api.ts
-  - Get-Content -Raw src/features/assessments/api.ts
-  - Get-Content -Raw src/features/students/api.ts
-  - Get-Content -Raw src/navigation/screens/StudentDetailScreen.tsx
-  - Get-Content -Raw src/navigation/screens/StudentEditScreen.tsx
-  - npx prettier --write src/features/students/api.ts src/navigation/screens/StudentDetailScreen.tsx src/navigation/screens/StudentEditScreen.tsx
-  - npx tsc --noEmit
-- **How to verify:**
-  - In Student Profile, test delete for a student that has session history, assessment history, and/or licence photos; confirm confirmation text includes a warning that those records/photos will disappear forever.
-  - Delete that student and confirm their session and assessment history no longer appears in app queries.
-  - In Supabase Storage, confirm files under `student-licenses/<organization_id>/<student_id>/` are removed.
-  - In Student Profile and Add/Edit Student screens, confirm missing front/back photo sides show only `Add Front Licence photo` / `Add Back Licence photo` buttons without placeholders or Front/Back captions.
-  - Run `npx tsc --noEmit` and confirm no type errors.
+  - Kept storage cleanup on delete and now removes all files under `student-licenses/<organization_id>/<student_id>/` as part of the delete flow...
 
 ---
 
 - **Date:** 2026-02-08 (Pacific/Auckland)
 - **Task:** Delete student licence files on student delete + crop-label feasibility check
 - **Summary:**
-  - Updated student delete flow to first fetch the student's `organization_id`, delete all files under `student-licenses/<organization_id>/<student_id>/`, then delete the student row.
+  - Updated student delete flow to first fetch the student's `organization_id`, delete all files under `student-licenses/<organization_id>/<stud...
   - This ensures licence front/back images are removed from Supabase Storage when a student is deleted.
-  - Verified `expo-image-picker` docs: crop UI action text is native/system-controlled; current Expo API does not expose a setting to rename `CROP` to `Ok`.
-- **Files changed:**
-  - src/features/students/api.ts
-  - PROJECT_LOG.md
-  - docs/logs/PROJECT_LOG_ARCHIVE.md
-- **Commands run:**
-  - Get-Content -Raw AGENTS.md
-  - Get-Content -Raw PROJECT_LOG.md
-  - Get-Content -Raw docs/logs/INDEX.md
-  - rg -n "deleteStudent|student-licenses|license_front|license_back|ImagePicker|allowsEditing|CROP|crop" src/features src/navigation -g "*.ts" -g "*.tsx"
-  - Get-Content -Raw src/features/students/api.ts
-  - Get-Content -Raw src/navigation/screens/StudentEditScreen.tsx
-  - Get-Content -Raw src/navigation/screens/StudentDetailScreen.tsx
-  - mcp__context7__resolve-library-id (expo-image-picker)
-  - mcp__context7__resolve-library-id (expo)
-  - mcp__context7__query-docs (/websites/expo_dev)
-  - npx prettier --write src/features/students/api.ts
-  - npx tsc --noEmit
-- **How to verify:**
-  - Ensure `student-licenses` bucket exists and the student has front/back licence photos uploaded.
-  - Delete that student from `Student Profile`.
-  - In Supabase Storage, confirm files inside `student-licenses/<organization_id>/<student_id>/` are removed.
-  - Run `npx tsc --noEmit` and confirm no type errors.
 
 ---
 
 - **Date:** 2026-02-08 (Pacific/Auckland)
 - **Task:** Reset Students filters on revisit + student photo options UX polish
 - **Summary:**
-  - Updated `Students` screen focus behavior so every re-entry resets controls to defaults: `Status=Active`, `Sort=Recent`, `By organization=Off`, organization selection reset, `View other instructor's students=Hide`, `Search` cleared, and pagination reset to page 1.
+  - Updated `Students` screen focus behavior so every re-entry resets controls to defaults: `Status=Active`, `Sort=Recent`, `By organization=Off...
   - Updated `Edit student` assignable instructor list to always exclude `admin` role entries.
-  - Replaced licence photo action alerts in both `Edit student` and `Student profile` with explicit modal action sheets that include top-right `X` close and `Cancel` button.
-  - Updated `Student profile` licence photos area:
-    - moved `Organization` below `Age`,
-    - added spacing between `Expiry date` and `Licence card photos`,
-    - centered `Front`/`Back` labels,
-    - when both photos are missing, hide front/back placeholders/headings and show `Add Front Licence photo` / `Add Back Licence photo` actions.
-- **Files changed:**
-  - src/navigation/screens/StudentsListScreen.tsx
-  - src/navigation/screens/StudentEditScreen.tsx
-  - src/navigation/screens/StudentDetailScreen.tsx
-  - PROJECT_LOG.md
-  - docs/logs/PROJECT_LOG_ARCHIVE.md
-- **Commands run:**
-  - Get-Content -Raw AGENTS.md
-  - Get-Content -Raw PROJECT_LOG.md
-  - Get-Content -Raw docs/logs/INDEX.md
-  - rg -n "student licence|license|date of birth|StudentEditScreen|StudentDetailScreen|keyboard" docs/logs/PROJECT_LOG_ARCHIVE.md
-  - npx prettier --write src/navigation/screens/StudentsListScreen.tsx src/navigation/screens/StudentEditScreen.tsx src/navigation/screens/StudentDetailScreen.tsx
-  - npx tsc --noEmit
-- **How to verify:**
-  - Open `Students`, change `Status/Sort/By organization/Search/page`, navigate away, then return; confirm defaults are restored.
-  - Open `Students -> Edit student` as owner and confirm no `admin` entries appear in assignable instructor options.
-  - In both `Edit student` and `Student profile`, tap `Front/Back photo options` and confirm modal includes an `X` close and `Cancel` action.
-  - In `Student profile`, confirm `Organization` appears below `Age`, and there is visual spacing between `Expiry date` and `Licence card photos`.
-  - For a student with no licence photos, confirm no `Front/Back` placeholders/labels are shown and action buttons read `Add Front Licence photo` / `Add Back Licence photo`.
-  - Run `npx tsc --noEmit` and confirm no type errors.
 
 ---
 
 - **Date:** 2026-02-08 (Pacific/Auckland)
 - **Task:** Refine student licence photo management + add date of birth
 - **Summary:**
-  - Added `students.date_of_birth` support end-to-end (migration `018`, Supabase types, Add/Edit form field with date picker, save/update mapping, and profile display).
-  - Updated Student Profile to display `Address: <value>` inline, show date of birth and computed age, and capitalize licence type labels (`Learner`, `Restricted`, `Full`).
-  - Added profile-level licence photo management: each side now has `photo options` to take photo, pick from library, and delete existing photo.
-  - Updated Add/Edit Student licence photo options to support crop-enabled capture/picking (`allowsEditing` + aspect), side-by-side Front/Back layout, and delete-on-save behavior for existing photos.
-  - Removed `Clear issue date` and `Clear expiry date` buttons from Add/Edit Student.
-  - Added focused-notes keyboard assist on Add/Edit Student by scrolling to end on notes focus so lower input stays visible above the keyboard.
-- **Files changed:**
-  - src/features/students/api.ts
-  - src/features/students/queries.ts
-  - src/features/students/schemas.ts
-  - src/navigation/screens/StudentEditScreen.tsx
-  - src/navigation/screens/StudentDetailScreen.tsx
-  - src/supabase/types.ts
-  - supabase/migrations/018_students_date_of_birth.sql
-  - supabase/README.md
-  - PROJECT_LOG.md
-  - docs/logs/PROJECT_LOG_ARCHIVE.md
-- **Commands run:**
-  - Get-Content -Raw AGENTS.md
-  - Get-Content -Raw PROJECT_LOG.md
-  - Get-Content -Raw docs/logs/INDEX.md
-  - rg -n "student licence|license|date of birth|StudentEditScreen|StudentDetailScreen|keyboard" docs/logs/PROJECT_LOG_ARCHIVE.md
-  - mcp__context7__resolve-library-id (expo-image-picker)
-  - mcp__context7__query-docs (/websites/expo_dev)
-  - npx prettier --write src/features/students/api.ts src/features/students/queries.ts src/features/students/schemas.ts src/supabase/types.ts src/navigation/screens/StudentEditScreen.tsx src/navigation/screens/StudentDetailScreen.tsx supabase/README.md
-  - npx tsc --noEmit
-- **How to verify:**
-  - Apply `supabase/migrations/018_students_date_of_birth.sql` in Supabase SQL Editor.
-  - Open `Students` -> `New student` and confirm `Date of birth` appears below `Last name`; save and verify DOB persists.
-  - Open a student profile and confirm `Address` shows inline (`Address: ...`), DOB displays when set, and Age shows correctly.
-  - Confirm Licence type text on profile is capitalized (`Learner`, `Restricted`, `Full`).
-  - In `New/Edit student`, open `Front photo options` and `Back photo options`, confirm camera/library opens with crop UI, and front/back sections render side-by-side.
-  - In `Edit student`, choose `Delete photo` for front/back and save; confirm deleted side is removed from profile.
-  - In `Student Profile`, use front/back `photo options` to replace or delete photos and confirm updates appear immediately.
-  - In `Edit student`, focus the `Notes` field on tablet portrait and confirm the input remains visible above keyboard.
-  - Run `npx tsc --noEmit` and confirm no type errors.
+  - Added `students.date_of_birth` support end-to-end (migration `018`, Supabase types, Add/Edit form field with date picker, save/update mappin...
+  - Updated Student Profile to display `Address: <value>` inline, show date of birth and computed age, and capitalize licence type labels (`Lear...
 
 ---
 
 - **Date:** 2026-02-08 (Pacific/Auckland)
 - **Task:** Add student licence front/back photo upload + profile gallery viewer
 - **Summary:**
-  - Added student licence photo upload support in the student feature API/query layer with storage upload + signed URL persistence (`license_front_image_url`, `license_back_image_url`).
-  - Added Supabase migration `017_students_license_images.sql` and storage policy script for private `student-licenses` bucket paths (`<organization_id>/<student_id>/<front|back>.<ext>`).
-  - Updated `New/Edit student` screen to let users take photo or choose from library for front/back licence card images, preview selected images, and upload them when saving.
-  - Updated `Student Profile` to display licence image thumbnails and open a maximized modal viewer with next/previous and close controls.
-- **Files changed:**
-  - src/features/students/api.ts
-  - src/features/students/queries.ts
-  - src/navigation/screens/StudentEditScreen.tsx
-  - src/navigation/screens/StudentDetailScreen.tsx
-  - src/supabase/types.ts
-  - supabase/migrations/017_students_license_images.sql
-  - supabase/storage/student-licenses.sql
-  - supabase/README.md
-  - PROJECT_LOG.md
-  - docs/logs/PROJECT_LOG_ARCHIVE.md
-- **Commands run:**
-  - Get-Content -Raw AGENTS.md
-  - Get-Content -Raw PROJECT_LOG.md
-  - Get-Content -Raw docs/logs/INDEX.md
-  - Get-Content -Raw docs/logs/PROJECT_LOG_ARCHIVE.md
-  - mcp__context7__resolve-library-id (expo-image-picker)
-  - mcp__context7__query-docs (/websites/expo_dev)
-  - npx prettier --write src/navigation/screens/StudentEditScreen.tsx src/navigation/screens/StudentDetailScreen.tsx
-  - npx tsc --noEmit
-- **How to verify:**
-  - Apply `supabase/migrations/017_students_license_images.sql` and run `supabase/storage/student-licenses.sql` in Supabase.
-  - In `Students` -> `New student`, set required fields, open `Front photo options` / `Back photo options`, choose camera or library images, save student, and confirm profile shows both images.
-  - In `Students` -> open an existing student -> `Edit`, replace front/back images, save, and confirm profile thumbnails update.
-  - In `Student Profile`, tap a licence image and confirm the fullscreen modal opens, `Next`/`Previous` switches images, and `Close` exits.
-  - Run `npx tsc --noEmit` and confirm no type errors.
+  - Added student licence photo upload support in the student feature API/query layer with storage upload + signed URL persistence (`license_fro...
+  - Added Supabase migration `017_students_license_images.sql` and storage policy script for private `student-licenses` bucket paths (`<organiza...
 
 ---
 
@@ -239,71 +68,15 @@
 - **Task:** Refine student assignment dropdown + organization show-all order + profile action placement
 - **Summary:**
   - Updated `New student` owner/admin assignment UX to use an instructor dropdown instead of listing all instructor buttons.
-  - Added a left-aligned trigger button label (`Assign new student to an Instructor`) with centered dropdown choices and centered selected state text.
-  - Added fallback behavior for owner/admin create flow: if no instructors exist in the organization, the Assigned Instructor block is hidden and assignment defaults to the logged-in user.
-  - Updated Students organization filtering with `Show all` and `Other's (not listed)` options; `Show all` now excludes `Private` and orders results as `Other's (not listed)` -> `Renaissance` -> `Lifeskill` -> `UMMA Trust`.
-  - Removed `1H` from Class held options on `New/Edit student`.
-  - Removed the `Danger zone` container and moved `Archive/Delete student` actions back to the bottom action stack under `Assessment History` with spacing.
-- **Files changed:**
-  - src/navigation/screens/StudentEditScreen.tsx
-  - src/navigation/screens/StudentsListScreen.tsx
-  - src/navigation/screens/StudentDetailScreen.tsx
-  - PROJECT_LOG.md
-  - docs/logs/PROJECT_LOG_ARCHIVE.md
-- **Commands run:**
-  - Get-Content -Raw AGENTS.md
-  - Get-Content -Raw PROJECT_LOG.md
-  - Get-Content -Raw docs/logs/INDEX.md
-  - rg --line-number "organization|assignedInstructorId|classHeld|Danger zone" src/navigation/screens
-  - npx tsc --noEmit
-  - git diff -- src/navigation/screens/StudentEditScreen.tsx src/navigation/screens/StudentsListScreen.tsx src/navigation/screens/StudentDetailScreen.tsx
-- **How to verify:**
-  - Open `Students` -> `New student` as owner/admin with instructors in org; confirm `Assigned Instructor` shows dropdown trigger text `Assign new student to an Instructor`, left aligned.
-  - Tap the trigger and confirm instructor options render as centered buttons; select one and confirm selected text updates.
-  - Test owner/admin org with no instructors and confirm `Assigned Instructor` block is hidden and save still works.
-  - Open `Students`, toggle `By organization` to `On`, choose `Show all`, and confirm `Private` students are excluded and group ordering follows `Other's (not listed)` -> `Renaissance` -> `Lifeskill` -> `UMMA Trust`.
-  - Open `New/Edit student` and confirm `Class held` no longer shows `1H`.
-  - Open `Student Profile` and confirm Archive/Delete buttons are at the bottom under `Assessment History` with spacing.
-  - Run `npx tsc --noEmit` and confirm no type errors.
+  - Added a left-aligned trigger button label (`Assign new student to an Instructor`) with centered dropdown choices and centered selected state...
 
 ---
 
 - **Date:** 2026-02-08 (Pacific/Auckland)
 - **Task:** Add student organization field + list filtering
 - **Summary:**
-  - Added `Organization` input to `New/Edit student` directly below Address, with quick-pick options (`Private`, `UMMA Trust`, `Renaissance`, `Lifeskill`) plus `Custom` modal entry.
+  - Added `Organization` input to `New/Edit student` directly below Address, with quick-pick options (`Private`, `UMMA Trust`, `Renaissance`, `L...
   - Persisted `organization_name` in students CRUD payloads and added schema/type support across form validation and Supabase table typings.
-  - Added `students.organization_name` migration (`016`) with backfill/default/not-null/check/index updates.
-  - Added Students screen organization filter toggle (`Off/On`) with organization selection options and filtering behavior.
-  - Updated Name sorting in Students list to sort by first name first (then last name).
-  - Moved archive/delete actions into a bottom `Danger zone` section on Student Profile and displayed organization there.
-- **Files changed:**
-  - src/features/students/constants.ts
-  - src/features/students/schemas.ts
-  - src/navigation/screens/StudentEditScreen.tsx
-  - src/navigation/screens/StudentsListScreen.tsx
-  - src/navigation/screens/StudentDetailScreen.tsx
-  - src/supabase/types.ts
-  - supabase/migrations/016_students_organization_name.sql
-  - supabase/README.md
-  - PROJECT_LOG.md
-  - docs/logs/PROJECT_LOG_ARCHIVE.md
-- **Commands run:**
-  - Get-Content -Raw AGENTS.md
-  - Get-Content -Raw PROJECT_LOG.md
-  - Get-Content -Raw docs/logs/INDEX.md
-  - Get-Content -Raw docs/logs/PROJECT_LOG_ARCHIVE.md
-  - rg --line-number "organization|students|StudentEditScreen|StudentsListScreen|StudentDetailScreen" src supabase
-  - mcp__context7__resolve-library-id (react-native)
-  - mcp__context7__query-docs (/websites/reactnative_dev)
-  - npx tsc --noEmit
-- **How to verify:**
-  - Open `Students` -> `New student` and confirm `Organization` appears below Address with listed options and a `Custom` modal flow.
-  - Save a new student with each organization type (preset + custom), reopen edit/detail screens, and confirm value persists.
-  - Open `Students` list, set `By organization` to `On`, select an organization, and confirm only matching students display.
-  - Switch Sort to `Name` and confirm list is ordered by first name (then last name).
-  - Open a Student Profile and confirm `Archive/Delete` actions are in the bottom `Danger zone` section.
-  - Run `npx tsc --noEmit` and confirm no type errors.
 
 ---
 
@@ -312,245 +85,54 @@
 - **Summary:**
   - Updated shared `Screen` keyboard behavior so tablet portrait keyboard avoidance now applies to both scroll and non-scroll screens.
   - Lowered tablet detection threshold from `768` to `600` width to cover common Android tablet sizes.
-  - Wrapped `Google Maps` screen with `KeyboardAvoidingView` so its input surfaces follow the same tablet keyboard behavior as shared-screen routes.
-- **Files changed:**
-  - src/components/Screen.tsx
-  - src/navigation/screens/GoogleMapsScreen.tsx
-  - PROJECT_LOG.md
-  - docs/logs/PROJECT_LOG_ARCHIVE.md
-- **Commands run:**
-  - Get-Content -Raw AGENTS.md
-  - Get-Content -Raw PROJECT_LOG.md
-  - Get-Content -Raw docs/logs/INDEX.md
-  - rg -n "keyboard|KeyboardAvoiding|softwareKeyboard|TextInput|input field|hide(s)? input|placeholder|KeyboardAware|adjustResize" docs/logs/PROJECT_LOG_ARCHIVE.md PROJECT_LOG.md
-  - rg -n "KeyboardAvoidingView|keyboardShouldPersistTaps|ScrollView|SafeAreaView|TextInput|softwareKeyboardLayoutMode|android.*keyboard|adjustResize" src app.config.ts app.json package.json -g "*.ts" -g "*.tsx" -g "*.json"
-  - Get-Content -Raw src/components/Screen.tsx
-  - mcp__context7__resolve-library-id (expo)
-  - mcp__context7__query-docs (/websites/expo_dev)
-  - mcp__context7__resolve-library-id (react-native)
-  - mcp__context7__query-docs (/websites/reactnative_dev)
-  - npx expo config --type public
-  - npx tsc --noEmit
-  - git diff -- src/components/Screen.tsx src/navigation/screens/GoogleMapsScreen.tsx
-- **How to verify:**
-  - On tablet portrait, open any form screen and focus an input in the lower half of the screen.
-  - Confirm the screen content shifts above the keyboard and the focused input remains visible while typing.
-  - Verify this on both screens that use shared `Screen` and `Google Maps` search input.
-  - Recheck key form screens: `Edit details`, `New/Edit student`, `New/Edit lesson`, `Assessments` screens.
 
 ---
 
 - **Date:** 2026-02-08 (Pacific/Auckland)
 - **Task:** Google Maps pin color categories + configurable defaults
 - **Summary:**
-  - Added marker color categories on Google Maps so pins are visually differentiated for active students, other instructor's students, custom pins, and the draft/new pin marker.
+  - Added marker color categories on Google Maps so pins are visually differentiated for active students, other instructor's students, custom pi...
   - Added a Pin colors editor in the top Google Maps panel with color swatches, plus a Reset action.
-  - Added per-user/per-organization persistence for pin color defaults using AsyncStorage so selected defaults remain after app restarts.
-  - Updated marker rendering to resolve color by pin category instead of a single hardcoded color.
-- **Files changed:**
-  - src/navigation/screens/GoogleMapsScreen.tsx
-  - PROJECT_LOG.md
-  - docs/logs/PROJECT_LOG_ARCHIVE.md
-- **Commands run:**
-  - Get-Content -Raw AGENTS.md
-  - Get-Content -Raw PROJECT_LOG.md
-  - Get-Content -Raw docs/logs/INDEX.md
-  - rg -n "GoogleMapsScreen|Marker|pinColor|map pins|custom pin|student" src/navigation/screens src/features -g "*.ts" -g "*.tsx"
-  - mcp__context7__resolve-library-id (react-native-maps)
-  - npx tsc --noEmit
-  - git status --short
-  - git diff -- src/navigation/screens/GoogleMapsScreen.tsx
-- **How to verify:**
-  - Open drawer -> Google Maps.
-  - Confirm existing pins render with different colors for active student pins, other instructor student pins, and custom pins.
-  - Add a new draft pin and confirm draft marker color is distinct.
-  - In the top card, open Pin colors -> Edit and change each category color; confirm markers update immediately.
-  - Close and reopen the app, then return to Google Maps and confirm chosen pin colors persist.
 
 ---
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Students pagination, assessment dropdown picker, optional driving scoring UX, and lesson/profile count badges
+- **Task:** Students pagination, assessment dropdown picker, optional driving scoring UX, and lesson/profile cou...
 - **Summary:**
-  - Added a new reusable assessment student dropdown with search and scrollable list behavior, showing up to 6 visible rows, alphabetized with the logged-in instructor students first and other instructors students after.
+  - Added a new reusable assessment student dropdown with search and scrollable list behavior, showing up to 6 visible rows, alphabetized with t...
   - Replaced the old button-list student selectors in all three assessment start screens with the dropdown flow.
-  - Updated Driving Assessment scoring UX to support explicit N/A per criterion and clarified total scoring as based on answered criteria; updated feedback suggestion chips to multi-select toggle behavior for Strengths, Improvements, Recommendation, and Next steps.
-  - Added students paging at 10 per page with chevron controls and bottom centered Page x / y navigator; top-right chevrons appear on the owner row.
-  - Replaced Class held text input with toggle buttons (1L, 1R, 1H, 1F) on Add/Edit Student.
-  - Added count badges for Session/Assessment history buttons on Student Profile and count badges on Assessment History tabs.
-  - Updated Home lessons widget to show only the current owner/admin instructor lessons (not other instructors students) and renamed heading to Lessons Today.
-  - Extended AppButton to support optional icon badge counts for reuse across profile/history surfaces.
-- **Files changed:**
-  - src/navigation/components/AssessmentStudentDropdown.tsx
-  - src/components/AppButton.tsx
-  - src/navigation/screens/DrivingAssessmentScreen.tsx
-  - src/navigation/screens/RestrictedMockTestScreen.tsx
-  - src/navigation/screens/FullLicenseMockTestScreen.tsx
-  - src/navigation/screens/StudentsListScreen.tsx
-  - src/navigation/screens/StudentEditScreen.tsx
-  - src/navigation/screens/StudentDetailScreen.tsx
-  - src/navigation/screens/StudentAssessmentHistoryScreen.tsx
-  - src/navigation/screens/HomeScreen.tsx
-  - PROJECT_LOG.md
-  - docs/logs/PROJECT_LOG_ARCHIVE.md
-- **Commands run:**
-  - Get-Content -Raw AGENTS.md
-  - Get-Content -Raw PROJECT_LOG.md
-  - Get-Content -Raw docs/logs/INDEX.md
-  - 
-g -n "StudentsListScreen|DrivingAssessmentScreen|RestrictedMockTestScreen|FullLicenseMockTestScreen|StudentDetailScreen|StudentAssessmentHistoryScreen|HomeScreen" src -g "*.tsx"
-  - mcp__context7__resolve-library-id (react-native)
-  - mcp__context7__query-docs (/websites/reactnative_dev)
-  - 
-px tsc --noEmit
-  - git status --short
-  - git diff --stat
-  - PowerShell log rotation script (append new entry + keep latest 20)
-- **How to verify:**
-  - Open Students and confirm only 10 students render per page, top-right chevrons are shown on the owner row, and the bottom centered pager reads Page x / y with working left/right navigation.
-  - Open each assessment start screen (Driving Assessment, Mock Test - Restricted Licence, Mock Test - Full License) and confirm student selection is via dropdown with search and scrollable list (6 visible rows), ordered as your students first then other instructors.
-  - In Driving Assessment test stage, mark one criterion N/A, confirm total percent remains based on answered criteria, and verify feedback suggestions toggle multiple selected lines in each feedback field.
-  - Open Students -> New/Edit student and confirm Class held shows 4 toggle buttons: 1L, 1R, 1H, 1F.
-  - Open a Student Profile and confirm badge counts appear on Session History and Assessment History buttons; open Assessment History and confirm badge counts appear on all three tabs.
-  - Open Home as owner/admin and confirm lessons shown in Lessons Today / Next 3 days belong only to the logged-in instructor.
-  - Run 
-px tsc --noEmit and confirm no type errors.
 
 ---
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
 - **Task:** Group other instructors' students in assessment pickers
 - **Summary:**
-  - Updated `Driving Assessment`, `Mock Test - Restricted Licence`, and `Mock Test - Full License` student pickers so owner/admin `Show` mode no longer mixes all students in one list.
-  - Added grouped picker layout in `Show` mode: `Your students` block first, followed by separate instructor blocks below, each labeled with the designated instructor name.
-  - Added organization profile lookups in those screens to resolve instructor display names from `assigned_instructor_id`.
-  - Kept `Hide` mode behavior unchanged (owner/admin see only self-assigned students), and kept instructor behavior unchanged.
-- **Files changed:**
-  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
-  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
-  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Raw PROJECT_LOG.md`
-  - `Get-Content -Raw docs/logs/INDEX.md`
-  - `Get-Content -Raw docs/logs/PROJECT_LOG_ARCHIVE.md`
-  - `rg -n "assigned_instructor_id|useStudentsQuery|Student" src/navigation/screens/*.tsx src/features/students/api.ts src/features/profiles/api.ts`
-  - `mcp__context7__resolve-library-id (react)`
-  - `mcp__context7__query-docs (/websites/react_dev)`
-  - `npx tsc --noEmit`
-  - `git status --short`
-  - `git diff --stat src/navigation/screens/DrivingAssessmentScreen.tsx src/navigation/screens/RestrictedMockTestScreen.tsx src/navigation/screens/FullLicenseMockTestScreen.tsx`
-- **How to verify:**
-  - Open each assessment screen as owner/admin and switch `Other Instructor's Students` to `Show`.
-  - Confirm the picker renders `Your students` first, then additional block containers below labeled by instructor name.
-  - Confirm students are not mixed across blocks.
-  - Switch back to `Hide` and confirm only self-assigned students are listed.
-  - Run `npx tsc --noEmit` and confirm no type errors.
+  - Updated `Driving Assessment`, `Mock Test - Restricted Licence`, and `Mock Test - Full License` student pickers so owner/admin `Show` mode no...
+  - Added grouped picker layout in `Show` mode: `Your students` block first, followed by separate instructor blocks below, each labeled with the...
 
 ---
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
 - **Task:** Assessments student filtering toggle + full mock optional spoken fields
 - **Summary:**
-  - Updated all three assessment student selectors (`Driving Assessment`, `Mock Test - Restricted Licence`, `Mock Test - Full License`) so owner/admin default view hides other instructors' students.
-  - Added a right-aligned `Other Instructor's Students` segmented toggle (`Hide`/`Show`) on the same row as the `Student` heading in those three assessment screens.
-  - Kept instructor behavior unchanged and applied filtering only to owner/admin by matching `assigned_instructor_id` to the current user when toggle is `Hide`.
-  - In `Mock Test - Full License`, made `Hazard(s) spoken` and `Action spoken` optional by removing blocking validation checks and updating field labels to optional.
-  - Updated Students screen owner toggle label text from `View Instructor's Students` to `View other instructor's students`.
-- **Files changed:**
-  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
-  - `src/navigation/screens/RestrictedMockTestScreen.tsx`
-  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
-  - `src/navigation/screens/StudentsListScreen.tsx`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `rg -n "Hazard\(s\) spoken|Action spoken|studentsQuery|Student" src/navigation/screens src/features/assessments`
-  - `mcp__context7__resolve-library-id (react)`
-  - `mcp__context7__query-docs (/websites/react_dev)`
-  - `npx tsc --noEmit`
-  - `git status --short`
-  - `git diff --stat src/navigation/screens/DrivingAssessmentScreen.tsx src/navigation/screens/RestrictedMockTestScreen.tsx src/navigation/screens/FullLicenseMockTestScreen.tsx src/navigation/screens/StudentsListScreen.tsx`
-- **How to verify:**
-  - Open each assessment screen as owner/admin and confirm `Other Instructor's Students` toggle appears on the Student header row, defaulting to `Hide`.
-  - With toggle on `Hide`, confirm only self-assigned students are listed; switch to `Show` and confirm additional instructor-assigned students appear.
-  - Open `Mock Test - Full License` and confirm `Hazard(s) spoken` and `Action spoken` labels display `(optional)` and attempts can be recorded without entering those fields.
-  - Open `Students` as owner/admin and confirm label now reads `View other instructor's students`.
-  - Run `npx tsc --noEmit` and confirm no type errors.
+  - Updated all three assessment student selectors (`Driving Assessment`, `Mock Test - Restricted Licence`, `Mock Test - Full License`) so owner...
+  - Added a right-aligned `Other Instructor's Students` segmented toggle (`Hide`/`Show`) on the same row as the `Student` heading in those three...
 
 ---
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
 - **Task:** Refactor Batch 2+3: query invalidation helpers + shared async UI states
 - **Summary:**
-  - Added `invalidateQueriesByKey` helper to centralize parallel React Query cache invalidation calls and reduced duplicated invalidation blocks in account/profile/student/lesson mutations.
-  - Added reusable async-state UI primitives (`CenteredLoadingState`, `ErrorStateCard`, `EmptyStateCard`) for consistent loading/error/empty rendering.
-  - Refactored `Home`, `Lessons`, `Students`, and `View Members` screens to use shared async-state components without changing routes, feature behavior, or API contracts.
-  - Introduced low-risk key constants/helpers (`students`/`lessons` roots and `profileKeys.memberRoot`) to remove repeated raw query-key arrays.
-- **Files changed:**
-  - `src/utils/query.ts`
-  - `src/features/account/queries.ts`
-  - `src/features/profiles/queries.ts`
-  - `src/features/students/queries.ts`
-  - `src/features/lessons/queries.ts`
-  - `src/components/AsyncState.tsx`
-  - `src/navigation/screens/HomeScreen.tsx`
-  - `src/navigation/screens/LessonsListScreen.tsx`
-  - `src/navigation/screens/StudentsListScreen.tsx`
-  - `src/navigation/screens/ViewMembersScreen.tsx`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `rg -n "invalidateQueries\(|isPending|ActivityIndicator" src/features src/navigation/screens`
-  - `mcp__context7__resolve-library-id (@tanstack/react-query)`
-  - `mcp__context7__query-docs (/tanstack/query/v5.71.10)`
-  - `npx tsc --noEmit`
-  - `npm run lint` (fails: missing `lint` script in `package.json`)
-  - `npm run`
-  - `git status --short`
-  - `git diff --stat`
-- **How to verify:**
-  - Run `npx tsc --noEmit` and confirm no TypeScript errors.
-  - Open `Home` and confirm lessons loading/error states and retry action behave as before.
-  - Open `Lessons` list and confirm loading state still appears while monthly lessons fetch.
-  - Open `Students` and verify loading/error/empty cards still display the same messages and retry behavior for both main list and owner/admin member-dependent blocks.
-  - Open `Settings` -> `View members` and confirm loading/error/retry behavior is unchanged.
+  - Added `invalidateQueriesByKey` helper to centralize parallel React Query cache invalidation calls and reduced duplicated invalidation blocks...
+  - Added reusable async-state UI primitives (`CenteredLoadingState`, `ErrorStateCard`, `EmptyStateCard`) for consistent loading/error/empty ren...
 
 ---
 
 - **Date:** 2026-02-07 (Pacific/Auckland)
 - **Task:** Batch 1 refactor: dead code cleanup + type safety hardening
 - **Summary:**
-  - Removed unreachable navigation/screen code (`MainTabsNavigator`, `EditNameScreen`) and related unused account name-update schema/query/api paths.
+  - Removed unreachable navigation/screen code (`MainTabsNavigator`, `EditNameScreen`) and related unused account name-update schema/query/api p...
   - Replaced remaining real `any` usages with typed alternatives in weather parsing and driving-assessment RHF field-path wiring.
-  - Cleared strict-TypeScript unused symbols in large screens and Supabase client imports without changing runtime behavior.
-- **Files changed:**
-  - `src/features/account/api.ts`
-  - `src/features/account/queries.ts`
-  - `src/features/account/schemas.ts`
-  - `src/features/weather/api.ts`
-  - `src/navigation/screens/DrivingAssessmentScreen.tsx`
-  - `src/navigation/screens/FullLicenseMockTestScreen.tsx`
-  - `src/navigation/screens/GoogleMapsScreen.tsx`
-  - `src/navigation/screens/StudentAssessmentHistoryScreen.tsx`
-  - `src/navigation/MainTabsNavigator.tsx` (deleted)
-  - `src/navigation/screens/EditNameScreen.tsx` (deleted)
-  - `src/supabase/client.ts`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `git status -sb`
-  - `mcp__context7__resolve-library-id (react-hook-form)`
-  - `mcp__context7__query-docs (/react-hook-form/documentation)`
-  - `npx tsc --noEmit`
-  - `npx tsc --noEmit --noUnusedLocals --noUnusedParameters`
-- **How to verify:**
-  - Run `npx tsc --noEmit` and confirm no type errors.
-  - Run `npx tsc --noEmit --noUnusedLocals --noUnusedParameters` and confirm no unused symbol errors.
-  - Open `Assessments` -> `Driving Assessment` and verify score buttons still save values for all criteria.
-  - Open `Assessments` -> `Full License Mock Test` and `Students` -> `Assessment History` and confirm screens load normally.
 
 ---
 
@@ -559,18 +141,6 @@ px tsc --noEmit and confirm no type errors.
 - **Summary:**
   - Added a `Sign out` action in the sidebar menu above the bottom divider/settings block.
   - Added a confirmation alert (`Cancel` / `Sign out`) before signing out.
-  - On confirmation, triggers auth sign-out so the app returns to the login flow.
-- **Files changed:**
-  - `src/navigation/components/AppDrawerContent.tsx`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - Open the drawer and confirm `Sign out` appears above the divider and `Settings`.
-  - Tap `Sign out` and confirm the confirmation alert appears.
-  - Tap `Cancel` and confirm you remain signed in.
-  - Tap `Sign out` in the alert and confirm you are returned to `LoginScreen`.
 
 ---
 
@@ -579,29 +149,6 @@ px tsc --noEmit and confirm no type errors.
 - **Summary:**
   - Excluded `admin` from assignable instructor options on `New student` and `New lesson` screens.
   - Added save confirmations for `Edit student` and for both `New lesson`/`Edit lesson` submissions.
-  - Added permanent `Delete student` action on student profile and icon-only `Delete lesson` action on edit lesson header.
-  - Added student/lesson delete API + query mutations and new RLS delete policies migration.
-- **Files changed:**
-  - `src/navigation/screens/StudentEditScreen.tsx`
-  - `src/navigation/screens/LessonEditScreen.tsx`
-  - `src/navigation/screens/StudentDetailScreen.tsx`
-  - `src/features/students/api.ts`
-  - `src/features/students/queries.ts`
-  - `src/features/lessons/api.ts`
-  - `src/features/lessons/queries.ts`
-  - `supabase/migrations/011_students_lessons_delete_policies.sql`
-  - `supabase/README.md`
-  - `PROJECT_LOG.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `npx tsc --noEmit`
-- **How to verify:**
-  - New student/new lesson: confirm admin users are not shown in assignable instructor options.
-  - Edit student: tap `Save student` and confirm a save confirmation appears before update.
-  - New/edit lesson: tap save/create and confirm confirmation appears before mutation.
-  - Student profile: confirm red `Delete student` appears below archive/unarchive and deletes after confirmation.
-  - Edit lesson: confirm top-right icon-only delete button appears and deletes after confirmation.
-  - Apply `supabase/migrations/011_students_lessons_delete_policies.sql` before testing deletes against Supabase.
 
 ---
 
@@ -610,57 +157,3 @@ px tsc --noEmit and confirm no type errors.
 - **Summary:**
   - Reviewed all entries in `PROJECT_LOG.md` and `docs/logs/PROJECT_LOG_ARCHIVE.md` to align instructions with current implemented behavior.
   - Replaced the oversized spec-style `AGENTS.md` with a concise operations guide focused on current app reality and durable working rules.
-  - Preserved mandatory workflow items (MCP lookup expectations, migrations process, log/commit/verification requirements) while removing outdated or redundant sections.
-- **Files changed:**
-  - `AGENTS.md`
-  - `PROJECT_LOG.md`
-  - `docs/logs/INDEX.md`
-  - `docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **Commands run:**
-  - `Get-Content -Raw AGENTS.md`
-  - `Get-Content -Raw PROJECT_LOG.md`
-  - `Get-Content -Raw docs/logs/PROJECT_LOG_ARCHIVE.md`
-  - `rg --no-heading "^- \\*\\*Date:\\*\\*|^- \\*\\*Task:\\*\\*" PROJECT_LOG.md docs/logs/PROJECT_LOG_ARCHIVE.md`
-- **How to verify:**
-  - Open `AGENTS.md` and confirm it is significantly shorter and references current roles (`owner`, `admin`, `instructor`) and current feature baseline.
-  - Confirm `PROJECT_LOG.md` still contains 20 entries and includes this new entry at the bottom.
-  - Confirm the oldest previously active entry now exists in `docs/logs/PROJECT_LOG_ARCHIVE.md`.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Add Google Maps screen with persistent pins
-- **Summary:**
-  - Added a new drawer route Google Maps with a near full-screen interactive map view.
-  - Implemented map layer switching (Default, Satellite, Hybrid) and pin creation via long-press or map-center placement.
-  - Added pin labels/notes and optional student linking, backed by a new tenant-safe map_pins table with RLS.
-  - Added map pin API/query hooks and marker selection/delete support on the map screen.
-  - Added optional build-time GOOGLE_MAPS_API_KEY wiring through Expo config for react-native-maps plugin setup.
-- **Files changed:**
-  - .env.example
-  - README.md
-  - app.config.ts
-  - package.json
-  - package-lock.json
-  - src/features/map-pins/api.ts
-  - src/features/map-pins/queries.ts
-  - src/navigation/MainDrawerNavigator.tsx
-  - src/navigation/MapsStackNavigator.tsx
-  - src/navigation/components/AppDrawerContent.tsx
-  - src/navigation/screens/GoogleMapsScreen.tsx
-  - src/supabase/types.ts
-  - supabase/migrations/012_map_pins.sql
-  - supabase/README.md
-  - PROJECT_LOG.md
-  - docs/logs/PROJECT_LOG_ARCHIVE.md
-- **Commands run:**
-  - npx expo install react-native-maps
-  - npx tsc --noEmit
-  - npx expo config --type public
-- **How to verify:**
-  - Apply supabase/migrations/012_map_pins.sql in Supabase SQL Editor.
-  - Set GOOGLE_MAPS_API_KEY for local/EAS builds and rebuild the app.
-  - Open drawer -> Google Maps and confirm the map renders full-screen with layer toggle controls.
-  - Long-press map to add a pin, enter label/notes, optionally link a student, and save.
-  - Tap an existing marker to view details, then delete it and confirm it disappears.
-

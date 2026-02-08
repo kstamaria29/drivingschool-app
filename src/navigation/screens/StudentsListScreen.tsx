@@ -150,8 +150,8 @@ function licenseTypeBadgeClasses(type: string | null) {
   if (type === "full") {
     return {
       wrapper:
-        "border-emerald-600/30 bg-emerald-600/15 dark:border-emerald-500/30 dark:bg-emerald-500/15",
-      text: "text-emerald-800 dark:text-emerald-200",
+        "border-orange-500/30 bg-orange-500/15 dark:border-orange-400/30 dark:bg-orange-400/15",
+      text: "text-orange-800 dark:text-orange-200",
     };
   }
 
