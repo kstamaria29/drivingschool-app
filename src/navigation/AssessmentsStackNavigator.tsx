@@ -3,7 +3,7 @@ import { useMemo } from "react";
 
 import { useAppColorScheme } from "../providers/ColorSchemeProvider";
 
-import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButtons";
+import { HeaderLeftMenuWithBack, HeaderRightAvatar } from "./components/HeaderButtons";
 import { getNativeStackScreenOptions } from "./navigationTheme";
 import { AssessmentsListScreen } from "./screens/AssessmentsListScreen";
 import { DrivingAssessmentScreen } from "./screens/DrivingAssessmentScreen";
@@ -29,7 +29,7 @@ export function AssessmentsStackNavigator() {
       screenOptions={{
         ...baseOptions,
         headerTitle: "",
-        headerLeft: () => <HeaderLeftHamburger />,
+        headerLeft: () => <HeaderLeftMenuWithBack />,
         headerRight: () => <HeaderRightAvatar />,
       }}
     >

@@ -1,6 +1,6 @@
 import { Pressable, View } from "react-native";
-import { DrawerActions, useNavigation } from "@react-navigation/native";
-import { Menu } from "lucide-react-native";
+import { DrawerActions, type NavigationProp, type ParamListBase, useNavigation } from "@react-navigation/native";
+import { ChevronLeft, Menu } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
 import { Avatar } from "../../components/Avatar";
@@ -34,6 +34,51 @@ export function HeaderLeftHamburger() {
         <Menu color={iconColor} size={isTabletPortrait ? 26 : 24} />
       </View>
     </Pressable>
+  );
+}
+
+type HeaderLeftMenuWithBackProps = {
+  showBack?: boolean;
+};
+
+export function HeaderLeftMenuWithBack({ showBack = true }: HeaderLeftMenuWithBackProps) {
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const { isSidebar, isTablet } = useNavigationLayout();
+  const { colorScheme } = useColorScheme();
+  const isTabletPortrait = isTablet && !isSidebar;
+  const buttonSize = isTabletPortrait ? 48 : 44;
+  const iconSize = isTabletPortrait ? 26 : 24;
+  const iconColor = colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
+
+  function onBackPress() {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
+    const parentNavigation = navigation.getParent<NavigationProp<ParamListBase>>();
+    parentNavigation?.navigate("Home", { screen: "HomeDashboard" });
+  }
+
+  return (
+    <View className="flex-row items-center gap-2">
+      {!isSidebar ? <HeaderLeftHamburger /> : null}
+      {showBack ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          onPress={onBackPress}
+          hitSlop={10}
+        >
+          <View
+            className="items-center justify-center rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark"
+            style={{ height: buttonSize, width: buttonSize }}
+          >
+            <ChevronLeft color={iconColor} size={iconSize} />
+          </View>
+        </Pressable>
+      ) : null}
+    </View>
   );
 }
 

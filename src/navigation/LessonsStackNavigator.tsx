@@ -3,7 +3,7 @@ import { useMemo } from "react";
 
 import { useAppColorScheme } from "../providers/ColorSchemeProvider";
 
-import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButtons";
+import { HeaderLeftMenuWithBack, HeaderRightAvatar } from "./components/HeaderButtons";
 import { getNativeStackScreenOptions } from "./navigationTheme";
 import { LessonEditScreen } from "./screens/LessonEditScreen";
 import { LessonsListScreen } from "./screens/LessonsListScreen";
@@ -26,14 +26,11 @@ export function LessonsStackNavigator() {
       screenOptions={{
         ...baseOptions,
         headerTitle: "",
+        headerLeft: () => <HeaderLeftMenuWithBack />,
         headerRight: () => <HeaderRightAvatar />,
       }}
     >
-      <Stack.Screen
-        name="LessonsList"
-        component={LessonsListScreen}
-        options={{ headerLeft: () => <HeaderLeftHamburger /> }}
-      />
+      <Stack.Screen name="LessonsList" component={LessonsListScreen} />
       <Stack.Screen name="LessonCreate" component={LessonEditScreen} />
       <Stack.Screen name="LessonEdit" component={LessonEditScreen} />
     </Stack.Navigator>

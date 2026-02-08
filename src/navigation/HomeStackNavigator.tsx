@@ -3,7 +3,7 @@ import { useMemo } from "react";
 
 import { useAppColorScheme } from "../providers/ColorSchemeProvider";
 
-import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButtons";
+import { HeaderLeftMenuWithBack, HeaderRightAvatar } from "./components/HeaderButtons";
 import { getNativeStackScreenOptions } from "./navigationTheme";
 import { HomeScreen } from "./screens/HomeScreen";
 
@@ -23,7 +23,7 @@ export function HomeStackNavigator() {
       screenOptions={{
         ...baseOptions,
         headerTitle: "",
-        headerLeft: () => <HeaderLeftHamburger />,
+        headerLeft: () => <HeaderLeftMenuWithBack showBack={false} />,
         headerRight: () => <HeaderRightAvatar />,
       }}
     >

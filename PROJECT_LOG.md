@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Global back button beside header menu with Home fallback
+- **Summary:**
+  - Added a shared header-left menu+back control across main app stacks so screens include both hamburger and back buttons, while Home keeps no...
+  - Back action now uses stack `goBack()` when possible and falls back to drawer navigation to `HomeDashboard` as the final destination.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Lessons calendar square connected date cells
 - **Summary:**
   - Updated the Lessons month calendar date cells to remove rounded corners and remove spacing so cells connect as a continuous grid.
@@ -36,7 +44,7 @@
 - **Task:** Maps pin-panel redesign + assessment picker and start-flow updates
 - **Summary:**
   - Removed Google Maps top `Pin colors` panel, redesigned selected-pin actions/details (icon-only delete, color picker button, tip + right-alig...
-  - Updated assessment student picker behavior to only show results after typing search text, switched Driving Assessment start confirmation to...
+  - Updated assessment student picker behavior to only show results after typing search text, switched Driving Assessment start confirmation to....
 
 ---
 
@@ -149,11 +157,3 @@
 - **Summary:**
   - Added a new reusable assessment student dropdown with search and scrollable list behavior, showing up to 6 visible rows, alphabetized with t...
   - Replaced the old button-list student selectors in all three assessment start screens with the dropdown flow.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Group other instructors' students in assessment pickers
-- **Summary:**
-  - Updated `Driving Assessment`, `Mock Test - Restricted Licence`, and `Mock Test - Full License` student pickers so owner/admin `Show` mode no...
-  - Added grouped picker layout in `Show` mode: `Your students` block first, followed by separate instructor blocks below, each labeled with the...

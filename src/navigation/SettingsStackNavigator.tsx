@@ -3,7 +3,7 @@ import { useMemo } from "react";
 
 import { useAppColorScheme } from "../providers/ColorSchemeProvider";
 
-import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButtons";
+import { HeaderLeftMenuWithBack, HeaderRightAvatar } from "./components/HeaderButtons";
 import { getNativeStackScreenOptions } from "./navigationTheme";
 import { AddInstructorScreen } from "./screens/AddInstructorScreen";
 import { ChangePasswordScreen } from "./screens/ChangePasswordScreen";
@@ -36,6 +36,7 @@ export function SettingsStackNavigator() {
       initialRouteName="SettingsMain"
       screenOptions={{
         ...baseOptions,
+        headerLeft: () => <HeaderLeftMenuWithBack />,
       }}
     >
       <Stack.Screen
@@ -43,7 +44,6 @@ export function SettingsStackNavigator() {
         component={SettingsScreen}
         options={{
           headerTitle: "",
-          headerLeft: () => <HeaderLeftHamburger />,
           headerRight: () => <HeaderRightAvatar />,
         }}
       />
