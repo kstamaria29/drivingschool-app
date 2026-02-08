@@ -291,7 +291,6 @@ export function StudentEditScreen({ navigation, route }: Props) {
     canManageStudentAssignments && !isEditing && instructorProfiles.length > 0;
   const hideAssignedInstructorCard =
     canManageStudentAssignments &&
-    !isEditing &&
     !orgProfilesQuery.isPending &&
     !orgProfilesQuery.isError &&
     instructorProfiles.length === 0;

@@ -9,7 +9,15 @@ import {
   type FieldErrors,
   type FieldPath,
 } from "react-hook-form";
-import { ActivityIndicator, Alert, Platform, ScrollView, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+} from "react-native";
 import { ArrowLeft, FileDown, Play, RefreshCw, X } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
@@ -54,7 +62,7 @@ import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
 
 type Props = NativeStackScreenProps<AssessmentsStackParamList, "DrivingAssessment">;
 
-type DrivingAssessmentStage = "details" | "confirm" | "test";
+type DrivingAssessmentStage = "details" | "test";
 type DrivingAssessmentCategoryKey = keyof typeof drivingAssessmentCriteria;
 
 function scoreFieldName(
@@ -189,6 +197,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
 
   const [stage, setStage] = useState<DrivingAssessmentStage>("details");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [startTestModalVisible, setStartTestModalVisible] = useState(false);
 
   const scrollRef = useRef<ScrollView | null>(null);
   const [openSuggestions, setOpenSuggestions] = useState<FeedbackKey | null>(null);
@@ -251,6 +260,12 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
     if (!selectedStudentId) return null;
     return students.find((s) => s.id === selectedStudentId) ?? null;
   }, [selectedStudentId, studentsQuery.data]);
+
+  useEffect(() => {
+    if (!selectedStudent) {
+      setStartTestModalVisible(false);
+    }
+  }, [selectedStudent]);
 
   useEffect(() => {
     const initialStudentId = route.params?.studentId ?? null;
@@ -380,7 +395,8 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen scroll={false}>
+    <>
+      <Screen scroll={false}>
       <ScrollView ref={scrollRef} contentContainerClassName="gap-4 pb-6">
         <AppStack gap="lg">
           <View>
@@ -517,35 +533,8 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
               label="Start Test"
               disabled={!selectedStudent}
               icon={Play}
-              onPress={() => setStage("confirm")}
+              onPress={() => setStartTestModalVisible(true)}
             />
-          ) : null}
-
-          {stage === "confirm" ? (
-            <AppCard className="gap-3">
-              <AppText variant="heading">Start test?</AppText>
-              <AppText variant="body">
-                {selectedStudent
-                  ? `You're about to start scoring ${selectedStudent.first_name} ${selectedStudent.last_name}.`
-                  : "Select a student first."}
-              </AppText>
-              <AppStack gap="sm">
-                <AppButton
-                  width="auto"
-                  variant="secondary"
-                  label="Back"
-                  icon={ArrowLeft}
-                  onPress={() => setStage("details")}
-                />
-                <AppButton
-                  width="auto"
-                  label="Start"
-                  icon={Play}
-                  disabled={!selectedStudent}
-                  onPress={() => setStage("test")}
-                />
-              </AppStack>
-            </AppCard>
           ) : null}
 
           {stage === "test" ? (
@@ -704,6 +693,52 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
           />
         </AppStack>
       </ScrollView>
-    </Screen>
+      </Screen>
+
+      <Modal
+        visible={startTestModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setStartTestModalVisible(false)}
+      >
+        <Pressable
+          className="flex-1 bg-black/40 px-6 py-10"
+          onPress={() => setStartTestModalVisible(false)}
+        >
+          <Pressable
+            className="m-auto w-full max-w-md"
+            onPress={(event) => event.stopPropagation()}
+          >
+            <AppCard className="gap-3">
+              <AppText variant="heading">Start test?</AppText>
+              <AppText variant="body">
+                {selectedStudent
+                  ? `You're about to start scoring ${selectedStudent.first_name} ${selectedStudent.last_name}.`
+                  : "Select a student first."}
+              </AppText>
+              <AppStack gap="sm">
+                <AppButton
+                  width="auto"
+                  variant="secondary"
+                  label="Cancel"
+                  icon={ArrowLeft}
+                  onPress={() => setStartTestModalVisible(false)}
+                />
+                <AppButton
+                  width="auto"
+                  label="Start"
+                  icon={Play}
+                  disabled={!selectedStudent}
+                  onPress={() => {
+                    setStartTestModalVisible(false);
+                    setStage("test");
+                  }}
+                />
+              </AppStack>
+            </AppCard>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
   );
 }

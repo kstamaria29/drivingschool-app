@@ -1,5 +1,21 @@
 # PROJECT_LOG.md
 
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Maps pin-panel redesign + assessment picker and start-flow updates
+- **Summary:**
+  - Removed Google Maps top `Pin colors` panel, redesigned selected-pin actions/details (icon-only delete, color picker button, tip + right-aligned snapshot count), and made the no-selection camera action much larger and more visible.
+  - Updated assessment student picker behavior to only show results after typing search text, switched Driving Assessment start confirmation to a modal, and hid Assigned Instructor card in Student Edit when the organization has no instructors.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student profile detail-card layout refresh
+- **Summary:**
+  - Restyled Student Profile Contact and Licence details into left-aligned boxed fields that match the licence photo action button visual style.
+  - Reordered Contact/Licence rows to the requested 2-column structure, moved organization under the student name with an icon, and pushed Archive/Delete actions to the screen bottom.
+
+---
+
 - **Date:** 2026-02-08 (Pacific/Auckland)
 - **Task:** Full badge orange + compact logging system
 - **Summary:**
@@ -142,18 +158,4 @@
   - Added a `Sign out` action in the sidebar menu above the bottom divider/settings block.
   - Added a confirmation alert (`Cancel` / `Sign out`) before signing out.
 
----
 
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Add delete actions and save confirmations for students/lessons
-- **Summary:**
-  - Excluded `admin` from assignable instructor options on `New student` and `New lesson` screens.
-  - Added save confirmations for `Edit student` and for both `New lesson`/`Edit lesson` submissions.
-
----
-
-- **Date:** 2026-02-07 (Pacific/Auckland)
-- **Task:** Refactor AGENTS.md using full project log history
-- **Summary:**
-  - Reviewed all entries in `PROJECT_LOG.md` and `docs/logs/PROJECT_LOG_ARCHIVE.md` to align instructions with current implemented behavior.
-  - Replaced the oversized spec-style `AGENTS.md` with a concise operations guide focused on current app reality and durable working rules.

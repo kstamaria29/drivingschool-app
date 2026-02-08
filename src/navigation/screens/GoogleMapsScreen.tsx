@@ -8,6 +8,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   LayoutChangeEvent,
+  Modal,
   PanResponder,
   Platform,
   Pressable,
@@ -21,7 +22,7 @@ import MapView, {
   PROVIDER_GOOGLE,
   type LatLng,
 } from "react-native-maps";
-import { Camera, MapPin, Pin, Trash2, User } from "lucide-react-native";
+import { Camera, MapPin, Palette, Pin, Trash2, User } from "lucide-react-native";
 
 import { AddressAutocompleteInput } from "../../components/AddressAutocompleteInput";
 import { AppButton } from "../../components/AppButton";
@@ -104,6 +105,7 @@ const SNAPSHOT_CAPTURE_SIZE = 1080;
 const SNAPSHOT_CAPTURE_QUALITY = 0.65;
 const TABLET_MIN_WIDTH = 600;
 const MAP_PIN_COLOR_STORAGE_KEY_PREFIX = "drivingschool.maps.pin-colors.v1";
+const MAP_PIN_COLOR_OVERRIDE_STORAGE_KEY_PREFIX = "drivingschool.maps.pin-color-overrides.v1";
 const MAP_PIN_COLOR_OPTIONS = [
   "#22c55e",
   "#3b82f6",
@@ -122,16 +124,6 @@ const DEFAULT_MAP_PIN_COLORS: MapPinColors = {
   customPins: "#3b82f6",
   draftPin: "#ef4444",
 };
-const MAP_PIN_COLOR_FEATURES: Array<{ key: MapPinColorFeatureKey; label: string; legend: string }> = [
-  { key: "activeStudentPins", label: "Active students", legend: "Active students" },
-  {
-    key: "otherInstructorStudentPins",
-    label: "Other instructor's students",
-    legend: "Other instructors",
-  },
-  { key: "customPins", label: "Custom pins", legend: "Custom pins" },
-  { key: "draftPin", label: "New draft pin", legend: "Draft pin" },
-];
 
 const MAP_LAYER_OPTIONS: Array<{ value: MapLayer; label: string }> = [
   { value: "standard", label: "Default" },
@@ -160,6 +152,10 @@ function clamp(value: number, minimum: number, maximum: number) {
 
 function mapPinColorStorageKey(organizationId: string, profileId: string) {
   return `${MAP_PIN_COLOR_STORAGE_KEY_PREFIX}:${organizationId}:${profileId}`;
+}
+
+function mapPinColorOverrideStorageKey(organizationId: string, profileId: string) {
+  return `${MAP_PIN_COLOR_OVERRIDE_STORAGE_KEY_PREFIX}:${organizationId}:${profileId}`;
 }
 
 function isHexColor(value: unknown): value is string {
@@ -197,6 +193,17 @@ function resolveStoredMapPinColors(raw: unknown): MapPinColors {
 
 function isSameHexColor(left: string, right: string) {
   return normalizeHexColor(left) === normalizeHexColor(right);
+}
+
+function resolveStoredPinColorOverrides(raw: unknown) {
+  if (!raw || typeof raw !== "object") return {} as Record<string, string>;
+  const parsed = raw as Record<string, unknown>;
+  const overrides: Record<string, string> = {};
+  for (const [pinId, color] of Object.entries(parsed)) {
+    if (!isHexColor(color)) continue;
+    overrides[pinId] = normalizeHexColor(color);
+  }
+  return overrides;
 }
 
 function resolveMapPinColor(
@@ -259,6 +266,10 @@ export function GoogleMapsScreen(_props: Props) {
     () => mapPinColorStorageKey(profile.organization_id, profile.id),
     [profile.id, profile.organization_id],
   );
+  const pinColorOverrideStorage = useMemo(
+    () => mapPinColorOverrideStorageKey(profile.organization_id, profile.id),
+    [profile.id, profile.organization_id],
+  );
   const pinsQuery = useMapPinsQuery({ organizationId: profile.organization_id });
   const studentsQuery = useStudentsQuery({ archived: false });
   const annotationsQuery = useMapAnnotationsQuery({ organizationId: profile.organization_id });
@@ -278,7 +289,9 @@ export function GoogleMapsScreen(_props: Props) {
   const [mapSearchPending, setMapSearchPending] = useState(false);
   const [pinColors, setPinColors] = useState<MapPinColors>(DEFAULT_MAP_PIN_COLORS);
   const [pinColorsHydrated, setPinColorsHydrated] = useState(false);
-  const [showPinColorEditor, setShowPinColorEditor] = useState(false);
+  const [pinColorOverrides, setPinColorOverrides] = useState<Record<string, string>>({});
+  const [pinColorOverridesHydrated, setPinColorOverridesHydrated] = useState(false);
+  const [pinColorPickerVisible, setPinColorPickerVisible] = useState(false);
 
   const [selectedPinId, setSelectedPinId] = useState<string | null>(null);
 
@@ -326,6 +339,14 @@ export function GoogleMapsScreen(_props: Props) {
     () => (pinsQuery.data ?? []).find((pin) => pin.id === selectedPinId) ?? null,
     [pinsQuery.data, selectedPinId],
   );
+  const selectedPinResolvedColor = useMemo(() => {
+    if (!selectedPin) return pinColors.customPins;
+    const overrideColor = pinColorOverrides[selectedPin.id];
+    if (overrideColor && isHexColor(overrideColor)) {
+      return normalizeHexColor(overrideColor);
+    }
+    return resolveMapPinColor(selectedPin, profile.id, pinColors);
+  }, [pinColorOverrides, pinColors, profile.id, selectedPin]);
 
   useEffect(() => {
     let active = true;
@@ -366,6 +387,46 @@ export function GoogleMapsScreen(_props: Props) {
     if (!pinColorsHydrated) return;
     void AsyncStorage.setItem(pinColorStorage, JSON.stringify(pinColors));
   }, [pinColorStorage, pinColors, pinColorsHydrated]);
+
+  useEffect(() => {
+    let active = true;
+    setPinColorOverridesHydrated(false);
+
+    void AsyncStorage.getItem(pinColorOverrideStorage)
+      .then((raw) => {
+        if (!active) return;
+        if (!raw) {
+          setPinColorOverrides({});
+          return;
+        }
+
+        try {
+          const parsed: unknown = JSON.parse(raw);
+          setPinColorOverrides(resolveStoredPinColorOverrides(parsed));
+        } catch {
+          setPinColorOverrides({});
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setPinColorOverrides({});
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setPinColorOverridesHydrated(true);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [pinColorOverrideStorage]);
+
+  useEffect(() => {
+    if (!pinColorOverridesHydrated) return;
+    void AsyncStorage.setItem(pinColorOverrideStorage, JSON.stringify(pinColorOverrides));
+  }, [pinColorOverrideStorage, pinColorOverrides, pinColorOverridesHydrated]);
 
   const studentOptions = useMemo(() => {
     const all = studentsQuery.data ?? [];
@@ -469,6 +530,24 @@ export function GoogleMapsScreen(_props: Props) {
       lastAutoPinRunKeyRef.current = "";
     }
   }, [autoPinCandidates.length]);
+
+  useEffect(() => {
+    if (!selectedPin) {
+      setPinColorPickerVisible(false);
+    }
+  }, [selectedPin]);
+
+  function resolveMapPinMarkerColor(pin: {
+    id: string;
+    student_id: string | null;
+    instructor_id: string;
+  }) {
+    const overrideColor = pinColorOverrides[pin.id];
+    if (overrideColor && isHexColor(overrideColor)) {
+      return normalizeHexColor(overrideColor);
+    }
+    return resolveMapPinColor(pin, profile.id, pinColors);
+  }
 
   function clearDraft() {
     setDraftCoordinate(null);
@@ -590,6 +669,12 @@ export function GoogleMapsScreen(_props: Props) {
               organizationId: selectedPin.organization_id,
             })
             .then(() => {
+              setPinColorOverrides((previous) => {
+                if (!(selectedPin.id in previous)) return previous;
+                const next = { ...previous };
+                delete next[selectedPin.id];
+                return next;
+              });
               setSelectedPinId(null);
             })
             .catch((error) => {
@@ -957,19 +1042,28 @@ export function GoogleMapsScreen(_props: Props) {
     ],
   );
 
-  function updatePinColor(featureKey: MapPinColorFeatureKey, color: string) {
+  function setSelectedPinColor(color: string) {
+    if (!selectedPin) return;
     const normalizedColor = normalizeHexColor(color);
-    setPinColors((previous) => {
-      if (isSameHexColor(previous[featureKey], normalizedColor)) return previous;
+    setPinColorOverrides((previous) => {
+      if (previous[selectedPin.id] && isSameHexColor(previous[selectedPin.id], normalizedColor)) {
+        return previous;
+      }
       return {
         ...previous,
-        [featureKey]: normalizedColor,
+        [selectedPin.id]: normalizedColor,
       };
     });
   }
 
-  function resetPinColors() {
-    setPinColors(DEFAULT_MAP_PIN_COLORS);
+  function clearSelectedPinColor() {
+    if (!selectedPin) return;
+    setPinColorOverrides((previous) => {
+      if (!(selectedPin.id in previous)) return previous;
+      const next = { ...previous };
+      delete next[selectedPin.id];
+      return next;
+    });
   }
 
   function handleSnapshotCanvasLayout(event: LayoutChangeEvent) {
@@ -1090,33 +1184,30 @@ export function GoogleMapsScreen(_props: Props) {
           />
           <AppButton
             width="auto"
+            size="icon"
+            variant="secondary"
+            icon={Palette}
+            iconColor={selectedPinResolvedColor}
+            label=""
+            accessibilityLabel="Change selected pin color"
+            onPress={() => setPinColorPickerVisible(true)}
+          />
+          <AppButton
+            width="auto"
+            size="icon"
             variant="danger"
             icon={Trash2}
-            label={deleteMapPin.isPending ? "Deleting..." : "Delete pin"}
+            label=""
+            accessibilityLabel={
+              deleteMapPin.isPending ? "Deleting selected pin" : "Delete selected pin"
+            }
             disabled={deleteMapPin.isPending}
             onPress={confirmDeletePin}
           />
         </View>
       </View>
 
-      {selectedPin.student_id ? (
-        <AppText variant="caption">
-          Student:{" "}
-          {(() => {
-            const student = studentsById.get(selectedPin.student_id!);
-            if (!student) return "Unknown student";
-            return `${student.first_name} ${student.last_name}`;
-          })()}
-        </AppText>
-      ) : null}
-
       {selectedPin.notes ? <AppText variant="body">{selectedPin.notes}</AppText> : null}
-
-      <AppText variant="caption">
-        Lat {selectedPin.latitude.toFixed(5)}, Lng {selectedPin.longitude.toFixed(5)}
-      </AppText>
-
-      <AppText variant="caption">Snapshots: {activeSnapshotAnnotations.length}</AppText>
 
       {activeSnapshotAnnotations.slice(0, 4).map((annotation) => (
         <View
@@ -1143,11 +1234,14 @@ export function GoogleMapsScreen(_props: Props) {
         </View>
       ))}
 
-      {activeSnapshotAnnotations.length === 0 ? (
-        <AppText variant="caption">
+      <View className="flex-row items-start justify-between gap-3">
+        <AppText className="flex-1" variant="caption">
           Tip: Use the camera button to add a snapshot annotation for this pin.
         </AppText>
-      ) : null}
+        <AppText className="text-right" variant="caption">
+          Snapshots: {activeSnapshotAnnotations.length}
+        </AppText>
+      </View>
     </AppCard>
   ) : null;
 
@@ -1158,8 +1252,10 @@ export function GoogleMapsScreen(_props: Props) {
         <AppButton
           width="auto"
           size="icon"
-          variant="secondary"
+          variant="primary"
+          className="h-[72px] w-[72px]"
           icon={Camera}
+          iconSize={32}
           label=""
           accessibilityLabel="Capture snapshot for main map"
           disabled={snapshotCapturePending}
@@ -1245,6 +1341,64 @@ export function GoogleMapsScreen(_props: Props) {
       onCanvasLayout={handlePreviewCanvasLayout}
     />
   );
+  const selectedPinColorModal = (
+    <Modal
+      visible={pinColorPickerVisible && selectedPin != null}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setPinColorPickerVisible(false)}
+    >
+      <Pressable
+        className="flex-1 bg-black/40 px-6 py-10"
+        onPress={() => setPinColorPickerVisible(false)}
+      >
+        <Pressable
+          className="m-auto w-full max-w-md"
+          onPress={(event) => event.stopPropagation()}
+        >
+          <AppCard className="gap-3">
+            <AppText variant="heading">Pin color</AppText>
+            <AppText variant="caption">Choose a color for this selected pin.</AppText>
+
+            <View className="flex-row flex-wrap gap-3">
+              {MAP_PIN_COLOR_OPTIONS.map((color) => {
+                const selected = isSameHexColor(selectedPinResolvedColor, color);
+                return (
+                  <Pressable
+                    key={`selected-pin-color:${color}`}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Set selected pin color ${color}`}
+                    onPress={() => setSelectedPinColor(color)}
+                    className={cn(
+                      "h-9 w-9 rounded-full border-2",
+                      selected
+                        ? "border-foreground dark:border-foregroundDark"
+                        : "border-border dark:border-borderDark",
+                    )}
+                    style={{ backgroundColor: color }}
+                  />
+                );
+              })}
+            </View>
+
+            <AppButton
+              variant="secondary"
+              label="Use default color"
+              onPress={() => {
+                clearSelectedPinColor();
+                setPinColorPickerVisible(false);
+              }}
+            />
+            <AppButton
+              variant="ghost"
+              label="Done"
+              onPress={() => setPinColorPickerVisible(false)}
+            />
+          </AppCard>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
 
   return (
     <>
@@ -1288,7 +1442,7 @@ export function GoogleMapsScreen(_props: Props) {
                     coordinate={{ latitude: pin.latitude, longitude: pin.longitude }}
                     title={pin.title}
                     description={descriptionParts.join("\n") || undefined}
-                    pinColor={resolveMapPinColor(pin, profile.id, pinColors)}
+                    pinColor={resolveMapPinMarkerColor(pin)}
                     onPress={() => setSelectedPinId(pin.id)}
                   />
                 );
@@ -1336,66 +1490,6 @@ export function GoogleMapsScreen(_props: Props) {
                   options={TRAFFIC_OPTIONS}
                   onChange={setTrafficMode}
                 />
-              </View>
-
-              <View className="gap-2 rounded-xl border border-border px-3 py-3 dark:border-borderDark">
-                <View className="flex-row items-center justify-between gap-2">
-                  <AppText variant="label">Pin colors</AppText>
-                  <View className="flex-row items-center gap-2">
-                    <AppButton width="auto" variant="ghost" label="Reset" onPress={resetPinColors} />
-                    <AppButton
-                      width="auto"
-                      variant="secondary"
-                      label={showPinColorEditor ? "Done" : "Edit"}
-                      onPress={() => setShowPinColorEditor((previous) => !previous)}
-                    />
-                  </View>
-                </View>
-
-                <View className="flex-row flex-wrap gap-2">
-                  {MAP_PIN_COLOR_FEATURES.map((feature) => (
-                    <View
-                      key={`legend:${feature.key}`}
-                      className="flex-row items-center gap-1 rounded-full border border-border px-2 py-1 dark:border-borderDark"
-                    >
-                      <View
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: pinColors[feature.key] }}
-                      />
-                      <AppText variant="caption">{feature.legend}</AppText>
-                    </View>
-                  ))}
-                </View>
-
-                {showPinColorEditor ? (
-                  <View className="gap-3">
-                    {MAP_PIN_COLOR_FEATURES.map((feature) => (
-                      <View key={`editor:${feature.key}`} className="gap-2">
-                        <AppText variant="caption">{feature.label}</AppText>
-                        <View className="flex-row flex-wrap gap-2">
-                          {MAP_PIN_COLOR_OPTIONS.map((color) => {
-                            const selected = isSameHexColor(pinColors[feature.key], color);
-                            return (
-                              <Pressable
-                                key={`${feature.key}:${color}`}
-                                accessibilityRole="button"
-                                accessibilityLabel={`${feature.label} color ${color}`}
-                                onPress={() => updatePinColor(feature.key, color)}
-                                className={cn(
-                                  "h-7 w-7 rounded-full border-2",
-                                  selected
-                                    ? "border-foreground dark:border-foregroundDark"
-                                    : "border-border dark:border-borderDark",
-                                )}
-                                style={{ backgroundColor: color }}
-                              />
-                            );
-                          })}
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                ) : null}
               </View>
 
               <AddressAutocompleteInput
@@ -1466,6 +1560,7 @@ export function GoogleMapsScreen(_props: Props) {
       </KeyboardAvoidingView>
       {snapshotEditorModal}
       {snapshotPreviewModal}
+      {selectedPinColorModal}
     </>
   );
 }

@@ -816,3 +816,19 @@
 - **Summary:**
   - Added a new drawer route Google Maps with a near full-screen interactive map view.
   - Implemented map layer switching (Default, Satellite, Hybrid) and pin creation via long-press or map-center placement.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Refactor AGENTS.md using full project log history
+- **Summary:**
+  - Reviewed all entries in `PROJECT_LOG.md` and `docs/logs/PROJECT_LOG_ARCHIVE.md` to align instructions with current implemented behavior.
+  - Replaced the oversized spec-style `AGENTS.md` with a concise operations guide focused on current app reality and durable working rules.
+
+---
+
+- **Date:** 2026-02-07 (Pacific/Auckland)
+- **Task:** Add delete actions and save confirmations for students/lessons
+- **Summary:**
+  - Excluded `admin` from assignable instructor options on `New student` and `New lesson` screens.
+  - Added save confirmations for `Edit student` and for both `New lesson`/`Edit lesson` submissions.
