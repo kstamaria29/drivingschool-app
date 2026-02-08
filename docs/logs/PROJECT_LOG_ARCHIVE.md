@@ -912,3 +912,11 @@
 - **Summary:**
   - Updated `New student` owner/admin assignment UX to use an instructor dropdown instead of listing all instructor buttons.
   - Added a left-aligned trigger button label (`Assign new student to an Instructor`) with centered dropdown choices and centered selected state...
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Add student licence front/back photo upload + profile gallery viewer
+- **Summary:**
+  - Added student licence photo upload support in the student feature API/query layer with storage upload + signed URL persistence (`license_fro...
+  - Added Supabase migration `017_students_license_images.sql` and storage policy script for private `student-licenses` bucket paths (`<organiza...

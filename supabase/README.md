@@ -25,6 +25,7 @@ In the Supabase Dashboard:
    - `supabase/migrations/017_students_license_images.sql`
    - `supabase/migrations/018_students_date_of_birth.sql`
    - `supabase/migrations/019_student_reminders.sql`
+   - `supabase/migrations/020_student_reminders_time.sql`
 
 ## Edge Functions
 

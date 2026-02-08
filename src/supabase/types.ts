@@ -399,6 +399,7 @@ export type Database = {
           instructor_id: string;
           title: string;
           reminder_date: string;
+          reminder_time: string;
           notification_offsets_minutes: number[];
           created_at: string;
           updated_at: string;
@@ -410,6 +411,7 @@ export type Database = {
           instructor_id: string;
           title: string;
           reminder_date: string;
+          reminder_time?: string;
           notification_offsets_minutes?: number[];
           created_at?: string;
           updated_at?: string;
@@ -420,6 +422,7 @@ export type Database = {
           instructor_id?: string;
           title?: string;
           reminder_date?: string;
+          reminder_time?: string;
           notification_offsets_minutes?: number[];
           updated_at?: string;
         };

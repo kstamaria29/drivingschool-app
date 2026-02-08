@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Reminders screen modal create flow + simplified layout
+- **Summary:**
+  - Removed the top Reminders summary container and switched `Add new` to a full modal create flow with `Title`, input, `Date`, `Time`, and `Not...
+  - Added a `2 days before` notification option and wired reminder `Time` through DB + notification scheduling while keeping the requested helpe...
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Assessment submit return-to-profile flow + driving suggestion priority
 - **Summary:**
   - Updated all assessment submit flows to return to `StudentDetail` when launched from Student Profile, instead of dropping users on the Assess...
@@ -149,11 +157,3 @@
 - **Summary:**
   - Added `students.date_of_birth` support end-to-end (migration `018`, Supabase types, Add/Edit form field with date picker, save/update mappin...
   - Updated Student Profile to display `Address: <value>` inline, show date of birth and computed age, and capitalize licence type labels (`Lear...
-
----
-
-- **Date:** 2026-02-08 (Pacific/Auckland)
-- **Task:** Add student licence front/back photo upload + profile gallery viewer
-- **Summary:**
-  - Added student licence photo upload support in the student feature API/query layer with storage upload + signed URL persistence (`license_fro...
-  - Added Supabase migration `017_students_license_images.sql` and storage policy script for private `student-licenses` bucket paths (`<organiza...

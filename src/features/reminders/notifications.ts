@@ -10,7 +10,7 @@ import type { StudentReminder } from "./api";
 
 const REMINDERS_CHANNEL_ID = "student-reminders";
 const REMINDER_STORAGE_KEY_PREFIX = "drivingschool.student-reminders.notifications.v1";
-const REMINDER_DEFAULT_HOUR = 9;
+const DEFAULT_REMINDER_TIME = "09:00";
 
 type ReminderNotificationState = {
   ids: string[];
@@ -30,7 +30,7 @@ function normalizeOffsets(offsets: number[]) {
 }
 
 function reminderSignature(reminder: StudentReminder) {
-  return `${reminder.reminder_date}|${normalizeOffsets(reminder.notification_offsets_minutes).join(",")}|${reminder.title}`;
+  return `${reminder.reminder_date}|${reminder.reminder_time}|${normalizeOffsets(reminder.notification_offsets_minutes).join(",")}|${reminder.title}`;
 }
 
 async function loadReminderMap(userId: string): Promise<ReminderNotificationMap> {
@@ -84,14 +84,25 @@ async function ensureAndroidChannel() {
   });
 }
 
-function buildReminderBaseDate(reminderDateISO: string) {
-  const parsed = dayjs(reminderDateISO);
+function normalizeReminderTime(reminderTime: string | null | undefined) {
+  const match = reminderTime?.match(/^([01]\d|2[0-3]):[0-5]\d/);
+  return match ? match[0] : DEFAULT_REMINDER_TIME;
+}
+
+function formatReminderTimeLabel(reminderTime: string) {
+  const normalizedTime = normalizeReminderTime(reminderTime);
+  return dayjs(`2000-01-01T${normalizedTime}:00`).format("h:mm A");
+}
+
+function buildReminderBaseDate(reminderDateISO: string, reminderTime: string) {
+  const normalizedTime = normalizeReminderTime(reminderTime);
+  const parsed = dayjs(`${reminderDateISO}T${normalizedTime}:00`);
   if (!parsed.isValid()) return null;
-  return parsed.hour(REMINDER_DEFAULT_HOUR).minute(0).second(0).millisecond(0);
+  return parsed.second(0).millisecond(0);
 }
 
 function getUpcomingOffsets(reminder: StudentReminder, now: dayjs.Dayjs) {
-  const baseDate = buildReminderBaseDate(reminder.reminder_date);
+  const baseDate = buildReminderBaseDate(reminder.reminder_date, reminder.reminder_time);
   if (!baseDate) return [];
 
   return normalizeOffsets(reminder.notification_offsets_minutes).filter((offsetMinutes) =>
@@ -104,7 +115,10 @@ async function scheduleNotificationsForOffsets(input: {
   studentName: string;
   offsets: number[];
 }) {
-  const baseDate = buildReminderBaseDate(input.reminder.reminder_date);
+  const baseDate = buildReminderBaseDate(
+    input.reminder.reminder_date,
+    input.reminder.reminder_time,
+  );
   if (!baseDate) return [];
 
   const ids: string[] = [];
@@ -127,7 +141,7 @@ async function scheduleNotificationsForOffsets(input: {
     const id = await Notifications.scheduleNotificationAsync({
       content: {
         title: `Reminder: ${input.reminder.title}`,
-        body: `${input.studentName} - ${formatIsoDateToDisplay(input.reminder.reminder_date)} (${getReminderOffsetLabel(offsetMinutes)})`,
+        body: `${input.studentName} - ${formatIsoDateToDisplay(input.reminder.reminder_date)} ${formatReminderTimeLabel(input.reminder.reminder_time)} (${getReminderOffsetLabel(offsetMinutes)})`,
         data: {
           reminderId: input.reminder.id,
           studentId: input.reminder.student_id,

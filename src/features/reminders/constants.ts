@@ -3,6 +3,7 @@ export const reminderNotificationOptions = [
   { value: 60, label: "1 hour before" },
   { value: 180, label: "3 hours before" },
   { value: 1440, label: "1 day before" },
+  { value: 2880, label: "2 days before" },
 ] as const;
 
 const reminderOptionMap: Map<number, string> = new Map(

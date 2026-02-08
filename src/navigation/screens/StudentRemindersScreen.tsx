@@ -2,19 +2,18 @@ import dayjs from "dayjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, View } from "react-native";
-import { BellRing, RefreshCw, Trash2 } from "lucide-react-native";
+import { ActivityIndicator, Alert, Modal, Pressable, View } from "react-native";
+import { BellRing, RefreshCw, Trash2, X } from "lucide-react-native";
 import { Controller, useForm } from "react-hook-form";
 import { useColorScheme } from "nativewind";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
-import { AppCollapsibleCard } from "../../components/AppCollapsibleCard";
 import { AppDateInput } from "../../components/AppDateInput";
-import { AppDivider } from "../../components/AppDivider";
 import { AppInput } from "../../components/AppInput";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
+import { AppTimeInput } from "../../components/AppTimeInput";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
 import { isOwnerOrAdminRole } from "../../features/auth/roles";
@@ -89,7 +88,7 @@ export function StudentRemindersScreen({ route }: Props) {
   const createMutation = useCreateStudentReminderMutation();
   const deleteMutation = useDeleteStudentReminderMutation();
 
-  const [addOpen, setAddOpen] = useState(Boolean(openNewReminder));
+  const [createModalVisible, setCreateModalVisible] = useState(Boolean(openNewReminder));
   const [deletingReminderId, setDeletingReminderId] = useState<string | null>(null);
 
   const reminders = remindersQuery.data ?? [];
@@ -97,29 +96,49 @@ export function StudentRemindersScreen({ route }: Props) {
     ? `${studentQuery.data.first_name} ${studentQuery.data.last_name}`
     : "Student";
 
+  const defaultFormValues: StudentReminderFormValues = {
+    title: "",
+    date: dayjs().format(DISPLAY_DATE_FORMAT),
+    time: "09:00",
+    notificationOffsets: [60],
+  };
+
   const form = useForm<StudentReminderFormValues>({
     resolver: zodResolver(studentReminderFormSchema),
-    defaultValues: {
-      title: "",
-      date: dayjs().format(DISPLAY_DATE_FORMAT),
-      notificationOffsets: [60],
-    },
+    defaultValues: defaultFormValues,
   });
 
   useEffect(() => {
     if (!openNewReminder) return;
-    setAddOpen(true);
+    openCreateModal();
   }, [openNewReminder]);
-
-  const nextReminder = useMemo(() => {
-    const today = dayjs().startOf("day");
-    return reminders.find((reminder) => dayjs(reminder.reminder_date).endOf("day").isAfter(today.subtract(1, "minute"))) ?? null;
-  }, [reminders]);
 
   const syncKey = useMemo(
     () => reminders.map((reminder) => `${reminder.id}:${reminder.updated_at}`).join("|"),
     [reminders],
   );
+
+  function resetCreateForm() {
+    form.reset({
+      ...defaultFormValues,
+      date: dayjs().format(DISPLAY_DATE_FORMAT),
+    });
+  }
+
+  function openCreateModal() {
+    resetCreateForm();
+    setCreateModalVisible(true);
+  }
+
+  function closeCreateModal() {
+    setCreateModalVisible(false);
+  }
+
+  function formatReminderTimeLabel(reminderTime: string) {
+    const match = reminderTime.match(/^([01]\d|2[0-3]):[0-5]\d/);
+    const value = match ? match[0] : "09:00";
+    return dayjs(`2000-01-01T${value}:00`).format("h:mm A");
+  }
 
   useEffect(() => {
     if (!studentQuery.data) return;
@@ -134,7 +153,7 @@ export function StudentRemindersScreen({ route }: Props) {
 
   const confirmSave = form.handleSubmit(
     (values) => {
-      Alert.alert("Save reminder?", "Create this reminder and schedule notifications on this device?", [
+      Alert.alert("Save entry?", "Create this entry and schedule notifications on this device?", [
         { text: "Cancel", style: "cancel" },
         { text: "Save", onPress: () => void onSubmit(values) },
       ]);
@@ -143,9 +162,10 @@ export function StudentRemindersScreen({ route }: Props) {
       const message =
         errors.title?.message ||
         errors.date?.message ||
+        errors.time?.message ||
         errors.notificationOffsets?.message ||
         "Please check the form and try again.";
-      Alert.alert("Check reminder", message);
+      Alert.alert("Check form", message);
     },
   );
 
@@ -165,6 +185,7 @@ export function StudentRemindersScreen({ route }: Props) {
         instructor_id: instructorId,
         title: values.title.trim(),
         reminder_date: reminderDateISO,
+        reminder_time: values.time,
         notification_offsets_minutes: [...new Set(values.notificationOffsets)],
       });
 
@@ -176,19 +197,15 @@ export function StudentRemindersScreen({ route }: Props) {
 
       if (!notificationResult.permissionGranted) {
         Alert.alert(
-          "Reminder saved",
-          "Reminder was saved, but notification permission is disabled on this device.",
+          "Saved",
+          "Entry was saved, but notification permission is disabled on this device.",
         );
       }
 
-      form.reset({
-        title: "",
-        date: dayjs().format(DISPLAY_DATE_FORMAT),
-        notificationOffsets: [60],
-      });
-      setAddOpen(false);
+      resetCreateForm();
+      closeCreateModal();
     } catch (error) {
-      Alert.alert("Couldn't save reminder", toErrorMessage(error));
+      Alert.alert("Couldn't save entry", toErrorMessage(error));
     }
   }
 
@@ -217,58 +234,130 @@ export function StudentRemindersScreen({ route }: Props) {
   }
 
   return (
-    <Screen scroll className={cn("max-w-6xl")}>
-      <AppStack gap="lg">
-        <View className="flex-row items-start justify-between gap-3">
-          <View className="flex-1">
-            <AppText variant="title">Reminders</AppText>
-            <AppText className="mt-2" variant="caption">
-              {studentQuery.data
-                ? `${studentQuery.data.first_name} ${studentQuery.data.last_name}`
-                : studentQuery.isPending
-                  ? "Loading student..."
-                  : "Student"}
-            </AppText>
-          </View>
-
-          <AppButton
-            width="auto"
-            variant={addOpen ? "secondary" : "primary"}
-            label={addOpen ? "Close" : "Add new"}
-            icon={BellRing}
-            onPress={() => setAddOpen((open) => !open)}
-          />
-        </View>
-
-        <AppCard className="gap-3">
-          <View className="flex-row flex-wrap items-center justify-between gap-3">
-            <View className="min-w-56 flex-1 gap-1">
-              <AppText variant="label">Total reminders</AppText>
-              <AppText variant="heading">{reminders.length}</AppText>
-            </View>
-
-            <View className="min-w-56 flex-1 gap-1">
-              <AppText variant="label">Next reminder</AppText>
-              <AppText variant="heading">
-                {nextReminder ? formatIsoDateToDisplay(nextReminder.reminder_date) : "-"}
+    <>
+      <Screen scroll className={cn("max-w-6xl")}>
+        <AppStack gap="lg">
+          <View className="flex-row items-start justify-between gap-3">
+            <View className="flex-1">
+              <AppText variant="title">Reminders</AppText>
+              <AppText className="mt-2" variant="caption">
+                {studentQuery.data
+                  ? `${studentQuery.data.first_name} ${studentQuery.data.last_name}`
+                  : studentQuery.isPending
+                    ? "Loading student..."
+                    : "Student"}
               </AppText>
             </View>
 
-            <View className="min-w-56 flex-1 gap-1">
-              <AppText variant="label">Default reminder time</AppText>
-              <AppText variant="heading">9:00 AM</AppText>
-            </View>
+            <AppButton
+              width="auto"
+              variant="primary"
+              label="Add new"
+              icon={BellRing}
+              onPress={openCreateModal}
+            />
           </View>
-        </AppCard>
 
-        {addOpen ? (
-          <AppCollapsibleCard
-            title="New reminder"
-            subtitle="Set title, date, and notification lead times."
-            expanded
-            onToggle={() => setAddOpen(false)}
-          >
+          {remindersQuery.isPending ? (
+            <View className="items-center justify-center py-8">
+              <ActivityIndicator />
+              <AppText className="mt-3 text-center" variant="body">
+                Loading reminders...
+              </AppText>
+            </View>
+          ) : remindersQuery.isError ? (
             <AppStack gap="md">
+              <AppCard className="gap-2">
+                <AppText variant="heading">Couldn't load reminders</AppText>
+                <AppText variant="body">{toErrorMessage(remindersQuery.error)}</AppText>
+              </AppCard>
+              <AppButton
+                label="Retry"
+                icon={RefreshCw}
+                variant="secondary"
+                onPress={() => remindersQuery.refetch()}
+              />
+            </AppStack>
+          ) : reminders.length === 0 ? (
+            <AppCard className="gap-2">
+              <AppText variant="heading">No reminders yet</AppText>
+              <AppText variant="body">
+                Add your first reminder to keep follow-ups on track.
+              </AppText>
+            </AppCard>
+          ) : (
+            <AppStack gap="md">
+              {reminders.map((reminder) => {
+                const isPast = dayjs(reminder.reminder_date).endOf("day").isBefore(dayjs());
+                const reminderDateLabel = `${formatIsoDateToDisplay(reminder.reminder_date)} ${formatReminderTimeLabel(reminder.reminder_time)}`;
+                const offsetLabel = formatReminderOffsets(reminder.notification_offsets_minutes);
+
+                return (
+                  <AppCard key={reminder.id} className="gap-4">
+                    <View className="flex-row items-start justify-between gap-3">
+                      <View className="flex-1">
+                        <AppText variant="heading">{reminder.title}</AppText>
+                        <AppText className="mt-1" variant="caption">
+                          {reminderDateLabel}
+                          {isPast ? " - Past due" : ""}
+                        </AppText>
+                      </View>
+
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="Delete reminder"
+                        disabled={deletingReminderId === reminder.id}
+                        onPress={() => onDeletePress(reminder.id)}
+                        className={cn(
+                          "h-10 w-10 items-center justify-center rounded-full border",
+                          "border-red-500/30 bg-red-500/10 dark:border-red-400/30 dark:bg-red-400/10",
+                          deletingReminderId === reminder.id && "opacity-60",
+                        )}
+                      >
+                        <Trash2 size={18} color={trashColor} />
+                      </Pressable>
+                    </View>
+
+                    <AppStack gap="sm">
+                      <AppText variant="label">Notifications</AppText>
+                      <AppText variant="body">{offsetLabel}</AppText>
+                    </AppStack>
+                  </AppCard>
+                );
+              })}
+            </AppStack>
+          )}
+        </AppStack>
+      </Screen>
+
+      <Modal
+        visible={createModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeCreateModal}
+      >
+        <Pressable
+          className="flex-1 bg-black/40 px-6 py-10"
+          onPress={closeCreateModal}
+        >
+          <Pressable
+            className="m-auto w-full max-w-2xl"
+            onPress={(event) => event.stopPropagation()}
+          >
+            <AppCard className="gap-4">
+              <View className="flex-row items-center justify-between gap-2">
+                <AppText variant="heading">Add new</AppText>
+                <AppButton
+                  label=""
+                  width="auto"
+                  size="icon"
+                  variant="ghost"
+                  icon={X}
+                  accessibilityLabel="Close"
+                  onPress={closeCreateModal}
+                />
+              </View>
+
               {isOwnerOrAdminRole(profile.role) && studentQuery.data ? (
                 <AppText variant="caption">
                   Recorded under assigned instructor for this student.
@@ -280,7 +369,7 @@ export function StudentRemindersScreen({ route }: Props) {
                 name="title"
                 render={({ field, fieldState }) => (
                   <AppInput
-                    label="Reminder title"
+                    label="Title"
                     value={field.value}
                     onChangeText={field.onChange}
                     onBlur={field.onBlur}
@@ -290,18 +379,37 @@ export function StudentRemindersScreen({ route }: Props) {
                 )}
               />
 
-              <Controller
-                control={form.control}
-                name="date"
-                render={({ field, fieldState }) => (
-                  <AppDateInput
-                    label="Reminder date"
-                    value={field.value}
-                    onChangeText={field.onChange}
-                    error={fieldState.error?.message}
+              <View className="flex-row flex-wrap gap-3">
+                <View className="min-w-56 flex-1">
+                  <Controller
+                    control={form.control}
+                    name="date"
+                    render={({ field, fieldState }) => (
+                      <AppDateInput
+                        label="Date"
+                        value={field.value}
+                        onChangeText={field.onChange}
+                        error={fieldState.error?.message}
+                      />
+                    )}
                   />
-                )}
-              />
+                </View>
+
+                <View className="min-w-56 flex-1">
+                  <Controller
+                    control={form.control}
+                    name="time"
+                    render={({ field, fieldState }) => (
+                      <AppTimeInput
+                        label="Time"
+                        value={field.value}
+                        onChangeText={field.onChange}
+                        error={fieldState.error?.message}
+                      />
+                    )}
+                  />
+                </View>
+              </View>
 
               <Controller
                 control={form.control}
@@ -313,9 +421,9 @@ export function StudentRemindersScreen({ route }: Props) {
                     <AppStack gap="sm">
                       <View className="flex-row items-start justify-between gap-3">
                         <View className="flex-1">
-                          <AppText variant="label">Reminder notifications</AppText>
+                          <AppText variant="label">Notifications</AppText>
                           <AppText className="mt-1" variant="caption">
-                            Choose when to notify before the 9:00 AM reminder time.
+                            Choose when to notify before the 9:00 am reminder time.
                           </AppText>
                         </View>
                         <AppText variant="caption">
@@ -351,88 +459,26 @@ export function StudentRemindersScreen({ route }: Props) {
                 }}
               />
 
-              <AppButton
-                label={createMutation.isPending ? "Saving..." : "Save reminder"}
-                disabled={createMutation.isPending || studentQuery.isPending || !studentQuery.data}
-                onPress={confirmSave}
-              />
-            </AppStack>
-          </AppCollapsibleCard>
-        ) : null}
-
-        <AppDivider />
-
-        {remindersQuery.isPending ? (
-          <View className="items-center justify-center py-8">
-            <ActivityIndicator />
-            <AppText className="mt-3 text-center" variant="body">
-              Loading reminders...
-            </AppText>
-          </View>
-        ) : remindersQuery.isError ? (
-          <AppStack gap="md">
-            <AppCard className="gap-2">
-              <AppText variant="heading">Couldn't load reminders</AppText>
-              <AppText variant="body">{toErrorMessage(remindersQuery.error)}</AppText>
+              <View className="flex-row gap-2">
+                <AppButton
+                  width="auto"
+                  className="flex-1"
+                  variant="secondary"
+                  label="Cancel"
+                  onPress={closeCreateModal}
+                />
+                <AppButton
+                  width="auto"
+                  className="flex-1"
+                  label={createMutation.isPending ? "Saving..." : "Save"}
+                  disabled={createMutation.isPending || studentQuery.isPending || !studentQuery.data}
+                  onPress={confirmSave}
+                />
+              </View>
             </AppCard>
-            <AppButton
-              label="Retry"
-              icon={RefreshCw}
-              variant="secondary"
-              onPress={() => remindersQuery.refetch()}
-            />
-          </AppStack>
-        ) : reminders.length === 0 ? (
-          <AppCard className="gap-2">
-            <AppText variant="heading">No reminders yet</AppText>
-            <AppText variant="body">
-              Add your first reminder to keep follow-ups on track.
-            </AppText>
-          </AppCard>
-        ) : (
-          <AppStack gap="md">
-            {reminders.map((reminder) => {
-              const isPast = dayjs(reminder.reminder_date).endOf("day").isBefore(dayjs());
-              const reminderDateLabel = formatIsoDateToDisplay(reminder.reminder_date);
-              const offsetLabel = formatReminderOffsets(reminder.notification_offsets_minutes);
-
-              return (
-                <AppCard key={reminder.id} className="gap-4">
-                  <View className="flex-row items-start justify-between gap-3">
-                    <View className="flex-1">
-                      <AppText variant="heading">{reminder.title}</AppText>
-                      <AppText className="mt-1" variant="caption">
-                        {reminderDateLabel}
-                        {isPast ? " - Past due" : ""}
-                      </AppText>
-                    </View>
-
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel="Delete reminder"
-                      disabled={deletingReminderId === reminder.id}
-                      onPress={() => onDeletePress(reminder.id)}
-                      className={cn(
-                        "h-10 w-10 items-center justify-center rounded-full border",
-                        "border-red-500/30 bg-red-500/10 dark:border-red-400/30 dark:bg-red-400/10",
-                        deletingReminderId === reminder.id && "opacity-60",
-                      )}
-                    >
-                      <Trash2 size={18} color={trashColor} />
-                    </Pressable>
-                  </View>
-
-                  <AppStack gap="sm">
-                    <AppText variant="label">Notifications</AppText>
-                    <AppText variant="body">{offsetLabel}</AppText>
-                  </AppStack>
-                </AppCard>
-              );
-            })}
-          </AppStack>
-        )}
-      </AppStack>
-    </Screen>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
   );
 }
-
