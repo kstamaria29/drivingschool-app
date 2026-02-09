@@ -11,6 +11,8 @@ type Props = PropsWithChildren<{
   subtitle?: string;
   subtitleVariant?: AppTextVariant;
   subtitleClassName?: string;
+  showLabelClassName?: string;
+  hideLabelClassName?: string;
   rightText?: string;
   expanded: boolean;
   onToggle: () => void;
@@ -22,6 +24,8 @@ export function AppCollapsibleCard({
   subtitle,
   subtitleVariant = "caption",
   subtitleClassName,
+  showLabelClassName,
+  hideLabelClassName,
   rightText,
   expanded,
   onToggle,
@@ -42,7 +46,15 @@ export function AppCollapsibleCard({
 
         <View className="items-end">
           {rightText ? <AppText variant="caption">{rightText}</AppText> : null}
-          <AppText className="mt-1 text-sm text-muted dark:text-mutedDark" variant="button">
+          <AppText
+            className={cn(
+              "mt-1 text-sm",
+              expanded
+                ? hideLabelClassName ?? "text-muted dark:text-mutedDark"
+                : showLabelClassName ?? "text-muted dark:text-mutedDark",
+            )}
+            variant="button"
+          >
             {expanded ? "Hide" : "Show"}
           </AppText>
         </View>

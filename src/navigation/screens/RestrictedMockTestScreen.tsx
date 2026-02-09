@@ -172,11 +172,11 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   );
   const [expandedTaskKey, setExpandedTaskKey] = useState<string | null>(null);
   const [expandedStages, setExpandedStages] = useState<Record<RestrictedMockTestStageId, boolean>>({
-    stage1: true,
+    stage1: false,
     stage2: false,
   });
-  const [criticalErrorsExpanded, setCriticalErrorsExpanded] = useState(true);
-  const [immediateErrorsExpanded, setImmediateErrorsExpanded] = useState(true);
+  const [criticalErrorsExpanded, setCriticalErrorsExpanded] = useState(false);
+  const [immediateErrorsExpanded, setImmediateErrorsExpanded] = useState(false);
   const [draftResolvedStudentId, setDraftResolvedStudentId] = useState<string | null>(null);
   const { leaveWithoutPrompt } = useAssessmentLeaveGuard({
     navigation,
@@ -271,9 +271,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     setCritical(createErrorCounts(restrictedMockTestCriticalErrors));
     setImmediate(createErrorCounts(restrictedMockTestImmediateErrors));
     setExpandedTaskKey(null);
-    setExpandedStages({ stage1: true, stage2: false });
-    setCriticalErrorsExpanded(true);
-    setImmediateErrorsExpanded(true);
+    setExpandedStages({ stage1: false, stage2: false });
+    setCriticalErrorsExpanded(false);
+    setImmediateErrorsExpanded(false);
     setDraftResolvedStudentId(null);
     setSelectedStudentId(studentId);
     scrollToTop(false);
@@ -298,9 +298,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     setCritical(createErrorCounts(restrictedMockTestCriticalErrors));
     setImmediate(createErrorCounts(restrictedMockTestImmediateErrors));
     setExpandedTaskKey(null);
-    setExpandedStages({ stage1: true, stage2: false });
-    setCriticalErrorsExpanded(true);
-    setImmediateErrorsExpanded(true);
+    setExpandedStages({ stage1: false, stage2: false });
+    setCriticalErrorsExpanded(false);
+    setImmediateErrorsExpanded(false);
     setDraftResolvedStudentId(null);
     setSelectedStudentId(null);
     scrollToTop(false);
@@ -398,9 +398,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             setCritical(createErrorCounts(restrictedMockTestCriticalErrors));
             setImmediate(createErrorCounts(restrictedMockTestImmediateErrors));
             setExpandedTaskKey(null);
-            setExpandedStages({ stage1: true, stage2: false });
-            setCriticalErrorsExpanded(true);
-            setImmediateErrorsExpanded(true);
+            setExpandedStages({ stage1: false, stage2: false });
+            setCriticalErrorsExpanded(false);
+            setImmediateErrorsExpanded(false);
             form.reset({
               studentId,
               date: dayjs().format("DD/MM/YYYY"),
@@ -431,9 +431,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             setStagesState(parsed?.stagesState ?? createEmptyStagesState());
             setCritical(parsed?.critical ?? createErrorCounts(restrictedMockTestCriticalErrors));
             setImmediate(parsed?.immediate ?? createErrorCounts(restrictedMockTestImmediateErrors));
-            setExpandedStages({ stage1: true, stage2: false });
-            setCriticalErrorsExpanded(true);
-            setImmediateErrorsExpanded(true);
+            setExpandedStages({ stage1: false, stage2: false });
+            setCriticalErrorsExpanded(false);
+            setImmediateErrorsExpanded(false);
             setDraftResolvedStudentId(studentId);
           },
         },
@@ -789,6 +789,8 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
         subtitle={`Total repetitions: ${stageRepetitions}`}
         subtitleVariant="body"
         subtitleClassName="text-xl text-muted dark:text-mutedDark"
+        showLabelClassName="text-primary dark:text-primaryDark"
+        hideLabelClassName="text-danger dark:text-dangerDark"
         rightText={rightText}
         expanded={expanded}
         onToggle={() => setExpandedStages((prev) => ({ ...prev, [stageKey]: !prev[stageKey] }))}
@@ -830,6 +832,8 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                     subtitle={`Repetitions: ${taskState.repetitions ?? 0}`}
                     subtitleVariant="body"
                     subtitleClassName="text-xl text-muted dark:text-mutedDark"
+                    showLabelClassName="text-primary/80 dark:text-primaryDark/80"
+                    hideLabelClassName="text-danger/80 dark:text-dangerDark/80"
                     rightText={faults > 0 ? `${faults} fault${faults === 1 ? "" : "s"}` : undefined}
                     expanded={taskExpanded}
                     onToggle={() => setExpandedTaskKey((prev) => (prev === cardKey ? null : cardKey))}
@@ -952,6 +956,8 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
       <AppCollapsibleCard
         title="Critical errors"
         subtitle="Recorded any time during route."
+        showLabelClassName="text-primary dark:text-primaryDark"
+        hideLabelClassName="text-danger dark:text-dangerDark"
         rightText={summary.criticalTotal > 0 ? `${summary.criticalTotal} recorded` : undefined}
         expanded={criticalErrorsExpanded}
         onToggle={() => setCriticalErrorsExpanded((value) => !value)}
@@ -1004,6 +1010,8 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
       <AppCollapsibleCard
         title="Immediate failure errors"
         subtitle="Any one = fail."
+        showLabelClassName="text-primary dark:text-primaryDark"
+        hideLabelClassName="text-danger dark:text-dangerDark"
         rightText={summary.immediateTotal > 0 ? `${summary.immediateTotal} recorded` : undefined}
         expanded={immediateErrorsExpanded}
         onToggle={() => setImmediateErrorsExpanded((value) => !value)}

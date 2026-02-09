@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test default collapse + show/hide colors
+- **Summary:**
+  - Set Stage 1, Critical errors, and Immediate failure errors to be collapsed by default when the Restricted mock test is initiated.
+  - Added per-section Show/Hide color rules: blue/red for stage+error sections and lighter blue/red for task cards.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Restricted mock test repetitions + UI polish
 - **Summary:**
   - Added per-task repetition recording (with confirmation) and displayed repetition totals per task/stage in the Restricted mock test.
@@ -146,9 +154,4 @@
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Session History edit flow + Lessons agenda reminders
-- **Summary:**
-  - Defaulted Session History task suggestions to show and added an edit/update action for session entries.
-  - Updated the Lessons agenda to list reminders for the selected day and removed the duplicate New button.
 

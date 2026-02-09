@@ -1111,3 +1111,11 @@
 - **Summary:**
   - Replaced the Lessons calendar today dot with a circled day highlight and added reminder markers with a legend.
   - Updated the weekly strip to show lesson vs reminder markers consistently.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Session History edit flow + Lessons agenda reminders
+- **Summary:**
+  - Defaulted Session History task suggestions to show and added an edit/update action for session entries.
+  - Updated the Lessons agenda to list reminders for the selected day and removed the duplicate New button.
