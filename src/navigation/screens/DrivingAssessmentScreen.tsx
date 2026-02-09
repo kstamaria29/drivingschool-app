@@ -385,7 +385,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
   function navigateAfterSubmit() {
     leaveWithoutPrompt(() => {
       resetAssessmentToBlank();
-      navigation.popToTop();
+      navigation.reset({ index: 0, routes: [{ name: "AssessmentsMain" }] });
       if (returnToStudentId && drawerNavigation) {
         drawerNavigation.navigate("Students", {
           screen: "StudentDetail",

@@ -182,7 +182,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   function navigateAfterSubmit() {
     leaveWithoutPrompt(() => {
       resetMockTestToBlank();
-      navigation.popToTop();
+      navigation.reset({ index: 0, routes: [{ name: "AssessmentsMain" }] });
       if (returnToStudentId && drawerNavigation) {
         drawerNavigation.navigate("Students", {
           screen: "StudentDetail",

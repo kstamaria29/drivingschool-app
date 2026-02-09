@@ -32,6 +32,7 @@ import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
 import { useAssessmentsQuery } from "../../features/assessments/queries";
+import { useStudentRemindersQuery } from "../../features/reminders/queries";
 import { useStudentSessionsQuery } from "../../features/sessions/queries";
 import {
   useArchiveStudentMutation,
@@ -94,6 +95,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
   const query = useStudentQuery(studentId);
   const sessionsQuery = useStudentSessionsQuery({ studentId });
   const assessmentsQuery = useAssessmentsQuery({ studentId });
+  const remindersQuery = useStudentRemindersQuery({ studentId });
   const archiveMutation = useArchiveStudentMutation();
   const unarchiveMutation = useUnarchiveStudentMutation();
   const deleteMutation = useDeleteStudentMutation();
@@ -105,6 +107,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
   const notes = student?.notes?.trim() ? student.notes.trim() : "";
   const sessionCount = sessionsQuery.data?.length ?? 0;
   const assessmentCount = assessmentsQuery.data?.length ?? 0;
+  const reminderCount = remindersQuery.data?.length ?? 0;
   const [licensePickerError, setLicensePickerError] = useState<string | null>(
     null,
   );
@@ -353,9 +356,9 @@ export function StudentDetailScreen({ navigation, route }: Props) {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => {
+          onPress: () => {
           deleteMutation.mutate(student.id, {
-            onSuccess: () => navigation.popToTop(),
+            onSuccess: () => navigation.reset({ index: 0, routes: [{ name: "StudentsList" }] }),
             onError: (error) =>
               Alert.alert("Couldn't delete student", toErrorMessage(error)),
           });
@@ -676,6 +679,12 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                       label="Reminders"
                       variant="secondary"
                       icon={Bell}
+                      badgePosition="label-top-right"
+                      badgeCount={
+                        remindersQuery.isPending || remindersQuery.isError
+                          ? undefined
+                          : reminderCount
+                      }
                       onPress={() =>
                         navigation.navigate("StudentReminders", {
                           studentId: student.id,

@@ -10,6 +10,7 @@ type Props = {
   selectedDate: Dayjs;
   onSelectDate: (date: Dayjs) => void;
   lessonCountByDateISO?: Record<string, number>;
+  reminderCountByDateISO?: Record<string, number>;
 };
 
 const weekDayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -44,6 +45,7 @@ export function CalendarMonth({
   selectedDate,
   onSelectDate,
   lessonCountByDateISO,
+  reminderCountByDateISO,
 }: Props) {
   const today = dayjs().startOf("day");
   const days = daysToRenderForMonth(month);
@@ -73,8 +75,10 @@ export function CalendarMonth({
               const isSelected = date.isSame(selectedDate, "day");
               const isToday = date.isSame(today, "day");
               const dateISO = date.format("YYYY-MM-DD");
-              const count = lessonCountByDateISO?.[dateISO] ?? 0;
-              const dots = Math.min(count, 3);
+              const lessonCount = lessonCountByDateISO?.[dateISO] ?? 0;
+              const reminderCount = reminderCountByDateISO?.[dateISO] ?? 0;
+              const lessonDots = Math.min(lessonCount, 3);
+              const reminderDots = Math.min(reminderCount, 2);
 
               return (
                 <View key={dateISO} className="flex-1">
@@ -85,34 +89,61 @@ export function CalendarMonth({
                       inMonth
                         ? "border-border bg-card dark:border-borderDark dark:bg-cardDark"
                         : "border-border/50 bg-card/60 dark:border-borderDark/50 dark:bg-cardDark/60",
-                      isToday && "border-accent dark:border-accent",
                       isSelected &&
                         "border-primary bg-primary/10 dark:border-primaryDark dark:bg-primaryDark/10",
                     )}
                   >
-                    <View className="flex-row items-center justify-between">
-                      <AppText
-                        variant="body"
-                        className={cn(!inMonth && "text-muted dark:text-mutedDark")}
-                      >
-                        {date.date()}
-                      </AppText>
-                      {isToday ? <View className="h-2 w-2 rounded-full bg-accent" /> : null}
+                    <View className="flex-row items-center">
+                      {isToday ? (
+                        <View className="h-7 w-7 items-center justify-center rounded-full border border-accent bg-accent/10 dark:bg-accent/15">
+                          <AppText
+                            variant="body"
+                            className={cn("text-center", !inMonth && "text-muted dark:text-mutedDark")}
+                          >
+                            {date.date()}
+                          </AppText>
+                        </View>
+                      ) : (
+                        <AppText variant="body" className={cn(!inMonth && "text-muted dark:text-mutedDark")}>
+                          {date.date()}
+                        </AppText>
+                      )}
                     </View>
 
-                    {count > 0 ? (
-                      <View className="flex-row items-center gap-1">
-                        {Array.from({ length: dots }).map((_, index) => (
-                          <View
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={`${dateISO}-dot-${index}`}
-                            className="h-2 w-2 rounded-full bg-primary dark:bg-primaryDark"
-                          />
-                        ))}
-                        {count > 3 ? (
-                          <AppText className="text-xs text-muted dark:text-mutedDark" variant="caption">
-                            +{count - 3}
-                          </AppText>
+                    {lessonCount > 0 || reminderCount > 0 ? (
+                      <View className="flex-row items-center gap-2">
+                        {lessonCount > 0 ? (
+                          <View className="flex-row items-center gap-1">
+                            {Array.from({ length: lessonDots }).map((_, index) => (
+                              <View
+                                // eslint-disable-next-line react/no-array-index-key
+                                key={`${dateISO}-lesson-dot-${index}`}
+                                className="h-2 w-2 rounded-full bg-primary dark:bg-primaryDark"
+                              />
+                            ))}
+                            {lessonCount > lessonDots ? (
+                              <AppText className="text-xs text-muted dark:text-mutedDark" variant="caption">
+                                +{lessonCount - lessonDots}
+                              </AppText>
+                            ) : null}
+                          </View>
+                        ) : null}
+
+                        {reminderCount > 0 ? (
+                          <View className="flex-row items-center gap-1">
+                            {Array.from({ length: reminderDots }).map((_, index) => (
+                              <View
+                                // eslint-disable-next-line react/no-array-index-key
+                                key={`${dateISO}-reminder-dot-${index}`}
+                                className="h-2 w-2 rounded-full bg-emerald-600 dark:bg-emerald-500"
+                              />
+                            ))}
+                            {reminderCount > reminderDots ? (
+                              <AppText className="text-xs text-muted dark:text-mutedDark" variant="caption">
+                                +{reminderCount - reminderDots}
+                              </AppText>
+                            ) : null}
+                          </View>
                         ) : null}
                       </View>
                     ) : (

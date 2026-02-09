@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Lessons calendar reminder markers + legend
+- **Summary:**
+  - Replaced the Lessons calendar today dot with a circled day highlight and added reminder markers with a legend.
+  - Updated the weekly strip to show lesson vs reminder markers consistently.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Assessment blank screen scroll fix
 - **Summary:**
   - Fixed assessment screens rendering blank until you scroll by forcing the ScrollView to reset to top on focus and after student/test resets.
@@ -148,11 +156,3 @@
 - **Summary:**
   - Updated `New/Edit student` Organization field to show selected value left-aligned in the trigger button (e.g., `Private`).
   - Replaced inline organization dropdown expansion with a modal action-sheet style picker (matching the photo options modal pattern).
-
----
-
-- **Date:** 2026-02-08 (Pacific/Auckland)
-- **Task:** Student delete warning + history cascade cleanup + licence photo UI polish
-- **Summary:**
-  - Updated student delete API flow to remove related `student_sessions` and `assessments` records before deleting the student row.
-  - Kept storage cleanup on delete and now removes all files under `student-licenses/<organization_id>/<student_id>/` as part of the delete flow...

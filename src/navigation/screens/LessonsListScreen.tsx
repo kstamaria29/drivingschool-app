@@ -15,6 +15,7 @@ import { Screen } from "../../components/Screen";
 import { useMyProfileQuery } from "../../features/auth/queries";
 import { useAuthSession } from "../../features/auth/session";
 import { useLessonsQuery } from "../../features/lessons/queries";
+import { useRemindersByDateRangeQuery } from "../../features/reminders/queries";
 import { cn } from "../../utils/cn";
 import { DISPLAY_DATE_FORMAT } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
@@ -46,31 +47,54 @@ export function LessonsListScreen({ navigation }: Props) {
   const [month, setMonth] = useState(() => dayjs().startOf("month"));
   const [selectedDate, setSelectedDate] = useState(() => dayjs().startOf("day"));
 
-  const { fromISO, toISO } = useMemo(() => {
+  const { fromISO, toISO, fromISODate, toISODate } = useMemo(() => {
     const from = startOfWeekMonday(month.startOf("month"));
-    const to = startOfWeekMonday(month.endOf("month")).add(6, "day").add(1, "day");
-    return { fromISO: from.toISOString(), toISO: to.toISOString() };
+    let last = startOfWeekMonday(month.endOf("month")).add(6, "day");
+    const dayCount = last.diff(from, "day") + 1;
+    if (dayCount < 42) {
+      last = last.add(42 - dayCount, "day");
+    }
+    const to = last.add(1, "day");
+    return {
+      fromISO: from.toISOString(),
+      toISO: to.toISOString(),
+      fromISODate: from.format("YYYY-MM-DD"),
+      toISODate: last.format("YYYY-MM-DD"),
+    };
   }, [month]);
 
   const lessonsQuery = useLessonsQuery({ fromISO, toISO });
+  const remindersQuery = useRemindersByDateRangeQuery({ fromISODate, toISODate });
   const isInstructor = profileQuery.data?.role === "instructor";
+  const today = dayjs().startOf("day");
 
-  const { lessonCountByDateISO, lessonsForSelectedDay } = useMemo(() => {
-    const counts: Record<string, number> = {};
+  const { lessonCountByDateISO, reminderCountByDateISO, lessonsForSelectedDay } = useMemo(() => {
+    const lessonCounts: Record<string, number> = {};
+    const reminderCounts: Record<string, number> = {};
     const selectedISO = selectedDate.format("YYYY-MM-DD");
 
     const all = lessonsQuery.data ?? [];
     for (const lesson of all) {
       const dateISO = dayjs(lesson.start_time).format("YYYY-MM-DD");
-      counts[dateISO] = (counts[dateISO] ?? 0) + 1;
+      lessonCounts[dateISO] = (lessonCounts[dateISO] ?? 0) + 1;
+    }
+
+    const allReminders = remindersQuery.data ?? [];
+    for (const reminder of allReminders) {
+      const dateISO = reminder.reminder_date;
+      reminderCounts[dateISO] = (reminderCounts[dateISO] ?? 0) + 1;
     }
 
     const lessonsForDay = all
       .filter((lesson) => dayjs(lesson.start_time).format("YYYY-MM-DD") === selectedISO)
       .sort((a, b) => dayjs(a.start_time).valueOf() - dayjs(b.start_time).valueOf());
 
-    return { lessonCountByDateISO: counts, lessonsForSelectedDay: lessonsForDay };
-  }, [lessonsQuery.data, selectedDate]);
+    return {
+      lessonCountByDateISO: lessonCounts,
+      reminderCountByDateISO: reminderCounts,
+      lessonsForSelectedDay: lessonsForDay,
+    };
+  }, [lessonsQuery.data, remindersQuery.data, selectedDate]);
 
   function onPrevMonth() {
     setMonth((currentMonth) => {
@@ -153,7 +177,9 @@ export function LessonsListScreen({ navigation }: Props) {
       {weekDays.map((date) => {
         const dateISO = date.format("YYYY-MM-DD");
         const isSelected = date.isSame(selectedDate, "day");
-        const count = lessonCountByDateISO[dateISO] ?? 0;
+        const isToday = date.isSame(today, "day");
+        const lessonCount = lessonCountByDateISO[dateISO] ?? 0;
+        const reminderCount = reminderCountByDateISO[dateISO] ?? 0;
 
         return (
           <Pressable
@@ -169,15 +195,42 @@ export function LessonsListScreen({ navigation }: Props) {
             <AppText className="text-center" variant="caption">
               {date.format("ddd")}
             </AppText>
-            <AppText className="mt-1 text-center text-lg" variant="body">
-              {date.date()}
-            </AppText>
             <View className="mt-1 items-center">
-              {count > 0 ? <View className="h-1 w-6 rounded-full bg-accent" /> : <View className="h-1 w-6" />}
+              <View
+                className={cn(
+                  "h-9 w-9 items-center justify-center rounded-full",
+                  isToday && "border border-accent bg-accent/10 dark:bg-accent/15",
+                )}
+              >
+                <AppText className="text-center text-lg" variant="body">
+                  {date.date()}
+                </AppText>
+              </View>
+            </View>
+            <View className="mt-1 h-2 flex-row items-center justify-center gap-2">
+              {lessonCount > 0 ? <View className="h-2 w-2 rounded-full bg-primary dark:bg-primaryDark" /> : null}
+              {reminderCount > 0 ? <View className="h-2 w-2 rounded-full bg-emerald-600 dark:bg-emerald-500" /> : null}
             </View>
           </Pressable>
         );
       })}
+    </View>
+  );
+
+  const markerLegend = (
+    <View className="flex-row flex-wrap items-center gap-4">
+      <View className="flex-row items-center gap-2">
+        <View className="h-2 w-2 rounded-full bg-primary dark:bg-primaryDark" />
+        <AppText variant="caption">Lessons</AppText>
+      </View>
+      <View className="flex-row items-center gap-2">
+        <View className="h-2 w-2 rounded-full bg-emerald-600 dark:bg-emerald-500" />
+        <AppText variant="caption">Reminders</AppText>
+      </View>
+      <View className="flex-row items-center gap-2">
+        <View className="h-4 w-4 rounded-full border border-accent bg-accent/10 dark:bg-accent/15" />
+        <AppText variant="caption">Today</AppText>
+      </View>
     </View>
   );
 
@@ -274,6 +327,8 @@ export function LessonsListScreen({ navigation }: Props) {
                 </AppText>
               </View>
 
+              {markerLegend}
+
               <CalendarMonth
                 month={month}
                 selectedDate={selectedDate}
@@ -285,6 +340,7 @@ export function LessonsListScreen({ navigation }: Props) {
                   }
                 }}
                 lessonCountByDateISO={lessonCountByDateISO}
+                reminderCountByDateISO={reminderCountByDateISO}
               />
             </AppCard>
 
@@ -320,6 +376,8 @@ export function LessonsListScreen({ navigation }: Props) {
                 </AppText>
               </View>
 
+              {markerLegend}
+
               <CalendarMonth
                 month={month}
                 selectedDate={selectedDate}
@@ -331,6 +389,7 @@ export function LessonsListScreen({ navigation }: Props) {
                   }
                 }}
                 lessonCountByDateISO={lessonCountByDateISO}
+                reminderCountByDateISO={reminderCountByDateISO}
               />
             </AppCard>
 

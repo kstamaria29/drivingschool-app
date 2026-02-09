@@ -2,14 +2,13 @@ import dayjs from "dayjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, View } from "react-native";
-import { RefreshCw, Trash2 } from "lucide-react-native";
+import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, View } from "react-native";
+import { RefreshCw, Trash2, X } from "lucide-react-native";
 import { Controller, useForm } from "react-hook-form";
 import { useColorScheme } from "nativewind";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
-import { AppCollapsibleCard } from "../../components/AppCollapsibleCard";
 import { AppDateInput } from "../../components/AppDateInput";
 import { AppDivider } from "../../components/AppDivider";
 import { AppInput } from "../../components/AppInput";
@@ -139,7 +138,7 @@ export function StudentSessionHistoryScreen({ route }: Props) {
   const createMutation = useCreateStudentSessionMutation();
   const deleteMutation = useDeleteStudentSessionMutation();
 
-  const [addOpen, setAddOpen] = useState(Boolean(openNewSession));
+  const [createModalVisible, setCreateModalVisible] = useState(Boolean(openNewSession));
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [customTask, setCustomTask] = useState("");
   const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
@@ -160,7 +159,7 @@ export function StudentSessionHistoryScreen({ route }: Props) {
 
   useEffect(() => {
     if (!openNewSession) return;
-    setAddOpen(true);
+    openCreateModal();
   }, [openNewSession]);
 
   const sessions = sessionsQuery.data ?? [];
@@ -221,10 +220,32 @@ export function StudentSessionHistoryScreen({ route }: Props) {
       });
       setCustomTask("");
       setSuggestionsOpen(false);
-      setAddOpen(false);
+      closeCreateModal();
     } catch (error) {
       Alert.alert("Couldn't save session", toErrorMessage(error));
     }
+  }
+
+  function resetCreateForm() {
+    form.reset({
+      date: dayjs().format(DISPLAY_DATE_FORMAT),
+      time: dayjs().format("HH:mm"),
+      durationMinutes: "60",
+      tasks: [],
+      nextFocus: "",
+      notes: "",
+    });
+    setCustomTask("");
+    setSuggestionsOpen(false);
+  }
+
+  function openCreateModal() {
+    resetCreateForm();
+    setCreateModalVisible(true);
+  }
+
+  function closeCreateModal() {
+    setCreateModalVisible(false);
   }
 
   function onDeletePress(sessionId: string) {
@@ -250,8 +271,9 @@ export function StudentSessionHistoryScreen({ route }: Props) {
   }
 
   return (
-    <Screen scroll className={cn("max-w-6xl")}>
-      <AppStack gap="lg">
+    <>
+      <Screen scroll className={cn("max-w-6xl")}>
+        <AppStack gap="lg">
         <View className="flex-row items-start justify-between gap-3">
           <View className="flex-1">
             <AppText variant="title">Session History</AppText>
@@ -266,9 +288,9 @@ export function StudentSessionHistoryScreen({ route }: Props) {
 
           <AppButton
             width="auto"
-            variant={addOpen ? "secondary" : "primary"}
-            label={addOpen ? "Close" : "Add new"}
-            onPress={() => setAddOpen((v) => !v)}
+            variant="primary"
+            label="Add new"
+            onPress={openCreateModal}
           />
         </View>
 
@@ -300,224 +322,6 @@ export function StudentSessionHistoryScreen({ route }: Props) {
             </View>
           </View>
         </AppCard>
-
-        {addOpen ? (
-          <AppCollapsibleCard
-            title="New session"
-            subtitle="Record what you covered today (tasks + quick notes)."
-            expanded
-            onToggle={() => setAddOpen(false)}
-          >
-            <AppStack gap="md">
-              {isOwnerOrAdminRole(profile.role) && studentQuery.data ? (
-                <AppText variant="caption">
-                  Recorded under assigned instructor for this student.
-                </AppText>
-              ) : null}
-
-              <View className="flex-row flex-wrap gap-4">
-                <View className="min-w-56 flex-1">
-                  <Controller
-                    control={form.control}
-                    name="date"
-                    render={({ field, fieldState }) => (
-                      <AppDateInput
-                        label="Date"
-                        value={field.value}
-                        onChangeText={field.onChange}
-                        error={fieldState.error?.message}
-                      />
-                    )}
-                  />
-                </View>
-
-                <View className="min-w-56 flex-1">
-                  <Controller
-                    control={form.control}
-                    name="time"
-                    render={({ field, fieldState }) => (
-                      <AppTimeInput
-                        label="Time"
-                        value={field.value}
-                        onChangeText={field.onChange}
-                        error={fieldState.error?.message}
-                      />
-                    )}
-                  />
-                </View>
-
-                <View className="min-w-56 flex-1">
-                  <Controller
-                    control={form.control}
-                    name="durationMinutes"
-                    render={({ field, fieldState }) => (
-                      <AppInput
-                        label="Duration (min)"
-                        keyboardType="numeric"
-                        value={field.value}
-                        onChangeText={field.onChange}
-                        onBlur={field.onBlur}
-                        error={fieldState.error?.message}
-                      />
-                    )}
-                  />
-                </View>
-              </View>
-
-              <Controller
-                control={form.control}
-                name="tasks"
-                render={({ field, fieldState }) => (
-                  <AppStack gap="sm">
-                    <View className="flex-row items-end justify-between gap-3">
-                      <View className="flex-1">
-                        <AppText variant="label">Tasks covered</AppText>
-                        <AppText className="mt-1" variant="caption">
-                          Select from suggestions or add your own.
-                        </AppText>
-                      </View>
-                      <AppText variant="caption">{field.value.length} selected</AppText>
-                    </View>
-
-                    {fieldState.error?.message ? (
-                      <AppText variant="error">{fieldState.error.message}</AppText>
-                    ) : null}
-
-                    {field.value.length ? (
-                      <View className="flex-row flex-wrap gap-2">
-                        {field.value.map((task) => (
-                          <TaskChip
-                            key={task}
-                            label={task}
-                            selected
-                            onPress={() => field.onChange(field.value.filter((x) => x !== task))}
-                          />
-                        ))}
-                      </View>
-                    ) : (
-                      <AppText variant="caption">No tasks selected yet.</AppText>
-                    )}
-
-                    <View className="flex-row items-start justify-between gap-3">
-                      <View className="flex-1">
-                        <AppText variant="label">Task suggestions</AppText>
-                        <AppText className="mt-1" variant="caption">
-                          10 quick picks (multiple choice)
-                        </AppText>
-                      </View>
-
-                      <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel={suggestionsOpen ? "Hide task suggestions" : "Show task suggestions"}
-                        className="px-1 py-1"
-                        onPress={() => setSuggestionsOpen((v) => !v)}
-                      >
-                        <AppText
-                          variant="label"
-                          className={cn(
-                            "underline font-semibold",
-                            colorScheme === "dark" ? "text-amber-300" : "text-emerald-600",
-                          )}
-                        >
-                          {suggestionsOpen ? "Hide" : "Show"}
-                        </AppText>
-                      </Pressable>
-                    </View>
-
-                    {suggestionsOpen ? (
-                      <View className="flex-row flex-wrap gap-2">
-                        {taskSuggestions.map((task) => (
-                          <TaskChip
-                            key={task}
-                            label={task}
-                            selected={field.value.includes(task)}
-                            onPress={() => field.onChange(toggleTask(field.value, task))}
-                          />
-                        ))}
-                      </View>
-                    ) : null}
-
-                    <View className="flex-row items-end gap-2">
-                      <AppInput
-                        label="Add custom task"
-                        containerClassName="flex-1"
-                        value={customTask}
-                        onChangeText={setCustomTask}
-                        placeholder="e.g. Three-point turn"
-                        autoCapitalize="sentences"
-                      />
-                      <AppButton
-                        width="auto"
-                        label="Add"
-                        disabled={!customTask.trim()}
-                        onPress={() => {
-                          const next = normalizeTaskLabel(customTask);
-                          if (!next) return;
-                          if (field.value.includes(next)) {
-                            setCustomTask("");
-                            return;
-                          }
-                          field.onChange([...field.value, next]);
-                          setCustomTask("");
-                        }}
-                      />
-                    </View>
-
-                    {lastSession?.tasks?.length ? (
-                      <AppButton
-                        width="auto"
-                        variant="ghost"
-                        label="Use last session tasks"
-                        onPress={() => field.onChange(lastSession.tasks)}
-                      />
-                    ) : null}
-                  </AppStack>
-                )}
-              />
-
-              <View className="flex-row flex-wrap gap-4">
-                <View className="min-w-56 flex-1">
-                  <Controller
-                    control={form.control}
-                    name="nextFocus"
-                    render={({ field }) => (
-                      <AppInput
-                        label="Next focus (optional)"
-                        value={field.value}
-                        onChangeText={field.onChange}
-                        onBlur={field.onBlur}
-                        placeholder="What to focus on next lesson"
-                      />
-                    )}
-                  />
-                </View>
-              </View>
-
-              <Controller
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <AppInput
-                    label="Notes (optional)"
-                    multiline
-                    numberOfLines={6}
-                    textAlignVertical="top"
-                    inputClassName="h-28 py-3"
-                    value={field.value}
-                    onChangeText={field.onChange}
-                    onBlur={field.onBlur}
-                  />
-                )}
-              />
-
-              <AppButton
-                label={createMutation.isPending ? "Saving..." : "Save session"}
-                disabled={createMutation.isPending || studentQuery.isPending || !studentQuery.data}
-                onPress={confirmSave}
-              />
-            </AppStack>
-          </AppCollapsibleCard>
-        ) : null}
 
         <AppDivider />
 
@@ -605,7 +409,265 @@ export function StudentSessionHistoryScreen({ route }: Props) {
             })}
           </AppStack>
         )}
-      </AppStack>
-    </Screen>
+        </AppStack>
+      </Screen>
+
+      <Modal
+        visible={createModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeCreateModal}
+      >
+        <Pressable
+          className="flex-1 bg-black/40 px-6 py-10"
+          onPress={closeCreateModal}
+        >
+          <Pressable
+            className="m-auto w-full max-w-2xl"
+            onPress={(event) => event.stopPropagation()}
+          >
+            <AppCard className="gap-4">
+              <View className="flex-row items-center justify-between gap-2">
+                <AppText variant="heading">Add Session History</AppText>
+                <AppButton
+                  label=""
+                  width="auto"
+                  size="icon"
+                  variant="ghost"
+                  icon={X}
+                  accessibilityLabel="Close"
+                  onPress={closeCreateModal}
+                />
+              </View>
+
+              {isOwnerOrAdminRole(profile.role) && studentQuery.data ? (
+                <AppText variant="caption">
+                  Recorded under assigned instructor for this student.
+                </AppText>
+              ) : null}
+
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                contentContainerClassName="gap-4 pb-1"
+              >
+                <View className="flex-row flex-wrap gap-4">
+                  <View className="min-w-56 flex-1">
+                    <Controller
+                      control={form.control}
+                      name="date"
+                      render={({ field, fieldState }) => (
+                        <AppDateInput
+                          label="Date"
+                          value={field.value}
+                          onChangeText={field.onChange}
+                          error={fieldState.error?.message}
+                        />
+                      )}
+                    />
+                  </View>
+
+                  <View className="min-w-56 flex-1">
+                    <Controller
+                      control={form.control}
+                      name="time"
+                      render={({ field, fieldState }) => (
+                        <AppTimeInput
+                          label="Time"
+                          value={field.value}
+                          onChangeText={field.onChange}
+                          error={fieldState.error?.message}
+                        />
+                      )}
+                    />
+                  </View>
+
+                  <View className="min-w-56 flex-1">
+                    <Controller
+                      control={form.control}
+                      name="durationMinutes"
+                      render={({ field, fieldState }) => (
+                        <AppInput
+                          label="Duration (min)"
+                          keyboardType="numeric"
+                          value={field.value}
+                          onChangeText={field.onChange}
+                          onBlur={field.onBlur}
+                          error={fieldState.error?.message}
+                        />
+                      )}
+                    />
+                  </View>
+                </View>
+
+                <Controller
+                  control={form.control}
+                  name="tasks"
+                  render={({ field, fieldState }) => (
+                    <AppStack gap="sm">
+                      <View className="flex-row items-end justify-between gap-3">
+                        <View className="flex-1">
+                          <AppText variant="label">Tasks covered</AppText>
+                          <AppText className="mt-1" variant="caption">
+                            Select from suggestions or add your own.
+                          </AppText>
+                        </View>
+                        <AppText variant="caption">{field.value.length} selected</AppText>
+                      </View>
+
+                      {fieldState.error?.message ? (
+                        <AppText variant="error">{fieldState.error.message}</AppText>
+                      ) : null}
+
+                      {field.value.length ? (
+                        <View className="flex-row flex-wrap gap-2">
+                          {field.value.map((task) => (
+                            <TaskChip
+                              key={task}
+                              label={task}
+                              selected
+                              onPress={() => field.onChange(field.value.filter((x) => x !== task))}
+                            />
+                          ))}
+                        </View>
+                      ) : (
+                        <AppText variant="caption">No tasks selected yet.</AppText>
+                      )}
+
+                      <View className="flex-row items-start justify-between gap-3">
+                        <View className="flex-1">
+                          <AppText variant="label">Task suggestions</AppText>
+                          <AppText className="mt-1" variant="caption">
+                            10 quick picks (multiple choice)
+                          </AppText>
+                        </View>
+
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel={
+                            suggestionsOpen ? "Hide task suggestions" : "Show task suggestions"
+                          }
+                          className="px-1 py-1"
+                          onPress={() => setSuggestionsOpen((v) => !v)}
+                        >
+                          <AppText
+                            variant="label"
+                            className={cn(
+                              "underline font-semibold",
+                              colorScheme === "dark" ? "text-amber-300" : "text-emerald-600",
+                            )}
+                          >
+                            {suggestionsOpen ? "Hide" : "Show"}
+                          </AppText>
+                        </Pressable>
+                      </View>
+
+                      {suggestionsOpen ? (
+                        <View className="flex-row flex-wrap gap-2">
+                          {taskSuggestions.map((task) => (
+                            <TaskChip
+                              key={task}
+                              label={task}
+                              selected={field.value.includes(task)}
+                              onPress={() => field.onChange(toggleTask(field.value, task))}
+                            />
+                          ))}
+                        </View>
+                      ) : null}
+
+                      <View className="flex-row items-end gap-2">
+                        <AppInput
+                          label="Add custom task"
+                          containerClassName="flex-1"
+                          value={customTask}
+                          onChangeText={setCustomTask}
+                          placeholder="e.g. Three-point turn"
+                          autoCapitalize="sentences"
+                        />
+                        <AppButton
+                          width="auto"
+                          label="Add"
+                          disabled={!customTask.trim()}
+                          onPress={() => {
+                            const next = normalizeTaskLabel(customTask);
+                            if (!next) return;
+                            if (field.value.includes(next)) {
+                              setCustomTask("");
+                              return;
+                            }
+                            field.onChange([...field.value, next]);
+                            setCustomTask("");
+                          }}
+                        />
+                      </View>
+
+                      {lastSession?.tasks?.length ? (
+                        <AppButton
+                          width="auto"
+                          variant="ghost"
+                          label="Use last session tasks"
+                          onPress={() => field.onChange(lastSession.tasks)}
+                        />
+                      ) : null}
+                    </AppStack>
+                  )}
+                />
+
+                <View className="flex-row flex-wrap gap-4">
+                  <View className="min-w-56 flex-1">
+                    <Controller
+                      control={form.control}
+                      name="nextFocus"
+                      render={({ field }) => (
+                        <AppInput
+                          label="Next focus (optional)"
+                          value={field.value}
+                          onChangeText={field.onChange}
+                          onBlur={field.onBlur}
+                          placeholder="What to focus on next lesson"
+                        />
+                      )}
+                    />
+                  </View>
+                </View>
+
+                <Controller
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <AppInput
+                      label="Notes (optional)"
+                      multiline
+                      numberOfLines={6}
+                      textAlignVertical="top"
+                      inputClassName="h-28 py-3"
+                      value={field.value}
+                      onChangeText={field.onChange}
+                      onBlur={field.onBlur}
+                    />
+                  )}
+                />
+              </ScrollView>
+
+              <View className="flex-row gap-2">
+                <AppButton
+                  width="auto"
+                  className="flex-1"
+                  variant="secondary"
+                  label="Cancel"
+                  onPress={closeCreateModal}
+                />
+                <AppButton
+                  width="auto"
+                  className="flex-1"
+                  label={createMutation.isPending ? "Saving..." : "Save"}
+                  disabled={createMutation.isPending || studentQuery.isPending || !studentQuery.data}
+                  onPress={confirmSave}
+                />
+              </View>
+            </AppCard>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
   );
 }

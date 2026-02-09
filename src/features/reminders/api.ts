@@ -55,6 +55,31 @@ export async function listUpcomingReminders(
   return data ?? [];
 }
 
+export type ListRemindersByDateRangeInput = {
+  fromISODate: string;
+  toISODate: string;
+  limit?: number;
+};
+
+export async function listRemindersByDateRange(
+  input: ListRemindersByDateRangeInput,
+): Promise<StudentReminder[]> {
+  let query = supabase
+    .from("student_reminders")
+    .select("*")
+    .gte("reminder_date", input.fromISODate)
+    .lte("reminder_date", input.toISODate)
+    .order("reminder_date", { ascending: true })
+    .order("reminder_time", { ascending: true })
+    .order("created_at", { ascending: false });
+
+  if (input.limit) query = query.limit(input.limit);
+
+  const { data, error } = await query.overrideTypes<StudentReminder[], { merge: false }>();
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function createStudentReminder(input: StudentReminderInsert): Promise<StudentReminder> {
   const { data, error } = await supabase
     .from("student_reminders")

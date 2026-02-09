@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Modal, Pressable, View } from "react-native";
-import { BellRing, RefreshCw, Trash2, X } from "lucide-react-native";
+import { BellRing, Pencil, RefreshCw, Trash2, X } from "lucide-react-native";
 import { Controller, useForm } from "react-hook-form";
 import { useColorScheme } from "nativewind";
 
@@ -26,6 +26,7 @@ import {
 import {
   useCreateStudentReminderMutation,
   useDeleteStudentReminderMutation,
+  useUpdateStudentReminderMutation,
   useStudentRemindersQuery,
 } from "../../features/reminders/queries";
 import {
@@ -82,14 +83,17 @@ export function StudentRemindersScreen({ route }: Props) {
   const { colorScheme } = useColorScheme();
 
   const trashColor = colorScheme === "dark" ? theme.colors.dangerDark : theme.colors.danger;
+  const editColor = colorScheme === "dark" ? "#4ade80" : "#16a34a";
 
   const studentQuery = useStudentQuery(studentId);
   const remindersQuery = useStudentRemindersQuery({ studentId });
   const createMutation = useCreateStudentReminderMutation();
   const deleteMutation = useDeleteStudentReminderMutation();
+  const updateMutation = useUpdateStudentReminderMutation();
 
   const [createModalVisible, setCreateModalVisible] = useState(Boolean(openNewReminder));
   const [deletingReminderId, setDeletingReminderId] = useState<string | null>(null);
+  const [editingReminderId, setEditingReminderId] = useState<string | null>(null);
 
   const reminders = remindersQuery.data ?? [];
   const sortedReminders = useMemo(() => {
@@ -158,12 +162,25 @@ export function StudentRemindersScreen({ route }: Props) {
   }
 
   function openCreateModal() {
+    setEditingReminderId(null);
     resetCreateForm();
     setCreateModalVisible(true);
   }
 
   function closeCreateModal() {
     setCreateModalVisible(false);
+    setEditingReminderId(null);
+  }
+
+  function openEditModal(reminder: (typeof reminders)[number]) {
+    setEditingReminderId(reminder.id);
+    form.reset({
+      title: reminder.title ?? "",
+      date: formatIsoDateToDisplay(reminder.reminder_date),
+      time: reminder.reminder_time.match(/^([01]\d|2[0-3]):[0-5]\d/)?.[0] ?? "09:00",
+      notificationOffsets: reminder.notification_offsets_minutes ?? [],
+    });
+    setCreateModalVisible(true);
   }
 
   function formatReminderTimeLabel(reminderTime: string) {
@@ -191,10 +208,21 @@ export function StudentRemindersScreen({ route }: Props) {
 
   const confirmSave = form.handleSubmit(
     (values) => {
-      Alert.alert("Save entry?", "Create this entry and schedule notifications on this device?", [
-        { text: "Cancel", style: "cancel" },
-        { text: "Save", onPress: () => void onSubmit(values) },
-      ]);
+      const reminderId = editingReminderId;
+      Alert.alert(
+        reminderId ? "Save changes?" : "Save entry?",
+        reminderId
+          ? "Update this entry and reschedule notifications on this device?"
+          : "Create this entry and schedule notifications on this device?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Save",
+            onPress: () =>
+              reminderId ? void onUpdate(reminderId, values) : void onCreate(values),
+          },
+        ],
+      );
     },
     (errors) => {
       const message =
@@ -207,7 +235,7 @@ export function StudentRemindersScreen({ route }: Props) {
     },
   );
 
-  async function onSubmit(values: StudentReminderFormValues) {
+  async function onCreate(values: StudentReminderFormValues) {
     const student = studentQuery.data;
     if (!student) return;
 
@@ -225,6 +253,44 @@ export function StudentRemindersScreen({ route }: Props) {
         reminder_date: reminderDateISO,
         reminder_time: values.time,
         notification_offsets_minutes: [...new Set(values.notificationOffsets)],
+      });
+
+      const notificationResult = await scheduleReminderNotificationsForReminder({
+        userId,
+        reminder,
+        studentName,
+      });
+
+      if (!notificationResult.permissionGranted) {
+        Alert.alert(
+          "Saved",
+          "Entry was saved, but notification permission is disabled on this device.",
+        );
+      }
+
+      resetCreateForm();
+      closeCreateModal();
+    } catch (error) {
+      Alert.alert("Couldn't save entry", toErrorMessage(error));
+    }
+  }
+
+  async function onUpdate(reminderId: string, values: StudentReminderFormValues) {
+    const student = studentQuery.data;
+    if (!student) return;
+
+    const reminderDateISO = parseDateInputToISODate(values.date);
+    if (!reminderDateISO) return;
+
+    try {
+      const reminder = await updateMutation.mutateAsync({
+        reminderId,
+        values: {
+          title: values.title.trim(),
+          reminder_date: reminderDateISO,
+          reminder_time: values.time,
+          notification_offsets_minutes: [...new Set(values.notificationOffsets)],
+        },
       });
 
       const notificationResult = await scheduleReminderNotificationsForReminder({
@@ -339,26 +405,47 @@ export function StudentRemindersScreen({ route }: Props) {
                   <AppCard key={reminder.id} className="gap-4">
                     <View className="flex-row items-start justify-between gap-3">
                       <View className="flex-1">
-                        <AppText variant="heading">{reminder.title}</AppText>
+                        <AppText
+                          variant="heading"
+                          className={cn(isPast && "text-danger dark:text-dangerDark")}
+                        >
+                          {reminder.title}
+                        </AppText>
                         <AppText className="mt-1" variant="caption">
                           {reminderDateLabel}
                           {isPast ? " - Past due" : ""}
                         </AppText>
                       </View>
 
-                      <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel="Delete reminder"
-                        disabled={deletingReminderId === reminder.id}
-                        onPress={() => onDeletePress(reminder.id)}
-                        className={cn(
-                          "h-10 w-10 items-center justify-center rounded-full border",
-                          "border-red-500/30 bg-red-500/10 dark:border-red-400/30 dark:bg-red-400/10",
-                          deletingReminderId === reminder.id && "opacity-60",
-                        )}
-                      >
-                        <Trash2 size={18} color={trashColor} />
-                      </Pressable>
+                      <View className="flex-row items-center gap-2">
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel="Edit reminder"
+                          disabled={deletingReminderId === reminder.id}
+                          onPress={() => openEditModal(reminder)}
+                          className={cn(
+                            "h-10 w-10 items-center justify-center rounded-full border",
+                            "border-green-600/30 bg-green-600/10 dark:border-green-400/30 dark:bg-green-400/10",
+                            deletingReminderId === reminder.id && "opacity-60",
+                          )}
+                        >
+                          <Pencil size={18} color={editColor} />
+                        </Pressable>
+
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel="Delete reminder"
+                          disabled={deletingReminderId === reminder.id}
+                          onPress={() => onDeletePress(reminder.id)}
+                          className={cn(
+                            "h-10 w-10 items-center justify-center rounded-full border",
+                            "border-red-500/30 bg-red-500/10 dark:border-red-400/30 dark:bg-red-400/10",
+                            deletingReminderId === reminder.id && "opacity-60",
+                          )}
+                        >
+                          <Trash2 size={18} color={trashColor} />
+                        </Pressable>
+                      </View>
                     </View>
 
                     <AppStack gap="sm">
@@ -389,7 +476,9 @@ export function StudentRemindersScreen({ route }: Props) {
           >
             <AppCard className="gap-4">
               <View className="flex-row items-center justify-between gap-2">
-                <AppText variant="heading">Add New Reminder</AppText>
+                <AppText variant="heading">
+                  {editingReminderId ? "Edit Reminder" : "Add New Reminder"}
+                </AppText>
                 <AppButton
                   label=""
                   width="auto"
@@ -513,8 +602,13 @@ export function StudentRemindersScreen({ route }: Props) {
                 <AppButton
                   width="auto"
                   className="flex-1"
-                  label={createMutation.isPending ? "Saving..." : "Save"}
-                  disabled={createMutation.isPending || studentQuery.isPending || !studentQuery.data}
+                  label={createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save"}
+                  disabled={
+                    createMutation.isPending ||
+                    updateMutation.isPending ||
+                    studentQuery.isPending ||
+                    !studentQuery.data
+                  }
                   onPress={confirmSave}
                 />
               </View>

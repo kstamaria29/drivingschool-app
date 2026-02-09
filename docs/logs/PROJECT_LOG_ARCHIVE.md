@@ -944,3 +944,11 @@
 - **Summary:**
   - Updated student delete flow to first fetch the student's `organization_id`, delete all files under `student-licenses/<organization_id>/<stud...
   - This ensures licence front/back images are removed from Supabase Storage when a student is deleted.
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Student delete warning + history cascade cleanup + licence photo UI polish
+- **Summary:**
+  - Updated student delete API flow to remove related `student_sessions` and `assessments` records before deleting the student row.
+  - Kept storage cleanup on delete by removing files under `student-licenses/<organization_id>/<student_id>/`.
