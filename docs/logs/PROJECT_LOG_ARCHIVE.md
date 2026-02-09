@@ -1016,3 +1016,11 @@
 - **Summary:**
   - Updated sidebar `Students` navigation to always open `StudentsList` instead of returning to previously viewed student profile screens.
   - Reworked Student Profile bottom actions into 2-column rows with requested order and styling, including blue `Start Assessment` with icon and...
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Lessons calendar square connected date cells
+- **Summary:**
+  - Updated the Lessons month calendar date cells to remove rounded corners and remove spacing so cells connect as a continuous grid.
+  - Updated the weekly date strip in the Lessons agenda card to use square, connected date boxes for consistent calendar styling.

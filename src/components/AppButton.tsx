@@ -81,7 +81,12 @@ export function AppButton({
     typeof badgeCount === "number" && Number.isFinite(badgeCount) && badgeCount > 0
       ? Math.min(Math.floor(badgeCount), 99)
       : null;
-  const badgeText = badgeCount != null && badgeCount > 99 ? "99+" : String(resolvedBadgeCount);
+  const badgeText =
+    resolvedBadgeCount == null
+      ? ""
+      : badgeCount != null && badgeCount > 99
+        ? "99+"
+        : String(resolvedBadgeCount);
   const showLabelBadge = badgePosition === "label-top-right" && resolvedBadgeCount != null;
 
   const iconWithBadge = iconNode ? (
@@ -111,7 +116,7 @@ export function AppButton({
         theme.button.base,
         theme.button.variant[variant],
         theme.button.size[size],
-        showLabelBadge && "relative",
+        showLabelBadge && "relative z-10",
         disabled && theme.button.disabled,
         className,
       )}
@@ -139,7 +144,7 @@ export function AppButton({
       {showLabelBadge ? (
         <View
           pointerEvents="none"
-          className="absolute right-2 top-1 h-5 min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 dark:bg-dangerDark"
+          className="absolute right-3 top-2 z-20 h-5 min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 dark:bg-dangerDark"
         >
           <AppText
             numberOfLines={1}

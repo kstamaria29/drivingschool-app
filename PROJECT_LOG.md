@@ -1,6 +1,13 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile badge overlap fix
+- **Summary:**
+  - Adjusted `AppButton` label-badge positioning and stacking so Student Profile count badges don't clip/overlap adjacent buttons.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Lessons editor UX + history badge fix
 - **Summary:**
   - Fixed Student Profile history/reminder count badges so they position correctly on tablet portrait buttons.
@@ -148,11 +155,3 @@
 - **Summary:**
   - Added a shared header-left menu+back control across main app stacks so screens include both hamburger and back buttons, while Home keeps no....
   - Back action now uses stack `goBack()` when possible and falls back to drawer navigation to `HomeDashboard` as the final destination.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Lessons calendar square connected date cells
-- **Summary:**
-  - Updated the Lessons month calendar date cells to remove rounded corners and remove spacing so cells connect as a continuous grid.
-  - Updated the weekly date strip in the Lessons agenda card to use square, connected date boxes for consistent calendar styling.
