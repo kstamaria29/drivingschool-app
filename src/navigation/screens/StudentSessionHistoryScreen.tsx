@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, View } from "react-native";
-import { RefreshCw, Trash2, X } from "lucide-react-native";
+import { Pencil, RefreshCw, Trash2, X } from "lucide-react-native";
 import { Controller, useForm } from "react-hook-form";
 import { useColorScheme } from "nativewind";
 
@@ -18,10 +18,12 @@ import { AppTimeInput } from "../../components/AppTimeInput";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
 import { isOwnerOrAdminRole } from "../../features/auth/roles";
+import type { StudentSession } from "../../features/sessions/api";
 import {
   useCreateStudentSessionMutation,
   useDeleteStudentSessionMutation,
   useStudentSessionsQuery,
+  useUpdateStudentSessionMutation,
 } from "../../features/sessions/queries";
 import { studentSessionFormSchema, type StudentSessionFormValues } from "../../features/sessions/schemas";
 import { useStudentQuery } from "../../features/students/queries";
@@ -132,16 +134,19 @@ export function StudentSessionHistoryScreen({ route }: Props) {
   const { colorScheme } = useColorScheme();
 
   const trashColor = colorScheme === "dark" ? theme.colors.dangerDark : theme.colors.danger;
+  const editColor = colorScheme === "dark" ? "#4ade80" : "#16a34a";
 
   const studentQuery = useStudentQuery(studentId);
   const sessionsQuery = useStudentSessionsQuery({ studentId });
   const createMutation = useCreateStudentSessionMutation();
   const deleteMutation = useDeleteStudentSessionMutation();
+  const updateMutation = useUpdateStudentSessionMutation();
 
   const [createModalVisible, setCreateModalVisible] = useState(Boolean(openNewSession));
-  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(true);
   const [customTask, setCustomTask] = useState("");
   const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
 
   const defaultTime = useMemo(() => dayjs().format("HH:mm"), []);
 
@@ -179,13 +184,18 @@ export function StudentSessionHistoryScreen({ route }: Props) {
   }, [sessions]);
 
   const confirmSave = form.handleSubmit((values) => {
-    Alert.alert("Save session?", "Add this session to the student's history?", [
+    const isEdit = Boolean(editingSessionId);
+    Alert.alert(
+      isEdit ? "Update session?" : "Save session?",
+      isEdit ? "Update this session in the student's history?" : "Add this session to the student's history?",
+      [
       { text: "Cancel", style: "cancel" },
-      { text: "Save", onPress: () => void onSubmit(values) },
-    ]);
+      { text: isEdit ? "Update" : "Save", onPress: () => void (isEdit ? onUpdate(values) : onCreate(values)) },
+      ],
+    );
   });
 
-  async function onSubmit(values: StudentSessionFormValues) {
+  async function onCreate(values: StudentSessionFormValues) {
     const student = studentQuery.data ?? null;
     if (!student) return;
 
@@ -219,10 +229,40 @@ export function StudentSessionHistoryScreen({ route }: Props) {
         notes: "",
       });
       setCustomTask("");
-      setSuggestionsOpen(false);
+      setSuggestionsOpen(true);
       closeCreateModal();
     } catch (error) {
       Alert.alert("Couldn't save session", toErrorMessage(error));
+    }
+  }
+
+  async function onUpdate(values: StudentSessionFormValues) {
+    const sessionId = editingSessionId;
+    if (!sessionId) return;
+
+    const dateISO = parseDateInputToISODate(values.date);
+    if (!dateISO) return;
+
+    const sessionAt = dayjs(`${dateISO}T${values.time}`).toISOString();
+    const duration =
+      values.durationMinutes.trim() === "" ? null : Math.max(15, Number(values.durationMinutes.trim()));
+
+    try {
+      await updateMutation.mutateAsync({
+        sessionId,
+        input: {
+          session_at: sessionAt,
+          duration_minutes: duration,
+          tasks: values.tasks,
+          next_focus: values.nextFocus.trim() ? values.nextFocus.trim() : null,
+          notes: values.notes.trim() ? values.notes.trim() : null,
+        },
+      });
+
+      resetCreateForm();
+      closeCreateModal();
+    } catch (error) {
+      Alert.alert("Couldn't update session", toErrorMessage(error));
     }
   }
 
@@ -236,16 +276,37 @@ export function StudentSessionHistoryScreen({ route }: Props) {
       notes: "",
     });
     setCustomTask("");
-    setSuggestionsOpen(false);
+    setSuggestionsOpen(true);
   }
 
   function openCreateModal() {
+    setEditingSessionId(null);
     resetCreateForm();
+    setCreateModalVisible(true);
+  }
+
+  function openEditModal(session: StudentSession) {
+    const sessionAt = dayjs(session.session_at);
+    const date = sessionAt.isValid() ? sessionAt.format(DISPLAY_DATE_FORMAT) : dayjs().format(DISPLAY_DATE_FORMAT);
+    const time = sessionAt.isValid() ? sessionAt.format("HH:mm") : dayjs().format("HH:mm");
+
+    form.reset({
+      date,
+      time,
+      durationMinutes: session.duration_minutes ? String(session.duration_minutes) : "",
+      tasks: session.tasks ?? [],
+      nextFocus: session.next_focus ?? "",
+      notes: session.notes ?? "",
+    });
+    setCustomTask("");
+    setSuggestionsOpen(true);
+    setEditingSessionId(session.id);
     setCreateModalVisible(true);
   }
 
   function closeCreateModal() {
     setCreateModalVisible(false);
+    setEditingSessionId(null);
   }
 
   function onDeletePress(sessionId: string) {
@@ -372,20 +433,36 @@ export function StudentSessionHistoryScreen({ route }: Props) {
                         {subtitleParts.length ? subtitleParts.join(" - ") : "-"}
                       </AppText>
                     </View>
+ 
+                    <View className="flex-row items-center gap-2">
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="Edit session"
+                        disabled={deletingSessionId === session.id}
+                        onPress={() => openEditModal(session)}
+                        className={cn(
+                          "h-10 w-10 items-center justify-center rounded-full border",
+                          "border-green-600/30 bg-green-600/10 dark:border-green-400/30 dark:bg-green-400/10",
+                          deletingSessionId === session.id && "opacity-60",
+                        )}
+                      >
+                        <Pencil size={18} color={editColor} />
+                      </Pressable>
 
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel="Delete session"
-                      disabled={deletingSessionId === session.id}
-                      onPress={() => onDeletePress(session.id)}
-                      className={cn(
-                        "h-10 w-10 items-center justify-center rounded-full border",
-                        "border-red-500/30 bg-red-500/10 dark:border-red-400/30 dark:bg-red-400/10",
-                        deletingSessionId === session.id && "opacity-60",
-                      )}
-                    >
-                      <Trash2 size={18} color={trashColor} />
-                    </Pressable>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="Delete session"
+                        disabled={deletingSessionId === session.id}
+                        onPress={() => onDeletePress(session.id)}
+                        className={cn(
+                          "h-10 w-10 items-center justify-center rounded-full border",
+                          "border-red-500/30 bg-red-500/10 dark:border-red-400/30 dark:bg-red-400/10",
+                          deletingSessionId === session.id && "opacity-60",
+                        )}
+                      >
+                        <Trash2 size={18} color={trashColor} />
+                      </Pressable>
+                    </View>
                   </View>
 
                   {tasks.length ? (
@@ -428,7 +505,7 @@ export function StudentSessionHistoryScreen({ route }: Props) {
           >
             <AppCard className="gap-4">
               <View className="flex-row items-center justify-between gap-2">
-                <AppText variant="heading">Add Session History</AppText>
+                <AppText variant="heading">{editingSessionId ? "Edit Session History" : "Add Session History"}</AppText>
                 <AppButton
                   label=""
                   width="auto"
@@ -659,8 +736,19 @@ export function StudentSessionHistoryScreen({ route }: Props) {
                 <AppButton
                   width="auto"
                   className="flex-1"
-                  label={createMutation.isPending ? "Saving..." : "Save"}
-                  disabled={createMutation.isPending || studentQuery.isPending || !studentQuery.data}
+                  label={
+                    createMutation.isPending || updateMutation.isPending
+                      ? "Saving..."
+                      : editingSessionId
+                        ? "Update"
+                        : "Save"
+                  }
+                  disabled={
+                    createMutation.isPending ||
+                    updateMutation.isPending ||
+                    studentQuery.isPending ||
+                    !studentQuery.data
+                  }
                   onPress={confirmSave}
                 />
               </View>

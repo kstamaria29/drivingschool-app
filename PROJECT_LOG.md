@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Session History edit flow + Lessons agenda reminders
+- **Summary:**
+  - Defaulted Session History task suggestions to show and added an edit/update action for session entries.
+  - Updated the Lessons agenda to list reminders for the selected day and removed the duplicate New button.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Lessons calendar reminder markers + legend
 - **Summary:**
   - Replaced the Lessons calendar today dot with a circled day highlight and added reminder markers with a legend.
@@ -148,11 +156,3 @@
 - **Summary:**
   - Replaced the Students table row text next to the licence badge from licence type labels to the student `organization_name`.
   - Renamed the right-side column header from `Licence` to `Organization` while keeping the L/R/F circular badge visible.
-
----
-
-- **Date:** 2026-02-08 (Pacific/Auckland)
-- **Task:** Organization picker modal UX + left-aligned selected value
-- **Summary:**
-  - Updated `New/Edit student` Organization field to show selected value left-aligned in the trigger button (e.g., `Private`).
-  - Replaced inline organization dropdown expansion with a modal action-sheet style picker (matching the photo options modal pattern).

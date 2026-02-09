@@ -36,6 +36,12 @@ function statusLabel(status: "scheduled" | "completed" | "cancelled") {
   return "Cancelled";
 }
 
+function normalizeTimeHHmm(value: string | null | undefined) {
+  if (!value) return "09:00";
+  const match = value.match(/^([01]\d|2[0-3]):[0-5]\d/);
+  return match ? match[0] : "09:00";
+}
+
 export function LessonsListScreen({ navigation }: Props) {
   const { width, height } = useWindowDimensions();
   const isCompact = Math.min(width, height) < 600;
@@ -68,7 +74,7 @@ export function LessonsListScreen({ navigation }: Props) {
   const isInstructor = profileQuery.data?.role === "instructor";
   const today = dayjs().startOf("day");
 
-  const { lessonCountByDateISO, reminderCountByDateISO, lessonsForSelectedDay } = useMemo(() => {
+  const { lessonCountByDateISO, reminderCountByDateISO, lessonsForSelectedDay, remindersForSelectedDay } = useMemo(() => {
     const lessonCounts: Record<string, number> = {};
     const reminderCounts: Record<string, number> = {};
     const selectedISO = selectedDate.format("YYYY-MM-DD");
@@ -85,6 +91,11 @@ export function LessonsListScreen({ navigation }: Props) {
       reminderCounts[dateISO] = (reminderCounts[dateISO] ?? 0) + 1;
     }
 
+    const remindersForDay = allReminders
+      .filter((reminder) => reminder.reminder_date === selectedISO)
+      .slice()
+      .sort((a, b) => normalizeTimeHHmm(a.reminder_time).localeCompare(normalizeTimeHHmm(b.reminder_time)));
+
     const lessonsForDay = all
       .filter((lesson) => dayjs(lesson.start_time).format("YYYY-MM-DD") === selectedISO)
       .sort((a, b) => dayjs(a.start_time).valueOf() - dayjs(b.start_time).valueOf());
@@ -93,6 +104,7 @@ export function LessonsListScreen({ navigation }: Props) {
       lessonCountByDateISO: lessonCounts,
       reminderCountByDateISO: reminderCounts,
       lessonsForSelectedDay: lessonsForDay,
+      remindersForSelectedDay: remindersForDay,
     };
   }, [lessonsQuery.data, remindersQuery.data, selectedDate]);
 
@@ -169,6 +181,45 @@ export function LessonsListScreen({ navigation }: Props) {
     );
   });
 
+  const hasLessons = lessonsForSelectedDay.length > 0;
+  const hasReminders = remindersForSelectedDay.length > 0;
+
+  const reminderCards = remindersForSelectedDay.map((reminder) => {
+    const timeHHmm = normalizeTimeHHmm(reminder.reminder_time);
+    const when = dayjs(`${reminder.reminder_date}T${timeHHmm}:00`);
+    const timeLabel = when.isValid() ? when.format("h:mm") : timeHHmm;
+    const meridiemLabel = when.isValid() ? when.format("A") : "";
+
+    return (
+      <View
+        key={reminder.id}
+        className="rounded-2xl border border-border bg-card p-4 shadow-sm shadow-black/5 dark:border-borderDark dark:bg-cardDark dark:shadow-black/30"
+      >
+        <View className="flex-row items-start gap-4">
+          <View className="w-20 items-center rounded-xl border border-emerald-600/30 bg-emerald-600/10 px-2 py-2 dark:border-emerald-500/30 dark:bg-emerald-500/10">
+            <AppText className="text-xs" variant="caption">
+              {timeLabel}
+            </AppText>
+            {meridiemLabel ? (
+              <AppText className="text-xs" variant="caption">
+                {meridiemLabel}
+              </AppText>
+            ) : null}
+          </View>
+
+          <View className="flex-1 gap-1">
+            <View className="flex-row items-start justify-between gap-3">
+              <AppText className="flex-1" variant="heading">
+                {reminder.title}
+              </AppText>
+              <View className="mt-2 h-2 w-2 rounded-full bg-emerald-600 dark:bg-emerald-500" />
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  });
+
   const weekStart = useMemo(() => startOfWeekMonday(selectedDate), [selectedDate]);
   const weekDays = useMemo(() => Array.from({ length: 7 }, (_, index) => weekStart.add(index, "day")), [weekStart]);
 
@@ -241,35 +292,64 @@ export function LessonsListScreen({ navigation }: Props) {
           <AppText variant="heading">{selectedDate.format(`dddd, ${DISPLAY_DATE_FORMAT}`)}</AppText>
           <AppText className="mt-1" variant="caption">
             {lessonsForSelectedDay.length} lesson{lessonsForSelectedDay.length === 1 ? "" : "s"} scheduled
+            {hasReminders
+              ? ` · ${remindersForSelectedDay.length} reminder${remindersForSelectedDay.length === 1 ? "" : "s"}`
+              : ""}
           </AppText>
         </View>
-        <AppButton
-          width="auto"
-          icon={CalendarPlus}
-          label="New"
-          onPress={() => navigation.navigate("LessonCreate", { initialDate: selectedDate.format("YYYY-MM-DD") })}
-        />
       </View>
 
       {weekStrip}
 
-      {lessonsQuery.isPending ? (
-        <CenteredLoadingState label="Loading lessons..." />
-      ) : lessonsQuery.isError ? (
+      {lessonsQuery.isPending || remindersQuery.isPending ? (
+        <CenteredLoadingState label="Loading schedule..." />
+      ) : lessonsQuery.isError || remindersQuery.isError ? (
         <AppStack gap="md">
-          <AppText variant="error">{toErrorMessage(lessonsQuery.error)}</AppText>
-          <AppButton width="auto" variant="secondary" icon={RefreshCw} label="Retry" onPress={() => lessonsQuery.refetch()} />
+          {lessonsQuery.isError ? (
+            <AppStack gap="sm">
+              <AppText variant="error">Lessons: {toErrorMessage(lessonsQuery.error)}</AppText>
+              <AppButton
+                width="auto"
+                variant="secondary"
+                icon={RefreshCw}
+                label="Retry lessons"
+                onPress={() => lessonsQuery.refetch()}
+              />
+            </AppStack>
+          ) : null}
+
+          {remindersQuery.isError ? (
+            <AppStack gap="sm">
+              <AppText variant="error">Reminders: {toErrorMessage(remindersQuery.error)}</AppText>
+              <AppButton
+                width="auto"
+                variant="secondary"
+                icon={RefreshCw}
+                label="Retry reminders"
+                onPress={() => remindersQuery.refetch()}
+              />
+            </AppStack>
+          ) : null}
         </AppStack>
-      ) : lessonsForSelectedDay.length === 0 ? (
+      ) : !hasLessons && !hasReminders ? (
         <AppStack gap="sm">
-          <AppText variant="heading">No lessons</AppText>
+          <AppText variant="heading">No lessons or reminders</AppText>
           <AppText variant="body">
-            {isInstructor ? "You may not be assigned any lessons yet." : "Create a lesson to plan your day."}
+            {isInstructor
+              ? "You may not be assigned any lessons yet."
+              : "Create a lesson or add a reminder to plan your day."}
           </AppText>
         </AppStack>
       ) : (
         <ScrollView className="flex-1" keyboardShouldPersistTaps="handled" contentContainerClassName="gap-3 pb-2">
+          {!hasLessons ? <AppText variant="caption">No lessons scheduled.</AppText> : null}
           {lessonCards}
+          {hasReminders ? (
+            <View className={cn(hasLessons && "pt-2")}>
+              <AppText variant="heading">Reminders</AppText>
+            </View>
+          ) : null}
+          {reminderCards}
         </ScrollView>
       )}
     </AppCard>

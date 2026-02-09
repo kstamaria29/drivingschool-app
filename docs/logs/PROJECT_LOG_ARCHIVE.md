@@ -952,3 +952,11 @@
 - **Summary:**
   - Updated student delete API flow to remove related `student_sessions` and `assessments` records before deleting the student row.
   - Kept storage cleanup on delete by removing files under `student-licenses/<organization_id>/<student_id>/`.
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Organization picker modal UX + left-aligned selected value
+- **Summary:**
+  - Updated `New/Edit student` Organization field to show selected value left-aligned in the trigger button (e.g., `Private`).
+  - Replaced inline organization dropdown expansion with a modal action-sheet style picker (matching the photo options modal pattern).
