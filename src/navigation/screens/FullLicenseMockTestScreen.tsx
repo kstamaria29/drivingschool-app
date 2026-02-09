@@ -59,7 +59,7 @@ import {
   type FullLicenseMockTestStoredData,
 } from "../../features/assessments/full-license-mock-test/schema";
 import { notifyPdfSaved } from "../../features/notifications/download-notifications";
-import { useOrganizationQuery } from "../../features/organization/queries";
+import { useOrganizationQuery, useOrganizationSettingsQuery } from "../../features/organization/queries";
 import { useStudentsQuery } from "../../features/students/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
@@ -146,6 +146,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   const { colorScheme } = useColorScheme();
   const { profile, userId } = useCurrentUser();
   const organizationQuery = useOrganizationQuery(profile.organization_id);
+  const organizationSettingsQuery = useOrganizationSettingsQuery(profile.organization_id);
   const studentsQuery = useStudentsQuery({ archived: false });
   const createAssessment = useCreateAssessmentMutation();
 
@@ -289,6 +290,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   }
 
   const organizationName = organizationQuery.data?.name ?? "Driving School";
+  const organizationLogoUrl = organizationSettingsQuery.data?.logo_url ?? null;
 
   function scrollToTop(animated = false) {
     requestAnimationFrame(() => {
@@ -851,6 +853,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       const saved = await exportFullLicenseMockTestPdf({
         assessmentId: result.assessment.id,
         organizationName,
+        organizationLogoUrl,
         fileName,
         androidDirectoryUri: androidDirectoryUri ?? undefined,
         values: result.values,

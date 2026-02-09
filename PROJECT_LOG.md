@@ -1,5 +1,51 @@
 # PROJECT_LOG.md
 
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Assessment PDF header/logo styling
+- **Summary:**
+  - Added organization logo + student name to generated assessment PDFs (Driving Assessment, Restricted mock test, Full License mock test).
+  - Standardized section borders across assessment PDFs to match the scoring guide style (darker border, square corners).
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile kebab archive/delete true bold fix
+- **Summary:**
+  - Switched kebab `Archive/Unarchive` and `Delete` label rendering to `AppText` `button` variant (semibold font family) because utility `font-semibold` is overridden by the component-level font family on `body` variant.
+  - Kept `Delete` label red and `Archive/Unarchive` green with the corrected bold rendering.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile kebab archive/delete text emphasis
+- **Summary:**
+  - Updated kebab menu `Delete` label to explicit red text and made both `Archive/Unarchive` and `Delete` labels bold for stronger visual emphasis.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile kebab menu hide zero badges
+- **Summary:**
+  - Updated Student Profile kebab menu badge rendering so Sessions, Reminders, and Assessments badges are hidden when the count is `0`.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile kebab menu counts + reminders action polish
+- **Summary:**
+  - Added `Reminders` to the Student Profile kebab menu between Sessions and Assessments, renamed `Edit` to `Edit details`, and added right-side count badges for Sessions, Reminders, and Assessments.
+  - Styled kebab `Archive/Unarchive` action text/icon green and updated the main profile action button to green `Set Reminders`.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile kebab sizing consolidation + label/icon polish
+- **Summary:**
+  - Consolidated repetitive kebab-size adjustments into one record and finalized the trigger at `55px` square (`h-[55px] w-[55px]`) with a larger `30px` icon.
+  - Increased the organization name text under the student title from `23px` to `24px`.
+
+---
+
 - **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Student Profile second-visit clipping fix (ScrollView flex)
 - **Summary:**
@@ -8,25 +54,16 @@
 ---
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile focus reset + kebab 12x12
+- **Task:** Student Profile focus reset for revisit stability
 - **Summary:**
-  - Updated the Student Profile kebab trigger to `h-12 w-12`.
   - Fixed the second-visit action-row clipping pattern by resetting Student Detail transient UI state and scroll position every time the screen regains focus.
 
 ---
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile kebab resize + second-visit action layout stabilization
+- **Task:** Student Profile second-visit action layout stabilization
 - **Summary:**
-  - Resized the Student Profile kebab trigger to `h-10 w-10` as requested.
   - Stabilized second-visit action button rendering by resetting Student Detail scroll/transient UI state on `studentId` changes and reducing badge row stacking side effects.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile kebab button square sizing
-- **Summary:**
-  - Updated the Student Profile top-right kebab action trigger to use square dimensions for both tablet and compact layouts.
 
 ---
 
@@ -115,41 +152,3 @@
   - Replaced the Lessons calendar today dot with a circled day highlight and added reminder markers with a legend.
   - Updated the weekly strip to show lesson vs reminder markers consistently.
 
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Assessment blank screen scroll fix
-- **Summary:**
-  - Fixed assessment screens rendering blank until you scroll by forcing the ScrollView to reset to top on focus and after student/test resets.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Assessment submit options + upcoming reminders
-- **Summary:**
-  - Added `Submit` vs `Submit and Generate PDF` options across assessments and hardened navigation/state resets so each new assessment starts cl...
-  - Added Home `Upcoming Reminders` (5 soonest) and sorted reminders by reminder date/time for consistent ordering.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Reminders modal time hint sync + assessment student switch fix
-- **Summary:**
-  - Updated Add Reminder modal title to `Add New Reminder` and made the notification helper text dynamically reflect the currently selected remi...
-  - Fixed assessment submit/start navigation so completed assessment screens are popped to `AssessmentsMain` on submit, preventing stale student...
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Reminders screen modal create flow + simplified layout
-- **Summary:**
-  - Removed the top Reminders summary container and switched `Add new` to a full modal create flow with `Title`, input, `Date`, `Time`, and `Not...
-  - Added a `2 days before` notification option and wired reminder `Time` through DB + notification scheduling while keeping the requested helpe...
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Assessment submit return-to-profile flow + driving suggestion priority
-- **Summary:**
-  - Updated all assessment submit flows to return to `StudentDetail` when launched from Student Profile, instead of dropping users on the Assess...
-  - Moved the "Smoother Steering Control - Avoid oversteering..." improvement suggestion to the top of the Driving Assessment suggestions list.

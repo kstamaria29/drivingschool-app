@@ -64,7 +64,9 @@ type StudentActionMenuItemProps = {
   icon: LucideIcon;
   onPress: () => void;
   danger?: boolean;
+  success?: boolean;
   disabled?: boolean;
+  badgeCount?: number;
 };
 
 function DetailValueField({
@@ -99,16 +101,31 @@ function StudentActionMenuItem({
   icon: Icon,
   onPress,
   danger = false,
+  success = false,
   disabled = false,
+  badgeCount,
 }: StudentActionMenuItemProps) {
   const colorScheme = useColorScheme();
+  const successColor = colorScheme === "dark" ? "#86efac" : "#166534";
   const iconColor = danger
     ? colorScheme === "dark"
       ? theme.colors.dangerDark
       : theme.colors.danger
+    : success
+      ? successColor
     : colorScheme === "dark"
       ? theme.colors.foregroundDark
       : theme.colors.foregroundLight;
+  const normalizedBadgeCount =
+    typeof badgeCount === "number" && Number.isFinite(badgeCount) && badgeCount > 0
+      ? Math.min(Math.floor(badgeCount), 99)
+      : null;
+  const badgeText =
+    normalizedBadgeCount == null
+      ? ""
+      : badgeCount != null && badgeCount > 99
+        ? "99+"
+        : String(normalizedBadgeCount);
 
   return (
     <Pressable
@@ -123,11 +140,25 @@ function StudentActionMenuItem({
     >
       <Icon size={18} color={iconColor} strokeWidth={2} />
       <AppText
-        variant="body"
-        className={cn(danger && "text-danger dark:text-dangerDark")}
+        variant={danger || success ? "button" : "body"}
+        className={cn(
+          danger && "text-red-700 dark:text-red-300",
+          success && "text-green-800 dark:text-green-200",
+        )}
       >
         {label}
       </AppText>
+      {normalizedBadgeCount != null ? (
+        <View className="ml-auto h-5 min-w-[20px] items-center justify-center rounded-full border border-primary/30 bg-primary/15 px-1.5 dark:border-primaryDark/30 dark:bg-primaryDark/20">
+          <AppText
+            variant="caption"
+            className="text-[10px] font-semibold leading-[10px] text-primary dark:text-primaryDark"
+            numberOfLines={1}
+          >
+            {badgeText}
+          </AppText>
+        </View>
+      ) : null}
     </Pressable>
   );
 }
@@ -502,7 +533,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                       color={organizationIconColor}
                       strokeWidth={2}
                     />
-                    <AppText className="text-[23px]" numberOfLines={1}>
+                    <AppText className="text-[24px]" numberOfLines={1}>
                       {student.organization_name ?? "-"}
                     </AppText>
                   </View>
@@ -518,7 +549,8 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                   size="icon"
                   variant="secondary"
                   label=""
-                  className="h-12 w-12"
+                  className="h-[55px] w-[55px]"
+                  iconSize={30}
                   accessibilityLabel="More student actions"
                   icon={EllipsisVertical}
                   onPress={openActionMenu}
@@ -767,9 +799,9 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                   <View className="flex-row gap-3">
                     <AppButton
                       width="auto"
-                      className="flex-1"
-                      label="Reminders"
-                      variant="secondary"
+                      className="flex-1 border-green-600 bg-green-600 dark:border-green-500 dark:bg-green-500"
+                      label="Set Reminders"
+                      variant="primary"
                       icon={Bell}
                       badgePosition="label-top-right"
                       badgeCount={
@@ -821,7 +853,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
           >
             <AppCard className="gap-1 p-2">
               <StudentActionMenuItem
-                label="Edit"
+                label="Edit details"
                 icon={Pencil}
                 onPress={() => {
                   if (!student) return;
@@ -832,6 +864,9 @@ export function StudentDetailScreen({ navigation, route }: Props) {
               <StudentActionMenuItem
                 label="Sessions"
                 icon={Clock}
+                badgeCount={
+                  sessionsQuery.isPending || sessionsQuery.isError ? undefined : sessionCount
+                }
                 onPress={() => {
                   if (!student) return;
                   closeActionMenu();
@@ -841,8 +876,29 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                 }}
               />
               <StudentActionMenuItem
+                label="Reminders"
+                icon={Bell}
+                badgeCount={
+                  remindersQuery.isPending || remindersQuery.isError
+                    ? undefined
+                    : reminderCount
+                }
+                onPress={() => {
+                  if (!student) return;
+                  closeActionMenu();
+                  navigation.navigate("StudentReminders", {
+                    studentId: student.id,
+                  });
+                }}
+              />
+              <StudentActionMenuItem
                 label="Assessments"
                 icon={ClipboardList}
+                badgeCount={
+                  assessmentsQuery.isPending || assessmentsQuery.isError
+                    ? undefined
+                    : assessmentCount
+                }
                 onPress={() => {
                   if (!student) return;
                   closeActionMenu();
@@ -858,6 +914,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                     : (archiveMutation.isPending ? "Archiving..." : "Archive")
                 }
                 icon={isArchived ? Undo2 : Archive}
+                success
                 disabled={
                   archiveMutation.isPending ||
                   unarchiveMutation.isPending ||

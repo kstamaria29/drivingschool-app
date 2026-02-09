@@ -6,6 +6,7 @@ import * as Print from "expo-print";
 type Input = {
   assessmentId: string;
   organizationName: string;
+  organizationLogoUrl?: string | null;
   fileName: string;
   androidDirectoryUri?: string;
   criteria: Record<string, readonly string[]>;
@@ -56,6 +57,10 @@ function escapeHtml(input: string) {
 function buildHtml(input: Input) {
   const v = input.values;
   const totalPercent = v.totalScorePercent == null ? "N/A" : `${v.totalScorePercent}%`;
+  const logoUrl = input.organizationLogoUrl?.trim() || "";
+  const logoHtml = logoUrl
+    ? `<div class="header-right"><img class="logo" src="${escapeHtml(logoUrl)}" /></div>`
+    : "";
 
   return `
   <html>
@@ -74,10 +79,14 @@ function buildHtml(input: Input) {
         h3 { font-size: 11px; margin: 8px 0 4px 0; }
         .org { font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; font-size: 12px; margin-bottom: 4px; }
         .muted { color: #475569; font-size: 10px; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+        .header-left { flex: 1; min-width: 0; }
+        .header-right { flex-shrink: 0; display: flex; justify-content: flex-end; }
+        .logo { height: 44px; width: auto; max-width: 140px; object-fit: contain; }
         .page { page-break-after: always; }
         .page:last-child { page-break-after: auto; }
         .box { border: 1px solid #0f172a; padding: 10px 12px; }
-        .box-soft { border: 1px solid #cbd5e1; padding: 10px 12px; border-radius: 10px; }
+        .box-soft { border: 1px solid #0f172a; padding: 10px 12px; border-radius: 0; }
         .grid { width: 100%; border-collapse: collapse; }
         .grid td { padding: 3px 0; vertical-align: top; }
         .label { width: 34%; color: #334155; font-size: 10px; }
@@ -104,10 +113,13 @@ function buildHtml(input: Input) {
     </head>
     <body>
       <div class="page">
-        <div>
-          <div class="org">${escapeHtml(input.organizationName)}</div>
-          <h1>Driving Assessment Result Form</h1>
-          <div class="muted">Generated: ${escapeHtml(v.date)}</div>
+        <div class="header">
+          <div class="header-left">
+            <div class="org">${escapeHtml(input.organizationName)}</div>
+            <h1>Driving Assessment Result Form</h1>
+            <div class="muted">Student: ${escapeHtml(v.clientName || "N/A")}</div>
+          </div>
+          ${logoHtml}
         </div>
 
         <div class="section box-soft">
@@ -204,10 +216,13 @@ function buildHtml(input: Input) {
       </div>
 
       <div class="page">
-        <div>
-          <div class="org">${escapeHtml(input.organizationName)}</div>
-          <h1>Driving Assessment</h1>
-          <div class="muted">Total score: ${escapeHtml(totalPercent)} (raw: ${escapeHtml(String(v.totalScoreRaw))})</div>
+        <div class="header">
+          <div class="header-left">
+            <div class="org">${escapeHtml(input.organizationName)}</div>
+            <h1>Driving Assessment</h1>
+            <div class="muted">Total score: ${escapeHtml(totalPercent)} (raw: ${escapeHtml(String(v.totalScoreRaw))})</div>
+          </div>
+          ${logoHtml}
         </div>
 
         <div class="section box-soft">

@@ -48,7 +48,7 @@ import {
 } from "../../features/assessments/restricted-mock-test/scoring";
 import { restrictedMockTestStoredDataSchema } from "../../features/assessments/restricted-mock-test/schema";
 import { notifyPdfSaved } from "../../features/notifications/download-notifications";
-import { useOrganizationQuery } from "../../features/organization/queries";
+import { useOrganizationQuery, useOrganizationSettingsQuery } from "../../features/organization/queries";
 import { useStudentQuery } from "../../features/students/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
@@ -159,6 +159,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
 
   const studentQuery = useStudentQuery(studentId);
   const organizationQuery = useOrganizationQuery(profile.organization_id);
+  const organizationSettingsQuery = useOrganizationSettingsQuery(profile.organization_id);
   const allAssessmentsQuery = useAssessmentsQuery({ studentId });
   const assessmentsQuery = useAssessmentsQuery({ studentId, assessmentType });
   const deleteAssessmentMutation = useDeleteAssessmentMutation();
@@ -226,6 +227,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
     }
 
     const organizationName = organizationQuery.data?.name ?? "Driving School";
+    const organizationLogoUrl = organizationSettingsQuery.data?.logo_url ?? null;
 
     setDownloadingAssessmentId(assessment.id);
     try {
@@ -257,6 +259,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         const saved = await exportDrivingAssessmentPdf({
           assessmentId: assessment.id,
           organizationName,
+          organizationLogoUrl,
           fileName,
           androidDirectoryUri: androidDirectoryUri ?? undefined,
           criteria: drivingAssessmentCriteria,
@@ -310,6 +313,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         const saved = await exportRestrictedMockTestPdf({
           assessmentId: assessment.id,
           organizationName,
+          organizationLogoUrl,
           fileName,
           androidDirectoryUri: androidDirectoryUri ?? undefined,
           values,
@@ -352,6 +356,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         const saved = await exportFullLicenseMockTestPdf({
           assessmentId: assessment.id,
           organizationName,
+          organizationLogoUrl,
           fileName,
           androidDirectoryUri: androidDirectoryUri ?? undefined,
           values,

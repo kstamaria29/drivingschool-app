@@ -51,7 +51,7 @@ import {
   type RestrictedMockTestStoredData,
 } from "../../features/assessments/restricted-mock-test/schema";
 import { notifyPdfSaved } from "../../features/notifications/download-notifications";
-import { useOrganizationQuery } from "../../features/organization/queries";
+import { useOrganizationQuery, useOrganizationSettingsQuery } from "../../features/organization/queries";
 import { useStudentsQuery } from "../../features/students/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
@@ -141,6 +141,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   const { profile, userId } = useCurrentUser();
   const { isCompact } = useNavigationLayout();
   const organizationQuery = useOrganizationQuery(profile.organization_id);
+  const organizationSettingsQuery = useOrganizationSettingsQuery(profile.organization_id);
   const studentsQuery = useStudentsQuery({ archived: false });
   const createAssessment = useCreateAssessmentMutation();
 
@@ -174,6 +175,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   const returnToStudentId = route.params?.returnToStudentId ?? null;
 
   const organizationName = organizationQuery.data?.name ?? "Driving School";
+  const organizationLogoUrl = organizationSettingsQuery.data?.logo_url ?? null;
 
   function scrollToTop(animated = false) {
     requestAnimationFrame(() => {
@@ -497,6 +499,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
       const saved = await exportRestrictedMockTestPdf({
         assessmentId: result.assessment.id,
         organizationName,
+        organizationLogoUrl,
         fileName,
         androidDirectoryUri: androidDirectoryUri ?? undefined,
         values: result.values,

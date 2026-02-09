@@ -1064,3 +1064,42 @@
 - **Summary:**
   - Added a new student Reminders flow: dedicated screen, reminder list, create/delete actions, reminder date, and notification lead-time option...
   - Updated Student Profile actions by replacing top-right `Add session` with icon-only Edit and replacing the lower `Edit` button with `Reminde...
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Assessment submit return-to-profile flow + driving suggestion priority
+- **Summary:**
+  - Updated all assessment submit flows to return to `StudentDetail` when launched from Student Profile, instead of dropping users on the Assess...
+  - Moved the "Smoother Steering Control - Avoid oversteering..." improvement suggestion to the top of the Driving Assessment suggestions list.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Reminders screen modal create flow + simplified layout
+- **Summary:**
+  - Removed the top Reminders summary container and switched `Add new` to a full modal create flow with `Title`, input, `Date`, `Time`, and `Not...
+  - Added a `2 days before` notification option and wired reminder `Time` through DB + notification scheduling while keeping the requested helpe...
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Reminders modal time hint sync + assessment student switch fix
+- **Summary:**
+  - Updated Add Reminder modal title to `Add New Reminder` and made the notification helper text dynamically reflect the currently selected remi...
+  - Fixed assessment submit/start navigation so completed assessment screens are popped to `AssessmentsMain` on submit, preventing stale student...
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Assessment submit options + upcoming reminders
+- **Summary:**
+  - Added `Submit` vs `Submit and Generate PDF` options across assessments and hardened navigation/state resets so each new assessment starts cl...
+  - Added Home `Upcoming Reminders` (5 soonest) and sorted reminders by reminder date/time for consistent ordering.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Assessment blank screen scroll fix
+- **Summary:**
+  - Fixed assessment screens rendering blank until you scroll by forcing the ScrollView to reset to top on focus and after student/test resets.

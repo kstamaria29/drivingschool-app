@@ -45,7 +45,7 @@ import {
 } from "../../features/assessments/driving-assessment/schema";
 import { ensureAndroidDownloadsDirectoryUri } from "../../features/assessments/android-downloads";
 import { notifyPdfSaved } from "../../features/notifications/download-notifications";
-import { useOrganizationQuery } from "../../features/organization/queries";
+import { useOrganizationQuery, useOrganizationSettingsQuery } from "../../features/organization/queries";
 import { useStudentsQuery } from "../../features/students/queries";
 import type { Student } from "../../features/students/api";
 import { theme } from "../../theme/theme";
@@ -198,6 +198,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
   const { isCompact } = useNavigationLayout();
 
   const organizationQuery = useOrganizationQuery(profile.organization_id);
+  const organizationSettingsQuery = useOrganizationSettingsQuery(profile.organization_id);
   const studentsQuery = useStudentsQuery({ archived: false });
   const createAssessment = useCreateAssessmentMutation();
 
@@ -383,6 +384,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
 
   const saving = createAssessment.isPending;
   const organizationName = organizationQuery.data?.name ?? "Driving School";
+  const organizationLogoUrl = organizationSettingsQuery.data?.logo_url ?? null;
 
   function navigateAfterSubmit() {
     leaveWithoutPrompt(() => {
@@ -463,6 +465,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
       const saved = await exportDrivingAssessmentPdf({
         assessmentId: result.assessment.id,
         organizationName,
+        organizationLogoUrl,
         fileName,
         androidDirectoryUri: androidDirectoryUri ?? undefined,
         criteria: drivingAssessmentCriteria,
