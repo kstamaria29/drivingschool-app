@@ -1008,3 +1008,11 @@
 - **Summary:**
   - Refactored Student Profile detail-field sizing so full-width Address renders consistently inside the Contact card and reduced organization n...
   - Updated assessment student dropdown behavior to auto-collapse when a student is pre-selected (including launches from Student Profile `Start...
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Students drawer reset + Student Profile bottom action grid
+- **Summary:**
+  - Updated sidebar `Students` navigation to always open `StudentsList` instead of returning to previously viewed student profile screens.
+  - Reworked Student Profile bottom actions into 2-column rows with requested order and styling, including blue `Start Assessment` with icon and...

@@ -82,6 +82,7 @@ export function AppButton({
       ? Math.min(Math.floor(badgeCount), 99)
       : null;
   const badgeText = badgeCount != null && badgeCount > 99 ? "99+" : String(resolvedBadgeCount);
+  const showLabelBadge = badgePosition === "label-top-right" && resolvedBadgeCount != null;
 
   const iconWithBadge = iconNode ? (
     <View className="relative">
@@ -110,6 +111,7 @@ export function AppButton({
         theme.button.base,
         theme.button.variant[variant],
         theme.button.size[size],
+        showLabelBadge && "relative",
         disabled && theme.button.disabled,
         className,
       )}
@@ -124,35 +126,30 @@ export function AppButton({
       >
         {iconPosition === "left" ? iconWithBadge : null}
         {hasLabel ? (
-          badgePosition === "label-top-right" && resolvedBadgeCount != null ? (
-            <View className="relative pr-4">
-              <AppText
-                variant="button"
-                className={cn(theme.button.labelBase, theme.button.labelVariant[variant])}
-              >
-                {label}
-              </AppText>
-              <View className="absolute -right-1 -top-2 h-5 min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 dark:bg-dangerDark">
-                <AppText
-                  numberOfLines={1}
-                  className="text-[10px] font-semibold leading-[10px] text-primaryForeground"
-                  variant="caption"
-                >
-                  {badgeText}
-                </AppText>
-              </View>
-            </View>
-          ) : (
-            <AppText
-              variant="button"
-              className={cn(theme.button.labelBase, theme.button.labelVariant[variant])}
-            >
-              {label}
-            </AppText>
-          )
+          <AppText
+            variant="button"
+            className={cn(theme.button.labelBase, theme.button.labelVariant[variant])}
+          >
+            {label}
+          </AppText>
         ) : null}
         {iconPosition === "right" ? iconWithBadge : null}
       </View>
+
+      {showLabelBadge ? (
+        <View
+          pointerEvents="none"
+          className="absolute right-2 top-1 h-5 min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 dark:bg-dangerDark"
+        >
+          <AppText
+            numberOfLines={1}
+            className="text-[10px] font-semibold leading-[10px] text-primaryForeground"
+            variant="caption"
+          >
+            {badgeText}
+          </AppText>
+        </View>
+      ) : null}
     </Pressable>
   );
 }

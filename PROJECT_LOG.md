@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Lessons editor UX + history badge fix
+- **Summary:**
+  - Fixed Student Profile history/reminder count badges so they position correctly on tablet portrait buttons.
+  - Updated Lesson Create/Edit screens to use search-only student results, hide student selection on edit, hide instructor selection when no instructors exist, and exclude admin accounts.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Mobile portrait compact spacing pass
 - **Summary:**
   - Reduced global card and picker modal padding for compact/mobile screens to fit more content per view.
@@ -148,11 +156,3 @@
 - **Summary:**
   - Updated the Lessons month calendar date cells to remove rounded corners and remove spacing so cells connect as a continuous grid.
   - Updated the weekly date strip in the Lessons agenda card to use square, connected date boxes for consistent calendar styling.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Students drawer reset + Student Profile bottom action grid
-- **Summary:**
-  - Updated sidebar `Students` navigation to always open `StudentsList` instead of returning to previously viewed student profile screens.
-  - Reworked Student Profile bottom actions into 2-column rows with requested order and styling, including blue `Start Assessment` with icon and...
