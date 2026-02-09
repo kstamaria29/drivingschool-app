@@ -1103,3 +1103,11 @@
 - **Task:** Assessment blank screen scroll fix
 - **Summary:**
   - Fixed assessment screens rendering blank until you scroll by forcing the ScrollView to reset to top on focus and after student/test resets.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Lessons calendar reminder markers + legend
+- **Summary:**
+  - Replaced the Lessons calendar today dot with a circled day highlight and added reminder markers with a legend.
+  - Updated the weekly strip to show lesson vs reminder markers consistently.

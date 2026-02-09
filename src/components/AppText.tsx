@@ -5,7 +5,7 @@ import { fonts } from "../theme/fonts";
 import { theme } from "../theme/theme";
 import { cn } from "../utils/cn";
 
-type AppTextVariant = "title" | "heading" | "body" | "caption" | "label" | "error" | "button";
+export type AppTextVariant = "title" | "heading" | "body" | "caption" | "label" | "error" | "button";
 
 type Props = PropsWithChildren<TextProps> & {
   variant?: AppTextVariant;

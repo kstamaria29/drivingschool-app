@@ -4,11 +4,13 @@ import { Pressable, View } from "react-native";
 import { cn } from "../utils/cn";
 
 import { AppCard } from "./AppCard";
-import { AppText } from "./AppText";
+import { AppText, type AppTextVariant } from "./AppText";
 
 type Props = PropsWithChildren<{
   title: string;
   subtitle?: string;
+  subtitleVariant?: AppTextVariant;
+  subtitleClassName?: string;
   rightText?: string;
   expanded: boolean;
   onToggle: () => void;
@@ -18,6 +20,8 @@ type Props = PropsWithChildren<{
 export function AppCollapsibleCard({
   title,
   subtitle,
+  subtitleVariant = "caption",
+  subtitleClassName,
   rightText,
   expanded,
   onToggle,
@@ -30,7 +34,7 @@ export function AppCollapsibleCard({
         <View className="flex-1">
           <AppText variant="heading">{title}</AppText>
           {subtitle ? (
-            <AppText className="mt-1" variant="caption">
+            <AppText className={cn("mt-1", subtitleClassName)} variant={subtitleVariant}>
               {subtitle}
             </AppText>
           ) : null}
@@ -38,7 +42,7 @@ export function AppCollapsibleCard({
 
         <View className="items-end">
           {rightText ? <AppText variant="caption">{rightText}</AppText> : null}
-          <AppText className="mt-1" variant="caption">
+          <AppText className="mt-1 text-sm text-muted dark:text-mutedDark" variant="button">
             {expanded ? "Hide" : "Show"}
           </AppText>
         </View>
@@ -48,4 +52,3 @@ export function AppCollapsibleCard({
     </AppCard>
   );
 }
-

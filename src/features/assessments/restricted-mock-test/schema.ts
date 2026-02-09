@@ -28,6 +28,7 @@ const taskStateSchema = z.object({
   items: z.record(z.string(), faultValue).default({}),
   location: z.string().default(""),
   notes: z.string().default(""),
+  repetitions: z.number().int().min(0).default(0),
 });
 
 const stageTasksSchema = z.record(z.string(), taskStateSchema).default({});

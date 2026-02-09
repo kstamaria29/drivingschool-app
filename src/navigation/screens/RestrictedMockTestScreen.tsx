@@ -7,11 +7,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Keyboard,
   Modal,
   Platform,
   Pressable,
   ScrollView,
+  TextInput,
+  useWindowDimensions,
   View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from "react-native";
 import { Controller, useForm } from "react-hook-form";
 
@@ -20,7 +25,6 @@ import { AppCard } from "../../components/AppCard";
 import { AppCollapsibleCard } from "../../components/AppCollapsibleCard";
 import { AppDateInput } from "../../components/AppDateInput";
 import { AppInput } from "../../components/AppInput";
-import { AppSegmentedControl } from "../../components/AppSegmentedControl";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { AppTimeInput } from "../../components/AppTimeInput";
@@ -99,7 +103,7 @@ function createEmptyStagesState(): RestrictedMockTestStagesState {
   restrictedMockTestStages.forEach((stage) => {
     const tasks: Record<string, RestrictedMockTestTaskState> = {};
     stage.tasks.forEach((task) => {
-      tasks[task.id] = { items: createEmptyItems(), location: "", notes: "" };
+      tasks[task.id] = { items: createEmptyItems(), location: "", notes: "", repetitions: 0 };
     });
     state[stage.id] = tasks;
   });
@@ -117,6 +121,7 @@ function updateTaskState(
     items: createEmptyItems(),
     location: "",
     notes: "",
+    repetitions: 0,
   };
   const updatedTask = updater(task);
 
@@ -150,6 +155,11 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   const [startTestModalVisible, setStartTestModalVisible] = useState(false);
 
   const scrollRef = useRef<ScrollView | null>(null);
+  const scrollOffsetYRef = useRef(0);
+  const { width, height } = useWindowDimensions();
+  const minDimension = Math.min(width, height);
+  const keyboardAwareEnabled = minDimension >= 600 && height > width;
+
   const [stage2Enabled, setStage2Enabled] = useState(false);
   const [stagesState, setStagesState] = useState<RestrictedMockTestStagesState>(() =>
     createEmptyStagesState(),
@@ -165,6 +175,8 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     stage1: true,
     stage2: false,
   });
+  const [criticalErrorsExpanded, setCriticalErrorsExpanded] = useState(true);
+  const [immediateErrorsExpanded, setImmediateErrorsExpanded] = useState(true);
   const [draftResolvedStudentId, setDraftResolvedStudentId] = useState<string | null>(null);
   const { leaveWithoutPrompt } = useAssessmentLeaveGuard({
     navigation,
@@ -217,6 +229,40 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     return unsubscribe;
   }, [navigation]);
 
+  useEffect(() => {
+    if (!keyboardAwareEnabled) return;
+
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const subscription = Keyboard.addListener(showEvent, (event) => {
+      const focusedInput = TextInput.State.currentlyFocusedInput?.();
+      if (!focusedInput || typeof focusedInput.measureInWindow !== "function") {
+        return;
+      }
+
+      focusedInput.measureInWindow((_x, y, _w, inputHeight) => {
+        const keyboardTop = event.endCoordinates.screenY;
+        const inputBottom = y + inputHeight;
+        const isInBottomHalf = y >= height / 2;
+        const overlap = inputBottom - keyboardTop;
+
+        if (!isInBottomHalf || overlap <= 0) return;
+
+        scrollRef.current?.scrollTo({
+          y: Math.max(0, scrollOffsetYRef.current + overlap + 24),
+          animated: true,
+        });
+      });
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [height, keyboardAwareEnabled]);
+
+  function onScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
+    scrollOffsetYRef.current = event.nativeEvent.contentOffset.y;
+  }
+
   function resetMockTestForStudent(studentId: string) {
     setStage("details");
     setStartTestModalVisible(false);
@@ -226,6 +272,8 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     setImmediate(createErrorCounts(restrictedMockTestImmediateErrors));
     setExpandedTaskKey(null);
     setExpandedStages({ stage1: true, stage2: false });
+    setCriticalErrorsExpanded(true);
+    setImmediateErrorsExpanded(true);
     setDraftResolvedStudentId(null);
     setSelectedStudentId(studentId);
     scrollToTop(false);
@@ -251,6 +299,8 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     setImmediate(createErrorCounts(restrictedMockTestImmediateErrors));
     setExpandedTaskKey(null);
     setExpandedStages({ stage1: true, stage2: false });
+    setCriticalErrorsExpanded(true);
+    setImmediateErrorsExpanded(true);
     setDraftResolvedStudentId(null);
     setSelectedStudentId(null);
     scrollToTop(false);
@@ -294,6 +344,14 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   const summary = useMemo(() => {
     return calculateRestrictedMockTestSummary({ stagesState, critical, immediate });
   }, [critical, immediate, stagesState]);
+
+  const stage1Repetitions = useMemo(() => {
+    return Object.values(stagesState.stage1 ?? {}).reduce((sum, task) => sum + (task.repetitions ?? 0), 0);
+  }, [stagesState.stage1]);
+
+  const stage2Repetitions = useMemo(() => {
+    return Object.values(stagesState.stage2 ?? {}).reduce((sum, task) => sum + (task.repetitions ?? 0), 0);
+  }, [stagesState.stage2]);
 
   const saving = createAssessment.isPending;
 
@@ -340,6 +398,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             setCritical(createErrorCounts(restrictedMockTestCriticalErrors));
             setImmediate(createErrorCounts(restrictedMockTestImmediateErrors));
             setExpandedTaskKey(null);
+            setExpandedStages({ stage1: true, stage2: false });
+            setCriticalErrorsExpanded(true);
+            setImmediateErrorsExpanded(true);
             form.reset({
               studentId,
               date: dayjs().format("DD/MM/YYYY"),
@@ -370,6 +431,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             setStagesState(parsed?.stagesState ?? createEmptyStagesState());
             setCritical(parsed?.critical ?? createErrorCounts(restrictedMockTestCriticalErrors));
             setImmediate(parsed?.immediate ?? createErrorCounts(restrictedMockTestImmediateErrors));
+            setExpandedStages({ stage1: true, stage2: false });
+            setCriticalErrorsExpanded(true);
+            setImmediateErrorsExpanded(true);
             setDraftResolvedStudentId(studentId);
           },
         },
@@ -618,6 +682,12 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             <AppText variant="caption">Stage 2 faults: {summary.stage2Faults}</AppText>
           </View>
           <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
+            <AppText variant="caption">Stage 1 repetitions: {stage1Repetitions}</AppText>
+          </View>
+          <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
+            <AppText variant="caption">Stage 2 repetitions: {stage2Repetitions}</AppText>
+          </View>
+          <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
             <AppText variant="caption">Critical: {summary.criticalTotal}</AppText>
           </View>
           <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
@@ -703,6 +773,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     const stageKey = stageDef.id;
     const expanded = expandedStages[stageKey];
     const stageFaults = stageKey === "stage1" ? summary.stage1Faults : summary.stage2Faults;
+    const stageRepetitions = Object.values(stagesState[stageKey] ?? {}).reduce((sum, task) => {
+      return sum + (task.repetitions ?? 0);
+    }, 0);
     const rightText =
       stageKey === "stage2" && !stage2Enabled
         ? "Locked"
@@ -713,7 +786,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     return (
       <AppCollapsibleCard
         title={stageDef.name}
-        subtitle={stageDef.badge}
+        subtitle={`Total repetitions: ${stageRepetitions}`}
+        subtitleVariant="body"
+        subtitleClassName="text-xl text-muted dark:text-mutedDark"
         rightText={rightText}
         expanded={expanded}
         onToggle={() => setExpandedStages((prev) => ({ ...prev, [stageKey]: !prev[stageKey] }))}
@@ -742,6 +817,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   items: createEmptyItems(),
                   location: "",
                   notes: "",
+                  repetitions: 0,
                 };
                 const faults = taskFaultCount(taskState);
                 const cardKey = `${stageKey}:${taskDef.id}`;
@@ -751,7 +827,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   <AppCollapsibleCard
                     key={taskDef.id}
                     title={taskDef.name}
-                    subtitle={`Typical speed zone: ${taskDef.speed} km/h`}
+                    subtitle={`Repetitions: ${taskState.repetitions ?? 0}`}
+                    subtitleVariant="body"
+                    subtitleClassName="text-xl text-muted dark:text-mutedDark"
                     rightText={faults > 0 ? `${faults} fault${faults === 1 ? "" : "s"}` : undefined}
                     expanded={taskExpanded}
                     onToggle={() => setExpandedTaskKey((prev) => (prev === cardKey ? null : cardKey))}
@@ -771,32 +849,49 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                       />
 
                       <AppStack gap="sm">
-                        {restrictedMockTestTaskItems.map((item) => {
-                          const current = taskState.items[item.id] as FaultValue;
-                          return (
-                            <View key={item.id} className="flex-row items-center justify-between gap-3">
-                              <AppText className="flex-1" variant="body">
-                                {item.label}
-                              </AppText>
-                              <AppSegmentedControl<FaultValue>
-                                className="w-40"
-                                value={current}
-                                options={[
-                                  { value: "", label: "OK / n/a" },
-                                  { value: "fault", label: "Fault" },
-                                ]}
-                                onChange={(next) =>
+                        <AppText variant="caption">
+                          Tap a button to mark a Fault (red). Tap again to reset to OK / n/a.
+                        </AppText>
+                        <View className="flex-row flex-wrap gap-2">
+                          {restrictedMockTestTaskItems.map((item) => {
+                            const current = taskState.items[item.id] as FaultValue;
+                            const isFault = current === "fault";
+                            return (
+                              <Pressable
+                                key={item.id}
+                                accessibilityRole="button"
+                                accessibilityState={{ selected: isFault }}
+                                className={cn(
+                                  "w-[48%] rounded-xl border px-3 py-3",
+                                  isFault
+                                    ? "border-danger bg-danger dark:border-dangerDark dark:bg-dangerDark"
+                                    : "border-border bg-background dark:border-borderDark dark:bg-backgroundDark",
+                                )}
+                                onPress={() =>
                                   setStagesState((prev) =>
                                     updateTaskState(prev, stageKey, taskDef.id, (task) => ({
                                       ...task,
-                                      items: { ...task.items, [item.id]: next },
+                                      items: {
+                                        ...task.items,
+                                        [item.id]: isFault ? "" : "fault",
+                                      },
                                     })),
                                   )
                                 }
-                              />
-                            </View>
-                          );
-                        })}
+                              >
+                                <AppText
+                                  className={cn(
+                                    "text-center",
+                                    isFault && "text-primaryForeground",
+                                  )}
+                                  variant="button"
+                                >
+                                  {item.label}
+                                </AppText>
+                              </Pressable>
+                            );
+                          })}
+                        </View>
                       </AppStack>
 
                       <AppInput
@@ -815,6 +910,32 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                         textAlignVertical="top"
                         inputClassName="h-28 py-3"
                       />
+
+                      <AppButton
+                        width="auto"
+                        variant="secondary"
+                        label="Record repetition"
+                        onPress={() => {
+                          const nextCount = (taskState.repetitions ?? 0) + 1;
+                          Alert.alert(
+                            "Record repetition?",
+                            `Save repetition #${nextCount} for "${taskDef.name}"?`,
+                            [
+                              { text: "Cancel", style: "cancel" },
+                              {
+                                text: "Record",
+                                onPress: () =>
+                                  setStagesState((prev) =>
+                                    updateTaskState(prev, stageKey, taskDef.id, (task) => ({
+                                      ...task,
+                                      repetitions: (task.repetitions ?? 0) + 1,
+                                    })),
+                                  ),
+                              },
+                            ],
+                          );
+                        }}
+                      />
                     </AppStack>
                   </AppCollapsibleCard>
                 );
@@ -828,9 +949,13 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   const errorsCard = (
     <>
-      <AppCard className="gap-3">
-        <AppText variant="heading">Critical errors</AppText>
-        <AppText variant="caption">Recorded any time during route.</AppText>
+      <AppCollapsibleCard
+        title="Critical errors"
+        subtitle="Recorded any time during route."
+        rightText={summary.criticalTotal > 0 ? `${summary.criticalTotal} recorded` : undefined}
+        expanded={criticalErrorsExpanded}
+        onToggle={() => setCriticalErrorsExpanded((value) => !value)}
+      >
         <AppStack gap="sm">
           {restrictedMockTestCriticalErrors.map((label) => (
             <View key={label} className="flex-row items-center justify-between gap-2">
@@ -857,28 +982,32 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
               </View>
             </View>
           ))}
+
+          <Controller
+            control={form.control}
+            name="criticalNotes"
+            render={({ field }) => (
+              <AppInput
+                label="Critical error notes (what happened, where)"
+                value={field.value ?? ""}
+                onChangeText={field.onChange}
+                multiline
+                numberOfLines={5}
+                textAlignVertical="top"
+                inputClassName="h-28 py-3"
+              />
+            )}
+          />
         </AppStack>
+      </AppCollapsibleCard>
 
-        <Controller
-          control={form.control}
-          name="criticalNotes"
-          render={({ field }) => (
-            <AppInput
-              label="Critical error notes (what happened, where)"
-              value={field.value ?? ""}
-              onChangeText={field.onChange}
-              multiline
-              numberOfLines={5}
-              textAlignVertical="top"
-              inputClassName="h-28 py-3"
-            />
-          )}
-        />
-      </AppCard>
-
-      <AppCard className="gap-3">
-        <AppText variant="heading">Immediate failure errors</AppText>
-        <AppText variant="caption">Any one = fail.</AppText>
+      <AppCollapsibleCard
+        title="Immediate failure errors"
+        subtitle="Any one = fail."
+        rightText={summary.immediateTotal > 0 ? `${summary.immediateTotal} recorded` : undefined}
+        expanded={immediateErrorsExpanded}
+        onToggle={() => setImmediateErrorsExpanded((value) => !value)}
+      >
         <AppStack gap="sm">
           {restrictedMockTestImmediateErrors.map((label) => (
             <View key={label} className="flex-row items-center justify-between gap-2">
@@ -906,24 +1035,24 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
               </View>
             </View>
           ))}
-        </AppStack>
 
-        <Controller
-          control={form.control}
-          name="immediateNotes"
-          render={({ field }) => (
-            <AppInput
-              label="Immediate failure notes"
-              value={field.value ?? ""}
-              onChangeText={field.onChange}
-              multiline
-              numberOfLines={5}
-              textAlignVertical="top"
-              inputClassName="h-28 py-3"
-            />
-          )}
-        />
-      </AppCard>
+          <Controller
+            control={form.control}
+            name="immediateNotes"
+            render={({ field }) => (
+              <AppInput
+                label="Immediate failure notes"
+                value={field.value ?? ""}
+                onChangeText={field.onChange}
+                multiline
+                numberOfLines={5}
+                textAlignVertical="top"
+                inputClassName="h-28 py-3"
+              />
+            )}
+          />
+        </AppStack>
+      </AppCollapsibleCard>
     </>
   );
 
@@ -956,7 +1085,14 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
         <AppText variant="caption">The test auto-saves on this device while you’re in the test screen.</AppText>
         <AppStack gap="sm">
           <AppButton width="auto" variant="secondary" label="Back" onPress={() => setStage("details")} />
-          <AppButton width="auto" label="Start test" onPress={() => setStage("test")} />
+          <AppButton
+            width="auto"
+            label="Start test"
+            onPress={() => {
+              setStage("test");
+              scrollToTop(false);
+            }}
+          />
           <AppButton width="auto" variant="ghost" label="Cancel" onPress={() => navigation.goBack()} />
         </AppStack>
       </AppCard>
@@ -989,28 +1125,40 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   return (
     <>
-      <Screen scroll scrollRef={scrollRef}>
-        <AppStack gap={isCompact ? "md" : "lg"}>
-          {header}
-          {studentCard}
+      <Screen>
+        <AppStack className="flex-1" gap={isCompact ? "md" : "lg"}>
+          <AppStack gap={isCompact ? "md" : "lg"}>
+            {header}
+            {studentCard}
+            {summaryCard}
+          </AppStack>
 
-          {stage === "details" ? preDriveCard : null}
-          {stage === "confirm" ? stageActions : null}
+          <ScrollView
+            ref={scrollRef}
+            className="flex-1"
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+            automaticallyAdjustKeyboardInsets={Platform.OS === "ios" && keyboardAwareEnabled}
+            contentContainerClassName={cn(theme.screen.scrollContent, isCompact ? "pb-6" : "pb-8")}
+            onScroll={keyboardAwareEnabled ? onScroll : undefined}
+            scrollEventThrottle={keyboardAwareEnabled ? 16 : undefined}
+          >
+            <AppStack gap={isCompact ? "md" : "lg"}>
+              {stage === "details" ? preDriveCard : null}
+              {stage === "confirm" ? stageActions : null}
 
-          {stage === "test" ? (
-            <>
-              {summaryCard}
+              {stage === "test" ? (
+                <>
+                  {renderStageTasks("stage1")}
+                  {renderStageTasks("stage2")}
+                  {errorsCard}
+                  {stageActions}
+                </>
+              ) : null}
 
-              {renderStageTasks("stage1")}
-
-              {renderStageTasks("stage2")}
-
-              {errorsCard}
-              {stageActions}
-            </>
-          ) : null}
-
-          {stage === "details" ? stageActions : null}
+              {stage === "details" ? stageActions : null}
+            </AppStack>
+          </ScrollView>
         </AppStack>
       </Screen>
 
@@ -1049,6 +1197,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   onPress={() => {
                     setStartTestModalVisible(false);
                     setStage("test");
+                    scrollToTop(false);
                   }}
                 />
               </AppStack>

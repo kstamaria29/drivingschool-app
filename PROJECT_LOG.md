@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test repetitions + UI polish
+- **Summary:**
+  - Added per-task repetition recording (with confirmation) and displayed repetition totals per task/stage in the Restricted mock test.
+  - Kept the Restricted mock test header/student/overview sticky, redesigned fault selection as 2-column buttons, added collapsible errors, and included repetitions in PDF + assessment history.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Assessment PDF header/logo styling
 - **Summary:**
   - Added organization logo + student name to generated assessment PDFs (Driving Assessment, Restricted mock test, Full License mock test).
@@ -143,12 +151,4 @@
 - **Summary:**
   - Defaulted Session History task suggestions to show and added an edit/update action for session entries.
   - Updated the Lessons agenda to list reminders for the selected day and removed the duplicate New button.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Lessons calendar reminder markers + legend
-- **Summary:**
-  - Replaced the Lessons calendar today dot with a circled day highlight and added reminder markers with a legend.
-  - Updated the weekly strip to show lesson vs reminder markers consistently.
 
