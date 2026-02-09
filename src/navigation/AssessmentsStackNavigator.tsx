@@ -3,7 +3,7 @@ import { useMemo } from "react";
 
 import { useAppColorScheme } from "../providers/ColorSchemeProvider";
 
-import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButtons";
+import { HeaderLeftMenuWithBack, HeaderRightAvatar } from "./components/HeaderButtons";
 import { getNativeStackScreenOptions } from "./navigationTheme";
 import { AssessmentsListScreen } from "./screens/AssessmentsListScreen";
 import { DrivingAssessmentScreen } from "./screens/DrivingAssessmentScreen";
@@ -12,9 +12,15 @@ import { RestrictedMockTestScreen } from "./screens/RestrictedMockTestScreen";
 
 export type AssessmentsStackParamList = {
   AssessmentsMain: undefined;
-  DrivingAssessment: { studentId?: string } | undefined;
-  RestrictedMockTest: { studentId?: string } | undefined;
-  FullLicenseMockTest: { studentId?: string } | undefined;
+  DrivingAssessment:
+    | { studentId?: string; returnToStudentId?: string }
+    | undefined;
+  RestrictedMockTest:
+    | { studentId?: string; returnToStudentId?: string }
+    | undefined;
+  FullLicenseMockTest:
+    | { studentId?: string; returnToStudentId?: string }
+    | undefined;
 };
 
 const Stack = createNativeStackNavigator<AssessmentsStackParamList>();
@@ -29,7 +35,7 @@ export function AssessmentsStackNavigator() {
       screenOptions={{
         ...baseOptions,
         headerTitle: "",
-        headerLeft: () => <HeaderLeftHamburger />,
+        headerLeft: () => <HeaderLeftMenuWithBack />,
         headerRight: () => <HeaderRightAvatar />,
       }}
     >

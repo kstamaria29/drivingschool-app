@@ -1,11 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Modal, Platform, Pressable, View } from "react-native";
+import { ActivityIndicator, Alert, Modal, Platform, Pressable, ScrollView, View } from "react-native";
 import { Controller, useForm } from "react-hook-form";
 import { CircleStop, Flag, Pause, Play, RotateCcw, Timer, TriangleAlert } from "lucide-react-native";
+import { useColorScheme } from "nativewind";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -57,7 +59,7 @@ import {
   type FullLicenseMockTestStoredData,
 } from "../../features/assessments/full-license-mock-test/schema";
 import { notifyPdfSaved } from "../../features/notifications/download-notifications";
-import { useOrganizationQuery } from "../../features/organization/queries";
+import { useOrganizationQuery, useOrganizationSettingsQuery } from "../../features/organization/queries";
 import { useStudentsQuery } from "../../features/students/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
@@ -66,9 +68,11 @@ import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
 import { openPdfUri } from "../../utils/open-pdf";
 import { AssessmentStudentDropdown } from "../components/AssessmentStudentDropdown";
+import { useAssessmentLeaveGuard } from "../useAssessmentLeaveGuard";
 import { useNavigationLayout } from "../useNavigationLayout";
 
 import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
+import type { MainDrawerParamList } from "../MainDrawerNavigator";
 
 type Props = NativeStackScreenProps<AssessmentsStackParamList, "FullLicenseMockTest">;
 
@@ -138,14 +142,25 @@ function hazardDirectionLabel(direction: FullLicenseMockTestHazardDirection) {
 }
 
 export function FullLicenseMockTestScreen({ navigation, route }: Props) {
-  const { isSidebar } = useNavigationLayout();
+  const { isSidebar, isCompact } = useNavigationLayout();
+  const { colorScheme } = useColorScheme();
   const { profile, userId } = useCurrentUser();
   const organizationQuery = useOrganizationQuery(profile.organization_id);
+  const organizationSettingsQuery = useOrganizationSettingsQuery(profile.organization_id);
   const studentsQuery = useStudentsQuery({ archived: false });
   const createAssessment = useCreateAssessmentMutation();
 
   const [stage, setStage] = useState<Stage>("details");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [startTestModalVisible, setStartTestModalVisible] = useState(false);
+  const scrollRef = useRef<ScrollView | null>(null);
+  const { leaveWithoutPrompt } = useAssessmentLeaveGuard({
+    navigation,
+    enabled: stage === "run" || stage === "summary",
+  });
+  const drawerNavigation =
+    navigation.getParent<DrawerNavigationProp<MainDrawerParamList>>();
+  const returnToStudentId = route.params?.returnToStudentId ?? null;
 
   const [sessionId, setSessionId] = useState(() => uid("session"));
   const [startTimeISO, setStartTimeISO] = useState<string | null>(null);
@@ -153,6 +168,9 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   const [sessionSeconds, setSessionSeconds] = useState(OFFICIAL_SECONDS);
   const [timerRunning, setTimerRunning] = useState(false);
   const [immediateFailTriggered, setImmediateFailTriggered] = useState(false);
+
+  const iconMuted = colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
+  const iconDanger = colorScheme === "dark" ? theme.colors.dangerDark : theme.colors.danger;
 
   const [attempts, setAttempts] = useState<FullLicenseMockTestAttempt[]>([]);
   const [critical, setCritical] = useState<FullLicenseMockTestErrorCounts>(() =>
@@ -272,6 +290,33 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   }
 
   const organizationName = organizationQuery.data?.name ?? "Driving School";
+  const organizationLogoUrl = organizationSettingsQuery.data?.logo_url ?? null;
+
+  function scrollToTop(animated = false) {
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({ y: 0, animated });
+    });
+  }
+
+  function navigateAfterSubmit() {
+    leaveWithoutPrompt(() => {
+      resetMockTestToBlank();
+      navigation.reset({ index: 0, routes: [{ name: "AssessmentsMain" }] });
+      if (returnToStudentId && drawerNavigation) {
+        drawerNavigation.navigate("Students", {
+          screen: "StudentDetail",
+          params: { studentId: returnToStudentId },
+        });
+      }
+    });
+  }
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      scrollToTop(false);
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const form = useForm<FullLicenseMockTestFormValues>({
     resolver: zodResolver(fullLicenseMockTestFormSchema),
@@ -289,6 +334,50 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     },
   });
 
+  function resetMockTestForStudent(studentId: string) {
+    setStage("details");
+    setStartTestModalVisible(false);
+    setSelectedStudentId(studentId);
+    scrollToTop(false);
+
+    form.reset({
+      studentId,
+      date: dayjs().format(DISPLAY_DATE_FORMAT),
+      time: "",
+      locationArea: "Auckland - North Shore",
+      vehicle: "Driving school car",
+      mode: "official",
+      weather: "dry",
+      criticalNotes: "",
+      immediateNotes: "",
+      overallNotes: "",
+    });
+
+    resetSession();
+  }
+
+  function resetMockTestToBlank() {
+    setStage("details");
+    setStartTestModalVisible(false);
+    setSelectedStudentId(null);
+    scrollToTop(false);
+
+    form.reset({
+      studentId: "",
+      date: dayjs().format(DISPLAY_DATE_FORMAT),
+      time: "",
+      locationArea: "Auckland - North Shore",
+      vehicle: "Driving school car",
+      mode: "official",
+      weather: "dry",
+      criticalNotes: "",
+      immediateNotes: "",
+      overallNotes: "",
+    });
+
+    resetSession();
+  }
+
   const selectedStudent = useMemo(() => {
     const students = studentsQuery.data ?? [];
     if (!selectedStudentId) return null;
@@ -296,16 +385,22 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   }, [selectedStudentId, studentsQuery.data]);
 
   useEffect(() => {
+    if (!selectedStudent) {
+      setStartTestModalVisible(false);
+    }
+  }, [selectedStudent]);
+
+  useEffect(() => {
     const initialStudentId = route.params?.studentId ?? null;
     if (!initialStudentId) return;
-    if (selectedStudentId) return;
-    setSelectedStudentId(initialStudentId);
-    form.setValue("studentId", initialStudentId, { shouldValidate: true });
+    if (selectedStudentId === initialStudentId) return;
+    resetMockTestForStudent(initialStudentId);
   }, [form, route.params?.studentId, selectedStudentId]);
 
   useEffect(() => {
     if (!selectedStudentId) return;
     setStage("details");
+    scrollToTop(false);
   }, [selectedStudentId]);
 
   const mode = form.watch("mode");
@@ -389,6 +484,8 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     setEndTimeISO(null);
     setTimerRunning(false);
     setImmediateFailTriggered(false);
+    setOpenSuggestions(null);
+    setExpandedErrors({ critical: true, immediate: false });
     setAttempts([]);
     setCritical(createErrorCounts(fullLicenseMockTestCriticalErrors));
     setImmediate(createErrorCounts(fullLicenseMockTestImmediateErrors));
@@ -667,110 +764,129 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
     setStage("summary");
   }
 
-  async function submitAndGeneratePdf(values: FullLicenseMockTestFormValues) {
-    if (!selectedStudent) {
+  async function saveAssessment(values: FullLicenseMockTestFormValues) {
+    const student = selectedStudent;
+    if (!student) {
       Alert.alert("Select a student", "Please select a student first.");
-      return;
+      return null;
     }
 
     const assessmentDateISO = parseDateInputToISODate(values.date);
     if (!assessmentDateISO) {
       Alert.alert("Check the form", "Use DD/MM/YYYY for the assessment date.");
-      return;
+      return null;
     }
 
     const safeEndTimeISO = endTimeISO ?? new Date().toISOString();
 
+    const stored: FullLicenseMockTestStoredData = {
+      ...values,
+      version: DRAFT_VERSION,
+      candidateName: `${student.first_name} ${student.last_name}`,
+      instructor: getProfileFullName(profile),
+      drillLeftTarget,
+      drillRightTarget,
+      startTimeISO,
+      endTimeISO: safeEndTimeISO,
+      remainingSeconds: sessionSeconds,
+      attempts,
+      critical,
+      immediate,
+      summary: {
+        attemptsCount: summary.attemptsCount,
+        criticalTotal: summary.criticalTotal,
+        immediateTotal: summary.immediateTotal,
+        scorePercent: summary.scorePercent,
+        readinessLabel: summary.readiness.label,
+        readinessReason: summary.readiness.reason,
+      },
+      savedByUserId: userId,
+    };
+
+    const validated = fullLicenseMockTestStoredDataSchema.safeParse(stored);
+    if (!validated.success) {
+      Alert.alert("Check the form", "Some required details are missing.");
+      return null;
+    }
+
     try {
-      const stored: FullLicenseMockTestStoredData = {
-        ...values,
-        version: DRAFT_VERSION,
-        candidateName: `${selectedStudent.first_name} ${selectedStudent.last_name}`,
-        instructor: getProfileFullName(profile),
-        drillLeftTarget,
-        drillRightTarget,
-        startTimeISO,
-        endTimeISO: safeEndTimeISO,
-        remainingSeconds: sessionSeconds,
-        attempts,
-        critical,
-        immediate,
-        summary: {
-          attemptsCount: summary.attemptsCount,
-          criticalTotal: summary.criticalTotal,
-          immediateTotal: summary.immediateTotal,
-          scorePercent: summary.scorePercent,
-          readinessLabel: summary.readiness.label,
-          readinessReason: summary.readiness.reason,
-        },
-        savedByUserId: userId,
-      };
-
-      const validated = fullLicenseMockTestStoredDataSchema.safeParse(stored);
-      if (!validated.success) {
-        Alert.alert("Check the form", "Some required details are missing.");
-        return;
-      }
-
       const assessment = await createAssessment.mutateAsync({
         organization_id: profile.organization_id,
-        student_id: selectedStudent.id,
-        instructor_id: selectedStudent.assigned_instructor_id,
+        student_id: student.id,
+        instructor_id: student.assigned_instructor_id,
         assessment_type: "third_assessment",
         assessment_date: assessmentDateISO,
         total_score: summary.scorePercent,
         form_data: validated.data,
       });
 
-      try {
-        const androidDirectoryUri =
-          Platform.OS === "android" ? await ensureAndroidDownloadsDirectoryUri() : undefined;
+      await AsyncStorage.removeItem(draftKey(userId, student.id));
 
-        const fileName = `Mock Test Full License ${selectedStudent.first_name} ${selectedStudent.last_name} ${dayjs(
-          assessmentDateISO,
-        ).format("DD-MM-YY")}`;
-
-        const saved = await exportFullLicenseMockTestPdf({
-          assessmentId: assessment.id,
-          organizationName,
-          fileName,
-          androidDirectoryUri: androidDirectoryUri ?? undefined,
-          values: validated.data,
-        });
-
-        await notifyPdfSaved({
-          fileName,
-          uri: saved.uri,
-          savedTo: saved.savedTo === "downloads" ? "Downloads" : "App storage",
-        });
-
-        await AsyncStorage.removeItem(draftKey(userId, selectedStudent.id));
-
-        Alert.alert(
-          "Submitted",
-          saved.savedTo === "downloads"
-            ? "Assessment saved and PDF saved to Downloads."
-            : "Assessment saved and PDF saved inside the app.",
-          [
-            {
-              text: "Open",
-              onPress: () => {
-                void openPdfUri(saved.uri);
-                navigation.goBack();
-              },
-            },
-            { text: "Done", onPress: () => navigation.goBack() },
-          ],
-        );
-      } catch (exportError) {
-        Alert.alert(
-          "Saved, but couldn't export PDF",
-          `Assessment saved, but PDF export failed: ${toErrorMessage(exportError)}`,
-        );
-        navigation.goBack();
-      }
+      return { assessment, assessmentDateISO, values: validated.data, student };
     } catch (error) {
       Alert.alert("Couldn't submit assessment", toErrorMessage(error));
+      return null;
+    }
+  }
+
+  async function submitOnly(values: FullLicenseMockTestFormValues) {
+    const result = await saveAssessment(values);
+    if (!result) return;
+
+    Alert.alert("Submitted", "Assessment saved.", [
+      { text: "Done", onPress: navigateAfterSubmit },
+    ]);
+  }
+
+  async function submitAndGeneratePdf(values: FullLicenseMockTestFormValues) {
+    const result = await saveAssessment(values);
+    if (!result) return;
+
+    try {
+      const androidDirectoryUri =
+        Platform.OS === "android" ? await ensureAndroidDownloadsDirectoryUri() : undefined;
+
+      const fileName = `Mock Test Full License ${result.student.first_name} ${result.student.last_name} ${dayjs(
+        result.assessmentDateISO,
+      ).format("DD-MM-YY")}`;
+
+      const saved = await exportFullLicenseMockTestPdf({
+        assessmentId: result.assessment.id,
+        organizationName,
+        organizationLogoUrl,
+        fileName,
+        androidDirectoryUri: androidDirectoryUri ?? undefined,
+        values: result.values,
+      });
+
+      await notifyPdfSaved({
+        fileName,
+        uri: saved.uri,
+        savedTo: saved.savedTo === "downloads" ? "Downloads" : "App storage",
+      });
+
+      Alert.alert(
+        "Submitted",
+        saved.savedTo === "downloads"
+          ? "Assessment saved and PDF saved to Downloads."
+          : "Assessment saved and PDF saved inside the app.",
+        [
+          {
+            text: "Open",
+            onPress: () => {
+              void openPdfUri(saved.uri);
+              navigateAfterSubmit();
+            },
+          },
+          { text: "Done", onPress: navigateAfterSubmit },
+        ],
+      );
+    } catch (exportError) {
+      Alert.alert(
+        "Saved, but couldn't export PDF",
+        `Assessment saved, but PDF export failed: ${toErrorMessage(exportError)}`,
+        [{ text: "Done", onPress: navigateAfterSubmit }],
+      );
     }
   }
 
@@ -824,8 +940,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
               selectedStudentId={selectedStudentId}
               currentUserId={profile.id}
               onSelectStudent={(student) => {
-                setSelectedStudentId(student.id);
-                form.setValue("studentId", student.id, { shouldValidate: true });
+                resetMockTestForStudent(student.id);
               }}
             />
           ) : null}
@@ -998,7 +1113,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
               Alert.alert("Select a student", "Please select a student first.");
               return;
             }
-            setStage("confirm");
+            setStartTestModalVisible(true);
           }}
         />
         <AppButton label="Cancel" variant="ghost" onPress={() => navigation.goBack()} />
@@ -1043,14 +1158,22 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       <>
         {createAssessment.isError ? <AppText variant="error">{toErrorMessage(createAssessment.error)}</AppText> : null}
         <AppButton
-          label={saving ? "Submitting..." : "Submit and generate PDF"}
+          label={saving ? "Submitting..." : "Submit"}
           disabled={saving}
           icon={Timer}
           onPress={form.handleSubmit((values) => {
-            Alert.alert("Submit mock test?", "This will save the assessment and generate a PDF for export.", [
-              { text: "Cancel", style: "cancel" },
-              { text: "Submit", style: "destructive", onPress: () => void submitAndGeneratePdf(values) },
-            ]);
+            Alert.alert(
+              "Submit mock test?",
+              "Submit will save the assessment. Submit and Generate PDF will also export a PDF.",
+              [
+                { text: "Cancel", style: "cancel" },
+                { text: "Submit", onPress: () => void submitOnly(values) },
+                {
+                  text: "Submit and Generate PDF",
+                  onPress: () => void submitAndGeneratePdf(values),
+                },
+              ],
+            );
           })}
         />
         <AppButton width="auto" variant="secondary" label="Back to session" onPress={() => setStage("run")} />
@@ -1086,7 +1209,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
 
         <View className="items-end gap-1">
           <View className="flex-row items-center gap-2">
-            <Timer size={16} color={theme.colors.mutedLight} />
+            <Timer size={16} color={iconMuted} />
             <AppText variant="heading">{formatMMSS(sessionSeconds)}</AppText>
           </View>
           <View className={cn("rounded-full border px-3 py-1", readinessChipClasses)}>
@@ -1134,7 +1257,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       {immediateFailTriggered ? (
         <View className="rounded-2xl border border-danger/30 bg-danger/5 p-3 dark:border-dangerDark/30 dark:bg-dangerDark/10">
           <View className="flex-row items-start gap-2">
-            <TriangleAlert size={18} color={theme.colors.danger} />
+            <TriangleAlert size={18} color={iconDanger} />
             <View className="flex-1 gap-1">
               <AppText variant="error">Immediate fail recorded</AppText>
               <AppText variant="caption">
@@ -1637,7 +1760,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       <View className="w-96">{liveLogCard}</View>
     </View>
   ) : (
-    <AppStack gap="lg">
+    <AppStack gap={isCompact ? "md" : "lg"}>
       {overviewCard}
       {attemptEntryCard}
       {errorsCard}
@@ -1657,7 +1780,12 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       animationType="fade"
       onRequestClose={() => setHazardPickerTarget(null)}
     >
-      <View className="flex-1 items-center justify-center bg-black/45 px-6">
+      <View
+        className={cn(
+          "flex-1 items-center justify-center bg-black/45",
+          isCompact ? "px-4" : "px-6",
+        )}
+      >
         <AppCard className="w-full max-w-sm gap-3">
           <AppText variant="heading">Hazard Detection and Response</AppText>
           {hazardPickerTarget ? (
@@ -1714,11 +1842,56 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       </View>
     </Modal>
   );
+  const startTestModal = (
+    <Modal
+      visible={startTestModalVisible}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setStartTestModalVisible(false)}
+    >
+      <Pressable
+        className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
+        onPress={() => setStartTestModalVisible(false)}
+      >
+        <Pressable
+          className="m-auto w-full max-w-md"
+          onPress={(event) => event.stopPropagation()}
+        >
+          <AppCard className="gap-3">
+            <AppText variant="heading">Start test?</AppText>
+            <AppText variant="body">
+              {selectedStudent
+                ? `You are about to start assessing ${selectedStudent.first_name} ${selectedStudent.last_name}.`
+                : "Select a student first."}
+            </AppText>
+            <AppStack gap="sm">
+              <AppButton
+                width="auto"
+                variant="secondary"
+                label="Cancel"
+                onPress={() => setStartTestModalVisible(false)}
+              />
+              <AppButton
+                width="auto"
+                label="Start"
+                disabled={!selectedStudent}
+                onPress={() => {
+                  setStartTestModalVisible(false);
+                  resetSession({ keepDetails: true });
+                  startSession();
+                }}
+              />
+            </AppStack>
+          </AppCard>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
 
   return (
     <>
-      <Screen scroll className={cn(isSidebar && "max-w-6xl")}>
-        <AppStack gap="lg">
+      <Screen scroll scrollRef={scrollRef} className={cn(isSidebar && "max-w-6xl")}>
+        <AppStack gap={isCompact ? "md" : "lg"}>
           {header}
           {studentCard}
 
@@ -1739,7 +1912,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
           {stage === "run" ? runContent : null}
 
           {stage === "summary" ? (
-            <AppStack gap="lg">
+            <AppStack gap={isCompact ? "md" : "lg"}>
               {summaryCard}
               {liveLogCard}
               {stageActions}
@@ -1748,6 +1921,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
         </AppStack>
       </Screen>
       {hazardPickerModal}
+      {startTestModal}
     </>
   );
 }

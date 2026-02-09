@@ -14,10 +14,12 @@ import { useSignUpWithPasswordMutation } from "../../features/auth/queries";
 import { signUpSchema, type SignUpFormValues } from "../../features/auth/schemas";
 
 import type { AuthStackParamList } from "../AuthStackNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Signup">;
 
 export function SignupScreen({ navigation }: Props) {
+  const { isCompact } = useNavigationLayout();
   const mutation = useSignUpWithPasswordMutation();
 
   const form = useForm<SignUpFormValues>({
@@ -39,7 +41,7 @@ export function SignupScreen({ navigation }: Props) {
 
   return (
     <Screen scroll>
-      <AppStack gap="lg">
+      <AppStack gap={isCompact ? "md" : "lg"}>
         <View>
           <AppText variant="title">Create account</AppText>
           <AppText className="mt-2" variant="body">
@@ -47,7 +49,7 @@ export function SignupScreen({ navigation }: Props) {
           </AppText>
         </View>
 
-        <AppCard className="gap-4">
+        <AppCard className={isCompact ? "gap-3" : "gap-4"}>
           <Controller
             control={form.control}
             name="email"

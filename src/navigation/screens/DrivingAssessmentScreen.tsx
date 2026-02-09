@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -9,7 +10,15 @@ import {
   type FieldErrors,
   type FieldPath,
 } from "react-hook-form";
-import { ActivityIndicator, Alert, Platform, ScrollView, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+} from "react-native";
 import { ArrowLeft, FileDown, Play, RefreshCw, X } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
@@ -36,8 +45,9 @@ import {
 } from "../../features/assessments/driving-assessment/schema";
 import { ensureAndroidDownloadsDirectoryUri } from "../../features/assessments/android-downloads";
 import { notifyPdfSaved } from "../../features/notifications/download-notifications";
-import { useOrganizationQuery } from "../../features/organization/queries";
+import { useOrganizationQuery, useOrganizationSettingsQuery } from "../../features/organization/queries";
 import { useStudentsQuery } from "../../features/students/queries";
+import type { Student } from "../../features/students/api";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 import {
@@ -49,12 +59,15 @@ import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
 import { openPdfUri } from "../../utils/open-pdf";
 import { AssessmentStudentDropdown } from "../components/AssessmentStudentDropdown";
+import { useNavigationLayout } from "../useNavigationLayout";
+import { useAssessmentLeaveGuard } from "../useAssessmentLeaveGuard";
 
 import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
+import type { MainDrawerParamList } from "../MainDrawerNavigator";
 
 type Props = NativeStackScreenProps<AssessmentsStackParamList, "DrivingAssessment">;
 
-type DrivingAssessmentStage = "details" | "confirm" | "test";
+type DrivingAssessmentStage = "details" | "test";
 type DrivingAssessmentCategoryKey = keyof typeof drivingAssessmentCriteria;
 
 function scoreFieldName(
@@ -182,19 +195,35 @@ function FeedbackField({
 
 export function DrivingAssessmentScreen({ navigation, route }: Props) {
   const { profile, userId } = useCurrentUser();
+  const { isCompact } = useNavigationLayout();
 
   const organizationQuery = useOrganizationQuery(profile.organization_id);
+  const organizationSettingsQuery = useOrganizationSettingsQuery(profile.organization_id);
   const studentsQuery = useStudentsQuery({ archived: false });
   const createAssessment = useCreateAssessmentMutation();
 
   const [stage, setStage] = useState<DrivingAssessmentStage>("details");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [startTestModalVisible, setStartTestModalVisible] = useState(false);
 
   const scrollRef = useRef<ScrollView | null>(null);
   const [openSuggestions, setOpenSuggestions] = useState<FeedbackKey | null>(null);
   const [feedbackFieldY, setFeedbackFieldY] = useState<
     Partial<Record<FeedbackKey, number>>
   >({});
+  const { leaveWithoutPrompt } = useAssessmentLeaveGuard({
+    navigation,
+    enabled: stage === "test",
+  });
+  const drawerNavigation =
+    navigation.getParent<DrawerNavigationProp<MainDrawerParamList>>();
+  const returnToStudentId = route.params?.returnToStudentId ?? null;
+
+  function scrollToTop(animated = false) {
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({ y: 0, animated });
+    });
+  }
 
   function onToggleSuggestions(key: FeedbackKey) {
     setOpenSuggestions((current) => (current === key ? null : key));
@@ -221,6 +250,13 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
     });
   }, [feedbackFieldY, openSuggestions]);
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      scrollToTop(false);
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   const form = useForm<DrivingAssessmentFormValues>({
     resolver: zodResolver(drivingAssessmentFormSchema),
     defaultValues: {
@@ -244,6 +280,69 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
     },
   });
 
+  function buildFreshFormValues(
+    overrides?: Partial<DrivingAssessmentFormValues>,
+  ): DrivingAssessmentFormValues {
+    return {
+      studentId: "",
+      clientName: "",
+      address: "",
+      contact: "",
+      email: "",
+      licenseNumber: "",
+      licenseVersion: "",
+      classHeld: "",
+      issueDate: "",
+      expiryDate: "",
+      date: dayjs().format(DISPLAY_DATE_FORMAT),
+      instructor: getProfileFullName(profile),
+      scores: {},
+      strengths: "",
+      improvements: "",
+      recommendation: "",
+      nextSteps: "",
+      ...overrides,
+    };
+  }
+
+  function resetAssessmentForStudent(student: Student) {
+    setStartTestModalVisible(false);
+    setOpenSuggestions(null);
+    setFeedbackFieldY({});
+    setStage("details");
+    setSelectedStudentId(student.id);
+    scrollToTop(false);
+
+    form.reset(
+      buildFreshFormValues({
+        studentId: student.id,
+        clientName: `${student.first_name} ${student.last_name}`.trim(),
+        address: student.address ?? "",
+        contact: student.phone ?? "",
+        email: student.email ?? "",
+        licenseNumber: student.license_number ?? "",
+        licenseVersion: student.license_version ?? "",
+        classHeld: student.class_held ?? "",
+        issueDate: student.issue_date
+          ? formatIsoDateToDisplay(student.issue_date)
+          : "",
+        expiryDate: student.expiry_date
+          ? formatIsoDateToDisplay(student.expiry_date)
+          : "",
+      }),
+    );
+  }
+
+  function resetAssessmentToBlank() {
+    setStartTestModalVisible(false);
+    setOpenSuggestions(null);
+    setFeedbackFieldY({});
+    setStage("details");
+    setSelectedStudentId(null);
+    scrollToTop(false);
+    form.reset(buildFreshFormValues());
+  }
+
   const watchedScores = useWatch({ control: form.control, name: "scores" });
 
   const selectedStudent = useMemo(() => {
@@ -253,20 +352,25 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
   }, [selectedStudentId, studentsQuery.data]);
 
   useEffect(() => {
+    if (!selectedStudent) {
+      setStartTestModalVisible(false);
+    }
+  }, [selectedStudent]);
+
+  useEffect(() => {
     const initialStudentId = route.params?.studentId ?? null;
     if (!initialStudentId) return;
-    if (selectedStudentId) return;
+    if (selectedStudentId === initialStudentId) return;
     const initialStudent = (studentsQuery.data ?? []).find(
       (student) => student.id === initialStudentId,
     );
     if (!initialStudent) return;
-    setSelectedStudentId(initialStudentId);
-    form.setValue("studentId", initialStudentId, { shouldValidate: true });
-    hydrateFromStudent(form, initialStudent);
+    resetAssessmentForStudent(initialStudent);
   }, [form, route.params?.studentId, selectedStudentId, studentsQuery.data]);
 
   useEffect(() => {
     setStage("details");
+    scrollToTop(false);
   }, [selectedStudentId]);
 
   const scoreResult = useMemo(() => {
@@ -280,8 +384,22 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
 
   const saving = createAssessment.isPending;
   const organizationName = organizationQuery.data?.name ?? "Driving School";
+  const organizationLogoUrl = organizationSettingsQuery.data?.logo_url ?? null;
 
-  async function submitAndGeneratePdf(values: DrivingAssessmentFormValues) {
+  function navigateAfterSubmit() {
+    leaveWithoutPrompt(() => {
+      resetAssessmentToBlank();
+      navigation.reset({ index: 0, routes: [{ name: "AssessmentsMain" }] });
+      if (returnToStudentId && drawerNavigation) {
+        drawerNavigation.navigate("Students", {
+          screen: "StudentDetail",
+          params: { studentId: returnToStudentId },
+        });
+      }
+    });
+  }
+
+  async function saveAssessment(values: DrivingAssessmentFormValues) {
     if (!selectedStudent) {
       Alert.alert("Select a student", "Please select a student first.");
       return;
@@ -294,6 +412,11 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
         Alert.alert("Check the form", "Use DD/MM/YYYY for the assessment date.");
         return;
       }
+
+      const nextFeedbackSummary =
+        score.percentAnswered == null
+          ? ""
+          : generateDrivingAssessmentFeedbackSummary(score.percentAnswered);
 
       const assessment = await createAssessment.mutateAsync({
         organization_id: profile.organization_id,
@@ -310,61 +433,78 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
           scoredCount: score.scoredCount,
           totalCriteriaCount: score.totalCriteriaCount,
           maxRaw: score.maxRaw,
-          feedbackSummary,
+          feedbackSummary: nextFeedbackSummary,
           savedByUserId: userId,
         },
       });
 
-      try {
-        const fileName = `${selectedStudent.first_name} ${selectedStudent.last_name} ${dayjs(assessmentDateISO).format("DD-MM-YY")}`;
-        const androidDirectoryUri =
-          Platform.OS === "android"
-            ? await ensureAndroidDownloadsDirectoryUri()
-            : undefined;
-        const saved = await exportDrivingAssessmentPdf({
-          assessmentId: assessment.id,
-          organizationName,
-          fileName,
-          androidDirectoryUri: androidDirectoryUri ?? undefined,
-          criteria: drivingAssessmentCriteria,
-          values: {
-            ...values,
-            totalScorePercent: score.percentAnswered,
-            totalScoreRaw: score.totalRaw,
-            feedbackSummary,
-          },
-        });
-
-        await notifyPdfSaved({
-          fileName,
-          uri: saved.uri,
-          savedTo: saved.savedTo === "downloads" ? "Downloads" : "App storage",
-        });
-
-        Alert.alert(
-          "Submitted",
-          saved.savedTo === "downloads"
-            ? "Assessment saved and PDF saved to Downloads."
-            : "Assessment saved and PDF saved inside the app.",
-          [
-            {
-              text: "Open",
-              onPress: () => {
-                void openPdfUri(saved.uri);
-                navigation.goBack();
-              },
-            },
-            { text: "Done", onPress: () => navigation.goBack() },
-          ],
-        );
-      } catch (error) {
-        Alert.alert(
-          "Saved, but couldn't generate the PDF",
-          `The assessment was saved successfully.\n\n${toErrorMessage(error)}`,
-        );
-      }
+      return { assessment, assessmentDateISO, score, feedbackSummary: nextFeedbackSummary };
     } catch (error) {
       Alert.alert("Couldn't submit assessment", toErrorMessage(error));
+      return;
+    }
+  }
+
+  async function submitOnly(values: DrivingAssessmentFormValues) {
+    const result = await saveAssessment(values);
+    if (!result) return;
+
+    Alert.alert("Submitted", "Assessment saved.", [
+      { text: "Done", onPress: navigateAfterSubmit },
+    ]);
+  }
+
+  async function submitAndGeneratePdf(values: DrivingAssessmentFormValues) {
+    const result = await saveAssessment(values);
+    if (!result || !selectedStudent) return;
+
+    try {
+      const fileName = `${selectedStudent.first_name} ${selectedStudent.last_name} ${dayjs(result.assessmentDateISO).format("DD-MM-YY")}`;
+      const androidDirectoryUri =
+        Platform.OS === "android" ? await ensureAndroidDownloadsDirectoryUri() : undefined;
+      const saved = await exportDrivingAssessmentPdf({
+        assessmentId: result.assessment.id,
+        organizationName,
+        organizationLogoUrl,
+        fileName,
+        androidDirectoryUri: androidDirectoryUri ?? undefined,
+        criteria: drivingAssessmentCriteria,
+        values: {
+          ...values,
+          totalScorePercent: result.score.percentAnswered,
+          totalScoreRaw: result.score.totalRaw,
+          feedbackSummary: result.feedbackSummary,
+        },
+      });
+
+      await notifyPdfSaved({
+        fileName,
+        uri: saved.uri,
+        savedTo: saved.savedTo === "downloads" ? "Downloads" : "App storage",
+      });
+
+      Alert.alert(
+        "Submitted",
+        saved.savedTo === "downloads"
+          ? "Assessment saved and PDF saved to Downloads."
+          : "Assessment saved and PDF saved inside the app.",
+        [
+          {
+            text: "Open",
+            onPress: () => {
+              void openPdfUri(saved.uri);
+              navigateAfterSubmit();
+            },
+          },
+          { text: "Done", onPress: navigateAfterSubmit },
+        ],
+      );
+    } catch (error) {
+      Alert.alert(
+        "Saved, but couldn't generate the PDF",
+        `The assessment was saved successfully.\n\n${toErrorMessage(error)}`,
+        [{ text: "Done", onPress: navigateAfterSubmit }],
+      );
     }
   }
 
@@ -380,9 +520,13 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen scroll={false}>
-      <ScrollView ref={scrollRef} contentContainerClassName="gap-4 pb-6">
-        <AppStack gap="lg">
+    <>
+      <Screen scroll={false}>
+      <ScrollView
+        ref={scrollRef}
+        contentContainerClassName={isCompact ? "gap-3 pb-6" : "gap-4 pb-6"}
+      >
+        <AppStack gap={isCompact ? "md" : "lg"}>
           <View>
             <AppText variant="title">Driving Assessment</AppText>
             <AppText className="mt-2" variant="body">
@@ -433,9 +577,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
                     selectedStudentId={selectedStudentId}
                     currentUserId={profile.id}
                     onSelectStudent={(student) => {
-                      setSelectedStudentId(student.id);
-                      form.setValue("studentId", student.id, { shouldValidate: true });
-                      hydrateFromStudent(form, student);
+                      resetAssessmentForStudent(student);
                     }}
                   />
                 ) : null}
@@ -517,35 +659,8 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
               label="Start Test"
               disabled={!selectedStudent}
               icon={Play}
-              onPress={() => setStage("confirm")}
+              onPress={() => setStartTestModalVisible(true)}
             />
-          ) : null}
-
-          {stage === "confirm" ? (
-            <AppCard className="gap-3">
-              <AppText variant="heading">Start test?</AppText>
-              <AppText variant="body">
-                {selectedStudent
-                  ? `You're about to start scoring ${selectedStudent.first_name} ${selectedStudent.last_name}.`
-                  : "Select a student first."}
-              </AppText>
-              <AppStack gap="sm">
-                <AppButton
-                  width="auto"
-                  variant="secondary"
-                  label="Back"
-                  icon={ArrowLeft}
-                  onPress={() => setStage("details")}
-                />
-                <AppButton
-                  width="auto"
-                  label="Start"
-                  icon={Play}
-                  disabled={!selectedStudent}
-                  onPress={() => setStage("test")}
-                />
-              </AppStack>
-            </AppCard>
           ) : null}
 
           {stage === "test" ? (
@@ -673,18 +788,22 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
               ) : null}
 
               <AppButton
-                label={saving ? "Submitting..." : "Submit and generate PDF"}
+                label={saving ? "Submitting..." : "Submit"}
                 disabled={saving}
                 icon={FileDown}
                 onPress={form.handleSubmit(
                   (values) => {
                     Alert.alert(
                       "Submit assessment?",
-                      "This will save the assessment and open your device share sheet to export the PDF.",
+                      "Submit will save the assessment. Submit and Generate PDF will also export a PDF.",
                       [
                         { text: "Cancel", style: "cancel" },
                         {
                           text: "Submit",
+                          onPress: () => void submitOnly(values),
+                        },
+                        {
+                          text: "Submit and Generate PDF",
                           onPress: () => void submitAndGeneratePdf(values),
                         },
                       ],
@@ -704,6 +823,52 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
           />
         </AppStack>
       </ScrollView>
-    </Screen>
+      </Screen>
+
+      <Modal
+        visible={startTestModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setStartTestModalVisible(false)}
+      >
+        <Pressable
+          className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
+          onPress={() => setStartTestModalVisible(false)}
+        >
+          <Pressable
+            className="m-auto w-full max-w-md"
+            onPress={(event) => event.stopPropagation()}
+          >
+            <AppCard className="gap-3">
+              <AppText variant="heading">Start test?</AppText>
+              <AppText variant="body">
+                {selectedStudent
+                  ? `You are about to start assessing ${selectedStudent.first_name} ${selectedStudent.last_name}.`
+                  : "Select a student first."}
+              </AppText>
+              <AppStack gap="sm">
+                <AppButton
+                  width="auto"
+                  variant="secondary"
+                  label="Cancel"
+                  icon={ArrowLeft}
+                  onPress={() => setStartTestModalVisible(false)}
+                />
+                <AppButton
+                  width="auto"
+                  label="Start"
+                  icon={Play}
+                  disabled={!selectedStudent}
+                  onPress={() => {
+                    setStartTestModalVisible(false);
+                    setStage("test");
+                  }}
+                />
+              </AppStack>
+            </AppCard>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
   );
 }

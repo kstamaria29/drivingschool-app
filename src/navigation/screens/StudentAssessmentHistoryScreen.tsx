@@ -48,7 +48,7 @@ import {
 } from "../../features/assessments/restricted-mock-test/scoring";
 import { restrictedMockTestStoredDataSchema } from "../../features/assessments/restricted-mock-test/schema";
 import { notifyPdfSaved } from "../../features/notifications/download-notifications";
-import { useOrganizationQuery } from "../../features/organization/queries";
+import { useOrganizationQuery, useOrganizationSettingsQuery } from "../../features/organization/queries";
 import { useStudentQuery } from "../../features/students/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
@@ -139,8 +139,8 @@ function getFullLicenseMockTestSummary(assessment: Assessment) {
 function ScoreChip({ score }: { score: number | null }) {
   if (score == null) return null;
   return (
-    <View className="rounded-full border border-primary/30 bg-primary/15 px-3 py-1">
-      <AppText className="text-primary" variant="caption">
+    <View className="rounded-full border border-primary/30 bg-primary/15 px-3 py-1 dark:border-primaryDark/30 dark:bg-primaryDark/20">
+      <AppText className="text-primary dark:text-primaryDark" variant="caption">
         Total score: {score}
       </AppText>
     </View>
@@ -149,7 +149,7 @@ function ScoreChip({ score }: { score: number | null }) {
 
 export function StudentAssessmentHistoryScreen({ route }: Props) {
   const { studentId } = route.params;
-  const { isTablet, isLandscape } = useNavigationLayout();
+  const { isTablet, isLandscape, isCompact } = useNavigationLayout();
   const { profile } = useCurrentUser();
 
   const [assessmentType, setAssessmentType] = useState<AssessmentType>("driving_assessment");
@@ -159,6 +159,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
 
   const studentQuery = useStudentQuery(studentId);
   const organizationQuery = useOrganizationQuery(profile.organization_id);
+  const organizationSettingsQuery = useOrganizationSettingsQuery(profile.organization_id);
   const allAssessmentsQuery = useAssessmentsQuery({ studentId });
   const assessmentsQuery = useAssessmentsQuery({ studentId, assessmentType });
   const deleteAssessmentMutation = useDeleteAssessmentMutation();
@@ -226,6 +227,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
     }
 
     const organizationName = organizationQuery.data?.name ?? "Driving School";
+    const organizationLogoUrl = organizationSettingsQuery.data?.logo_url ?? null;
 
     setDownloadingAssessmentId(assessment.id);
     try {
@@ -257,6 +259,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         const saved = await exportDrivingAssessmentPdf({
           assessmentId: assessment.id,
           organizationName,
+          organizationLogoUrl,
           fileName,
           androidDirectoryUri: androidDirectoryUri ?? undefined,
           criteria: drivingAssessmentCriteria,
@@ -310,6 +313,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         const saved = await exportRestrictedMockTestPdf({
           assessmentId: assessment.id,
           organizationName,
+          organizationLogoUrl,
           fileName,
           androidDirectoryUri: androidDirectoryUri ?? undefined,
           values,
@@ -352,6 +356,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         const saved = await exportFullLicenseMockTestPdf({
           assessmentId: assessment.id,
           organizationName,
+          organizationLogoUrl,
           fileName,
           androidDirectoryUri: androidDirectoryUri ?? undefined,
           values,
@@ -461,7 +466,8 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
             <AppCard
               className={cn(
                 "gap-2",
-                isSelected && "border-primary bg-primary/5",
+                isSelected &&
+                  "border-primary bg-primary/5 dark:border-primaryDark dark:bg-primaryDark/10",
                 twoPane && "py-3",
               )}
             >
@@ -1054,7 +1060,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
       </ScrollView>
     </View>
   ) : (
-    <AppStack gap="lg">
+    <AppStack gap={isCompact ? "md" : "lg"}>
       {listContent}
       {renderDetail(selectedAssessment)}
     </AppStack>
@@ -1062,7 +1068,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
 
   return (
     <Screen scroll={!twoPane} className={cn(twoPane && "max-w-6xl")}>
-      <AppStack gap="lg" className={cn(twoPane && "flex-1")}>
+      <AppStack gap={isCompact ? "md" : "lg"} className={cn(twoPane && "flex-1")}>
         {header}
         {tabs}
         {studentQuery.isError ? (

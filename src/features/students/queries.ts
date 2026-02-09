@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 
 import { invalidateQueriesByKey } from "../../utils/query";
 import {
@@ -7,10 +12,12 @@ import {
   deleteStudent,
   getStudent,
   listStudents,
+  removeStudentLicenseImage,
   unarchiveStudent,
   uploadStudentLicenseImage,
   updateStudent,
   type ListStudentsInput,
+  type RemoveStudentLicenseImageInput,
   type StudentInsert,
   type UploadStudentLicenseImageInput,
   type StudentUpdate,
@@ -23,8 +30,14 @@ export const studentKeys = {
 
 const studentsRootKey = ["students"] as const;
 
-function invalidateStudentListAndDetail(queryClient: QueryClient, studentId: string) {
-  return invalidateQueriesByKey(queryClient, [studentsRootKey, studentKeys.detail(studentId)]);
+function invalidateStudentListAndDetail(
+  queryClient: QueryClient,
+  studentId: string,
+) {
+  return invalidateQueriesByKey(queryClient, [
+    studentsRootKey,
+    studentKeys.detail(studentId),
+  ]);
 }
 
 export function useStudentsQuery(input: ListStudentsInput) {
@@ -36,7 +49,9 @@ export function useStudentsQuery(input: ListStudentsInput) {
 
 export function useStudentQuery(studentId?: string) {
   return useQuery({
-    queryKey: studentId ? studentKeys.detail(studentId) : (["student", { studentId: null }] as const),
+    queryKey: studentId
+      ? studentKeys.detail(studentId)
+      : (["student", { studentId: null }] as const),
     queryFn: () => getStudent(studentId!),
     enabled: !!studentId,
   });
@@ -57,8 +72,13 @@ export function useUpdateStudentMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ studentId, input }: { studentId: string; input: StudentUpdate }) =>
-      updateStudent(studentId, input),
+    mutationFn: ({
+      studentId,
+      input,
+    }: {
+      studentId: string;
+      input: StudentUpdate;
+    }) => updateStudent(studentId, input),
     onSuccess: async (student) => {
       await invalidateStudentListAndDetail(queryClient, student.id);
     },
@@ -104,6 +124,18 @@ export function useUploadStudentLicenseImageMutation() {
   return useMutation({
     mutationFn: (input: UploadStudentLicenseImageInput) =>
       uploadStudentLicenseImage(input),
+    onSuccess: async (student) => {
+      await invalidateStudentListAndDetail(queryClient, student.id);
+    },
+  });
+}
+
+export function useRemoveStudentLicenseImageMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: RemoveStudentLicenseImageInput) =>
+      removeStudentLicenseImage(input),
     onSuccess: async (student) => {
       await invalidateStudentListAndDetail(queryClient, student.id);
     },

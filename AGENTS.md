@@ -42,17 +42,20 @@ Use this as the current reality unless code proves otherwise.
 ## 4) Database and storage workflow
 
 Source of truth for DB behavior is:
+
 - `supabase/migrations/*.sql` (currently `001` through `011`)
 - `supabase/README.md`
 - `supabase/storage/org-logos.sql`
 
 When changing Supabase behavior:
+
 1. Add a new numbered migration in `supabase/migrations`.
 2. Include schema/constraints/indexes/RLS updates needed for that change.
 3. Keep policies aligned with owner/admin vs instructor permissions.
 4. Update `supabase/README.md` if setup or verification steps change.
 
 Storage rules (org logo):
+
 - Bucket: `org-logos`
 - Path: `org-logos/<organization_id>/logo.<ext>`
 - Read: authenticated users in same org
@@ -69,31 +72,32 @@ For external libraries/APIs, do not rely on memory for signatures that can chang
 ## 6) Required task workflow
 
 At the start of every task:
+
 1. Read `AGENTS.md`.
 2. Read `PROJECT_LOG.md`.
 3. Read `docs/logs/INDEX.md`.
 4. Read `docs/logs/PROJECT_LOG_ARCHIVE.md` when history is needed to avoid regressions.
 
 At the end of every task:
+
 1. Update `PROJECT_LOG.md`.
 2. Keep only the latest 20 entries in `PROJECT_LOG.md`.
 3. Move older entries to `docs/logs/PROJECT_LOG_ARCHIVE.md` (preserve chronological order).
-4. Suggest one Conventional Commit message in this format:
+4. Keep logs compact:
+   - `PROJECT_LOG.md` and `PROJECT_LOG_ARCHIVE.md` should only contain `Date`, `Task`, and short `Summary`.
+   - Do not store `Files changed`, `Commands run`, or `How to verify` in log files.
+   - Run `scripts/logs/compact-project-logs.ps1` after edits if log size grows or older entries still use long format.
+5. Suggest one Conventional Commit message in this format:
    - `git commit -m "type: message"`
-5. Provide quick verification steps.
+6. Provide quick verification steps.
 
 ## 7) PROJECT_LOG entry template
 
 - **Date:** YYYY-MM-DD (Pacific/Auckland)
 - **Task:** <short title>
 - **Summary:**
-  - ...
-- **Files changed:**
-  - ...
-- **Commands run:**
-  - ...
-- **How to verify:**
-  - ...
+  - <most important outcome>
+  - <optional second outcome>
 
 ## 8) Required response footer
 

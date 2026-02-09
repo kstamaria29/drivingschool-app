@@ -34,6 +34,7 @@ import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
 
 import type { LessonsStackParamList } from "../LessonsStackNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 type CreateProps = NativeStackScreenProps<LessonsStackParamList, "LessonCreate">;
 type EditProps = NativeStackScreenProps<LessonsStackParamList, "LessonEdit">;
@@ -49,6 +50,7 @@ function pad2(value: number) {
 }
 
 export function LessonEditScreen({ navigation, route }: Props) {
+  const { isSidebar, isCompact } = useNavigationLayout();
   const lessonId = route.name === "LessonEdit" ? route.params.lessonId : undefined;
   const initialDate =
     route.name === "LessonCreate" ? route.params?.initialDate : undefined;
@@ -95,13 +97,15 @@ export function LessonEditScreen({ navigation, route }: Props) {
     return "";
   }, [role, userId]);
 
-  const assignableInstructorProfiles = useMemo(
-    () =>
-      lessonId
-        ? (orgProfilesQuery.data ?? [])
-        : (orgProfilesQuery.data ?? []).filter((profileOption) => profileOption.role !== "admin"),
-    [lessonId, orgProfilesQuery.data],
-  );
+  const hasInstructorsInOrganization = useMemo(() => {
+    return (orgProfilesQuery.data ?? []).some((profileOption) => profileOption.role === "instructor");
+  }, [orgProfilesQuery.data]);
+
+  const showInstructorSelector = canManageLessonInstructor && hasInstructorsInOrganization;
+
+  const assignableInstructorProfiles = useMemo(() => {
+    return (orgProfilesQuery.data ?? []).filter((profileOption) => profileOption.role !== "admin");
+  }, [orgProfilesQuery.data]);
 
   const form = useForm<LessonFormValues>({
     resolver: zodResolver(lessonFormSchema),
@@ -121,6 +125,28 @@ export function LessonEditScreen({ navigation, route }: Props) {
     if (!defaultInstructorId) return;
     form.setValue("instructorId", defaultInstructorId, { shouldValidate: true });
   }, [defaultInstructorId, form]);
+
+  useEffect(() => {
+    if (!canManageLessonInstructor) return;
+    if (showInstructorSelector) return;
+    if (orgProfilesQuery.isPending || orgProfilesQuery.isError) return;
+
+    const currentInstructorId = form.getValues("instructorId");
+    if (currentInstructorId) return;
+
+    const ownerId =
+      (orgProfilesQuery.data ?? []).find((profileOption) => profileOption.role === "owner")?.id ?? "";
+    if (!ownerId) return;
+
+    form.setValue("instructorId", ownerId, { shouldValidate: true });
+  }, [
+    canManageLessonInstructor,
+    form,
+    orgProfilesQuery.data,
+    orgProfilesQuery.isError,
+    orgProfilesQuery.isPending,
+    showInstructorSelector,
+  ]);
 
   useEffect(() => {
     if (!lessonId) return;
@@ -146,9 +172,9 @@ export function LessonEditScreen({ navigation, route }: Props) {
 
   const studentOptions = useMemo(() => {
     const needle = studentSearch.trim().toLowerCase();
+    if (!needle) return [];
     const all = studentsQuery.data ?? [];
     const filtered = instructorId ? all.filter((s) => s.assigned_instructor_id === instructorId) : all;
-    if (!needle) return filtered;
     return filtered.filter((s) => {
       const fullName = `${s.first_name} ${s.last_name}`.toLowerCase();
       const email = (s.email ?? "").toLowerCase();
@@ -271,10 +297,13 @@ export function LessonEditScreen({ navigation, route }: Props) {
   const startPreview = dayjs(`${previewDateISO}T${form.watch("startTime")}`);
   const durationPreview = Number(form.watch("durationMinutes")) || 60;
   const endPreview = startPreview.isValid() ? startPreview.add(durationPreview, "minute") : null;
+  const selectedStudentId = form.watch("studentId");
+  const selectedStudent =
+    (studentsQuery.data ?? []).find((student) => student.id === selectedStudentId) ?? null;
 
   return (
     <Screen scroll>
-      <AppStack gap="lg">
+      <AppStack gap={isCompact ? "md" : "lg"}>
         <View>
           <View className="flex-row items-center justify-between gap-3">
             <AppText variant="title">{isEditing ? "Edit lesson" : "New lesson"}</AppText>
@@ -304,9 +333,25 @@ export function LessonEditScreen({ navigation, route }: Props) {
               Enter a valid date and time.
             </AppText>
           )}
+
+          {isEditing ? (
+            <AppText className="mt-1" variant="caption">
+              Student:{" "}
+              {studentsQuery.isPending
+                ? "Loading…"
+                : selectedStudent
+                  ? `${selectedStudent.first_name} ${selectedStudent.last_name}`.trim()
+                  : "Unknown student"}
+            </AppText>
+          ) : null}
         </View>
 
-        <AppCard className="gap-4">
+        <View
+          className={cn(
+            isSidebar ? "flex-row flex-wrap gap-6" : isCompact ? "gap-4" : "gap-6",
+          )}
+        >
+          <AppCard className={cn("gap-4", isSidebar && "flex-1 min-w-[360px]")}>
           <Controller
             control={form.control}
             name="date"
@@ -347,116 +392,124 @@ export function LessonEditScreen({ navigation, route }: Props) {
               />
             )}
           />
-        </AppCard>
+          </AppCard>
 
-        <AppCard className="gap-4">
-          <AppText variant="heading">Instructor</AppText>
-
-          <Controller
-            control={form.control}
-            name="instructorId"
-            render={({ field, fieldState }) => (
-              <AppStack gap="sm">
-                {fieldState.error?.message ? (
-                  <AppText variant="error">{fieldState.error.message}</AppText>
-                ) : null}
-
-                {canManageLessonInstructor ? (
-                  orgProfilesQuery.isPending ? (
-                    <AppText variant="caption">Loading instructors…</AppText>
-                  ) : orgProfilesQuery.isError ? (
-                    <AppStack gap="md">
-                      <AppText variant="error">{toErrorMessage(orgProfilesQuery.error)}</AppText>
-                      <AppButton
-                        label="Retry instructors"
-                        variant="secondary"
-                        onPress={() => orgProfilesQuery.refetch()}
-                      />
-                    </AppStack>
-                  ) : (
-                    <AppStack gap="sm">
-                      {assignableInstructorProfiles.length === 0 ? (
-                        <AppText variant="caption">No instructors available.</AppText>
-                      ) : (
-                        assignableInstructorProfiles.map((profileOption) => (
-                          <AppButton
-                            key={profileOption.id}
-                            label={`${profileOption.display_name}${
-                              profileOption.role === "owner" || profileOption.role === "admin"
-                                ? ` (${toRoleLabel(profileOption.role)})`
-                                : ""
-                            }`}
-                            variant={field.value === profileOption.id ? "primary" : "secondary"}
-                            onPress={() => {
-                              field.onChange(profileOption.id);
-                              form.setValue("studentId", "", { shouldValidate: true });
-                            }}
-                          />
-                        ))
-                      )}
-                    </AppStack>
-                  )
-                ) : (
-                  <AppText variant="body">{getProfileFullName(profile)}</AppText>
-                )}
-              </AppStack>
-            )}
-          />
-        </AppCard>
-
-        <AppCard className="gap-4">
-          <AppText variant="heading">Student</AppText>
-
-          {studentsQuery.isPending ? (
-            <AppText variant="caption">Loading students…</AppText>
-          ) : studentsQuery.isError ? (
-            <AppStack gap="md">
-              <AppText variant="error">{toErrorMessage(studentsQuery.error)}</AppText>
-              <AppButton
-                label="Retry students"
-                icon={RefreshCw}
-                variant="secondary"
-                onPress={() => studentsQuery.refetch()}
-              />
-            </AppStack>
-          ) : (
-            <>
-              <AppInput
-                label="Search"
-                autoCapitalize="none"
-                value={studentSearch}
-                onChangeText={setStudentSearch}
-              />
+          {!canManageLessonInstructor ||
+          orgProfilesQuery.isPending ||
+          orgProfilesQuery.isError ||
+          showInstructorSelector ? (
+            <AppCard className={cn("gap-4", isSidebar && "flex-1 min-w-[360px]")}>
+              <AppText variant="heading">Instructor</AppText>
 
               <Controller
                 control={form.control}
-                name="studentId"
+                name="instructorId"
                 render={({ field, fieldState }) => (
                   <AppStack gap="sm">
                     {fieldState.error?.message ? (
                       <AppText variant="error">{fieldState.error.message}</AppText>
                     ) : null}
 
-                    {studentOptions.length === 0 ? (
-                      <AppText variant="caption">No students match this instructor/search.</AppText>
+                    {canManageLessonInstructor ? (
+                      orgProfilesQuery.isPending ? (
+                        <AppText variant="caption">Loading instructors…</AppText>
+                      ) : orgProfilesQuery.isError ? (
+                        <AppStack gap="md">
+                          <AppText variant="error">{toErrorMessage(orgProfilesQuery.error)}</AppText>
+                          <AppButton
+                            label="Retry instructors"
+                            variant="secondary"
+                            onPress={() => orgProfilesQuery.refetch()}
+                          />
+                        </AppStack>
+                      ) : (
+                        <AppStack gap="sm">
+                          {assignableInstructorProfiles.map((profileOption) => (
+                            <AppButton
+                              key={profileOption.id}
+                              label={`${profileOption.display_name}${
+                                profileOption.role === "owner"
+                                  ? ` (${toRoleLabel(profileOption.role)})`
+                                  : ""
+                              }`}
+                              variant={field.value === profileOption.id ? "primary" : "secondary"}
+                              onPress={() => {
+                                field.onChange(profileOption.id);
+                                if (!isEditing) {
+                                  form.setValue("studentId", "", { shouldValidate: true });
+                                }
+                              }}
+                            />
+                          ))}
+                        </AppStack>
+                      )
                     ) : (
-                      studentOptions.map((student) => (
-                        <AppButton
-                          key={student.id}
-                          label={`${student.first_name} ${student.last_name}`}
-                          variant={field.value === student.id ? "primary" : "secondary"}
-                          onPress={() => field.onChange(student.id)}
-                        />
-                      ))
+                      <AppText variant="body">{getProfileFullName(profile)}</AppText>
                     )}
                   </AppStack>
                 )}
               />
-            </>
-          )}
-        </AppCard>
+            </AppCard>
+          ) : null}
 
-        <AppCard className="gap-4">
+          {!isEditing ? (
+            <AppCard className={cn("gap-4", isSidebar && "flex-1 min-w-[360px]")}>
+              <AppText variant="heading">Student</AppText>
+
+              {studentsQuery.isPending ? (
+                <AppText variant="caption">Loading students…</AppText>
+              ) : studentsQuery.isError ? (
+                <AppStack gap="md">
+                  <AppText variant="error">{toErrorMessage(studentsQuery.error)}</AppText>
+                  <AppButton
+                    label="Retry students"
+                    icon={RefreshCw}
+                    variant="secondary"
+                    onPress={() => studentsQuery.refetch()}
+                  />
+                </AppStack>
+              ) : (
+                <>
+                  <AppInput
+                    label="Search"
+                    autoCapitalize="none"
+                    value={studentSearch}
+                    onChangeText={setStudentSearch}
+                    placeholder="Type to search students"
+                  />
+
+                  <Controller
+                    control={form.control}
+                    name="studentId"
+                    render={({ field, fieldState }) => (
+                      <AppStack gap="sm">
+                        {fieldState.error?.message ? (
+                          <AppText variant="error">{fieldState.error.message}</AppText>
+                        ) : null}
+
+                        {studentSearch.trim().length === 0 ? (
+                          <AppText variant="caption">Search for a student to see results.</AppText>
+                        ) : studentOptions.length === 0 ? (
+                          <AppText variant="caption">No students match this search.</AppText>
+                        ) : (
+                          studentOptions.map((student) => (
+                            <AppButton
+                              key={student.id}
+                              label={`${student.first_name} ${student.last_name}`}
+                              variant={field.value === student.id ? "primary" : "secondary"}
+                              onPress={() => field.onChange(student.id)}
+                            />
+                          ))
+                        )}
+                      </AppStack>
+                    )}
+                  />
+                </>
+              )}
+            </AppCard>
+          ) : null}
+
+          <AppCard className={cn("gap-4", isSidebar && "flex-1 min-w-[360px]")}>
           <AppText variant="heading">Status</AppText>
 
           <Controller
@@ -488,9 +541,9 @@ export function LessonEditScreen({ navigation, route }: Props) {
               </View>
             )}
           />
-        </AppCard>
+          </AppCard>
 
-        <AppCard className="gap-4">
+          <AppCard className={cn("gap-4", isSidebar && "flex-1 min-w-[360px]")}>
           <Controller
             control={form.control}
             name="location"
@@ -520,18 +573,51 @@ export function LessonEditScreen({ navigation, route }: Props) {
               />
             )}
           />
-        </AppCard>
+          </AppCard>
 
-        {mutationError ? <AppText variant="error">{toErrorMessage(mutationError)}</AppText> : null}
+          {mutationError ? (
+            <View className={cn(isSidebar && "w-full")}>
+              <AppText variant="error">{toErrorMessage(mutationError)}</AppText>
+            </View>
+          ) : null}
 
-        <AppButton
-          label={saving ? "Saving..." : isEditing ? "Save changes" : "Create lesson"}
-          icon={isEditing ? Save : Plus}
-          disabled={saving}
-          onPress={form.handleSubmit(onSubmit)}
-        />
+          {isSidebar ? (
+            <View className="w-full flex-row gap-3">
+              <AppButton
+                width="auto"
+                className="flex-1"
+                label={saving ? "Saving..." : isEditing ? "Save changes" : "Create lesson"}
+                icon={isEditing ? Save : Plus}
+                disabled={saving}
+                onPress={form.handleSubmit(onSubmit)}
+              />
+              <AppButton
+                width="auto"
+                className="flex-1"
+                label="Cancel"
+                icon={X}
+                variant="ghost"
+                onPress={() => navigation.goBack()}
+              />
+            </View>
+          ) : (
+            <>
+              <AppButton
+                label={saving ? "Saving..." : isEditing ? "Save changes" : "Create lesson"}
+                icon={isEditing ? Save : Plus}
+                disabled={saving}
+                onPress={form.handleSubmit(onSubmit)}
+              />
 
-        <AppButton label="Cancel" icon={X} variant="ghost" onPress={() => navigation.goBack()} />
+              <AppButton
+                label="Cancel"
+                icon={X}
+                variant="ghost"
+                onPress={() => navigation.goBack()}
+              />
+            </>
+          )}
+        </View>
       </AppStack>
     </Screen>
   );

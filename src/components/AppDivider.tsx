@@ -7,6 +7,5 @@ type Props = {
 };
 
 export function AppDivider({ className }: Props) {
-  return <View className={cn("h-px w-full bg-border", className)} />;
+  return <View className={cn("h-px w-full bg-border dark:bg-borderDark", className)} />;
 }
-

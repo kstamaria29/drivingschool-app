@@ -17,8 +17,10 @@ import { getRoleDisplayLabel, isOwnerOrAdminRole, toRoleLabel } from "../../feat
 import { toErrorMessage } from "../../utils/errors";
 
 import type { SettingsStackParamList } from "../SettingsStackNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 export function EditRoleDisplayScreen() {
+  const { isCompact } = useNavigationLayout();
   const { userId, profile } = useCurrentUser();
   const canEditRoleDisplay = isOwnerOrAdminRole(profile.role);
   const navigation = useNavigation<NativeStackNavigationProp<SettingsStackParamList>>();
@@ -46,7 +48,7 @@ export function EditRoleDisplayScreen() {
   if (!canEditRoleDisplay) {
     return (
       <Screen scroll>
-        <AppStack gap="lg">
+        <AppStack gap={isCompact ? "md" : "lg"}>
           <View>
             <AppText variant="title">Change role display</AppText>
             <AppText className="mt-2" variant="body">
@@ -60,7 +62,7 @@ export function EditRoleDisplayScreen() {
 
   return (
     <Screen scroll>
-      <AppStack gap="lg">
+      <AppStack gap={isCompact ? "md" : "lg"}>
         <View>
           <AppText variant="title">Change role display</AppText>
           <AppText className="mt-2" variant="body">
@@ -73,7 +75,7 @@ export function EditRoleDisplayScreen() {
           <AppText variant="body">{getRoleDisplayLabel(profile)}</AppText>
         </AppCard>
 
-        <AppCard className="gap-4">
+        <AppCard className={isCompact ? "gap-3" : "gap-4"}>
           <Controller
             control={form.control}
             name="roleDisplayName"

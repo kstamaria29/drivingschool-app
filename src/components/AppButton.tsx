@@ -11,6 +11,7 @@ import { AppText } from "./AppText";
 type AppButtonVariant = "primary" | "secondary" | "danger" | "ghost";
 type AppButtonSize = "md" | "lg" | "icon";
 type AppButtonWidth = "full" | "auto";
+type AppButtonBadgePosition = "icon" | "label-top-right";
 
 type Props = Omit<PressableProps, "children"> & {
   label: string;
@@ -23,6 +24,7 @@ type Props = Omit<PressableProps, "children"> & {
   iconColor?: string;
   iconStrokeWidth?: number;
   badgeCount?: number;
+  badgePosition?: AppButtonBadgePosition;
   renderIcon?: (input: { size: number; color: string; strokeWidth: number }) => ReactNode;
 };
 
@@ -37,6 +39,7 @@ export function AppButton({
   iconColor,
   iconStrokeWidth = 2,
   badgeCount,
+  badgePosition = "icon",
   renderIcon,
   className,
   disabled,
@@ -78,14 +81,25 @@ export function AppButton({
     typeof badgeCount === "number" && Number.isFinite(badgeCount) && badgeCount > 0
       ? Math.min(Math.floor(badgeCount), 99)
       : null;
+  const badgeText =
+    resolvedBadgeCount == null
+      ? ""
+      : badgeCount != null && badgeCount > 99
+        ? "99+"
+        : String(resolvedBadgeCount);
+  const showLabelBadge = badgePosition === "label-top-right" && resolvedBadgeCount != null;
 
   const iconWithBadge = iconNode ? (
     <View className="relative">
       {iconNode}
-      {resolvedBadgeCount != null ? (
-        <View className="absolute -right-2 -top-2 min-w-[18px] items-center rounded-full bg-danger px-1 py-0.5 dark:bg-dangerDark">
-          <AppText className="text-[10px] font-semibold leading-none text-primaryForeground" variant="caption">
-            {badgeCount != null && badgeCount > 99 ? "99+" : String(resolvedBadgeCount)}
+      {resolvedBadgeCount != null && badgePosition === "icon" ? (
+        <View className="absolute -right-2 -top-2 h-5 min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 dark:bg-dangerDark">
+          <AppText
+            numberOfLines={1}
+            className="text-[10px] font-semibold leading-[10px] text-primaryForeground"
+            variant="caption"
+          >
+            {badgeText}
           </AppText>
         </View>
       ) : null}
@@ -102,6 +116,7 @@ export function AppButton({
         theme.button.base,
         theme.button.variant[variant],
         theme.button.size[size],
+        showLabelBadge && "relative",
         disabled && theme.button.disabled,
         className,
       )}
@@ -125,6 +140,21 @@ export function AppButton({
         ) : null}
         {iconPosition === "right" ? iconWithBadge : null}
       </View>
+
+      {showLabelBadge ? (
+        <View
+          pointerEvents="none"
+          className="absolute right-3 top-2 z-20 h-5 min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 dark:bg-dangerDark"
+        >
+          <AppText
+            numberOfLines={1}
+            className="text-[10px] font-semibold leading-[10px] text-primaryForeground"
+            variant="caption"
+          >
+            {badgeText}
+          </AppText>
+        </View>
+      ) : null}
     </Pressable>
   );
 }

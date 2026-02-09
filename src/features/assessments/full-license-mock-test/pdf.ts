@@ -25,6 +25,7 @@ import type { FullLicenseMockTestStoredData } from "./schema";
 type Input = {
   assessmentId: string;
   organizationName: string;
+  organizationLogoUrl?: string | null;
   fileName: string;
   androidDirectoryUri?: string;
   values: FullLicenseMockTestStoredData;
@@ -98,7 +99,10 @@ function buildHtml(input: Input) {
   });
 
   const dateTime = [v.date?.trim(), v.time?.trim()].filter(Boolean).join(" ");
-  const generatedAt = dayjs().format("DD/MM/YYYY HH:mm");
+  const logoUrl = input.organizationLogoUrl?.trim() || "";
+  const logoHtml = logoUrl
+    ? `<div class="header-right"><img class="logo" src="${escapeHtml(logoUrl)}" /></div>`
+    : "";
 
   function renderErrorCounts(title: string, errors: readonly string[], counts: Record<string, number>) {
     const lines = errors
@@ -223,9 +227,13 @@ function buildHtml(input: Input) {
         h3 { font-size: 11px; margin: 0 0 6px 0; }
         .org { font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; font-size: 12px; margin-bottom: 4px; }
         .muted { color: #475569; font-size: 10px; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+        .header-left { flex: 1; min-width: 0; }
+        .header-right { flex-shrink: 0; display: flex; justify-content: flex-end; }
+        .logo { height: 44px; width: auto; max-width: 140px; object-fit: contain; }
         .label { color: #334155; font-size: 10px; font-weight: 700; }
         .value { font-size: 10.5px; }
-        .box-soft { border: 1px solid #cbd5e1; padding: 10px 12px; border-radius: 10px; }
+        .box-soft { border: 1px solid #0f172a; padding: 10px 12px; border-radius: 0; }
         .section { margin-top: 10px; }
         .pre { white-space: pre-wrap; }
         .grid { width: 100%; border-collapse: collapse; }
@@ -248,10 +256,13 @@ function buildHtml(input: Input) {
       </style>
     </head>
     <body>
-      <div>
-        <div class="org">${escapeHtml(input.organizationName)}</div>
-        <h1>Mock Test – Full License</h1>
-        <div class="muted">Generated: ${escapeHtml(generatedAt)}</div>
+      <div class="header">
+        <div class="header-left">
+          <div class="org">${escapeHtml(input.organizationName)}</div>
+          <h1>Mock Test – Full License</h1>
+          <div class="muted">Student: ${escapeHtml(v.candidateName || "N/A")}</div>
+        </div>
+        ${logoHtml}
       </div>
 
       <div class="section box-soft">

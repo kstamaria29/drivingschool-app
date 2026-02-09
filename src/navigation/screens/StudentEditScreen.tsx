@@ -1,9 +1,17 @@
 import * as ImagePicker from "expo-image-picker";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ActivityIndicator, Alert, Modal, Pressable, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  View,
+  type ScrollView,
+} from "react-native";
+import { X } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -20,6 +28,7 @@ import { useAuthSession } from "../../features/auth/session";
 import { useOrganizationProfilesQuery } from "../../features/profiles/queries";
 import {
   useCreateStudentMutation,
+  useRemoveStudentLicenseImageMutation,
   useUploadStudentLicenseImageMutation,
   useStudentQuery,
   useUpdateStudentMutation,
@@ -43,6 +52,7 @@ import { getProfileFullName } from "../../utils/profileName";
 import { normalizeLicenseNumberInput } from "../../utils/licenseNumber";
 
 import type { StudentsStackParamList } from "../StudentsStackNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 type CreateProps = NativeStackScreenProps<
   StudentsStackParamList,
@@ -71,6 +81,8 @@ function emptyToNull(value: string) {
 export function StudentEditScreen({ navigation, route }: Props) {
   const studentId =
     route.name === "StudentEdit" ? route.params.studentId : undefined;
+  const studentEditScrollRef = useRef<ScrollView>(null);
+  const { isCompact } = useNavigationLayout();
 
   const { session } = useAuthSession();
   const userId = session?.user.id;
@@ -80,6 +92,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
   const createMutation = useCreateStudentMutation();
   const updateMutation = useUpdateStudentMutation();
   const uploadLicenseImageMutation = useUploadStudentLicenseImageMutation();
+  const removeLicenseImageMutation = useRemoveStudentLicenseImageMutation();
 
   const role = profileQuery.data?.role ?? null;
   const canManageStudentAssignments = isOwnerOrAdminRole(role);
@@ -106,12 +119,10 @@ export function StudentEditScreen({ navigation, route }: Props) {
 
   const assignableInstructorProfiles = useMemo(
     () =>
-      isEditing
-        ? (orgProfilesQuery.data ?? [])
-        : (orgProfilesQuery.data ?? []).filter(
-            (profileOption) => profileOption.role !== "admin",
-          ),
-    [isEditing, orgProfilesQuery.data],
+      (orgProfilesQuery.data ?? []).filter(
+        (profileOption) => profileOption.role !== "admin",
+      ),
+    [orgProfilesQuery.data],
   );
 
   const form = useForm<StudentFormValues>({
@@ -119,6 +130,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
     defaultValues: {
       firstName: "",
       lastName: "",
+      dateOfBirth: "",
       email: "",
       phone: "",
       address: "",
@@ -133,7 +145,8 @@ export function StudentEditScreen({ navigation, route }: Props) {
       notes: "",
     },
   });
-  const [organizationMenuOpen, setOrganizationMenuOpen] = useState(false);
+  const [organizationOptionsModalVisible, setOrganizationOptionsModalVisible] =
+    useState(false);
   const [customOrganizationModalVisible, setCustomOrganizationModalVisible] =
     useState(false);
   const [customOrganizationValue, setCustomOrganizationValue] = useState("");
@@ -145,6 +158,11 @@ export function StudentEditScreen({ navigation, route }: Props) {
     useState<ImagePicker.ImagePickerAsset | null>(null);
   const [pendingLicenseBackAsset, setPendingLicenseBackAsset] =
     useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [removeLicenseFrontOnSave, setRemoveLicenseFrontOnSave] =
+    useState(false);
+  const [removeLicenseBackOnSave, setRemoveLicenseBackOnSave] = useState(false);
+  const [licenseActionModalSide, setLicenseActionModalSide] =
+    useState<StudentLicenseImageSide | null>(null);
 
   useEffect(() => {
     if (defaultAssignedInstructorId) {
@@ -192,6 +210,9 @@ export function StudentEditScreen({ navigation, route }: Props) {
     form.reset({
       firstName: studentQuery.data.first_name,
       lastName: studentQuery.data.last_name,
+      dateOfBirth: studentQuery.data.date_of_birth
+        ? formatIsoDateToDisplay(studentQuery.data.date_of_birth)
+        : "",
       email: studentQuery.data.email ?? "",
       phone: studentQuery.data.phone ?? "",
       address: studentQuery.data.address ?? "",
@@ -210,6 +231,8 @@ export function StudentEditScreen({ navigation, route }: Props) {
         : "",
       notes: studentQuery.data.notes ?? "",
     });
+    setRemoveLicenseFrontOnSave(false);
+    setRemoveLicenseBackOnSave(false);
   }, [form, studentId, studentQuery.data]);
 
   const isLoading =
@@ -264,12 +287,12 @@ export function StudentEditScreen({ navigation, route }: Props) {
   const mutationError =
     createMutation.error ??
     updateMutation.error ??
-    uploadLicenseImageMutation.error;
+    uploadLicenseImageMutation.error ??
+    removeLicenseImageMutation.error;
   const showCreateInstructorDropdown =
     canManageStudentAssignments && !isEditing && instructorProfiles.length > 0;
   const hideAssignedInstructorCard =
     canManageStudentAssignments &&
-    !isEditing &&
     !orgProfilesQuery.isPending &&
     !orgProfilesQuery.isError &&
     instructorProfiles.length === 0;
@@ -279,6 +302,9 @@ export function StudentEditScreen({ navigation, route }: Props) {
       assigned_instructor_id: values.assignedInstructorId,
       first_name: values.firstName.trim(),
       last_name: values.lastName.trim(),
+      date_of_birth: values.dateOfBirth.trim()
+        ? parseDateInputToISODate(values.dateOfBirth)
+        : null,
       email: values.email.trim(),
       phone: values.phone.trim(),
       address: emptyToNull(values.address),
@@ -303,17 +329,25 @@ export function StudentEditScreen({ navigation, route }: Props) {
     setCustomOrganizationValue("");
   }
 
+  function closeOrganizationOptionsModal() {
+    setOrganizationOptionsModalVisible(false);
+  }
+
+  function openOrganizationOptionsModal() {
+    setOrganizationOptionsModalVisible(true);
+  }
+
   function applyOrganizationValue(nextValue: string) {
     form.setValue("organization", normalizeStudentOrganization(nextValue), {
       shouldDirty: true,
       shouldValidate: true,
     });
-    setOrganizationMenuOpen(false);
+    closeOrganizationOptionsModal();
   }
 
   function openCustomOrganizationModal(currentValue: string) {
     const normalizedCurrent = normalizeStudentOrganization(currentValue);
-    setOrganizationMenuOpen(false);
+    closeOrganizationOptionsModal();
     setCustomOrganizationValue(
       presetOrganizationLookup.has(normalizedCurrent.toLowerCase())
         ? ""
@@ -353,9 +387,26 @@ export function StudentEditScreen({ navigation, route }: Props) {
   ) {
     if (side === "front") {
       setPendingLicenseFrontAsset(asset);
+      if (asset) setRemoveLicenseFrontOnSave(false);
       return;
     }
     setPendingLicenseBackAsset(asset);
+    if (asset) setRemoveLicenseBackOnSave(false);
+  }
+
+  function setRemoveLicenseOnSave(
+    side: StudentLicenseImageSide,
+    shouldRemove: boolean,
+  ) {
+    if (side === "front") {
+      setRemoveLicenseFrontOnSave(shouldRemove);
+      return;
+    }
+    setRemoveLicenseBackOnSave(shouldRemove);
+  }
+
+  function closeLicenseActionModal() {
+    setLicenseActionModalSide(null);
   }
 
   async function pickLicenseAssetFromLibrary() {
@@ -366,7 +417,8 @@ export function StudentEditScreen({ navigation, route }: Props) {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: "images",
-      allowsEditing: false,
+      allowsEditing: true,
+      aspect: [4, 3],
       quality: 0.85,
     });
 
@@ -382,7 +434,8 @@ export function StudentEditScreen({ navigation, route }: Props) {
 
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: "images",
-      allowsEditing: false,
+      allowsEditing: true,
+      aspect: [4, 3],
       quality: 0.85,
     });
 
@@ -408,43 +461,17 @@ export function StudentEditScreen({ navigation, route }: Props) {
   }
 
   function openLicenseImageActions(side: StudentLicenseImageSide) {
-    const sideLabel = side === "front" ? "front" : "back";
-    const hasPendingAsset =
-      side === "front"
-        ? pendingLicenseFrontAsset != null
-        : pendingLicenseBackAsset != null;
-
-    const actions: Parameters<typeof Alert.alert>[2] = [
-      {
-        text: "Take photo",
-        onPress: () => {
-          void pickLicenseAsset(side, "camera");
-        },
-      },
-      {
-        text: "Choose from library",
-        onPress: () => {
-          void pickLicenseAsset(side, "library");
-        },
-      },
-    ];
-
-    if (hasPendingAsset) {
-      actions.push({
-        text: "Clear selected",
-        style: "destructive",
-        onPress: () => {
-          setPendingLicenseAsset(side, null);
-        },
-      });
-    }
-
-    actions.push({ text: "Cancel", style: "cancel" });
-    Alert.alert(`Licence card ${sideLabel}`, "Choose an option", actions);
+    setLicenseActionModalSide(side);
   }
 
-  async function uploadPendingLicenseImages(studentIdToUpload: string) {
-    if (pendingLicenseFrontAsset) {
+  async function applyPendingLicenseImageChanges(studentIdToUpload: string) {
+    if (removeLicenseFrontOnSave && !pendingLicenseFrontAsset) {
+      await removeLicenseImageMutation.mutateAsync({
+        organizationId,
+        studentId: studentIdToUpload,
+        side: "front",
+      });
+    } else if (pendingLicenseFrontAsset) {
       await uploadLicenseImageMutation.mutateAsync({
         organizationId,
         studentId: studentIdToUpload,
@@ -453,7 +480,13 @@ export function StudentEditScreen({ navigation, route }: Props) {
       });
     }
 
-    if (pendingLicenseBackAsset) {
+    if (removeLicenseBackOnSave && !pendingLicenseBackAsset) {
+      await removeLicenseImageMutation.mutateAsync({
+        organizationId,
+        studentId: studentIdToUpload,
+        side: "back",
+      });
+    } else if (pendingLicenseBackAsset) {
       await uploadLicenseImageMutation.mutateAsync({
         organizationId,
         studentId: studentIdToUpload,
@@ -469,7 +502,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
       organization_id: organizationId,
       ...base,
     });
-    await uploadPendingLicenseImages(created.id);
+    await applyPendingLicenseImageChanges(created.id);
     navigation.replace("StudentDetail", { studentId: created.id });
   }
 
@@ -478,7 +511,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
       studentId: studentId!,
       input: mapStudentInput(values),
     });
-    await uploadPendingLicenseImages(updated.id);
+    await applyPendingLicenseImageChanges(updated.id);
     navigation.replace("StudentDetail", { studentId: updated.id });
   }
 
@@ -513,23 +546,67 @@ export function StudentEditScreen({ navigation, route }: Props) {
     ]);
   }
 
+  function onNotesFocus() {
+    setTimeout(() => {
+      studentEditScrollRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }
+
   const saving =
     createMutation.isPending ||
     updateMutation.isPending ||
-    uploadLicenseImageMutation.isPending;
+    uploadLicenseImageMutation.isPending ||
+    removeLicenseImageMutation.isPending;
+  const existingLicenseFrontUri =
+    studentQuery.data?.license_front_image_url ?? null;
+  const existingLicenseBackUri =
+    studentQuery.data?.license_back_image_url ?? null;
   const licenseFrontPreviewUri =
     pendingLicenseFrontAsset?.uri ??
-    studentQuery.data?.license_front_image_url ??
+    (removeLicenseFrontOnSave ? null : existingLicenseFrontUri) ??
     null;
   const licenseBackPreviewUri =
     pendingLicenseBackAsset?.uri ??
-    studentQuery.data?.license_back_image_url ??
+    (removeLicenseBackOnSave ? null : existingLicenseBackUri) ??
     null;
+  const licenseActionTitle =
+    licenseActionModalSide === "front"
+      ? "Front photo options"
+      : licenseActionModalSide === "back"
+        ? "Back photo options"
+        : "";
+  const licenseActionHasPending =
+    licenseActionModalSide === "front"
+      ? pendingLicenseFrontAsset != null
+      : licenseActionModalSide === "back"
+        ? pendingLicenseBackAsset != null
+        : false;
+  const licenseActionExistingUri =
+    licenseActionModalSide === "front"
+      ? existingLicenseFrontUri
+      : licenseActionModalSide === "back"
+        ? existingLicenseBackUri
+        : null;
+  const licenseActionMarkedForRemoval =
+    licenseActionModalSide === "front"
+      ? removeLicenseFrontOnSave
+      : licenseActionModalSide === "back"
+        ? removeLicenseBackOnSave
+        : false;
+  const licenseActionCanDelete =
+    licenseActionModalSide != null &&
+    (licenseActionHasPending ||
+      (Boolean(licenseActionExistingUri) && !licenseActionMarkedForRemoval));
+  const selectedOrganization = form.watch("organization")?.trim() ?? "";
+  const hasCustomOrganization =
+    selectedOrganization.length > 0 &&
+    !presetOrganizationLookup.has(selectedOrganization.toLowerCase());
+  const organizationLabel = selectedOrganization || "Select organization";
 
   return (
     <>
-      <Screen scroll>
-        <AppStack gap="lg">
+      <Screen scroll scrollRef={studentEditScrollRef}>
+        <AppStack gap={isCompact ? "md" : "lg"}>
           <View>
             <AppText variant="title">
               {isEditing ? "Edit student" : "New student"}
@@ -567,6 +644,19 @@ export function StudentEditScreen({ navigation, route }: Props) {
                   value={field.value}
                   onChangeText={field.onChange}
                   onBlur={field.onBlur}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+
+            <Controller
+              control={form.control}
+              name="dateOfBirth"
+              render={({ field, fieldState }) => (
+                <AppDateInput
+                  label="Date of birth"
+                  value={field.value}
+                  onChangeText={field.onChange}
                   error={fieldState.error?.message}
                 />
               )}
@@ -623,66 +713,37 @@ export function StudentEditScreen({ navigation, route }: Props) {
             <Controller
               control={form.control}
               name="organization"
-              render={({ field, fieldState }) => {
-                const selectedOrganization = field.value?.trim() ?? "";
-                const hasCustomOrganization =
-                  selectedOrganization.length > 0 &&
-                  !presetOrganizationLookup.has(
-                    selectedOrganization.toLowerCase(),
-                  );
-                const organizationLabel =
-                  selectedOrganization || "Select organization";
+              render={({ fieldState }) => (
+                <AppStack gap="sm">
+                  <AppText variant="label">Organization</AppText>
+                  <Pressable
+                    accessibilityRole="button"
+                    className={cn(
+                      theme.button.base,
+                      theme.button.variant.secondary,
+                      theme.button.size.md,
+                      "px-4",
+                    )}
+                    onPress={openOrganizationOptionsModal}
+                  >
+                    <AppText
+                      className={cn(
+                        "w-full text-left",
+                        theme.button.labelVariant.secondary,
+                      )}
+                      variant="button"
+                    >
+                      {organizationLabel}
+                    </AppText>
+                  </Pressable>
 
-                return (
-                  <AppStack gap="sm">
-                    <AppText variant="label">Organization</AppText>
-                    <AppButton
-                      variant="secondary"
-                      label={organizationLabel}
-                      onPress={() =>
-                        setOrganizationMenuOpen((previous) => !previous)
-                      }
-                    />
-
-                    {organizationMenuOpen ? (
-                      <AppStack gap="sm">
-                        {studentOrganizationMenuOptions.map((option) => (
-                          <AppButton
-                            key={option}
-                            variant={
-                              option === "Custom"
-                                ? hasCustomOrganization
-                                  ? "primary"
-                                  : "secondary"
-                                : selectedOrganization.toLowerCase() ===
-                                    option.toLowerCase()
-                                  ? "primary"
-                                  : "secondary"
-                            }
-                            label={
-                              option === "Custom" && hasCustomOrganization
-                                ? `Custom: ${selectedOrganization}`
-                                : option
-                            }
-                            onPress={() =>
-                              onSelectOrganizationOption(
-                                option,
-                                selectedOrganization,
-                              )
-                            }
-                          />
-                        ))}
-                      </AppStack>
-                    ) : null}
-
-                    {fieldState.error?.message ? (
-                      <AppText variant="error">
-                        {fieldState.error.message}
-                      </AppText>
-                    ) : null}
-                  </AppStack>
-                );
-              }}
+                  {fieldState.error?.message ? (
+                    <AppText variant="error">
+                      {fieldState.error.message}
+                    </AppText>
+                  ) : null}
+                </AppStack>
+              )}
             />
           </AppCard>
 
@@ -925,22 +986,12 @@ export function StudentEditScreen({ navigation, route }: Props) {
               control={form.control}
               name="issueDate"
               render={({ field, fieldState }) => (
-                <AppStack gap="sm">
-                  <AppDateInput
-                    label="Issue date"
-                    value={field.value}
-                    onChangeText={field.onChange}
-                    error={fieldState.error?.message}
-                  />
-                  {isEditing && field.value.trim() ? (
-                    <AppButton
-                      width="auto"
-                      variant="ghost"
-                      label="Clear issue date"
-                      onPress={() => field.onChange("")}
-                    />
-                  ) : null}
-                </AppStack>
+                <AppDateInput
+                  label="Issue date"
+                  value={field.value}
+                  onChangeText={field.onChange}
+                  error={fieldState.error?.message}
+                />
               )}
             />
 
@@ -948,22 +999,12 @@ export function StudentEditScreen({ navigation, route }: Props) {
               control={form.control}
               name="expiryDate"
               render={({ field, fieldState }) => (
-                <AppStack gap="sm">
-                  <AppDateInput
-                    label="Expiry date"
-                    value={field.value}
-                    onChangeText={field.onChange}
-                    error={fieldState.error?.message}
-                  />
-                  {isEditing && field.value.trim() ? (
-                    <AppButton
-                      width="auto"
-                      variant="ghost"
-                      label="Clear expiry date"
-                      onPress={() => field.onChange("")}
-                    />
-                  ) : null}
-                </AppStack>
+                <AppDateInput
+                  label="Expiry date"
+                  value={field.value}
+                  onChangeText={field.onChange}
+                  error={fieldState.error?.message}
+                />
               )}
             />
 
@@ -973,51 +1014,45 @@ export function StudentEditScreen({ navigation, route }: Props) {
                 Add front/back photos. Selected photos upload when you save.
               </AppText>
 
-              <AppStack gap="md">
-                <AppStack gap="sm">
-                  <AppText variant="caption">Front</AppText>
+              <View className="flex-row gap-3">
+                <AppStack className="flex-1" gap="sm">
                   {licenseFrontPreviewUri ? (
                     <AppImage
                       source={{ uri: licenseFrontPreviewUri }}
                       resizeMode="contain"
-                      className="h-40 w-full rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark"
+                      className="h-36 w-full rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark"
                     />
-                  ) : (
-                    <View className="h-32 items-center justify-center rounded-xl border border-dashed border-border bg-card dark:border-borderDark dark:bg-cardDark">
-                      <AppText variant="caption">
-                        No front image selected.
-                      </AppText>
-                    </View>
-                  )}
+                  ) : null}
                   <AppButton
                     variant="secondary"
-                    label="Front photo options"
+                    label={
+                      licenseFrontPreviewUri
+                        ? "Front photo options"
+                        : "Add Front Licence photo"
+                    }
                     onPress={() => openLicenseImageActions("front")}
                   />
                 </AppStack>
 
-                <AppStack gap="sm">
-                  <AppText variant="caption">Back</AppText>
+                <AppStack className="flex-1" gap="sm">
                   {licenseBackPreviewUri ? (
                     <AppImage
                       source={{ uri: licenseBackPreviewUri }}
                       resizeMode="contain"
-                      className="h-40 w-full rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark"
+                      className="h-36 w-full rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark"
                     />
-                  ) : (
-                    <View className="h-32 items-center justify-center rounded-xl border border-dashed border-border bg-card dark:border-borderDark dark:bg-cardDark">
-                      <AppText variant="caption">
-                        No back image selected.
-                      </AppText>
-                    </View>
-                  )}
+                  ) : null}
                   <AppButton
                     variant="secondary"
-                    label="Back photo options"
+                    label={
+                      licenseBackPreviewUri
+                        ? "Back photo options"
+                        : "Add Back Licence photo"
+                    }
                     onPress={() => openLicenseImageActions("back")}
                   />
                 </AppStack>
-              </AppStack>
+              </View>
 
               {licensePickerError ? (
                 <AppText variant="error">{licensePickerError}</AppText>
@@ -1038,6 +1073,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
                   inputClassName="h-28 py-3"
                   value={field.value}
                   onChangeText={field.onChange}
+                  onFocus={onNotesFocus}
                   onBlur={field.onBlur}
                 />
               )}
@@ -1067,18 +1103,90 @@ export function StudentEditScreen({ navigation, route }: Props) {
       <Modal
         animationType="fade"
         transparent
+        visible={licenseActionModalSide != null}
+        onRequestClose={closeLicenseActionModal}
+      >
+        <Pressable
+          className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
+          onPress={closeLicenseActionModal}
+        >
+          <Pressable
+            className="m-auto w-full max-w-md"
+            onPress={(event) => event.stopPropagation()}
+          >
+            <AppCard className="gap-3">
+              <View className="flex-row items-center justify-between gap-2">
+                <AppText variant="heading">{licenseActionTitle}</AppText>
+                <AppButton
+                  label=""
+                  width="auto"
+                  size="icon"
+                  variant="ghost"
+                  icon={X}
+                  onPress={closeLicenseActionModal}
+                />
+              </View>
+
+              <AppButton
+                variant="secondary"
+                label="Take photo"
+                onPress={() => {
+                  const side = licenseActionModalSide;
+                  closeLicenseActionModal();
+                  if (!side) return;
+                  void pickLicenseAsset(side, "camera");
+                }}
+              />
+              <AppButton
+                variant="secondary"
+                label="Choose from library"
+                onPress={() => {
+                  const side = licenseActionModalSide;
+                  closeLicenseActionModal();
+                  if (!side) return;
+                  void pickLicenseAsset(side, "library");
+                }}
+              />
+              {licenseActionCanDelete ? (
+                <AppButton
+                  variant="danger"
+                  label="Delete photo"
+                  onPress={() => {
+                    const side = licenseActionModalSide;
+                    const existingUriForSide = licenseActionExistingUri;
+                    closeLicenseActionModal();
+                    if (!side) return;
+                    setPendingLicenseAsset(side, null);
+                    setRemoveLicenseOnSave(side, Boolean(existingUriForSide));
+                  }}
+                />
+              ) : null}
+
+              <AppButton
+                variant="ghost"
+                label="Cancel"
+                onPress={closeLicenseActionModal}
+              />
+            </AppCard>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        animationType="fade"
+        transparent
         visible={customOrganizationModalVisible}
         onRequestClose={closeCustomOrganizationModal}
       >
         <Pressable
-          className="flex-1 bg-black/40 px-6 py-10"
+          className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
           onPress={closeCustomOrganizationModal}
         >
           <Pressable
             className="m-auto w-full max-w-md"
             onPress={(event) => event.stopPropagation()}
           >
-            <AppCard className="gap-4">
+            <AppCard className={isCompact ? "gap-3" : "gap-4"}>
               <AppText variant="heading">Custom organization</AppText>
               <AppInput
                 label="Organization name"
@@ -1103,6 +1211,67 @@ export function StudentEditScreen({ navigation, route }: Props) {
                   onPress={saveCustomOrganization}
                 />
               </View>
+            </AppCard>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        animationType="fade"
+        transparent
+        visible={organizationOptionsModalVisible}
+        onRequestClose={closeOrganizationOptionsModal}
+      >
+        <Pressable
+          className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
+          onPress={closeOrganizationOptionsModal}
+        >
+          <Pressable
+            className="m-auto w-full max-w-md"
+            onPress={(event) => event.stopPropagation()}
+          >
+            <AppCard className="gap-3">
+              <View className="flex-row items-center justify-between gap-2">
+                <AppText variant="heading">Organization</AppText>
+                <AppButton
+                  label=""
+                  width="auto"
+                  size="icon"
+                  variant="ghost"
+                  icon={X}
+                  onPress={closeOrganizationOptionsModal}
+                />
+              </View>
+
+              {studentOrganizationMenuOptions.map((option) => (
+                <AppButton
+                  key={option}
+                  variant={
+                    option === "Custom"
+                      ? hasCustomOrganization
+                        ? "primary"
+                        : "secondary"
+                      : selectedOrganization.toLowerCase() ===
+                          option.toLowerCase()
+                        ? "primary"
+                        : "secondary"
+                  }
+                  label={
+                    option === "Custom" && hasCustomOrganization
+                      ? `Custom: ${selectedOrganization}`
+                      : option
+                  }
+                  onPress={() =>
+                    onSelectOrganizationOption(option, selectedOrganization)
+                  }
+                />
+              ))}
+
+              <AppButton
+                variant="ghost"
+                label="Cancel"
+                onPress={closeOrganizationOptionsModal}
+              />
             </AppCard>
           </Pressable>
         </Pressable>

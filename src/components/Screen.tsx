@@ -34,10 +34,13 @@ export function Screen({
   ...props
 }: Props) {
   const { width, height } = useWindowDimensions();
+  const minDimension = Math.min(width, height);
   const internalScrollRef = useRef<ScrollView>(null);
   const scrollRef = externalScrollRef ?? internalScrollRef;
   const scrollOffsetYRef = useRef(0);
-  const isTabletPortrait = Math.min(width, height) >= TABLET_MIN_WIDTH && height > width;
+  const isCompact = minDimension < TABLET_MIN_WIDTH;
+  const isTabletPortrait = minDimension >= TABLET_MIN_WIDTH && height > width;
+  const isTabletLandscape = minDimension >= TABLET_MIN_WIDTH && width > height;
   const keyboardAvoidingEnabled = isTabletPortrait;
   const keyboardAwareEnabled = scroll && keyboardAvoidingEnabled;
 
@@ -76,7 +79,15 @@ export function Screen({
   }
 
   const content = (
-    <View className={cn(theme.screen.container, className)} {...props}>
+    <View
+      className={cn(
+        theme.screen.container,
+        isCompact && "px-4 py-4",
+        className,
+        isTabletLandscape && "max-w-[9999px]",
+      )}
+      {...props}
+    >
       {children}
     </View>
   );

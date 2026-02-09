@@ -104,6 +104,7 @@ export function AppDrawerContent({
   const logoUrl = settingsQuery.data?.logo_url ?? null;
 
   const iconColor = scheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
+  const dangerColor = scheme === "dark" ? theme.colors.dangerDark : theme.colors.danger;
   const backgroundColor = scheme === "dark" ? theme.colors.backgroundDark : theme.colors.backgroundLight;
 
   function confirmSignOut() {
@@ -209,14 +210,22 @@ export function AppDrawerContent({
             label="Students"
             icon={<Users color={iconColor} size={20} />}
             active={currentRouteName === "Students"}
-            onPress={() => navigation.navigate("Students")}
+            onPress={() =>
+              navigation.navigate("Students", {
+                screen: "StudentsList",
+              })
+            }
           />
           <DrawerRow
             collapsed={collapsed}
             label="Assessments"
             icon={<ClipboardList color={iconColor} size={20} />}
             active={currentRouteName === "Assessments"}
-            onPress={() => navigation.navigate("Assessments")}
+            onPress={() =>
+              navigation.navigate("Assessments", {
+                screen: "AssessmentsMain",
+              })
+            }
           />
           <DrawerRow
             collapsed={collapsed}
@@ -261,7 +270,7 @@ export function AppDrawerContent({
             <DrawerRow
               collapsed={collapsed}
               label={signOutMutation.isPending ? "Signing out..." : "Sign out"}
-              icon={<LogOut color={theme.colors.danger} size={20} />}
+              icon={<LogOut color={dangerColor} size={20} />}
               labelClassName="text-danger dark:text-dangerDark"
               active={false}
               onPress={confirmSignOut}

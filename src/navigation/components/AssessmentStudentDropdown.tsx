@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { ChevronDown, ChevronUp, User } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
@@ -60,6 +60,12 @@ export function AssessmentStudentDropdown({
     [selectedStudentId, students],
   );
 
+  useEffect(() => {
+    if (selectedStudentId) {
+      setOpen(false);
+    }
+  }, [selectedStudentId]);
+
   const sortedStudents = useMemo(
     () => sortStudentsWithOwnFirst(students, currentUserId),
     [currentUserId, students],
@@ -67,7 +73,7 @@ export function AssessmentStudentDropdown({
 
   const filteredStudents = useMemo(() => {
     const needle = search.trim().toLowerCase();
-    if (!needle) return sortedStudents;
+    if (!needle) return [];
     return sortedStudents.filter((student) => {
       const haystack = [
         student.first_name,
@@ -80,16 +86,7 @@ export function AssessmentStudentDropdown({
       return haystack.includes(needle);
     });
   }, [search, sortedStudents]);
-
-  const ownStudents = useMemo(
-    () => filteredStudents.filter((student) => student.assigned_instructor_id === currentUserId),
-    [currentUserId, filteredStudents],
-  );
-
-  const otherStudents = useMemo(
-    () => filteredStudents.filter((student) => student.assigned_instructor_id !== currentUserId),
-    [currentUserId, filteredStudents],
-  );
+  const hasSearchInput = search.trim().length > 0;
 
   const iconColor = colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
   const chevronColor = colorScheme === "dark" ? theme.colors.foregroundDark : theme.colors.foregroundLight;
@@ -140,7 +137,11 @@ export function AssessmentStudentDropdown({
             placeholder="Name, email, or phone"
           />
 
-          {filteredStudents.length === 0 ? (
+          {!hasSearchInput ? (
+            <AppText className="mt-3" variant="caption">
+              Start typing to search students.
+            </AppText>
+          ) : filteredStudents.length === 0 ? (
             <AppText className="mt-3" variant="caption">
               No students match this search.
             </AppText>
@@ -152,57 +153,25 @@ export function AssessmentStudentDropdown({
               keyboardShouldPersistTaps="handled"
             >
               <AppStack gap="sm">
-                <View className="gap-1">
-                  <AppText variant="label">Your students</AppText>
-                  {ownStudents.length === 0 ? (
-                    <AppText variant="caption">No matching students assigned to you.</AppText>
-                  ) : (
-                    ownStudents.map((student) => {
-                      const isSelected = student.id === selectedStudentId;
-                      return (
-                        <Pressable
-                          key={student.id}
-                          accessibilityRole="button"
-                          className={cn(
-                            "mt-1 flex-row items-center justify-between rounded-lg border px-3 py-3",
-                            isSelected
-                              ? "border-primary bg-primary/10 dark:border-primaryDark dark:bg-primaryDark/20"
-                              : "border-border bg-background dark:border-borderDark dark:bg-backgroundDark",
-                          )}
-                          onPress={() => onSelect(student)}
-                        >
-                          <AppText variant="body">{fullNameOf(student)}</AppText>
-                          <User size={16} color={iconColor} />
-                        </Pressable>
-                      );
-                    })
-                  )}
-                </View>
-
-                {otherStudents.length > 0 ? (
-                  <View className="gap-1">
-                    <AppText variant="label">Other instructors&apos; students</AppText>
-                    {otherStudents.map((student) => {
-                      const isSelected = student.id === selectedStudentId;
-                      return (
-                        <Pressable
-                          key={student.id}
-                          accessibilityRole="button"
-                          className={cn(
-                            "mt-1 flex-row items-center justify-between rounded-lg border px-3 py-3",
-                            isSelected
-                              ? "border-primary bg-primary/10 dark:border-primaryDark dark:bg-primaryDark/20"
-                              : "border-border bg-background dark:border-borderDark dark:bg-backgroundDark",
-                          )}
-                          onPress={() => onSelect(student)}
-                        >
-                          <AppText variant="body">{fullNameOf(student)}</AppText>
-                          <User size={16} color={iconColor} />
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                ) : null}
+                {filteredStudents.map((student) => {
+                  const isSelected = student.id === selectedStudentId;
+                  return (
+                    <Pressable
+                      key={student.id}
+                      accessibilityRole="button"
+                      className={cn(
+                        "mt-1 flex-row items-center justify-between rounded-lg border px-3 py-3",
+                        isSelected
+                          ? "border-primary bg-primary/10 dark:border-primaryDark dark:bg-primaryDark/20"
+                          : "border-border bg-background dark:border-borderDark dark:bg-backgroundDark",
+                      )}
+                      onPress={() => onSelect(student)}
+                    >
+                      <AppText variant="body">{fullNameOf(student)}</AppText>
+                      <User size={16} color={iconColor} />
+                    </Pressable>
+                  );
+                })}
               </AppStack>
             </ScrollView>
           )}

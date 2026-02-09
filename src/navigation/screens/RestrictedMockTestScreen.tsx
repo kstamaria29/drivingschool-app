@@ -1,9 +1,18 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Platform, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+} from "react-native";
 import { Controller, useForm } from "react-hook-form";
 
 import { AppButton } from "../../components/AppButton";
@@ -42,7 +51,7 @@ import {
   type RestrictedMockTestStoredData,
 } from "../../features/assessments/restricted-mock-test/schema";
 import { notifyPdfSaved } from "../../features/notifications/download-notifications";
-import { useOrganizationQuery } from "../../features/organization/queries";
+import { useOrganizationQuery, useOrganizationSettingsQuery } from "../../features/organization/queries";
 import { useStudentsQuery } from "../../features/students/queries";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
@@ -51,8 +60,11 @@ import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
 import { openPdfUri } from "../../utils/open-pdf";
 import { AssessmentStudentDropdown } from "../components/AssessmentStudentDropdown";
+import { useNavigationLayout } from "../useNavigationLayout";
+import { useAssessmentLeaveGuard } from "../useAssessmentLeaveGuard";
 
 import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
+import type { MainDrawerParamList } from "../MainDrawerNavigator";
 
 type Props = NativeStackScreenProps<AssessmentsStackParamList, "RestrictedMockTest">;
 
@@ -127,13 +139,17 @@ function taskFaultCount(task: RestrictedMockTestTaskState) {
 
 export function RestrictedMockTestScreen({ navigation, route }: Props) {
   const { profile, userId } = useCurrentUser();
+  const { isCompact } = useNavigationLayout();
   const organizationQuery = useOrganizationQuery(profile.organization_id);
+  const organizationSettingsQuery = useOrganizationSettingsQuery(profile.organization_id);
   const studentsQuery = useStudentsQuery({ archived: false });
   const createAssessment = useCreateAssessmentMutation();
 
   const [stage, setStage] = useState<Stage>("details");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [startTestModalVisible, setStartTestModalVisible] = useState(false);
 
+  const scrollRef = useRef<ScrollView | null>(null);
   const [stage2Enabled, setStage2Enabled] = useState(false);
   const [stagesState, setStagesState] = useState<RestrictedMockTestStagesState>(() =>
     createEmptyStagesState(),
@@ -150,8 +166,35 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     stage2: false,
   });
   const [draftResolvedStudentId, setDraftResolvedStudentId] = useState<string | null>(null);
+  const { leaveWithoutPrompt } = useAssessmentLeaveGuard({
+    navigation,
+    enabled: stage === "test",
+  });
+  const drawerNavigation =
+    navigation.getParent<DrawerNavigationProp<MainDrawerParamList>>();
+  const returnToStudentId = route.params?.returnToStudentId ?? null;
 
   const organizationName = organizationQuery.data?.name ?? "Driving School";
+  const organizationLogoUrl = organizationSettingsQuery.data?.logo_url ?? null;
+
+  function scrollToTop(animated = false) {
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({ y: 0, animated });
+    });
+  }
+
+  function navigateAfterSubmit() {
+    leaveWithoutPrompt(() => {
+      resetMockTestToBlank();
+      navigation.reset({ index: 0, routes: [{ name: "AssessmentsMain" }] });
+      if (returnToStudentId && drawerNavigation) {
+        drawerNavigation.navigate("Students", {
+          screen: "StudentDetail",
+          params: { studentId: returnToStudentId },
+        });
+      }
+    });
+  }
 
   const form = useForm<RestrictedMockTestFormValues>({
     resolver: zodResolver(restrictedMockTestFormSchema),
@@ -167,6 +210,63 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     },
   });
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      scrollToTop(false);
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  function resetMockTestForStudent(studentId: string) {
+    setStage("details");
+    setStartTestModalVisible(false);
+    setStage2Enabled(false);
+    setStagesState(createEmptyStagesState());
+    setCritical(createErrorCounts(restrictedMockTestCriticalErrors));
+    setImmediate(createErrorCounts(restrictedMockTestImmediateErrors));
+    setExpandedTaskKey(null);
+    setExpandedStages({ stage1: true, stage2: false });
+    setDraftResolvedStudentId(null);
+    setSelectedStudentId(studentId);
+    scrollToTop(false);
+
+    form.reset({
+      studentId,
+      date: dayjs().format("DD/MM/YYYY"),
+      time: "",
+      vehicleInfo: "",
+      routeInfo: "",
+      preDriveNotes: "",
+      criticalNotes: "",
+      immediateNotes: "",
+    });
+  }
+
+  function resetMockTestToBlank() {
+    setStage("details");
+    setStartTestModalVisible(false);
+    setStage2Enabled(false);
+    setStagesState(createEmptyStagesState());
+    setCritical(createErrorCounts(restrictedMockTestCriticalErrors));
+    setImmediate(createErrorCounts(restrictedMockTestImmediateErrors));
+    setExpandedTaskKey(null);
+    setExpandedStages({ stage1: true, stage2: false });
+    setDraftResolvedStudentId(null);
+    setSelectedStudentId(null);
+    scrollToTop(false);
+
+    form.reset({
+      studentId: "",
+      date: dayjs().format("DD/MM/YYYY"),
+      time: "",
+      vehicleInfo: "",
+      routeInfo: "",
+      preDriveNotes: "",
+      criticalNotes: "",
+      immediateNotes: "",
+    });
+  }
+
   const selectedStudent = useMemo(() => {
     const students = studentsQuery.data ?? [];
     if (!selectedStudentId) return null;
@@ -174,12 +274,22 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   }, [selectedStudentId, studentsQuery.data]);
 
   useEffect(() => {
+    if (!selectedStudent) {
+      setStartTestModalVisible(false);
+    }
+  }, [selectedStudent]);
+
+  useEffect(() => {
     const initialStudentId = route.params?.studentId ?? null;
     if (!initialStudentId) return;
-    if (selectedStudentId) return;
-    setSelectedStudentId(initialStudentId);
-    form.setValue("studentId", initialStudentId, { shouldValidate: true });
+    if (selectedStudentId === initialStudentId) return;
+    resetMockTestForStudent(initialStudentId);
   }, [form, route.params?.studentId, selectedStudentId]);
+
+  useEffect(() => {
+    setStage("details");
+    scrollToTop(false);
+  }, [selectedStudentId]);
 
   const summary = useMemo(() => {
     return calculateRestrictedMockTestSummary({ stagesState, critical, immediate });
@@ -316,94 +426,113 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     userId,
   ]);
 
-  async function submitAndGeneratePdf(values: RestrictedMockTestFormValues) {
-    if (!selectedStudent) {
+  async function saveAssessment(values: RestrictedMockTestFormValues) {
+    const student = selectedStudent;
+    if (!student) {
       Alert.alert("Select a student", "Please select a student first.");
-      return;
+      return null;
+    }
+
+    const assessmentDateISO = parseDateInputToISODate(values.date);
+    if (!assessmentDateISO) {
+      Alert.alert("Check the form", "Use DD/MM/YYYY for the assessment date.");
+      return null;
+    }
+
+    const candidateName = `${student.first_name} ${student.last_name}`.trim();
+    const storedData: RestrictedMockTestStoredData = {
+      ...values,
+      candidateName,
+      instructor: getProfileFullName(profile),
+      stage2Enabled,
+      stagesState,
+      critical,
+      immediate,
+      savedByUserId: userId,
+      summary,
+      version: DRAFT_VERSION,
+    };
+
+    const validated = restrictedMockTestStoredDataSchema.safeParse(storedData);
+    if (!validated.success) {
+      Alert.alert("Check the form", "Some required fields are missing.");
+      return null;
     }
 
     try {
-      const assessmentDateISO = parseDateInputToISODate(values.date);
-      if (!assessmentDateISO) {
-        Alert.alert("Check the form", "Use DD/MM/YYYY for the assessment date.");
-        return;
-      }
-
-      const candidateName = `${selectedStudent.first_name} ${selectedStudent.last_name}`.trim();
-      const storedData: RestrictedMockTestStoredData = {
-        ...values,
-        candidateName,
-        instructor: getProfileFullName(profile),
-        stage2Enabled,
-        stagesState,
-        critical,
-        immediate,
-        savedByUserId: userId,
-        summary,
-        version: DRAFT_VERSION,
-      };
-
-      const validated = restrictedMockTestStoredDataSchema.safeParse(storedData);
-      if (!validated.success) {
-        Alert.alert("Check the form", "Some required fields are missing.");
-        return;
-      }
-
       const assessment = await createAssessment.mutateAsync({
         organization_id: profile.organization_id,
-        student_id: selectedStudent.id,
-        instructor_id: selectedStudent.assigned_instructor_id,
+        student_id: student.id,
+        instructor_id: student.assigned_instructor_id,
         assessment_type: "second_assessment",
         assessment_date: assessmentDateISO,
         total_score: null,
         form_data: validated.data,
       });
 
-      try {
-        const fileName = `Mock Test Restricted ${selectedStudent.first_name} ${selectedStudent.last_name} ${dayjs(assessmentDateISO).format("DD-MM-YY")}`;
-        const androidDirectoryUri =
-          Platform.OS === "android" ? await ensureAndroidDownloadsDirectoryUri() : undefined;
-        const saved = await exportRestrictedMockTestPdf({
-          assessmentId: assessment.id,
-          organizationName,
-          fileName,
-          androidDirectoryUri: androidDirectoryUri ?? undefined,
-          values: validated.data,
-        });
+      await AsyncStorage.removeItem(draftKey(userId, student.id));
 
-        await notifyPdfSaved({
-          fileName,
-          uri: saved.uri,
-          savedTo: saved.savedTo === "downloads" ? "Downloads" : "App storage",
-        });
-
-        await AsyncStorage.removeItem(draftKey(userId, selectedStudent.id));
-
-        Alert.alert(
-          "Submitted",
-          saved.savedTo === "downloads"
-            ? "Assessment saved and PDF saved to Downloads."
-            : "Assessment saved and PDF saved inside the app.",
-          [
-            {
-              text: "Open",
-              onPress: () => {
-                void openPdfUri(saved.uri);
-                navigation.goBack();
-              },
-            },
-            { text: "Done", onPress: () => navigation.goBack() },
-          ],
-        );
-      } catch (exportError) {
-        Alert.alert(
-          "Saved, but couldn't export PDF",
-          `Assessment saved, but PDF export failed: ${toErrorMessage(exportError)}`,
-        );
-        navigation.goBack();
-      }
+      return { assessment, assessmentDateISO, values: validated.data, student };
     } catch (error) {
       Alert.alert("Couldn't submit assessment", toErrorMessage(error));
+      return null;
+    }
+  }
+
+  async function submitOnly(values: RestrictedMockTestFormValues) {
+    const result = await saveAssessment(values);
+    if (!result) return;
+
+    Alert.alert("Submitted", "Assessment saved.", [
+      { text: "Done", onPress: navigateAfterSubmit },
+    ]);
+  }
+
+  async function submitAndGeneratePdf(values: RestrictedMockTestFormValues) {
+    const result = await saveAssessment(values);
+    if (!result) return;
+
+    try {
+      const fileName = `Mock Test Restricted ${result.student.first_name} ${result.student.last_name} ${dayjs(result.assessmentDateISO).format("DD-MM-YY")}`;
+      const androidDirectoryUri =
+        Platform.OS === "android" ? await ensureAndroidDownloadsDirectoryUri() : undefined;
+      const saved = await exportRestrictedMockTestPdf({
+        assessmentId: result.assessment.id,
+        organizationName,
+        organizationLogoUrl,
+        fileName,
+        androidDirectoryUri: androidDirectoryUri ?? undefined,
+        values: result.values,
+      });
+
+      await notifyPdfSaved({
+        fileName,
+        uri: saved.uri,
+        savedTo: saved.savedTo === "downloads" ? "Downloads" : "App storage",
+      });
+
+      Alert.alert(
+        "Submitted",
+        saved.savedTo === "downloads"
+          ? "Assessment saved and PDF saved to Downloads."
+          : "Assessment saved and PDF saved inside the app.",
+        [
+          {
+            text: "Open",
+            onPress: () => {
+              void openPdfUri(saved.uri);
+              navigateAfterSubmit();
+            },
+          },
+          { text: "Done", onPress: navigateAfterSubmit },
+        ],
+      );
+    } catch (exportError) {
+      Alert.alert(
+        "Saved, but couldn't export PDF",
+        `Assessment saved, but PDF export failed: ${toErrorMessage(exportError)}`,
+        [{ text: "Done", onPress: navigateAfterSubmit }],
+      );
     }
   }
 
@@ -465,8 +594,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
               selectedStudentId={selectedStudentId}
               currentUserId={profile.id}
               onSelectStudent={(student) => {
-                setSelectedStudentId(student.id);
-                form.setValue("studentId", student.id, { shouldValidate: true });
+                resetMockTestForStudent(student.id);
               }}
             />
           ) : null}
@@ -810,7 +938,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
               Alert.alert("Select a student", "Please select a student first.");
               return;
             }
-            setStage("confirm");
+            setStartTestModalVisible(true);
           }}
         />
         <AppButton label="Cancel" variant="ghost" onPress={() => navigation.goBack()} />
@@ -838,15 +966,19 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
           <AppText variant="error">{toErrorMessage(createAssessment.error)}</AppText>
         ) : null}
         <AppButton
-          label={saving ? "Submitting..." : "Submit and generate PDF"}
+          label={saving ? "Submitting..." : "Submit"}
           disabled={saving}
           onPress={form.handleSubmit((values) => {
             Alert.alert(
               "Submit mock test?",
-              "This will save the assessment and generate a PDF for export.",
+              "Submit will save the assessment. Submit and Generate PDF will also export a PDF.",
               [
                 { text: "Cancel", style: "cancel" },
-                { text: "Submit", onPress: () => void submitAndGeneratePdf(values) },
+                { text: "Submit", onPress: () => void submitOnly(values) },
+                {
+                  text: "Submit and Generate PDF",
+                  onPress: () => void submitAndGeneratePdf(values),
+                },
               ],
             );
           })}
@@ -856,29 +988,74 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     );
 
   return (
-    <Screen scroll>
-      <AppStack gap="lg">
-        {header}
-        {studentCard}
+    <>
+      <Screen scroll scrollRef={scrollRef}>
+        <AppStack gap={isCompact ? "md" : "lg"}>
+          {header}
+          {studentCard}
 
-        {stage === "details" ? preDriveCard : null}
-        {stage === "confirm" ? stageActions : null}
+          {stage === "details" ? preDriveCard : null}
+          {stage === "confirm" ? stageActions : null}
 
-        {stage === "test" ? (
-          <>
-            {summaryCard}
+          {stage === "test" ? (
+            <>
+              {summaryCard}
 
-            {renderStageTasks("stage1")}
+              {renderStageTasks("stage1")}
 
-            {renderStageTasks("stage2")}
+              {renderStageTasks("stage2")}
 
-            {errorsCard}
-            {stageActions}
-          </>
-        ) : null}
+              {errorsCard}
+              {stageActions}
+            </>
+          ) : null}
 
-        {stage === "details" ? stageActions : null}
-      </AppStack>
-    </Screen>
+          {stage === "details" ? stageActions : null}
+        </AppStack>
+      </Screen>
+
+      <Modal
+        visible={startTestModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setStartTestModalVisible(false)}
+      >
+        <Pressable
+          className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
+          onPress={() => setStartTestModalVisible(false)}
+        >
+          <Pressable
+            className="m-auto w-full max-w-md"
+            onPress={(event) => event.stopPropagation()}
+          >
+            <AppCard className="gap-3">
+              <AppText variant="heading">Start test?</AppText>
+              <AppText variant="body">
+                {selectedStudent
+                  ? `You are about to start assessing ${selectedStudent.first_name} ${selectedStudent.last_name}.`
+                  : "Select a student first."}
+              </AppText>
+              <AppStack gap="sm">
+                <AppButton
+                  width="auto"
+                  variant="secondary"
+                  label="Cancel"
+                  onPress={() => setStartTestModalVisible(false)}
+                />
+                <AppButton
+                  width="auto"
+                  label="Start"
+                  disabled={!selectedStudent}
+                  onPress={() => {
+                    setStartTestModalVisible(false);
+                    setStage("test");
+                  }}
+                />
+              </AppStack>
+            </AppCard>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
   );
 }

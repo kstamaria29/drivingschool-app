@@ -39,7 +39,7 @@ const SIDEBAR_COLLAPSED_WIDTH = 88;
 
 export function MainDrawerNavigator() {
   const { isSidebar } = useNavigationLayout();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const { scheme } = useAppColorScheme();
   const queryClient = useQueryClient();
 

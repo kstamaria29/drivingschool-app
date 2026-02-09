@@ -3,7 +3,7 @@ import { useMemo } from "react";
 
 import { useAppColorScheme } from "../providers/ColorSchemeProvider";
 
-import { HeaderLeftHamburger, HeaderRightAvatar } from "./components/HeaderButtons";
+import { HeaderLeftMenuWithBack, HeaderRightAvatar } from "./components/HeaderButtons";
 import { getNativeStackScreenOptions } from "./navigationTheme";
 import { GoogleMapsScreen } from "./screens/GoogleMapsScreen";
 
@@ -23,14 +23,11 @@ export function MapsStackNavigator() {
       screenOptions={{
         ...baseOptions,
         headerTitle: "",
+        headerLeft: () => <HeaderLeftMenuWithBack />,
         headerRight: () => <HeaderRightAvatar />,
       }}
     >
-      <Stack.Screen
-        name="GoogleMapsMain"
-        component={GoogleMapsScreen}
-        options={{ headerLeft: () => <HeaderLeftHamburger /> }}
-      />
+      <Stack.Screen name="GoogleMapsMain" component={GoogleMapsScreen} />
     </Stack.Navigator>
   );
 }

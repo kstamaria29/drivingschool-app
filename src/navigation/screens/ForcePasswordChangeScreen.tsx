@@ -7,12 +7,15 @@ import { Screen } from "../../components/Screen";
 import { useSignOutMutation } from "../../features/auth/queries";
 import { ChangePasswordForm } from "../../features/account/ChangePasswordForm";
 
+import { useNavigationLayout } from "../useNavigationLayout";
+
 export function ForcePasswordChangeScreen() {
+  const { isCompact } = useNavigationLayout();
   const signOutMutation = useSignOutMutation();
 
   return (
     <Screen scroll>
-      <AppStack gap="lg">
+      <AppStack gap={isCompact ? "md" : "lg"}>
         <View>
           <AppText variant="title">Change your password</AppText>
           <AppText className="mt-2" variant="body">
@@ -32,4 +35,3 @@ export function ForcePasswordChangeScreen() {
     </Screen>
   );
 }
-

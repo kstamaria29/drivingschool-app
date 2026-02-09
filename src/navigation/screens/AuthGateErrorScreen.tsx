@@ -4,6 +4,8 @@ import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
 
+import { useNavigationLayout } from "../useNavigationLayout";
+
 type Props = {
   title: string;
   message: string;
@@ -21,9 +23,11 @@ export function AuthGateErrorScreen({
   onSignOut,
   signingOut,
 }: Props) {
+  const { isCompact } = useNavigationLayout();
+
   return (
     <Screen>
-      <AppStack gap="lg">
+      <AppStack gap={isCompact ? "md" : "lg"}>
         <AppText variant="title">{title}</AppText>
 
         <AppCard className="gap-3">

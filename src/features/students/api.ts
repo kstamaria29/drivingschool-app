@@ -13,21 +13,33 @@ export type UploadStudentLicenseImageInput = {
   side: StudentLicenseImageSide;
   asset: import("expo-image-picker").ImagePickerAsset;
 };
+export type RemoveStudentLicenseImageInput = {
+  organizationId: string;
+  studentId: string;
+  side: StudentLicenseImageSide;
+};
 
 export type ListStudentsInput = {
   archived: boolean;
 };
 
-export async function listStudents(input: ListStudentsInput): Promise<Student[]> {
+export async function listStudents(
+  input: ListStudentsInput,
+): Promise<Student[]> {
   const base = supabase
     .from("students")
     .select("*")
     .order("last_name", { ascending: true })
     .order("first_name", { ascending: true });
 
-  const query = input.archived ? base.not("archived_at", "is", null) : base.is("archived_at", null);
+  const query = input.archived
+    ? base.not("archived_at", "is", null)
+    : base.is("archived_at", null);
 
-  const { data, error } = await query.overrideTypes<Student[], { merge: false }>();
+  const { data, error } = await query.overrideTypes<
+    Student[],
+    { merge: false }
+  >();
   if (error) throw error;
   return data ?? [];
 }
@@ -56,7 +68,10 @@ export async function createStudent(input: StudentInsert): Promise<Student> {
   return data;
 }
 
-export async function updateStudent(studentId: string, input: StudentUpdate): Promise<Student> {
+export async function updateStudent(
+  studentId: string,
+  input: StudentUpdate,
+): Promise<Student> {
   const { data, error } = await supabase
     .from("students")
     .update(input)
@@ -78,8 +93,45 @@ export async function unarchiveStudent(studentId: string): Promise<Student> {
 }
 
 export async function deleteStudent(studentId: string): Promise<void> {
-  const { error } = await supabase.from("students").delete().eq("id", studentId);
+  const { data: student, error: studentError } = await supabase
+    .from("students")
+    .select("id, organization_id")
+    .eq("id", studentId)
+    .maybeSingle()
+    .overrideTypes<Pick<Student, "id" | "organization_id">, { merge: false }>();
+
+  if (studentError) throw studentError;
+
+  await removeStudentRelatedHistories(studentId);
+
+  if (student) {
+    await removeAllStudentLicenseImageFiles(
+      student.organization_id,
+      student.id,
+    );
+  }
+
+  const { error } = await supabase
+    .from("students")
+    .delete()
+    .eq("id", studentId);
   if (error) throw error;
+}
+
+async function removeStudentRelatedHistories(studentId: string) {
+  const { error: deleteSessionsError } = await supabase
+    .from("student_sessions")
+    .delete()
+    .eq("student_id", studentId);
+
+  if (deleteSessionsError) throw deleteSessionsError;
+
+  const { error: deleteAssessmentsError } = await supabase
+    .from("assessments")
+    .delete()
+    .eq("student_id", studentId);
+
+  if (deleteAssessmentsError) throw deleteAssessmentsError;
 }
 
 function guessFileExtension(asset: UploadStudentLicenseImageInput["asset"]) {
@@ -130,6 +182,28 @@ async function removeExistingLicenseImageFilesForSide(
   if (removeError) throw removeError;
 }
 
+async function removeAllStudentLicenseImageFiles(
+  organizationId: string,
+  studentId: string,
+) {
+  const folder = `${organizationId}/${studentId}`;
+
+  const { data, error } = await supabase.storage
+    .from("student-licenses")
+    .list(folder, { limit: 100 });
+
+  if (error) throw error;
+
+  const toRemove = (data ?? []).map((file) => `${folder}/${file.name}`);
+  if (toRemove.length === 0) return;
+
+  const { error: removeError } = await supabase.storage
+    .from("student-licenses")
+    .remove(toRemove);
+
+  if (removeError) throw removeError;
+}
+
 export async function uploadStudentLicenseImage(
   input: UploadStudentLicenseImageInput,
 ): Promise<Student> {
@@ -160,6 +234,23 @@ export async function uploadStudentLicenseImage(
     input.side === "front"
       ? { license_front_image_url: signed.signedUrl }
       : { license_back_image_url: signed.signedUrl };
+
+  return updateStudent(input.studentId, studentUpdate);
+}
+
+export async function removeStudentLicenseImage(
+  input: RemoveStudentLicenseImageInput,
+): Promise<Student> {
+  await removeExistingLicenseImageFilesForSide(
+    input.organizationId,
+    input.studentId,
+    input.side,
+  );
+
+  const studentUpdate: StudentUpdate =
+    input.side === "front"
+      ? { license_front_image_url: null }
+      : { license_back_image_url: null };
 
   return updateStudent(input.studentId, studentUpdate);
 }

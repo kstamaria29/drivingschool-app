@@ -21,8 +21,10 @@ import {
 import { toErrorMessage } from "../../utils/errors";
 
 import type { SettingsStackParamList } from "../SettingsStackNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 export function EditOrganizationNameScreen() {
+  const { isCompact } = useNavigationLayout();
   const { profile } = useCurrentUser();
   const canManageOrganization = isOwnerOrAdminRole(profile.role);
   const navigation = useNavigation<NativeStackNavigationProp<SettingsStackParamList>>();
@@ -51,7 +53,7 @@ export function EditOrganizationNameScreen() {
   if (!canManageOrganization) {
     return (
       <Screen scroll>
-        <AppStack gap="lg">
+        <AppStack gap={isCompact ? "md" : "lg"}>
           <View>
             <AppText variant="title">Change organization name</AppText>
             <AppText className="mt-2" variant="body">
@@ -78,7 +80,7 @@ export function EditOrganizationNameScreen() {
 
   return (
     <Screen scroll>
-      <AppStack gap="lg">
+      <AppStack gap={isCompact ? "md" : "lg"}>
         <View>
           <AppText variant="title">Change organization name</AppText>
           <AppText className="mt-2" variant="body">
@@ -86,7 +88,7 @@ export function EditOrganizationNameScreen() {
           </AppText>
         </View>
 
-        <AppCard className="gap-4">
+        <AppCard className={isCompact ? "gap-3" : "gap-4"}>
           <Controller
             control={form.control}
             name="organizationName"

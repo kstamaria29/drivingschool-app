@@ -44,6 +44,7 @@ import {
   type LightThemeKey,
 } from "../../theme/palettes";
 import type { SettingsStackParamList } from "../SettingsStackNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 type ThemeOption = {
   value: LightThemeKey | DarkThemeKey;
@@ -55,6 +56,7 @@ const lightThemeOptions: ThemeOption[] = LIGHT_THEME_OPTIONS;
 const darkThemeOptions: ThemeOption[] = DARK_THEME_OPTIONS;
 
 export function SettingsScreen() {
+  const { isSidebar, isCompact } = useNavigationLayout();
   const { profile } = useCurrentUser();
   const canManageOrganization = isOwnerOrAdminRole(profile.role);
   const [pickerError, setPickerError] = useState<string | null>(null);
@@ -93,7 +95,7 @@ export function SettingsScreen() {
   }, [scheme]);
 
   useEffect(() => {
-    if (!themeMenuOpen) return;
+    if (!themeMenuOpen || isSidebar) return;
     const timeoutId = setTimeout(() => {
       settingsScrollRef.current?.scrollToEnd({ animated: true });
     }, 50);
@@ -101,11 +103,219 @@ export function SettingsScreen() {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [themeMenuOpen]);
+  }, [isSidebar, themeMenuOpen]);
+
+  const organizationCard = canManageOrganization ? (
+    <AppCard className="gap-3">
+      <AppText variant="heading">Organization</AppText>
+
+      {orgQuery.isPending || orgSettingsQuery.isPending ? (
+        <View className={cn("items-center justify-center py-6", theme.text.base)}>
+          <ActivityIndicator />
+          <AppText className="mt-3 text-center" variant="body">
+            Loading organization...
+          </AppText>
+        </View>
+      ) : orgQuery.isError || orgSettingsQuery.isError ? (
+        <AppStack gap="md">
+          <AppText variant="body">
+            {toErrorMessage(orgQuery.error ?? orgSettingsQuery.error)}
+          </AppText>
+          <AppButton
+            label="Retry"
+            variant="secondary"
+            icon={RefreshCw}
+            onPress={() => {
+              void orgQuery.refetch();
+              void orgSettingsQuery.refetch();
+            }}
+          />
+        </AppStack>
+      ) : (
+        <View className="flex-row items-center gap-4">
+          {orgSettingsQuery.data?.logo_url ? (
+            <AppImage
+              source={{ uri: orgSettingsQuery.data.logo_url }}
+              resizeMode="contain"
+              className="h-16 w-16 bg-transparent"
+            />
+          ) : (
+            <View className="h-16 w-16 border border-border bg-card dark:border-borderDark dark:bg-cardDark" />
+          )}
+          <View className="flex-1">
+            <AppText variant="body">{orgQuery.data?.name ?? "Organization"}</AppText>
+            <AppText variant="caption">
+              Owners and admins can update the organization logo.
+            </AppText>
+          </View>
+        </View>
+      )}
+
+      <AppButton
+        label="Change organization name"
+        variant="secondary"
+        icon={Building2}
+        disabled={!canManageOrganization}
+        onPress={() => navigation.navigate("EditOrganizationName")}
+      />
+
+      <AppButton
+        label={
+          uploadOrgLogoMutation.isPending ? "Uploading logo..." : "Change organization logo"
+        }
+        variant="secondary"
+        icon={ImageUp}
+        disabled={!canManageOrganization || uploadOrgLogoMutation.isPending}
+        onPress={async () => {
+          try {
+            setPickerError(null);
+            const asset = await pickOrgLogo();
+            if (!asset) return;
+            uploadOrgLogoMutation.mutate({ asset });
+          } catch (error) {
+            setPickerError(toErrorMessage(error));
+          }
+        }}
+      />
+
+      <AppButton
+        label="View members"
+        variant="secondary"
+        icon={Users}
+        disabled={!canManageOrganization}
+        onPress={() => navigation.navigate("ViewMembers")}
+      />
+
+      {uploadOrgLogoMutation.isError ? (
+        <AppText variant="error">{toErrorMessage(uploadOrgLogoMutation.error)}</AppText>
+      ) : null}
+      {pickerError ? <AppText variant="error">{pickerError}</AppText> : null}
+    </AppCard>
+  ) : null;
+
+  const accountCard = (
+    <AppCard className="gap-3">
+      <AppText variant="heading">Account Settings</AppText>
+
+      <View className="flex-row items-center gap-4">
+        <Avatar uri={profile.avatar_url} size={64} label={getProfileFullName(profile)} />
+        <View className="flex-1">
+          <AppText variant="body">{getProfileFullName(profile) || profile.display_name}</AppText>
+          <AppText variant="caption">{getRoleDisplayLabel(profile)}</AppText>
+        </View>
+      </View>
+
+      <AppButton
+        label="Edit details"
+        variant="secondary"
+        icon={UserRoundPen}
+        onPress={() => navigation.navigate("EditDetails")}
+      />
+
+      <AppButton
+        label="Change password"
+        variant="secondary"
+        icon={KeyRound}
+        onPress={() => navigation.navigate("ChangePassword")}
+      />
+
+      {canManageOrganization ? (
+        <AppButton
+          label="Change role display"
+          variant="secondary"
+          icon={IdCard}
+          onPress={() => navigation.navigate("EditRoleDisplay")}
+        />
+      ) : null}
+    </AppCard>
+  );
+
+  const instructorsCard = canManageOrganization ? (
+    <AppCard className="gap-3">
+      <AppText variant="heading">Instructors</AppText>
+      <AppText variant="caption">
+        Create logins for instructors. They will be required to change their password on first
+        sign-in.
+      </AppText>
+      <AppButton
+        label="Add instructor"
+        variant="secondary"
+        icon={UserPlus}
+        onPress={() => navigation.navigate("AddInstructor")}
+      />
+    </AppCard>
+  ) : null;
+
+  const themesCard = (
+    <AppCard className="gap-3">
+      <AppText variant="heading">Themes</AppText>
+      <AppText variant="caption">Switch mode and pick a dedicated style for that mode.</AppText>
+
+      <AppSegmentedControl
+        value={scheme}
+        options={[
+          { value: "light", label: "Light" },
+          { value: "dark", label: "Dark" },
+        ]}
+        onChange={setScheme}
+      />
+
+      <View className="gap-2">
+        <AppText variant="label">Theme style</AppText>
+        <Pressable
+          accessibilityRole="button"
+          className="rounded-xl border border-border bg-card px-3 py-3 dark:border-borderDark dark:bg-cardDark"
+          onPress={() => setThemeMenuOpen((open) => !open)}
+        >
+          <View className="flex-row items-center justify-between gap-3">
+            <View className="flex-1 flex-row items-center gap-2">
+              <Palette size={18} color={iconMuted} />
+              <View className="flex-1">
+                <AppText variant="body">{selectedThemeOption.label}</AppText>
+                <AppText variant="caption">{selectedThemeOption.description}</AppText>
+              </View>
+            </View>
+            <ChevronDown size={18} color={iconMuted} />
+          </View>
+        </Pressable>
+
+        {themeMenuOpen ? (
+          <View className="overflow-hidden rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark">
+            {activeThemeOptions.map((option, index) => {
+              const selected = option.value === themeKey;
+              return (
+                <Pressable
+                  key={option.value}
+                  className={cn(
+                    "px-3 py-3",
+                    index < activeThemeOptions.length - 1 &&
+                      "border-b border-border dark:border-borderDark",
+                    selected && "bg-primary/10 dark:bg-primaryDark/20",
+                  )}
+                  onPress={() => {
+                    setThemeKey(option.value);
+                    setThemeMenuOpen(false);
+                  }}
+                >
+                  <View className="flex-row items-start justify-between gap-2">
+                    <View className="flex-1">
+                      <AppText variant="body">{option.label}</AppText>
+                      <AppText variant="caption">{option.description}</AppText>
+                    </View>
+                    {selected ? <Check size={16} color={iconMuted} /> : null}
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : null}
+      </View>
+    </AppCard>
+  );
 
   return (
     <Screen scroll scrollRef={settingsScrollRef}>
-      <AppStack gap="lg">
+      <AppStack gap={isCompact ? "md" : "lg"}>
         <View>
           <AppText variant="title">Settings</AppText>
           <AppText className="mt-2" variant="body">
@@ -115,213 +325,25 @@ export function SettingsScreen() {
           </AppText>
         </View>
 
-        {canManageOrganization ? (
-          <AppCard className="gap-3">
-            <AppText variant="heading">Organization</AppText>
-
-            {orgQuery.isPending || orgSettingsQuery.isPending ? (
-              <View className={cn("items-center justify-center py-6", theme.text.base)}>
-                <ActivityIndicator />
-                <AppText className="mt-3 text-center" variant="body">
-                  Loading organization...
-                </AppText>
-              </View>
-            ) : orgQuery.isError || orgSettingsQuery.isError ? (
-              <AppStack gap="md">
-                <AppText variant="body">
-                  {toErrorMessage(orgQuery.error ?? orgSettingsQuery.error)}
-                </AppText>
-                <AppButton
-                  label="Retry"
-                  variant="secondary"
-                  icon={RefreshCw}
-                  onPress={() => {
-                    void orgQuery.refetch();
-                    void orgSettingsQuery.refetch();
-                  }}
-                />
-              </AppStack>
-            ) : (
-              <View className="flex-row items-center gap-4">
-                {orgSettingsQuery.data?.logo_url ? (
-                  <AppImage
-                    source={{ uri: orgSettingsQuery.data.logo_url }}
-                    resizeMode="contain"
-                    className="h-16 w-16 bg-transparent"
-                  />
-                ) : (
-                  <View className="h-16 w-16 border border-border bg-card dark:border-borderDark dark:bg-cardDark" />
-                )}
-                <View className="flex-1">
-                  <AppText variant="body">{orgQuery.data?.name ?? "Organization"}</AppText>
-                  <AppText variant="caption">
-                    Owners and admins can update the organization logo.
-                  </AppText>
-                </View>
-              </View>
-            )}
-
-            <AppButton
-              label="Change organization name"
-              variant="secondary"
-              icon={Building2}
-              disabled={!canManageOrganization}
-              onPress={() => navigation.navigate("EditOrganizationName")}
-            />
-
-            <AppButton
-              label={
-                uploadOrgLogoMutation.isPending ? "Uploading logo..." : "Change organization logo"
-              }
-              variant="secondary"
-              icon={ImageUp}
-              disabled={!canManageOrganization || uploadOrgLogoMutation.isPending}
-              onPress={async () => {
-                try {
-                  setPickerError(null);
-                  const asset = await pickOrgLogo();
-                  if (!asset) return;
-                  uploadOrgLogoMutation.mutate({ asset });
-                } catch (error) {
-                  setPickerError(toErrorMessage(error));
-                }
-              }}
-            />
-
-            <AppButton
-              label="View members"
-              variant="secondary"
-              icon={Users}
-              disabled={!canManageOrganization}
-              onPress={() => navigation.navigate("ViewMembers")}
-            />
-
-            {uploadOrgLogoMutation.isError ? (
-              <AppText variant="error">{toErrorMessage(uploadOrgLogoMutation.error)}</AppText>
-            ) : null}
-            {pickerError ? <AppText variant="error">{pickerError}</AppText> : null}
-          </AppCard>
-        ) : null}
-
-        <AppCard className="gap-3">
-          <AppText variant="heading">Account Settings</AppText>
-
-          <View className="flex-row items-center gap-4">
-            <Avatar uri={profile.avatar_url} size={64} label={getProfileFullName(profile)} />
-            <View className="flex-1">
-              <AppText variant="body">{getProfileFullName(profile) || profile.display_name}</AppText>
-              <AppText variant="caption">{getRoleDisplayLabel(profile)}</AppText>
-            </View>
+        {isSidebar ? (
+          <View className="flex-row flex-wrap gap-6">
+            <AppStack gap="lg" className="flex-1 min-w-[360px]">
+              {organizationCard}
+              {accountCard}
+              {instructorsCard}
+            </AppStack>
+            <AppStack gap="lg" className="flex-1 min-w-[360px]">
+              {themesCard}
+            </AppStack>
           </View>
-
-          <AppButton
-            label="Edit details"
-            variant="secondary"
-            icon={UserRoundPen}
-            onPress={() => navigation.navigate("EditDetails")}
-          />
-
-          <AppButton
-            label="Change password"
-            variant="secondary"
-            icon={KeyRound}
-            onPress={() => navigation.navigate("ChangePassword")}
-          />
-
-          {canManageOrganization ? (
-            <AppButton
-              label="Change role display"
-              variant="secondary"
-              icon={IdCard}
-              onPress={() => navigation.navigate("EditRoleDisplay")}
-            />
-          ) : null}
-        </AppCard>
-
-        {canManageOrganization ? (
-          <AppCard className="gap-3">
-            <AppText variant="heading">Instructors</AppText>
-            <AppText variant="caption">
-              Create logins for instructors. They will be required to change their password on first
-              sign-in.
-            </AppText>
-            <AppButton
-              label="Add instructor"
-              variant="secondary"
-              icon={UserPlus}
-              onPress={() => navigation.navigate("AddInstructor")}
-            />
-          </AppCard>
-        ) : null}
-
-        <AppCard className="gap-3">
-          <AppText variant="heading">Themes</AppText>
-          <AppText variant="caption">
-            Switch mode and pick a dedicated style for that mode.
-          </AppText>
-
-          <AppSegmentedControl
-            value={scheme}
-            options={[
-              { value: "light", label: "Light" },
-              { value: "dark", label: "Dark" },
-            ]}
-            onChange={setScheme}
-          />
-
-          <View className="gap-2">
-            <AppText variant="label">Theme style</AppText>
-            <Pressable
-              accessibilityRole="button"
-              className="rounded-xl border border-border bg-card px-3 py-3 dark:border-borderDark dark:bg-cardDark"
-              onPress={() => setThemeMenuOpen((open) => !open)}
-            >
-              <View className="flex-row items-center justify-between gap-3">
-                <View className="flex-1 flex-row items-center gap-2">
-                  <Palette size={18} color={iconMuted} />
-                  <View className="flex-1">
-                    <AppText variant="body">{selectedThemeOption.label}</AppText>
-                    <AppText variant="caption">
-                      {selectedThemeOption.description}
-                    </AppText>
-                  </View>
-                </View>
-                <ChevronDown size={18} color={iconMuted} />
-              </View>
-            </Pressable>
-
-            {themeMenuOpen ? (
-              <View className="overflow-hidden rounded-xl border border-border bg-card dark:border-borderDark dark:bg-cardDark">
-                {activeThemeOptions.map((option, index) => {
-                  const selected = option.value === themeKey;
-                  return (
-                    <Pressable
-                      key={option.value}
-                      className={cn(
-                        "px-3 py-3",
-                        index < activeThemeOptions.length - 1 &&
-                          "border-b border-border dark:border-borderDark",
-                        selected && "bg-primary/10 dark:bg-primaryDark/20",
-                      )}
-                      onPress={() => {
-                        setThemeKey(option.value);
-                        setThemeMenuOpen(false);
-                      }}
-                    >
-                      <View className="flex-row items-start justify-between gap-2">
-                        <View className="flex-1">
-                          <AppText variant="body">{option.label}</AppText>
-                          <AppText variant="caption">{option.description}</AppText>
-                        </View>
-                        {selected ? <Check size={16} color={iconMuted} /> : null}
-                      </View>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            ) : null}
-          </View>
-        </AppCard>
+        ) : (
+          <>
+            {organizationCard}
+            {accountCard}
+            {instructorsCard}
+            {themesCard}
+          </>
+        )}
       </AppStack>
     </Screen>
   );

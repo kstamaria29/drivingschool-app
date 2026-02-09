@@ -4,8 +4,10 @@ import {
   createStudentSession,
   deleteStudentSession,
   listStudentSessions,
+  updateStudentSession,
   type ListStudentSessionsInput,
   type StudentSessionInsert,
+  type StudentSessionUpdate,
 } from "./api";
 
 export const studentSessionKeys = {
@@ -46,3 +48,20 @@ export function useDeleteStudentSessionMutation() {
   });
 }
 
+type UpdateStudentSessionInput = {
+  sessionId: string;
+  input: StudentSessionUpdate;
+};
+
+export function useUpdateStudentSessionMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: UpdateStudentSessionInput) => updateStudentSession(payload.sessionId, payload.input),
+    onSuccess: async (session) => {
+      await queryClient.invalidateQueries({
+        queryKey: studentSessionKeys.list({ studentId: session.student_id }),
+      });
+    },
+  });
+}
