@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Modal, Platform, Pressable, ScrollView, View } from "react-native";
 import { Controller, useForm } from "react-hook-form";
 import { CircleStop, Flag, Pause, Play, RotateCcw, Timer, TriangleAlert } from "lucide-react-native";
+import { useColorScheme } from "nativewind";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
@@ -142,6 +143,7 @@ function hazardDirectionLabel(direction: FullLicenseMockTestHazardDirection) {
 
 export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   const { isSidebar } = useNavigationLayout();
+  const { colorScheme } = useColorScheme();
   const { profile, userId } = useCurrentUser();
   const organizationQuery = useOrganizationQuery(profile.organization_id);
   const studentsQuery = useStudentsQuery({ archived: false });
@@ -165,6 +167,9 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   const [sessionSeconds, setSessionSeconds] = useState(OFFICIAL_SECONDS);
   const [timerRunning, setTimerRunning] = useState(false);
   const [immediateFailTriggered, setImmediateFailTriggered] = useState(false);
+
+  const iconMuted = colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
+  const iconDanger = colorScheme === "dark" ? theme.colors.dangerDark : theme.colors.danger;
 
   const [attempts, setAttempts] = useState<FullLicenseMockTestAttempt[]>([]);
   const [critical, setCritical] = useState<FullLicenseMockTestErrorCounts>(() =>
@@ -1201,7 +1206,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
 
         <View className="items-end gap-1">
           <View className="flex-row items-center gap-2">
-            <Timer size={16} color={theme.colors.mutedLight} />
+            <Timer size={16} color={iconMuted} />
             <AppText variant="heading">{formatMMSS(sessionSeconds)}</AppText>
           </View>
           <View className={cn("rounded-full border px-3 py-1", readinessChipClasses)}>
@@ -1249,7 +1254,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       {immediateFailTriggered ? (
         <View className="rounded-2xl border border-danger/30 bg-danger/5 p-3 dark:border-dangerDark/30 dark:bg-dangerDark/10">
           <View className="flex-row items-start gap-2">
-            <TriangleAlert size={18} color={theme.colors.danger} />
+            <TriangleAlert size={18} color={iconDanger} />
             <View className="flex-1 gap-1">
               <AppText variant="error">Immediate fail recorded</AppText>
               <AppText variant="caption">

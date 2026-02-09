@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Theme coverage for recent UI updates
+- **Summary:**
+  - Fixed missing theme classes for primary/border tokens in badges, dividers, avatars, and assessment history chips.
+  - Updated a few icon color fallbacks to respect dark-mode palette variants.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Lessons reminders show student name
 - **Summary:**
   - Updated Lessons selected-day Reminders list to show student name above reminder title.
@@ -148,11 +156,3 @@
 - **Summary:**
   - Removed Google Maps top `Pin colors` panel, redesigned selected-pin actions/details (icon-only delete, color picker button, tip + right-alig...
   - Updated assessment student picker behavior to only show results after typing search text, switched Driving Assessment start confirmation to....
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student profile detail-card layout refresh
-- **Summary:**
-  - Restyled Student Profile Contact and Licence details into left-aligned boxed fields that match the licence photo action button visual style.
-  - Reordered Contact/Licence rows to the requested 2-column structure, moved organization under the student name with an icon, and pushed Archi...

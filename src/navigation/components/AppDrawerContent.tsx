@@ -104,6 +104,7 @@ export function AppDrawerContent({
   const logoUrl = settingsQuery.data?.logo_url ?? null;
 
   const iconColor = scheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
+  const dangerColor = scheme === "dark" ? theme.colors.dangerDark : theme.colors.danger;
   const backgroundColor = scheme === "dark" ? theme.colors.backgroundDark : theme.colors.backgroundLight;
 
   function confirmSignOut() {
@@ -269,7 +270,7 @@ export function AppDrawerContent({
             <DrawerRow
               collapsed={collapsed}
               label={signOutMutation.isPending ? "Signing out..." : "Sign out"}
-              icon={<LogOut color={theme.colors.danger} size={20} />}
+              icon={<LogOut color={dangerColor} size={20} />}
               labelClassName="text-danger dark:text-dangerDark"
               active={false}
               onPress={confirmSignOut}

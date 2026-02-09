@@ -23,7 +23,7 @@ export function Avatar({ uri, size, label }: Props) {
 
   return (
     <View
-      className="items-center justify-center overflow-hidden rounded-full bg-border"
+      className="items-center justify-center overflow-hidden rounded-full bg-border dark:bg-borderDark"
       style={{ width: size, height: size }}
       accessibilityRole="image"
       accessibilityLabel={label ? `Avatar for ${label}` : "User avatar"}
@@ -36,4 +36,3 @@ export function Avatar({ uri, size, label }: Props) {
     </View>
   );
 }
-

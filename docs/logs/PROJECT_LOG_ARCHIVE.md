@@ -976,3 +976,11 @@
 - **Summary:**
   - Changed the Students screen `Full` licence badge color from green to orange.
   - Replaced the heavy log format with compact `Date/Task/Summary` entries and reduced archive size significantly.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student profile detail-card layout refresh
+- **Summary:**
+  - Restyled Student Profile Contact and Licence details into left-aligned boxed fields that match the licence photo action button visual style.
+  - Reordered Contact/Licence rows to the requested 2-column structure, moved organization under the student name with an icon, and pushed Archi...

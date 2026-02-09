@@ -12,9 +12,18 @@ type Props = Omit<ViewProps, "children"> & {
 };
 
 const variantClasses: Record<Variant, { wrapper: string; text: string }> = {
-  scheduled: { wrapper: "bg-primary/15 border-primary/30", text: "text-primary" },
-  completed: { wrapper: "bg-green-500/15 border-green-500/30", text: "text-green-700" },
-  cancelled: { wrapper: "bg-red-500/15 border-red-500/30", text: "text-red-700" },
+  scheduled: {
+    wrapper: "bg-primary/15 border-primary/30 dark:bg-primaryDark/20 dark:border-primaryDark/30",
+    text: "text-primary dark:text-primaryDark",
+  },
+  completed: {
+    wrapper: "bg-green-600/15 border-green-600/30 dark:bg-green-500/15 dark:border-green-500/30",
+    text: "text-green-800 dark:text-green-200",
+  },
+  cancelled: {
+    wrapper: "bg-red-500/15 border-red-500/30 dark:bg-red-400/15 dark:border-red-400/30",
+    text: "text-red-800 dark:text-red-200",
+  },
 };
 
 export function AppBadge({ label, variant, className, ...props }: Props) {
@@ -27,10 +36,12 @@ export function AppBadge({ label, variant, className, ...props }: Props) {
       )}
       {...props}
     >
-      <AppText className={cn("text-xs font-semibold", variantClasses[variant].text)} variant="caption">
+      <AppText
+        className={cn("text-xs font-semibold", variantClasses[variant].text)}
+        variant="caption"
+      >
         {label}
       </AppText>
     </View>
   );
 }
-

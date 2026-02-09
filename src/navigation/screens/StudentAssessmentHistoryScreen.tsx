@@ -139,8 +139,8 @@ function getFullLicenseMockTestSummary(assessment: Assessment) {
 function ScoreChip({ score }: { score: number | null }) {
   if (score == null) return null;
   return (
-    <View className="rounded-full border border-primary/30 bg-primary/15 px-3 py-1">
-      <AppText className="text-primary" variant="caption">
+    <View className="rounded-full border border-primary/30 bg-primary/15 px-3 py-1 dark:border-primaryDark/30 dark:bg-primaryDark/20">
+      <AppText className="text-primary dark:text-primaryDark" variant="caption">
         Total score: {score}
       </AppText>
     </View>
@@ -461,7 +461,8 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
             <AppCard
               className={cn(
                 "gap-2",
-                isSelected && "border-primary bg-primary/5",
+                isSelected &&
+                  "border-primary bg-primary/5 dark:border-primaryDark dark:bg-primaryDark/10",
                 twoPane && "py-3",
               )}
             >
