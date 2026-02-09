@@ -1119,3 +1119,19 @@
 - **Summary:**
   - Defaulted Session History task suggestions to show and added an edit/update action for session entries.
   - Updated the Lessons agenda to list reminders for the selected day and removed the duplicate New button.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Lessons agenda title + upcoming reminders student label
+- **Summary:**
+  - Added a Lessons section title in the Lessons agenda card for visual consistency with Reminders.
+  - Updated Home Upcoming Reminders to show the student name more clearly.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Lessons reminders show student name
+- **Summary:**
+  - Updated Lessons selected-day Reminders list to show student name above reminder title.
+  - Joined student names in the reminders date-range query used by the Lessons calendar.

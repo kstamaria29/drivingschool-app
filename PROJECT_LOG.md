@@ -1,6 +1,22 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test task modal + pre-drive grid
+- **Summary:**
+  - Arranged pre-drive fields into two-column rows (Date/Time, Vehicle/Route) for tablet-friendly data entry.
+  - Replaced task dropdown cards with task buttons that open a modal (faults, location, notes), and moved Record repetition into the modal header.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** First-time guide for restricted mock test
+- **Summary:**
+  - Added a plain-language step-by-step guide for instructors using Mock Test - Restricted Licence for the first time.
+  - Included workflow coverage for stages, faults, repetitions, error sections, submit options, and history/PDF follow-up.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Restricted mock test default collapse + show/hide colors
 - **Summary:**
   - Set Stage 1, Critical errors, and Immediate failure errors to be collapsed by default when the Restricted mock test is initiated.
@@ -135,23 +151,3 @@
 - **Summary:**
   - Fixed missing theme classes for primary/border tokens in badges, dividers, avatars, and assessment history chips.
   - Updated a few icon color fallbacks to respect dark-mode palette variants.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Lessons reminders show student name
-- **Summary:**
-  - Updated Lessons selected-day Reminders list to show student name above reminder title.
-  - Joined student names in the reminders date-range query used by the Lessons calendar.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Lessons agenda title + upcoming reminders student label
-- **Summary:**
-  - Added a Lessons section title in the Lessons agenda card for visual consistency with Reminders.
-  - Updated Home Upcoming Reminders to show the student name more clearly.
-
----
-
-
