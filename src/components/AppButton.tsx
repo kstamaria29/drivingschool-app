@@ -116,7 +116,7 @@ export function AppButton({
         theme.button.base,
         theme.button.variant[variant],
         theme.button.size[size],
-        showLabelBadge && "relative z-10",
+        showLabelBadge && "relative",
         disabled && theme.button.disabled,
         className,
       )}

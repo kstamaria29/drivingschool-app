@@ -1,13 +1,15 @@
 import * as ImagePicker from "expo-image-picker";
 import type { DrawerNavigationProp } from "@react-navigation/drawer";
+import { useFocusEffect } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import dayjs from "dayjs";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   ActivityIndicator,
   Modal,
   Pressable,
+  type ScrollView,
   View,
   useColorScheme,
 } from "react-native";
@@ -17,12 +19,14 @@ import {
   Building2,
   ClipboardList,
   Clock,
+  EllipsisVertical,
   Pencil,
   Play,
   RefreshCw,
   Trash2,
   Undo2,
   X,
+  type LucideIcon,
 } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
@@ -55,6 +59,13 @@ type Props = NativeStackScreenProps<StudentsStackParamList, "StudentDetail">;
 type LicenceImageItem = { key: "front" | "back"; label: string; uri: string };
 type StudentLicenseImageSide = "front" | "back";
 type StudentLicenseImageSource = "camera" | "library";
+type StudentActionMenuItemProps = {
+  label: string;
+  icon: LucideIcon;
+  onPress: () => void;
+  danger?: boolean;
+  disabled?: boolean;
+};
 
 function DetailValueField({
   label,
@@ -83,8 +94,47 @@ function toSentenceCase(value: string) {
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 }
 
+function StudentActionMenuItem({
+  label,
+  icon: Icon,
+  onPress,
+  danger = false,
+  disabled = false,
+}: StudentActionMenuItemProps) {
+  const colorScheme = useColorScheme();
+  const iconColor = danger
+    ? colorScheme === "dark"
+      ? theme.colors.dangerDark
+      : theme.colors.danger
+    : colorScheme === "dark"
+      ? theme.colors.foregroundDark
+      : theme.colors.foregroundLight;
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      disabled={disabled}
+      onPress={onPress}
+      className={cn(
+        "h-11 flex-row items-center gap-3 rounded-lg px-3",
+        !disabled && "active:bg-muted/30 dark:active:bg-mutedDark/30",
+        disabled && "opacity-50",
+      )}
+    >
+      <Icon size={18} color={iconColor} strokeWidth={2} />
+      <AppText
+        variant="body"
+        className={cn(danger && "text-danger dark:text-dangerDark")}
+      >
+        {label}
+      </AppText>
+    </Pressable>
+  );
+}
+
 export function StudentDetailScreen({ navigation, route }: Props) {
   const { studentId } = route.params;
+  const screenScrollRef = useRef<ScrollView | null>(null);
   const colorScheme = useColorScheme();
   const { isSidebar, isCompact } = useNavigationLayout();
   const drawerNavigation =
@@ -119,6 +169,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
     useState<StudentLicenseImageSide | null>(null);
   const [startAssessmentModalVisible, setStartAssessmentModalVisible] =
     useState(false);
+  const [actionMenuVisible, setActionMenuVisible] = useState(false);
   const studentDobDisplay = student?.date_of_birth
     ? formatIsoDateToDisplay(student.date_of_birth)
     : "-";
@@ -170,6 +221,28 @@ export function StudentDetailScreen({ navigation, route }: Props) {
       : licenseActionModalSide === "back"
         ? Boolean(student?.license_back_image_url)
         : false;
+
+  const resetTransientUi = useCallback(() => {
+    setActionMenuVisible(false);
+    setStartAssessmentModalVisible(false);
+    setLicenseActionModalSide(null);
+    setLicenseGalleryVisible(false);
+    setLicenseGalleryIndex(0);
+    setLicensePickerError(null);
+  }, []);
+
+  useEffect(() => {
+    resetTransientUi();
+  }, [resetTransientUi, studentId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      resetTransientUi();
+      requestAnimationFrame(() => {
+        screenScrollRef.current?.scrollTo({ y: 0, animated: false });
+      });
+    }, [resetTransientUi]),
+  );
 
   function openLicenseGallery(startIndex: number) {
     if (licenseImages.length === 0) return;
@@ -292,6 +365,14 @@ export function StudentDetailScreen({ navigation, route }: Props) {
     setStartAssessmentModalVisible(false);
   }
 
+  function closeActionMenu() {
+    setActionMenuVisible(false);
+  }
+
+  function openActionMenu() {
+    setActionMenuVisible(true);
+  }
+
   function onStartAssessmentPress() {
     setStartAssessmentModalVisible(true);
   }
@@ -358,9 +439,10 @@ export function StudentDetailScreen({ navigation, route }: Props) {
       {
         text: "Delete",
         style: "destructive",
-          onPress: () => {
+        onPress: () => {
           deleteMutation.mutate(student.id, {
-            onSuccess: () => navigation.reset({ index: 0, routes: [{ name: "StudentsList" }] }),
+            onSuccess: () =>
+              navigation.reset({ index: 0, routes: [{ name: "StudentsList" }] }),
             onError: (error) =>
               Alert.alert("Couldn't delete student", toErrorMessage(error)),
           });
@@ -371,8 +453,8 @@ export function StudentDetailScreen({ navigation, route }: Props) {
 
   return (
     <>
-      <Screen scroll>
-        <AppStack className="flex-1" gap={isCompact ? "md" : "lg"}>
+      <Screen scroll scrollRef={screenScrollRef} className="flex-none">
+        <AppStack gap={isCompact ? "md" : "lg"}>
           {query.isPending ? (
             <View
               className={cn(
@@ -408,7 +490,10 @@ export function StudentDetailScreen({ navigation, route }: Props) {
             <>
               <View className="flex-row items-start justify-between gap-3">
                 <View className="flex-1">
-                  <AppText className={isCompact ? "text-[26px]" : "text-[30px]"} variant="title">
+                  <AppText
+                    className={isCompact ? "text-[26px]" : "text-[30px]"}
+                    variant="title"
+                  >
                     {student.first_name} {student.last_name}
                   </AppText>
                   <View className="mt-1 flex-row items-center gap-2">
@@ -433,13 +518,10 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                   size="icon"
                   variant="secondary"
                   label=""
-                  accessibilityLabel="Edit student"
-                  icon={Pencil}
-                  onPress={() =>
-                    navigation.navigate("StudentEdit", {
-                      studentId: student.id,
-                    })
-                  }
+                  className="h-12 w-12"
+                  accessibilityLabel="More student actions"
+                  icon={EllipsisVertical}
+                  onPress={openActionMenu}
                 />
               </View>
 
@@ -448,42 +530,45 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                   isSidebar ? "flex-row flex-wrap gap-6" : isCompact ? "gap-4" : "gap-6",
                 )}
               >
-                <AppStack gap="md" className={cn(isSidebar && "flex-1 min-w-[360px]")}>
+                <AppStack
+                  gap="md"
+                  className={cn(isSidebar && "flex-1 min-w-[360px]")}
+                >
                   <AppCard className="gap-3">
                     <AppText variant="heading">Contact</AppText>
 
-                  <View className="flex-row flex-wrap gap-3">
-                    <DetailValueField
-                      className="min-w-56 flex-1"
-                      label="Email"
-                      value={student.email ?? "-"}
-                    />
-                    <DetailValueField
-                      className="min-w-56 flex-1"
-                      label="Phone"
-                      value={student.phone ?? "-"}
-                    />
-                  </View>
+                    <View className="flex-row flex-wrap gap-3">
+                      <DetailValueField
+                        className="min-w-56 flex-1"
+                        label="Email"
+                        value={student.email ?? "-"}
+                      />
+                      <DetailValueField
+                        className="min-w-56 flex-1"
+                        label="Phone"
+                        value={student.phone ?? "-"}
+                      />
+                    </View>
 
-                  <View className="flex-row flex-wrap gap-3">
-                    <DetailValueField
-                      className="min-w-56 flex-1"
-                      label="Date of birth"
-                      value={studentDobDisplay}
-                    />
-                    <DetailValueField
-                      className="min-w-56 flex-1"
-                      label="Age"
-                      value={studentAgeDisplay}
-                    />
-                  </View>
+                    <View className="flex-row flex-wrap gap-3">
+                      <DetailValueField
+                        className="min-w-56 flex-1"
+                        label="Date of birth"
+                        value={studentDobDisplay}
+                      />
+                      <DetailValueField
+                        className="min-w-56 flex-1"
+                        label="Age"
+                        value={studentAgeDisplay}
+                      />
+                    </View>
 
-                  <DetailValueField
-                    className="w-full"
-                    label="Address"
-                    value={student.address?.trim() ? student.address : "-"}
-                  />
-                </AppCard>
+                    <DetailValueField
+                      className="w-full"
+                      label="Address"
+                      value={student.address?.trim() ? student.address : "-"}
+                    />
+                  </AppCard>
 
                 <AppCard className="gap-3">
                   <AppText variant="heading">Licence</AppText>
@@ -641,8 +726,8 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                 ) : null}
                 </AppStack>
 
-                <View className={cn("flex-1", isSidebar && "min-w-[360px]")}>
-                <AppStack gap="md">
+                <View className={cn(isSidebar && "flex-1 min-w-[360px]")}>
+                <AppStack key={`student-actions-${student.id}`} gap="md">
                   <View className="flex-row gap-3">
                     <AppButton
                       width="auto"
@@ -710,66 +795,101 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                     />
                   </View>
                 </AppStack>
-
-                {isSidebar ? null : <View className="min-h-28 flex-1" />}
-
-                <View className="flex-row gap-3">
-                  {isArchived ? (
-                    <AppButton
-                      width="auto"
-                      className="flex-1 bg-green-700 border-green-700 dark:bg-green-700 dark:border-green-700"
-                      label={
-                        unarchiveMutation.isPending
-                          ? "Unarchiving..."
-                          : "Unarchive"
-                      }
-                      variant="primary"
-                      disabled={
-                        unarchiveMutation.isPending || deleteMutation.isPending
-                      }
-                      icon={Undo2}
-                      onPress={onUnarchivePress}
-                    />
-                  ) : (
-                    <AppButton
-                      width="auto"
-                      className="flex-1 bg-green-700 border-green-700 dark:bg-green-700 dark:border-green-700"
-                      label={
-                        archiveMutation.isPending ? "Archiving..." : "Archive"
-                      }
-                      variant="primary"
-                      disabled={
-                        archiveMutation.isPending || deleteMutation.isPending
-                      }
-                      icon={Archive}
-                      onPress={onArchivePress}
-                    />
-                  )}
-
-                  <AppButton
-                    width="auto"
-                    className="flex-1"
-                    label={
-                      deleteMutation.isPending
-                        ? "Deleting..."
-                        : "Delete student"
-                    }
-                    variant="danger"
-                    disabled={
-                      deleteMutation.isPending ||
-                      archiveMutation.isPending ||
-                      unarchiveMutation.isPending
-                    }
-                    icon={Trash2}
-                    onPress={onDeletePress}
-                  />
-                </View>
                 </View>
               </View>
             </>
           )}
         </AppStack>
       </Screen>
+
+      <Modal
+        visible={actionMenuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeActionMenu}
+      >
+        <Pressable
+          className="flex-1 bg-black/20"
+          onPress={closeActionMenu}
+        >
+          <Pressable
+            className={cn(
+              "absolute right-6 top-24 w-[250px]",
+              isCompact && "right-4 top-20 w-[230px]",
+            )}
+            onPress={(event) => event.stopPropagation()}
+          >
+            <AppCard className="gap-1 p-2">
+              <StudentActionMenuItem
+                label="Edit"
+                icon={Pencil}
+                onPress={() => {
+                  if (!student) return;
+                  closeActionMenu();
+                  navigation.navigate("StudentEdit", { studentId: student.id });
+                }}
+              />
+              <StudentActionMenuItem
+                label="Sessions"
+                icon={Clock}
+                onPress={() => {
+                  if (!student) return;
+                  closeActionMenu();
+                  navigation.navigate("StudentSessionHistory", {
+                    studentId: student.id,
+                  });
+                }}
+              />
+              <StudentActionMenuItem
+                label="Assessments"
+                icon={ClipboardList}
+                onPress={() => {
+                  if (!student) return;
+                  closeActionMenu();
+                  navigation.navigate("StudentAssessmentHistory", {
+                    studentId: student.id,
+                  });
+                }}
+              />
+              <StudentActionMenuItem
+                label={
+                  isArchived
+                    ? (unarchiveMutation.isPending ? "Unarchiving..." : "Unarchive")
+                    : (archiveMutation.isPending ? "Archiving..." : "Archive")
+                }
+                icon={isArchived ? Undo2 : Archive}
+                disabled={
+                  archiveMutation.isPending ||
+                  unarchiveMutation.isPending ||
+                  deleteMutation.isPending
+                }
+                onPress={() => {
+                  closeActionMenu();
+                  if (isArchived) {
+                    onUnarchivePress();
+                    return;
+                  }
+                  onArchivePress();
+                }}
+              />
+              <StudentActionMenuItem
+                label={deleteMutation.isPending ? "Deleting..." : "Delete"}
+                icon={Trash2}
+                danger
+                disabled={
+                  deleteMutation.isPending ||
+                  archiveMutation.isPending ||
+                  unarchiveMutation.isPending
+                }
+                onPress={() => {
+                  closeActionMenu();
+                  onDeletePress();
+                }}
+              />
+            </AppCard>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       <Modal
         visible={startAssessmentModalVisible}

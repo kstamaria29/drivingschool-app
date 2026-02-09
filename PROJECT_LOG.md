@@ -1,6 +1,44 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile second-visit clipping fix (ScrollView flex)
+- **Summary:**
+  - Removed `flex-1` container sizing from Student Profile scroll layout to prevent Android ScrollView content mis-measurement on revisit.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile focus reset + kebab 12x12
+- **Summary:**
+  - Updated the Student Profile kebab trigger to `h-12 w-12`.
+  - Fixed the second-visit action-row clipping pattern by resetting Student Detail transient UI state and scroll position every time the screen regains focus.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile kebab resize + second-visit action layout stabilization
+- **Summary:**
+  - Resized the Student Profile kebab trigger to `h-10 w-10` as requested.
+  - Stabilized second-visit action button rendering by resetting Student Detail scroll/transient UI state on `studentId` changes and reducing badge row stacking side effects.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile kebab button square sizing
+- **Summary:**
+  - Updated the Student Profile top-right kebab action trigger to use square dimensions for both tablet and compact layouts.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile kebab action menu + remove bottom archive row
+- **Summary:**
+  - Replaced the top-right edit icon with a taller kebab action button and added a dropdown-style modal menu for Edit, Sessions, Assessments, Archive/Unarchive, and Delete.
+  - Removed the bottom Archive/Delete buttons from Student Profile to simplify layout and avoid the intermittent action-row UI overlap state.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Student Profile badge overlap fix
 - **Summary:**
   - Adjusted `AppButton` label-badge positioning and stacking so Student Profile count badges don't clip/overlap adjacent buttons.
@@ -115,43 +153,3 @@
 - **Summary:**
   - Updated all assessment submit flows to return to `StudentDetail` when launched from Student Profile, instead of dropping users on the Assess...
   - Moved the "Smoother Steering Control - Avoid oversteering..." improvement suggestion to the top of the Driving Assessment suggestions list.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student reminders feature + Student Profile action-row redesign
-- **Summary:**
-  - Added a new student Reminders flow: dedicated screen, reminder list, create/delete actions, reminder date, and notification lead-time option...
-  - Updated Student Profile actions by replacing top-right `Add session` with icon-only Edit and replacing the lower `Edit` button with `Reminde...
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile organization size, dark-green archive buttons, and safer bottom-action spacing
-- **Summary:**
-  - Updated Student Profile organization subtitle text under the student name to `23px` and changed Archive/Unarchive buttons to dark green.
-  - Added a minimum spacer before Archive/Delete actions so destructive buttons are consistently lower and require scroll access on tighter prof...
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student profile style tweaks + active assessment back confirmation
-- **Summary:**
-  - Updated Student Profile organization text under the student name to `25px` and set Archive/Unarchive actions to green styling.
-  - Added a shared assessment leave-guard across Driving, Restricted, and Full mock test screens to confirm before leaving once a test is in pro...
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile history badge placement and 2-digit badge fix
-- **Summary:**
-  - Updated Student Profile `Session History` and `Assessment History` buttons so count badges sit at the top-right of the label text instead of...
-  - Hardened badge pill sizing/text behavior to keep multi-digit counts on one line.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Global back button beside header menu with Home fallback
-- **Summary:**
-  - Added a shared header-left menu+back control across main app stacks so screens include both hamburger and back buttons, while Home keeps no....
-  - Back action now uses stack `goBack()` when possible and falls back to drawer navigation to `HomeDashboard` as the final destination.
