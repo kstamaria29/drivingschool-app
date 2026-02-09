@@ -17,6 +17,8 @@ import { addInstructorSchema, type AddInstructorFormValues } from "../../feature
 import { theme } from "../../theme/theme";
 import { toErrorMessage } from "../../utils/errors";
 
+import { useNavigationLayout } from "../useNavigationLayout";
+
 function CredentialRow({ label, value }: { label: string; value: string }) {
   return (
     <View className="flex-row items-start justify-between gap-4">
@@ -31,6 +33,7 @@ function CredentialRow({ label, value }: { label: string; value: string }) {
 }
 
 export function AddInstructorScreen() {
+  const { isCompact } = useNavigationLayout();
   const { profile } = useCurrentUser();
   const canManageInstructors = isOwnerOrAdminRole(profile.role);
   const mutation = useCreateInstructorMutation();
@@ -60,7 +63,7 @@ export function AddInstructorScreen() {
   if (!canManageInstructors) {
     return (
       <Screen scroll>
-        <AppStack gap="lg">
+        <AppStack gap={isCompact ? "md" : "lg"}>
           <View>
             <AppText variant="title">Add instructor</AppText>
             <AppText className="mt-2" variant="body">
@@ -74,7 +77,7 @@ export function AddInstructorScreen() {
 
   return (
     <Screen scroll>
-      <AppStack gap="lg">
+      <AppStack gap={isCompact ? "md" : "lg"}>
         <View>
           <AppText variant="title">Add instructor</AppText>
           <AppText className="mt-2" variant="body">
@@ -82,7 +85,7 @@ export function AddInstructorScreen() {
           </AppText>
         </View>
 
-        <AppCard className="gap-4">
+        <AppCard className={isCompact ? "gap-3" : "gap-4"}>
           <Controller
             control={form.control}
             name="firstName"

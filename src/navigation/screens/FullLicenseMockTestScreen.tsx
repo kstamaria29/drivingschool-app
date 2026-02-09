@@ -142,7 +142,7 @@ function hazardDirectionLabel(direction: FullLicenseMockTestHazardDirection) {
 }
 
 export function FullLicenseMockTestScreen({ navigation, route }: Props) {
-  const { isSidebar } = useNavigationLayout();
+  const { isSidebar, isCompact } = useNavigationLayout();
   const { colorScheme } = useColorScheme();
   const { profile, userId } = useCurrentUser();
   const organizationQuery = useOrganizationQuery(profile.organization_id);
@@ -1757,7 +1757,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       <View className="w-96">{liveLogCard}</View>
     </View>
   ) : (
-    <AppStack gap="lg">
+    <AppStack gap={isCompact ? "md" : "lg"}>
       {overviewCard}
       {attemptEntryCard}
       {errorsCard}
@@ -1777,7 +1777,12 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       animationType="fade"
       onRequestClose={() => setHazardPickerTarget(null)}
     >
-      <View className="flex-1 items-center justify-center bg-black/45 px-6">
+      <View
+        className={cn(
+          "flex-1 items-center justify-center bg-black/45",
+          isCompact ? "px-4" : "px-6",
+        )}
+      >
         <AppCard className="w-full max-w-sm gap-3">
           <AppText variant="heading">Hazard Detection and Response</AppText>
           {hazardPickerTarget ? (
@@ -1842,7 +1847,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
       onRequestClose={() => setStartTestModalVisible(false)}
     >
       <Pressable
-        className="flex-1 bg-black/40 px-6 py-10"
+        className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
         onPress={() => setStartTestModalVisible(false)}
       >
         <Pressable
@@ -1883,7 +1888,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   return (
     <>
       <Screen scroll scrollRef={scrollRef} className={cn(isSidebar && "max-w-6xl")}>
-        <AppStack gap="lg">
+        <AppStack gap={isCompact ? "md" : "lg"}>
           {header}
           {studentCard}
 
@@ -1904,7 +1909,7 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
           {stage === "run" ? runContent : null}
 
           {stage === "summary" ? (
-            <AppStack gap="lg">
+            <AppStack gap={isCompact ? "md" : "lg"}>
               {summaryCard}
               {liveLogCard}
               {stageActions}

@@ -33,6 +33,7 @@ import { DISPLAY_DATE_FORMAT, parseDateInputToISODate } from "../../utils/dates"
 import { toErrorMessage } from "../../utils/errors";
 
 import type { StudentsStackParamList } from "../StudentsStackNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 type Props = NativeStackScreenProps<StudentsStackParamList, "StudentSessionHistory">;
 
@@ -132,6 +133,7 @@ export function StudentSessionHistoryScreen({ route }: Props) {
   const { studentId, openNewSession } = route.params;
   const { userId, profile } = useCurrentUser();
   const { colorScheme } = useColorScheme();
+  const { isCompact } = useNavigationLayout();
 
   const trashColor = colorScheme === "dark" ? theme.colors.dangerDark : theme.colors.danger;
   const editColor = colorScheme === "dark" ? "#4ade80" : "#16a34a";
@@ -334,7 +336,7 @@ export function StudentSessionHistoryScreen({ route }: Props) {
   return (
     <>
       <Screen scroll className={cn("max-w-6xl")}>
-        <AppStack gap="lg">
+        <AppStack gap={isCompact ? "md" : "lg"}>
         <View className="flex-row items-start justify-between gap-3">
           <View className="flex-1">
             <AppText variant="title">Session History</AppText>
@@ -496,7 +498,7 @@ export function StudentSessionHistoryScreen({ route }: Props) {
         onRequestClose={closeCreateModal}
       >
         <Pressable
-          className="flex-1 bg-black/40 px-6 py-10"
+          className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
           onPress={closeCreateModal}
         >
           <Pressable

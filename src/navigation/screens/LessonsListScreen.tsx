@@ -366,7 +366,7 @@ export function LessonsListScreen({ navigation }: Props) {
 
   return (
     <Screen scroll={isCompact} className={cn(isTabletLandscape && "max-w-[1100px]")}>
-      <AppStack gap="lg" className={cn(!isCompact && "flex-1")}>
+      <AppStack gap={isCompact ? "md" : "lg"} className={cn(!isCompact && "flex-1")}>
         <View className="flex-row flex-wrap items-center justify-between gap-3">
           <View className="min-w-48 flex-1">
             <AppText variant="title">Lessons</AppText>

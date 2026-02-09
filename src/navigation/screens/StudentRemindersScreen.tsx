@@ -40,6 +40,7 @@ import { DISPLAY_DATE_FORMAT, formatIsoDateToDisplay, parseDateInputToISODate } 
 import { toErrorMessage } from "../../utils/errors";
 
 import type { StudentsStackParamList } from "../StudentsStackNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 type Props = NativeStackScreenProps<StudentsStackParamList, "StudentReminders">;
 
@@ -81,6 +82,7 @@ export function StudentRemindersScreen({ route }: Props) {
   const { studentId, openNewReminder } = route.params;
   const { userId, profile } = useCurrentUser();
   const { colorScheme } = useColorScheme();
+  const { isCompact } = useNavigationLayout();
 
   const trashColor = colorScheme === "dark" ? theme.colors.dangerDark : theme.colors.danger;
   const editColor = colorScheme === "dark" ? "#4ade80" : "#16a34a";
@@ -340,7 +342,7 @@ export function StudentRemindersScreen({ route }: Props) {
   return (
     <>
       <Screen scroll className={cn("max-w-6xl")}>
-        <AppStack gap="lg">
+        <AppStack gap={isCompact ? "md" : "lg"}>
           <View className="flex-row items-start justify-between gap-3">
             <View className="flex-1">
               <AppText variant="title">Reminders</AppText>
@@ -402,7 +404,7 @@ export function StudentRemindersScreen({ route }: Props) {
                 const offsetLabel = formatReminderOffsets(reminder.notification_offsets_minutes);
 
                 return (
-                  <AppCard key={reminder.id} className="gap-4">
+                  <AppCard key={reminder.id} className={isCompact ? "gap-3" : "gap-4"}>
                     <View className="flex-row items-start justify-between gap-3">
                       <View className="flex-1">
                         <AppText
@@ -467,14 +469,14 @@ export function StudentRemindersScreen({ route }: Props) {
         onRequestClose={closeCreateModal}
       >
         <Pressable
-          className="flex-1 bg-black/40 px-6 py-10"
+          className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
           onPress={closeCreateModal}
         >
           <Pressable
             className="m-auto w-full max-w-2xl"
             onPress={(event) => event.stopPropagation()}
           >
-            <AppCard className="gap-4">
+            <AppCard className={isCompact ? "gap-3" : "gap-4"}>
               <View className="flex-row items-center justify-between gap-2">
                 <AppText variant="heading">
                   {editingReminderId ? "Edit Reminder" : "Add New Reminder"}

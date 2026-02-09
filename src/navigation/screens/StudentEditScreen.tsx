@@ -52,6 +52,7 @@ import { getProfileFullName } from "../../utils/profileName";
 import { normalizeLicenseNumberInput } from "../../utils/licenseNumber";
 
 import type { StudentsStackParamList } from "../StudentsStackNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 type CreateProps = NativeStackScreenProps<
   StudentsStackParamList,
@@ -81,6 +82,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
   const studentId =
     route.name === "StudentEdit" ? route.params.studentId : undefined;
   const studentEditScrollRef = useRef<ScrollView>(null);
+  const { isCompact } = useNavigationLayout();
 
   const { session } = useAuthSession();
   const userId = session?.user.id;
@@ -604,7 +606,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
   return (
     <>
       <Screen scroll scrollRef={studentEditScrollRef}>
-        <AppStack gap="lg">
+        <AppStack gap={isCompact ? "md" : "lg"}>
           <View>
             <AppText variant="title">
               {isEditing ? "Edit student" : "New student"}
@@ -1105,7 +1107,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
         onRequestClose={closeLicenseActionModal}
       >
         <Pressable
-          className="flex-1 bg-black/40 px-6 py-10"
+          className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
           onPress={closeLicenseActionModal}
         >
           <Pressable
@@ -1177,14 +1179,14 @@ export function StudentEditScreen({ navigation, route }: Props) {
         onRequestClose={closeCustomOrganizationModal}
       >
         <Pressable
-          className="flex-1 bg-black/40 px-6 py-10"
+          className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
           onPress={closeCustomOrganizationModal}
         >
           <Pressable
             className="m-auto w-full max-w-md"
             onPress={(event) => event.stopPropagation()}
           >
-            <AppCard className="gap-4">
+            <AppCard className={isCompact ? "gap-3" : "gap-4"}>
               <AppText variant="heading">Custom organization</AppText>
               <AppInput
                 label="Organization name"
@@ -1221,7 +1223,7 @@ export function StudentEditScreen({ navigation, route }: Props) {
         onRequestClose={closeOrganizationOptionsModal}
       >
         <Pressable
-          className="flex-1 bg-black/40 px-6 py-10"
+          className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
           onPress={closeOrganizationOptionsModal}
         >
           <Pressable

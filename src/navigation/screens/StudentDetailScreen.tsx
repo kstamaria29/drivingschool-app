@@ -49,6 +49,7 @@ import { toErrorMessage } from "../../utils/errors";
 
 import type { StudentsStackParamList } from "../StudentsStackNavigator";
 import type { MainDrawerParamList } from "../MainDrawerNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 type Props = NativeStackScreenProps<StudentsStackParamList, "StudentDetail">;
 type LicenceImageItem = { key: "front" | "back"; label: string; uri: string };
@@ -85,6 +86,7 @@ function toSentenceCase(value: string) {
 export function StudentDetailScreen({ navigation, route }: Props) {
   const { studentId } = route.params;
   const colorScheme = useColorScheme();
+  const { isSidebar, isCompact } = useNavigationLayout();
   const drawerNavigation =
     navigation.getParent<DrawerNavigationProp<MainDrawerParamList>>();
   const organizationIconColor =
@@ -370,7 +372,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
   return (
     <>
       <Screen scroll>
-        <AppStack className="flex-1" gap="lg">
+        <AppStack className="flex-1" gap={isCompact ? "md" : "lg"}>
           {query.isPending ? (
             <View
               className={cn(
@@ -406,7 +408,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
             <>
               <View className="flex-row items-start justify-between gap-3">
                 <View className="flex-1">
-                  <AppText className="text-[30px]" variant="title">
+                  <AppText className={isCompact ? "text-[26px]" : "text-[30px]"} variant="title">
                     {student.first_name} {student.last_name}
                   </AppText>
                   <View className="mt-1 flex-row items-center gap-2">
@@ -441,9 +443,14 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                 />
               </View>
 
-              <AppStack gap="md">
-                <AppCard className="gap-3">
-                  <AppText variant="heading">Contact</AppText>
+              <View
+                className={cn(
+                  isSidebar ? "flex-row flex-wrap gap-6" : isCompact ? "gap-4" : "gap-6",
+                )}
+              >
+                <AppStack gap="md" className={cn(isSidebar && "flex-1 min-w-[360px]")}>
+                  <AppCard className="gap-3">
+                    <AppText variant="heading">Contact</AppText>
 
                   <View className="flex-row flex-wrap gap-3">
                     <DetailValueField
@@ -632,9 +639,9 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                     <AppText variant="body">{notes}</AppText>
                   </AppCard>
                 ) : null}
-              </AppStack>
+                </AppStack>
 
-              <View className="flex-1">
+                <View className={cn("flex-1", isSidebar && "min-w-[360px]")}>
                 <AppStack gap="md">
                   <View className="flex-row gap-3">
                     <AppButton
@@ -704,7 +711,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                   </View>
                 </AppStack>
 
-                <View className="min-h-28 flex-1" />
+                {isSidebar ? null : <View className="min-h-28 flex-1" />}
 
                 <View className="flex-row gap-3">
                   {isArchived ? (
@@ -757,6 +764,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                     onPress={onDeletePress}
                   />
                 </View>
+                </View>
               </View>
             </>
           )}
@@ -770,7 +778,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
         onRequestClose={closeStartAssessmentModal}
       >
         <Pressable
-          className="flex-1 bg-black/40 px-6 py-10"
+          className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
           onPress={closeStartAssessmentModal}
         >
           <Pressable
@@ -816,7 +824,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
         onRequestClose={closeLicenseActionModal}
       >
         <Pressable
-          className="flex-1 bg-black/40 px-6 py-10"
+          className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
           onPress={closeLicenseActionModal}
         >
           <Pressable

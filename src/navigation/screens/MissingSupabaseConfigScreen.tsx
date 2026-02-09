@@ -3,10 +3,14 @@ import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
 
+import { useNavigationLayout } from "../useNavigationLayout";
+
 export function MissingSupabaseConfigScreen() {
+  const { isCompact } = useNavigationLayout();
+
   return (
     <Screen>
-      <AppStack gap="lg">
+      <AppStack gap={isCompact ? "md" : "lg"}>
         <AppText variant="title">App misconfigured</AppText>
 
         <AppCard className="gap-3">
@@ -28,4 +32,3 @@ export function MissingSupabaseConfigScreen() {
     </Screen>
   );
 }
-

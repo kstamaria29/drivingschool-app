@@ -14,10 +14,12 @@ import { useSignInWithPasswordMutation } from "../../features/auth/queries";
 import { signInSchema, type SignInFormValues } from "../../features/auth/schemas";
 
 import type { AuthStackParamList } from "../AuthStackNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
 
 export function LoginScreen({ navigation }: Props) {
+  const { isCompact } = useNavigationLayout();
   const mutation = useSignInWithPasswordMutation();
 
   const form = useForm<SignInFormValues>({
@@ -31,7 +33,7 @@ export function LoginScreen({ navigation }: Props) {
 
   return (
     <Screen scroll>
-      <AppStack gap="lg">
+      <AppStack gap={isCompact ? "md" : "lg"}>
         <View>
           <AppText variant="title">Sign in</AppText>
           <AppText className="mt-2" variant="body">
@@ -39,7 +41,7 @@ export function LoginScreen({ navigation }: Props) {
           </AppText>
         </View>
 
-        <AppCard className="gap-4">
+        <AppCard className={isCompact ? "gap-3" : "gap-4"}>
           <Controller
             control={form.control}
             name="email"

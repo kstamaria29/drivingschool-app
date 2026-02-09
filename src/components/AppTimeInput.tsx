@@ -1,7 +1,9 @@
 import dayjs from "dayjs";
 import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useMemo, useState } from "react";
-import { Modal, Platform, Pressable, View } from "react-native";
+import { Modal, Platform, Pressable, useWindowDimensions, View } from "react-native";
+
+import { cn } from "../utils/cn";
 
 import { AppButton } from "./AppButton";
 import { AppInput } from "./AppInput";
@@ -26,6 +28,8 @@ function parseToDate(value: string) {
 }
 
 export function AppTimeInput({ label, value, onChangeText, error, disabled, minuteInterval }: Props) {
+  const { width, height } = useWindowDimensions();
+  const isCompact = Math.min(width, height) < 600;
   const [open, setOpen] = useState(false);
   const initialDate = useMemo(() => parseToDate(value), [value]);
   const [tempDate, setTempDate] = useState<Date>(initialDate);
@@ -78,8 +82,16 @@ export function AppTimeInput({ label, value, onChangeText, error, disabled, minu
 
       {Platform.OS === "ios" ? (
         <Modal visible={open} transparent animationType="fade" onRequestClose={closePicker}>
-          <Pressable className="flex-1 bg-black/40 px-6 py-10" onPress={closePicker}>
-            <Pressable className="self-center w-full max-w-md rounded-2xl border border-border bg-card p-4 dark:border-borderDark dark:bg-cardDark">
+          <Pressable
+            className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
+            onPress={closePicker}
+          >
+            <Pressable
+              className={cn(
+                "self-center w-full max-w-md rounded-2xl border border-border bg-card dark:border-borderDark dark:bg-cardDark",
+                isCompact ? "p-3" : "p-4",
+              )}
+            >
               <AppStack gap="md">
                 <DateTimePicker
                   value={tempDate}
@@ -115,4 +127,3 @@ export function AppTimeInput({ label, value, onChangeText, error, disabled, minu
     </>
   );
 }
-

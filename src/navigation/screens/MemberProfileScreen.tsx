@@ -22,6 +22,7 @@ import { getProfileFullName } from "../../utils/profileName";
 
 import type { MainDrawerParamList } from "../MainDrawerNavigator";
 import type { SettingsStackParamList } from "../SettingsStackNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 type Props = NativeStackScreenProps<SettingsStackParamList, "MemberProfile">;
 
@@ -67,6 +68,7 @@ export function MemberProfileScreen({ navigation, route }: Props) {
   const { memberId } = route.params;
   const { profile: currentProfile } = useCurrentUser();
   const { colorScheme } = useColorScheme();
+  const { isCompact } = useNavigationLayout();
   const [activeStudentsExpanded, setActiveStudentsExpanded] = useState(true);
   const iconMuted = colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
   const canManageOrganization = isOwnerOrAdminRole(currentProfile.role);
@@ -76,7 +78,7 @@ export function MemberProfileScreen({ navigation, route }: Props) {
   if (!canManageOrganization) {
     return (
       <Screen scroll>
-        <AppStack gap="lg">
+        <AppStack gap={isCompact ? "md" : "lg"}>
           <View>
             <AppText variant="title">Member profile</AppText>
             <AppText className="mt-2" variant="body">
@@ -92,7 +94,7 @@ export function MemberProfileScreen({ navigation, route }: Props) {
 
   return (
     <Screen scroll>
-      <AppStack gap="lg">
+      <AppStack gap={isCompact ? "md" : "lg"}>
         {detailsQuery.isPending ? (
           <View className={cn("items-center justify-center py-10", theme.text.base)}>
             <ActivityIndicator />
@@ -121,11 +123,15 @@ export function MemberProfileScreen({ navigation, route }: Props) {
               This member may have been deleted or you may no longer have access.
             </AppText>
           </AppCard>
-        ) : (
+          ) : (
           <>
-            <AppCard className="gap-4">
+            <AppCard className={isCompact ? "gap-3" : "gap-4"}>
               <View className="flex-row items-center gap-4">
-                <Avatar uri={memberProfile.avatar_url} size={72} label={getProfileFullName(memberProfile)} />
+                <Avatar
+                  uri={memberProfile.avatar_url}
+                  size={isCompact ? 56 : 72}
+                  label={getProfileFullName(memberProfile)}
+                />
                 <View className="flex-1">
                   <AppText variant="title">
                     {getProfileFullName(memberProfile) || memberProfile.display_name || "Member"}
@@ -137,7 +143,7 @@ export function MemberProfileScreen({ navigation, route }: Props) {
               </View>
             </AppCard>
 
-            <AppCard className="gap-4">
+            <AppCard className={isCompact ? "gap-3" : "gap-4"}>
               <AppText variant="heading">Contact</AppText>
               <DetailRow icon={Mail} label="Email" value={memberProfile.email ?? "-"} iconColor={iconMuted} />
               <DetailRow

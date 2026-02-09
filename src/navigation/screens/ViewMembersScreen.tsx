@@ -17,6 +17,7 @@ import { theme } from "../../theme/theme";
 import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
 import type { SettingsStackParamList } from "../SettingsStackNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 function sortByFullName<T extends { first_name?: string | null; last_name?: string | null; display_name?: string | null }>(
   members: T[],
@@ -99,6 +100,7 @@ function MemberGroup({
 export function ViewMembersScreen() {
   const { profile } = useCurrentUser();
   const { colorScheme } = useColorScheme();
+  const { isCompact } = useNavigationLayout();
   const navigation = useNavigation<NativeStackNavigationProp<SettingsStackParamList>>();
   const iconColor = colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
   const canManageOrganization = isOwnerOrAdminRole(profile.role);
@@ -107,7 +109,7 @@ export function ViewMembersScreen() {
   if (!canManageOrganization) {
     return (
       <Screen scroll>
-        <AppStack gap="lg">
+        <AppStack gap={isCompact ? "md" : "lg"}>
           <View>
             <AppText variant="title">View members</AppText>
             <AppText className="mt-2" variant="body">
@@ -126,7 +128,7 @@ export function ViewMembersScreen() {
 
   return (
     <Screen scroll>
-      <AppStack gap="lg">
+      <AppStack gap={isCompact ? "md" : "lg"}>
         <View>
           <AppText variant="title">Members</AppText>
           <AppText className="mt-2" variant="body">

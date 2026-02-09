@@ -149,7 +149,7 @@ function ScoreChip({ score }: { score: number | null }) {
 
 export function StudentAssessmentHistoryScreen({ route }: Props) {
   const { studentId } = route.params;
-  const { isTablet, isLandscape } = useNavigationLayout();
+  const { isTablet, isLandscape, isCompact } = useNavigationLayout();
   const { profile } = useCurrentUser();
 
   const [assessmentType, setAssessmentType] = useState<AssessmentType>("driving_assessment");
@@ -1055,7 +1055,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
       </ScrollView>
     </View>
   ) : (
-    <AppStack gap="lg">
+    <AppStack gap={isCompact ? "md" : "lg"}>
       {listContent}
       {renderDetail(selectedAssessment)}
     </AppStack>
@@ -1063,7 +1063,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
 
   return (
     <Screen scroll={!twoPane} className={cn(twoPane && "max-w-6xl")}>
-      <AppStack gap="lg" className={cn(twoPane && "flex-1")}>
+      <AppStack gap={isCompact ? "md" : "lg"} className={cn(twoPane && "flex-1")}>
         {header}
         {tabs}
         {studentQuery.isError ? (

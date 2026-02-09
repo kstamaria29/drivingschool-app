@@ -59,6 +59,7 @@ import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
 import { openPdfUri } from "../../utils/open-pdf";
 import { AssessmentStudentDropdown } from "../components/AssessmentStudentDropdown";
+import { useNavigationLayout } from "../useNavigationLayout";
 import { useAssessmentLeaveGuard } from "../useAssessmentLeaveGuard";
 
 import type { AssessmentsStackParamList } from "../AssessmentsStackNavigator";
@@ -194,6 +195,7 @@ function FeedbackField({
 
 export function DrivingAssessmentScreen({ navigation, route }: Props) {
   const { profile, userId } = useCurrentUser();
+  const { isCompact } = useNavigationLayout();
 
   const organizationQuery = useOrganizationQuery(profile.organization_id);
   const studentsQuery = useStudentsQuery({ archived: false });
@@ -517,8 +519,11 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
   return (
     <>
       <Screen scroll={false}>
-      <ScrollView ref={scrollRef} contentContainerClassName="gap-4 pb-6">
-        <AppStack gap="lg">
+      <ScrollView
+        ref={scrollRef}
+        contentContainerClassName={isCompact ? "gap-3 pb-6" : "gap-4 pb-6"}
+      >
+        <AppStack gap={isCompact ? "md" : "lg"}>
           <View>
             <AppText variant="title">Driving Assessment</AppText>
             <AppText className="mt-2" variant="body">
@@ -824,7 +829,7 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
         onRequestClose={() => setStartTestModalVisible(false)}
       >
         <Pressable
-          className="flex-1 bg-black/40 px-6 py-10"
+          className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
           onPress={() => setStartTestModalVisible(false)}
         >
           <Pressable

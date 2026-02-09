@@ -21,10 +21,12 @@ import {
 import { toErrorMessage } from "../../utils/errors";
 
 import type { AuthStackParamList } from "../AuthStackNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "OnboardingCreateOrg">;
 
 export function OnboardingCreateOrgScreen({ navigation }: Props) {
+  const { isCompact } = useNavigationLayout();
   const { session } = useAuthSession();
   const userId = session?.user.id ?? "";
 
@@ -64,7 +66,7 @@ export function OnboardingCreateOrgScreen({ navigation }: Props) {
 
   return (
     <Screen scroll>
-      <AppStack gap="lg">
+      <AppStack gap={isCompact ? "md" : "lg"}>
         <View>
           <AppText variant="title">Create your driving school</AppText>
           <AppText className="mt-2" variant="body">
@@ -72,7 +74,7 @@ export function OnboardingCreateOrgScreen({ navigation }: Props) {
           </AppText>
         </View>
 
-        <AppCard className="gap-4">
+        <AppCard className={isCompact ? "gap-3" : "gap-4"}>
           <Controller
             control={form.control}
             name="organizationName"

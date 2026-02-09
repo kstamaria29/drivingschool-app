@@ -826,7 +826,7 @@ export function StudentsListScreen({ navigation }: Props) {
 
   return (
     <Screen scroll className={cn(isTabletLandscape && "max-w-[1100px]")}>
-      <AppStack gap="lg">
+      <AppStack gap={isCompact ? "md" : "lg"}>
         <View className="flex-row flex-wrap items-start justify-between gap-3">
           <View className="min-w-56 flex-1">
             <AppText variant="title">Students</AppText>
@@ -844,7 +844,7 @@ export function StudentsListScreen({ navigation }: Props) {
           />
         </View>
 
-        <AppCard className="gap-4">
+        <AppCard className={isCompact ? "gap-3" : "gap-4"}>
           <View
             className={cn(
               "flex-row flex-wrap gap-3",

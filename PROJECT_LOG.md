@@ -1,6 +1,30 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Mobile portrait compact spacing pass
+- **Summary:**
+  - Reduced global card and picker modal padding for compact/mobile screens to fit more content per view.
+  - Updated remaining screens to use compact gaps/modal padding while keeping tablet layouts unchanged.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Mobile portrait layout polish
+- **Summary:**
+  - Reduced mobile (compact) screen padding/spacing to fit more content without cramped cards.
+  - Tightened key screens (Home quick-actions + titles, Student Detail header, and compact form spacing) while keeping tablet layouts unchanged.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Tablet landscape layouts + collapsed sidebar default
+- **Summary:**
+  - Improved tablet-landscape layouts across key screens (Home, Settings, Assessments, Student Detail, Lesson Edit) while keeping tablet-portrait unchanged.
+  - Set the permanent sidebar to start collapsed in tablet-landscape and removed landscape max-width constraints to eliminate side whitespace.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Theme coverage for recent UI updates
 - **Summary:**
   - Fixed missing theme classes for primary/border tokens in badges, dividers, avatars, and assessment history chips.
@@ -132,27 +156,3 @@
 - **Summary:**
   - Updated sidebar `Students` navigation to always open `StudentsList` instead of returning to previously viewed student profile screens.
   - Reworked Student Profile bottom actions into 2-column rows with requested order and styling, including blue `Start Assessment` with icon and...
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student profile address layout stabilization + assessment picker collapse
-- **Summary:**
-  - Refactored Student Profile detail-field sizing so full-width Address renders consistently inside the Contact card and reduced organization n...
-  - Updated assessment student dropdown behavior to auto-collapse when a student is pre-selected (including launches from Student Profile `Start...
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student assessment launch modal + mock-test start modals
-- **Summary:**
-  - Set Student Profile organization text to `25px`, added a `Start Assessment` action button, and added an assessment-type modal that deep-link...
-  - Updated Driving Assessment modal wording to `You are about to start assessing ...` and added equivalent start-confirmation modals to Restric...
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Maps pin-panel redesign + assessment picker and start-flow updates
-- **Summary:**
-  - Removed Google Maps top `Pin colors` panel, redesigned selected-pin actions/details (icon-only delete, color picker button, tip + right-alig...
-  - Updated assessment student picker behavior to only show results after typing search text, switched Driving Assessment start confirmation to....

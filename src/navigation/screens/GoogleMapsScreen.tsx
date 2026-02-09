@@ -261,7 +261,9 @@ export function GoogleMapsScreen(_props: Props) {
   const { width, height } = useWindowDimensions();
   const { profile } = useCurrentUser();
   const placesConfigured = isGooglePlacesConfigured();
-  const keyboardAvoidingEnabled = Math.min(width, height) >= TABLET_MIN_WIDTH && height > width;
+  const minDimension = Math.min(width, height);
+  const isCompact = minDimension < TABLET_MIN_WIDTH;
+  const keyboardAvoidingEnabled = minDimension >= TABLET_MIN_WIDTH && height > width;
   const pinColorStorage = useMemo(
     () => mapPinColorStorageKey(profile.organization_id, profile.id),
     [profile.id, profile.organization_id],
@@ -1349,7 +1351,7 @@ export function GoogleMapsScreen(_props: Props) {
       onRequestClose={() => setPinColorPickerVisible(false)}
     >
       <Pressable
-        className="flex-1 bg-black/40 px-6 py-10"
+        className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
         onPress={() => setPinColorPickerVisible(false)}
       >
         <Pressable

@@ -34,6 +34,7 @@ import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
 
 import type { LessonsStackParamList } from "../LessonsStackNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 type CreateProps = NativeStackScreenProps<LessonsStackParamList, "LessonCreate">;
 type EditProps = NativeStackScreenProps<LessonsStackParamList, "LessonEdit">;
@@ -49,6 +50,7 @@ function pad2(value: number) {
 }
 
 export function LessonEditScreen({ navigation, route }: Props) {
+  const { isSidebar, isCompact } = useNavigationLayout();
   const lessonId = route.name === "LessonEdit" ? route.params.lessonId : undefined;
   const initialDate =
     route.name === "LessonCreate" ? route.params?.initialDate : undefined;
@@ -274,7 +276,7 @@ export function LessonEditScreen({ navigation, route }: Props) {
 
   return (
     <Screen scroll>
-      <AppStack gap="lg">
+      <AppStack gap={isCompact ? "md" : "lg"}>
         <View>
           <View className="flex-row items-center justify-between gap-3">
             <AppText variant="title">{isEditing ? "Edit lesson" : "New lesson"}</AppText>
@@ -306,7 +308,12 @@ export function LessonEditScreen({ navigation, route }: Props) {
           )}
         </View>
 
-        <AppCard className="gap-4">
+        <View
+          className={cn(
+            isSidebar ? "flex-row flex-wrap gap-6" : isCompact ? "gap-4" : "gap-6",
+          )}
+        >
+          <AppCard className={cn("gap-4", isSidebar && "flex-1 min-w-[360px]")}>
           <Controller
             control={form.control}
             name="date"
@@ -347,9 +354,9 @@ export function LessonEditScreen({ navigation, route }: Props) {
               />
             )}
           />
-        </AppCard>
+          </AppCard>
 
-        <AppCard className="gap-4">
+          <AppCard className={cn("gap-4", isSidebar && "flex-1 min-w-[360px]")}>
           <AppText variant="heading">Instructor</AppText>
 
           <Controller
@@ -402,9 +409,9 @@ export function LessonEditScreen({ navigation, route }: Props) {
               </AppStack>
             )}
           />
-        </AppCard>
+          </AppCard>
 
-        <AppCard className="gap-4">
+          <AppCard className={cn("gap-4", isSidebar && "flex-1 min-w-[360px]")}>
           <AppText variant="heading">Student</AppText>
 
           {studentsQuery.isPending ? (
@@ -454,9 +461,9 @@ export function LessonEditScreen({ navigation, route }: Props) {
               />
             </>
           )}
-        </AppCard>
+          </AppCard>
 
-        <AppCard className="gap-4">
+          <AppCard className={cn("gap-4", isSidebar && "flex-1 min-w-[360px]")}>
           <AppText variant="heading">Status</AppText>
 
           <Controller
@@ -488,9 +495,9 @@ export function LessonEditScreen({ navigation, route }: Props) {
               </View>
             )}
           />
-        </AppCard>
+          </AppCard>
 
-        <AppCard className="gap-4">
+          <AppCard className={cn("gap-4", isSidebar && "flex-1 min-w-[360px]")}>
           <Controller
             control={form.control}
             name="location"
@@ -520,18 +527,51 @@ export function LessonEditScreen({ navigation, route }: Props) {
               />
             )}
           />
-        </AppCard>
+          </AppCard>
 
-        {mutationError ? <AppText variant="error">{toErrorMessage(mutationError)}</AppText> : null}
+          {mutationError ? (
+            <View className={cn(isSidebar && "w-full")}>
+              <AppText variant="error">{toErrorMessage(mutationError)}</AppText>
+            </View>
+          ) : null}
 
-        <AppButton
-          label={saving ? "Saving..." : isEditing ? "Save changes" : "Create lesson"}
-          icon={isEditing ? Save : Plus}
-          disabled={saving}
-          onPress={form.handleSubmit(onSubmit)}
-        />
+          {isSidebar ? (
+            <View className="w-full flex-row gap-3">
+              <AppButton
+                width="auto"
+                className="flex-1"
+                label={saving ? "Saving..." : isEditing ? "Save changes" : "Create lesson"}
+                icon={isEditing ? Save : Plus}
+                disabled={saving}
+                onPress={form.handleSubmit(onSubmit)}
+              />
+              <AppButton
+                width="auto"
+                className="flex-1"
+                label="Cancel"
+                icon={X}
+                variant="ghost"
+                onPress={() => navigation.goBack()}
+              />
+            </View>
+          ) : (
+            <>
+              <AppButton
+                label={saving ? "Saving..." : isEditing ? "Save changes" : "Create lesson"}
+                icon={isEditing ? Save : Plus}
+                disabled={saving}
+                onPress={form.handleSubmit(onSubmit)}
+              />
 
-        <AppButton label="Cancel" icon={X} variant="ghost" onPress={() => navigation.goBack()} />
+              <AppButton
+                label="Cancel"
+                icon={X}
+                variant="ghost"
+                onPress={() => navigation.goBack()}
+              />
+            </>
+          )}
+        </View>
       </AppStack>
     </Screen>
   );

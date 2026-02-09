@@ -23,6 +23,7 @@ import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
 
 import type { SettingsStackParamList } from "../SettingsStackNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 function splitNameFallback(displayName: string) {
   const parts = displayName.trim().split(/\s+/).filter(Boolean);
@@ -32,6 +33,7 @@ function splitNameFallback(displayName: string) {
 }
 
 export function EditDetailsScreen() {
+  const { isCompact } = useNavigationLayout();
   const { userId, profile } = useCurrentUser();
   const navigation = useNavigation<NativeStackNavigationProp<SettingsStackParamList>>();
   const saveDetailsMutation = useUpdateMyDetailsMutation(userId);
@@ -112,7 +114,7 @@ export function EditDetailsScreen() {
 
   return (
     <Screen scroll>
-      <AppStack gap="lg">
+      <AppStack gap={isCompact ? "md" : "lg"}>
         <View>
           <AppText variant="title">Edit details</AppText>
           <AppText className="mt-2" variant="body">
@@ -126,9 +128,13 @@ export function EditDetailsScreen() {
           <AppText variant="caption">{getRoleDisplayLabel(profile)}</AppText>
         </AppCard>
 
-        <AppCard className="gap-4">
+        <AppCard className={isCompact ? "gap-3" : "gap-4"}>
           <View className="flex-row items-center gap-4">
-            <Avatar uri={profile.avatar_url} size={64} label={getProfileFullName(profile)} />
+            <Avatar
+              uri={profile.avatar_url}
+              size={isCompact ? 56 : 64}
+              label={getProfileFullName(profile)}
+            />
             <View className="flex-1 gap-2">
               <AppText variant="label">Avatar</AppText>
               <AppButton
@@ -209,7 +215,7 @@ export function EditDetailsScreen() {
           {pickerError ? <AppText variant="error">{pickerError}</AppText> : null}
         </AppCard>
 
-        <AppCard className="gap-4">
+        <AppCard className={isCompact ? "gap-3" : "gap-4"}>
           <Controller
             control={form.control}
             name="firstName"

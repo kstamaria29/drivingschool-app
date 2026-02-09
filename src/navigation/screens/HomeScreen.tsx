@@ -21,6 +21,7 @@ import { toErrorMessage } from "../../utils/errors";
 import { getProfileFullName } from "../../utils/profileName";
 
 import type { HomeStackParamList } from "../HomeStackNavigator";
+import { useNavigationLayout } from "../useNavigationLayout";
 
 type Props = NativeStackScreenProps<HomeStackParamList, "HomeDashboard">;
 
@@ -50,6 +51,7 @@ function formatReminderTimeLabel(reminderTime: string) {
 }
 
 export function HomeScreen({ navigation }: Props) {
+  const { isSidebar, isCompact } = useNavigationLayout();
   const { profile } = useCurrentUser();
   const today = dayjs();
   const startOfToday = today.startOf("day");
@@ -119,155 +121,182 @@ export function HomeScreen({ navigation }: Props) {
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const name = getProfileFullName(profile) || "there";
 
+  const header = (
+    <View>
+      <AppText className={isCompact ? "text-2xl" : undefined} variant="title">
+        {greeting} {name}!
+      </AppText>
+      <AppText className="mt-2" variant="body">
+        {today.format(`dddd, ${DISPLAY_DATE_FORMAT}`)}
+      </AppText>
+    </View>
+  );
+
+  const quickActions = (
+    <AppStack gap="sm">
+      <View className="flex-row flex-wrap gap-2">
+        <AppButton
+          width="auto"
+          className={`flex-1 ${isCompact ? "min-w-40" : "min-w-48"}`}
+          label="Students"
+          icon={Users}
+          onPress={() => parent?.navigate("Students")}
+        />
+        <AppButton
+          width="auto"
+          className={`flex-1 ${isCompact ? "min-w-40" : "min-w-48"}`}
+          variant="secondary"
+          label="Assessments"
+          icon={ClipboardList}
+          onPress={() =>
+            parent?.navigate("Assessments", {
+              screen: "AssessmentsMain",
+            })
+          }
+        />
+      </View>
+      <View className="flex-row flex-wrap gap-2">
+        <AppButton
+          width="auto"
+          className={`flex-1 ${isCompact ? "min-w-40" : "min-w-48"}`}
+          variant="secondary"
+          label="Lessons"
+          icon={BookOpen}
+          onPress={() => parent?.navigate("Lessons")}
+        />
+        <AppButton
+          width="auto"
+          className={`flex-1 ${isCompact ? "min-w-40" : "min-w-48"}`}
+          variant="secondary"
+          label="Google Maps"
+          icon={MapIcon}
+          onPress={() => parent?.navigate("GoogleMaps")}
+        />
+      </View>
+    </AppStack>
+  );
+
+  const lessonsSection = lessonsQuery.isPending ? (
+    <CenteredLoadingState label="Loading today's lessons..." />
+  ) : lessonsQuery.isError ? (
+    <ErrorStateCard
+      title="Couldn't load today's lessons"
+      message={toErrorMessage(lessonsQuery.error)}
+      onRetry={() => lessonsQuery.refetch()}
+      retryPlacement="inside"
+    />
+  ) : (
+    <AppCard className="gap-3">
+      <AppText variant="heading">Lessons Today</AppText>
+      {todayLessons.length === 0 ? (
+        <AppText variant="body">No lessons scheduled today.</AppText>
+      ) : (
+        <View className="gap-2">
+          {todayLessons.map((lesson) => (
+            <View key={lesson.id} className="flex-row items-center justify-between gap-3">
+              <AppText className="flex-1" variant="body">
+                {getLessonStudentName(lesson)}
+              </AppText>
+              <AppText variant="caption">{formatLessonTimeRange(lesson)}</AppText>
+            </View>
+          ))}
+        </View>
+      )}
+
+      <View className="pt-2">
+        <AppText variant="heading">Next 3 days</AppText>
+        <View className="mt-2 gap-3">
+          {([1, 2, 3] as const).map((offset) => {
+            const day = startOfToday.add(offset, "day");
+            const list = upcomingByDay.get(offset) ?? [];
+            if (list.length === 0) return null;
+
+            return (
+              <View key={offset} className="gap-2">
+                <AppText className="underline" variant="body">
+                  {day.format(`ddd, ${DISPLAY_DATE_FORMAT}`)}
+                </AppText>
+                <View className="gap-2">
+                  {list.map((lesson) => (
+                    <View key={lesson.id} className="flex-row items-center justify-between gap-3">
+                      <AppText className="flex-1" variant="body">
+                        {getLessonStudentName(lesson)}
+                      </AppText>
+                      <AppText variant="caption">{formatLessonTimeRange(lesson)}</AppText>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            );
+          })}
+
+          {upcomingByDay.size === 0 ? (
+            <AppText variant="caption">No lessons in the next 3 days.</AppText>
+          ) : null}
+        </View>
+      </View>
+    </AppCard>
+  );
+
+  const remindersSection = remindersQuery.isPending ? (
+    <CenteredLoadingState label="Loading upcoming reminders..." />
+  ) : remindersQuery.isError ? (
+    <ErrorStateCard
+      title="Couldn't load reminders"
+      message={toErrorMessage(remindersQuery.error)}
+      onRetry={() => remindersQuery.refetch()}
+      retryPlacement="inside"
+    />
+  ) : (
+    <AppCard className="gap-3">
+      <AppText variant="heading">Upcoming Reminders</AppText>
+      {upcomingReminders.length === 0 ? (
+        <AppText variant="body">No upcoming reminders.</AppText>
+      ) : (
+        <View className="gap-3">
+          {upcomingReminders.map(({ reminder }) => (
+            <View key={reminder.id} className="flex-row items-start justify-between gap-3">
+              <View className="flex-1">
+                <AppText variant="body">{reminder.title}</AppText>
+                <AppText className="mt-1" variant="caption">
+                  Student: {getReminderStudentName(reminder)}
+                </AppText>
+              </View>
+              <AppText variant="caption">
+                {formatIsoDateToDisplay(reminder.reminder_date)}{" "}
+                {formatReminderTimeLabel(reminder.reminder_time)}
+              </AppText>
+            </View>
+          ))}
+        </View>
+      )}
+    </AppCard>
+  );
+
   return (
     <Screen scroll>
-      <AppStack gap="lg">
-        <View>
-          <AppText variant="title">
-            {greeting} {name}!
-          </AppText>
-          <AppText className="mt-2" variant="body">
-            {today.format(`dddd, ${DISPLAY_DATE_FORMAT}`)}
-          </AppText>
-        </View>
+      <AppStack gap={isCompact ? "md" : "lg"}>
+        {header}
 
-        <View className="flex-row flex-wrap gap-2">
-          <AppButton
-            width="auto"
-            className="flex-1 min-w-48"
-            label="Students"
-            icon={Users}
-            onPress={() => parent?.navigate("Students")}
-          />
-          <AppButton
-            width="auto"
-            className="flex-1 min-w-48"
-            variant="secondary"
-            label="Assessments"
-            icon={ClipboardList}
-            onPress={() =>
-              parent?.navigate("Assessments", {
-                screen: "AssessmentsMain",
-              })
-            }
-          />
-        </View>
-        <View className="flex-row flex-wrap gap-2">
-          <AppButton
-            width="auto"
-            className="flex-1 min-w-48"
-            variant="secondary"
-            label="Lessons"
-            icon={BookOpen}
-            onPress={() => parent?.navigate("Lessons")}
-          />
-          <AppButton
-            width="auto"
-            className="flex-1 min-w-48"
-            variant="secondary"
-            label="Google Maps"
-            icon={MapIcon}
-            onPress={() => parent?.navigate("GoogleMaps")}
-          />
-        </View>
-
-        {lessonsQuery.isPending ? (
-          <CenteredLoadingState label="Loading today's lessons..." />
-        ) : lessonsQuery.isError ? (
-          <ErrorStateCard
-            title="Couldn't load today's lessons"
-            message={toErrorMessage(lessonsQuery.error)}
-            onRetry={() => lessonsQuery.refetch()}
-            retryPlacement="inside"
-          />
-        ) : (
-          <AppCard className="gap-3">
-            <AppText variant="heading">Lessons Today</AppText>
-            {todayLessons.length === 0 ? (
-              <AppText variant="body">No lessons scheduled today.</AppText>
-            ) : (
-              <View className="gap-2">
-                {todayLessons.map((lesson) => (
-                  <View key={lesson.id} className="flex-row items-center justify-between gap-3">
-                    <AppText className="flex-1" variant="body">
-                      {getLessonStudentName(lesson)}
-                    </AppText>
-                    <AppText variant="caption">{formatLessonTimeRange(lesson)}</AppText>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            <View className="pt-2">
-              <AppText variant="heading">Next 3 days</AppText>
-              <View className="mt-2 gap-3">
-                {([1, 2, 3] as const).map((offset) => {
-                  const day = startOfToday.add(offset, "day");
-                  const list = upcomingByDay.get(offset) ?? [];
-                  if (list.length === 0) return null;
-
-                  return (
-                    <View key={offset} className="gap-2">
-                      <AppText className="underline" variant="body">
-                        {day.format(`ddd, ${DISPLAY_DATE_FORMAT}`)}
-                      </AppText>
-                      <View className="gap-2">
-                        {list.map((lesson) => (
-                          <View key={lesson.id} className="flex-row items-center justify-between gap-3">
-                            <AppText className="flex-1" variant="body">
-                              {getLessonStudentName(lesson)}
-                            </AppText>
-                            <AppText variant="caption">{formatLessonTimeRange(lesson)}</AppText>
-                          </View>
-                        ))}
-                      </View>
-                    </View>
-                  );
-                })}
-
-                {upcomingByDay.size === 0 ? (
-                  <AppText variant="caption">No lessons in the next 3 days.</AppText>
-                ) : null}
-              </View>
+        {isSidebar ? (
+          <View className="flex-1 flex-row flex-wrap gap-6">
+            <View className="flex-1 min-w-[360px] gap-6">
+              {quickActions}
+              {lessonsSection}
             </View>
-          </AppCard>
-        )}
-
-        {remindersQuery.isPending ? (
-          <CenteredLoadingState label="Loading upcoming reminders..." />
-        ) : remindersQuery.isError ? (
-          <ErrorStateCard
-            title="Couldn't load reminders"
-            message={toErrorMessage(remindersQuery.error)}
-            onRetry={() => remindersQuery.refetch()}
-            retryPlacement="inside"
-          />
+            <View className="flex-1 min-w-[360px] gap-6">
+              {remindersSection}
+              <WeatherWidget />
+            </View>
+          </View>
         ) : (
-          <AppCard className="gap-3">
-            <AppText variant="heading">Upcoming Reminders</AppText>
-            {upcomingReminders.length === 0 ? (
-              <AppText variant="body">No upcoming reminders.</AppText>
-            ) : (
-              <View className="gap-3">
-                {upcomingReminders.map(({ reminder }) => (
-                  <View key={reminder.id} className="flex-row items-start justify-between gap-3">
-                    <View className="flex-1">
-                      <AppText variant="body">{reminder.title}</AppText>
-                      <AppText className="mt-1" variant="caption">
-                        Student: {getReminderStudentName(reminder)}
-                      </AppText>
-                    </View>
-                    <AppText variant="caption">
-                      {formatIsoDateToDisplay(reminder.reminder_date)} {formatReminderTimeLabel(reminder.reminder_time)}
-                    </AppText>
-                  </View>
-                ))}
-              </View>
-            )}
-          </AppCard>
+          <>
+            {quickActions}
+            {lessonsSection}
+            {remindersSection}
+            <WeatherWidget />
+          </>
         )}
-
-        <WeatherWidget />
       </AppStack>
     </Screen>
   );
