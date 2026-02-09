@@ -1,6 +1,22 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Lessons reminders show student name
+- **Summary:**
+  - Updated Lessons selected-day Reminders list to show student name above reminder title.
+  - Joined student names in the reminders date-range query used by the Lessons calendar.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Lessons agenda title + upcoming reminders student label
+- **Summary:**
+  - Added a Lessons section title in the Lessons agenda card for visual consistency with Reminders.
+  - Updated Home Upcoming Reminders to show the student name more clearly.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Session History edit flow + Lessons agenda reminders
 - **Summary:**
   - Defaulted Session History task suggestions to show and added an edit/update action for session entries.
@@ -140,19 +156,3 @@
 - **Summary:**
   - Restyled Student Profile Contact and Licence details into left-aligned boxed fields that match the licence photo action button visual style.
   - Reordered Contact/Licence rows to the requested 2-column structure, moved organization under the student name with an icon, and pushed Archi...
-
----
-
-- **Date:** 2026-02-08 (Pacific/Auckland)
-- **Task:** Full badge orange + compact logging system
-- **Summary:**
-  - Changed the Students screen `Full` licence badge color from green to orange.
-  - Replaced the heavy log format with compact `Date/Task/Summary` entries and reduced archive size significantly.
-
----
-
-- **Date:** 2026-02-08 (Pacific/Auckland)
-- **Task:** Students list organization label + licence badge styling update
-- **Summary:**
-  - Replaced the Students table row text next to the licence badge from licence type labels to the student `organization_name`.
-  - Renamed the right-side column header from `Licence` to `Organization` while keeping the L/R/F circular badge visible.

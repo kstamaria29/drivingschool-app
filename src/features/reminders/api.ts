@@ -63,10 +63,10 @@ export type ListRemindersByDateRangeInput = {
 
 export async function listRemindersByDateRange(
   input: ListRemindersByDateRangeInput,
-): Promise<StudentReminder[]> {
+): Promise<StudentReminderWithStudent[]> {
   let query = supabase
     .from("student_reminders")
-    .select("*")
+    .select("*, students(first_name, last_name)")
     .gte("reminder_date", input.fromISODate)
     .lte("reminder_date", input.toISODate)
     .order("reminder_date", { ascending: true })
@@ -75,7 +75,7 @@ export async function listRemindersByDateRange(
 
   if (input.limit) query = query.limit(input.limit);
 
-  const { data, error } = await query.overrideTypes<StudentReminder[], { merge: false }>();
+  const { data, error } = await query.overrideTypes<StudentReminderWithStudent[], { merge: false }>();
   if (error) throw error;
   return data ?? [];
 }

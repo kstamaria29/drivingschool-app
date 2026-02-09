@@ -960,3 +960,19 @@
 - **Summary:**
   - Updated `New/Edit student` Organization field to show selected value left-aligned in the trigger button (e.g., `Private`).
   - Replaced inline organization dropdown expansion with a modal action-sheet style picker (matching the photo options modal pattern).
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Students list organization label + licence badge styling update
+- **Summary:**
+  - Replaced the Students table row text next to the licence badge from licence type labels to the student `organization_name`.
+  - Renamed the right-side column header from `Licence` to `Organization` while keeping the L/R/F circular badge visible.
+
+---
+
+- **Date:** 2026-02-08 (Pacific/Auckland)
+- **Task:** Full badge orange + compact logging system
+- **Summary:**
+  - Changed the Students screen `Full` licence badge color from green to orange.
+  - Replaced the heavy log format with compact `Date/Task/Summary` entries and reduced archive size significantly.

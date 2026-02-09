@@ -42,6 +42,12 @@ function normalizeTimeHHmm(value: string | null | undefined) {
   return match ? match[0] : "09:00";
 }
 
+function getReminderStudentName(reminder: { students?: { first_name: string; last_name: string } | null }) {
+  const student = reminder.students ?? null;
+  if (!student) return "Unknown student";
+  return `${student.first_name} ${student.last_name}`.trim() || "Unknown student";
+}
+
 export function LessonsListScreen({ navigation }: Props) {
   const { width, height } = useWindowDimensions();
   const isCompact = Math.min(width, height) < 600;
@@ -189,6 +195,7 @@ export function LessonsListScreen({ navigation }: Props) {
     const when = dayjs(`${reminder.reminder_date}T${timeHHmm}:00`);
     const timeLabel = when.isValid() ? when.format("h:mm") : timeHHmm;
     const meridiemLabel = when.isValid() ? when.format("A") : "";
+    const studentName = getReminderStudentName(reminder);
 
     return (
       <View
@@ -210,10 +217,11 @@ export function LessonsListScreen({ navigation }: Props) {
           <View className="flex-1 gap-1">
             <View className="flex-row items-start justify-between gap-3">
               <AppText className="flex-1" variant="heading">
-                {reminder.title}
+                {studentName}
               </AppText>
               <View className="mt-2 h-2 w-2 rounded-full bg-emerald-600 dark:bg-emerald-500" />
             </View>
+            <AppText variant="body">{reminder.title}</AppText>
           </View>
         </View>
       </View>
@@ -342,10 +350,11 @@ export function LessonsListScreen({ navigation }: Props) {
         </AppStack>
       ) : (
         <ScrollView className="flex-1" keyboardShouldPersistTaps="handled" contentContainerClassName="gap-3 pb-2">
+          <AppText variant="heading">Lessons</AppText>
           {!hasLessons ? <AppText variant="caption">No lessons scheduled.</AppText> : null}
           {lessonCards}
           {hasReminders ? (
-            <View className={cn(hasLessons && "pt-2")}>
+            <View className="pt-2">
               <AppText variant="heading">Reminders</AppText>
             </View>
           ) : null}

@@ -254,7 +254,7 @@ export function HomeScreen({ navigation }: Props) {
                     <View className="flex-1">
                       <AppText variant="body">{reminder.title}</AppText>
                       <AppText className="mt-1" variant="caption">
-                        {getReminderStudentName(reminder)}
+                        Student: {getReminderStudentName(reminder)}
                       </AppText>
                     </View>
                     <AppText variant="caption">
