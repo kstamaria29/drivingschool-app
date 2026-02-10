@@ -722,7 +722,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   const summaryCard =
     stage === "test" ? (
-      <AppCard className="gap-3">
+      <AppCard className="gap-3 !border-slate-300 dark:!border-borderDark">
         {selectedStudent ? (
           <AppText variant="heading">
             {selectedStudent.first_name} {selectedStudent.last_name}
@@ -940,10 +940,18 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     <>
       <AppCollapsibleCard
         title="Critical errors"
-        subtitle="Recorded any time during route."
+        subtitleNode={
+          <View className="gap-1">
+            <AppText variant="caption">Recorded any time during route.</AppText>
+            {summary.criticalTotal > 0 ? (
+              <AppText className="text-xl !text-orange-600 dark:!text-orange-400" variant="body">
+                Total Errors: {summary.criticalTotal}
+              </AppText>
+            ) : null}
+          </View>
+        }
         showLabelClassName="!text-blue-600 dark:!text-blue-400"
         hideLabelClassName="!text-red-600 dark:!text-red-400"
-        rightText={summary.criticalTotal > 0 ? `${summary.criticalTotal} recorded` : undefined}
         expanded={criticalErrorsExpanded}
         className={cn(criticalErrorsExpanded && "!border-2 !border-blue-600 dark:!border-blue-400")}
         onToggle={() => toggleSection("critical")}
@@ -995,10 +1003,18 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
       <AppCollapsibleCard
         title="Immediate failure errors"
-        subtitle="Any one = fail."
+        subtitleNode={
+          <View className="gap-1">
+            <AppText variant="caption">Any one = fail.</AppText>
+            {summary.immediateTotal > 0 ? (
+              <AppText className="text-xl !text-red-600 dark:!text-red-400" variant="body">
+                Total Errors: {summary.immediateTotal}
+              </AppText>
+            ) : null}
+          </View>
+        }
         showLabelClassName="!text-blue-600 dark:!text-blue-400"
         hideLabelClassName="!text-red-600 dark:!text-red-400"
-        rightText={summary.immediateTotal > 0 ? `${summary.immediateTotal} recorded` : undefined}
         expanded={immediateErrorsExpanded}
         className={cn(immediateErrorsExpanded && "!border-2 !border-blue-600 dark:!border-blue-400")}
         onToggle={() => toggleSection("immediate")}
