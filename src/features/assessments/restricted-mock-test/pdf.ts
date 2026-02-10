@@ -43,13 +43,13 @@ function escapeHtml(input: string) {
 
 function buildHtml(input: Input) {
   const v = input.values;
-  const summary = v.summary
-    ? v.summary
-    : calculateRestrictedMockTestSummary({
-        stagesState: v.stagesState,
-        critical: v.critical,
-        immediate: v.immediate,
-      });
+  const computedSummary = calculateRestrictedMockTestSummary({
+    stagesState: v.stagesState,
+    critical: v.critical,
+    immediate: v.immediate,
+  });
+
+  const summary = v.summary ? { ...computedSummary, ...v.summary } : computedSummary;
 
   const stage1Repetitions = Object.values(v.stagesState.stage1 || {}).reduce((sum, task) => {
     return sum + (task.repetitions ?? 0);
@@ -59,39 +59,98 @@ function buildHtml(input: Input) {
     return sum + (task.repetitions ?? 0);
   }, 0);
 
+  const stage1Faults = summary.stage1Faults ?? 0;
+  const stage2Faults = summary.stage2Faults ?? 0;
+  const stage2HasRecordedItems =
+    stage2Repetitions > 0 ||
+    stage2Faults > 0 ||
+    Object.values(v.stagesState.stage2 || {}).some((task) => {
+      return Boolean(task.location?.trim()) || Boolean(task.notes?.trim());
+    });
+  const stage2Used = Boolean(v.stage2Enabled) || stage2HasRecordedItems;
+  const criticalTotal = summary.criticalTotal ?? 0;
+  const immediateTotal = summary.immediateTotal ?? 0;
+
   const dateTime = [v.date?.trim(), v.time?.trim()].filter(Boolean).join(" ");
   const logoUrl = input.organizationLogoUrl?.trim() || "";
   const logoHtml = logoUrl
     ? `<div class="header-right"><img class="logo" src="${escapeHtml(logoUrl)}" /></div>`
     : "";
 
+  const legacyTaskMetaById: Record<string, { name: string; targetReps?: number }> = {
+    s1_3pt: { name: "Three-point turn (if used instead of RPP)" },
+    s2_turns: { name: "All turns give way", targetReps: 10 },
+    s2_laneChanges: { name: "All lane changes", targetReps: 5 },
+    s2_straight: { name: "All straight drives", targetReps: 4 },
+    s2_roundabouts: { name: "All roundabouts", targetReps: 4 },
+    s2_extra: { name: "All extra complex tasks / variations", targetReps: 5 },
+  };
+
   function renderStage(stageId: "stage1" | "stage2") {
     const stage = restrictedMockTestStages.find((s) => s.id === stageId);
     if (!stage) return "";
 
     const stageTasks = v.stagesState[stageId] || {};
-    const rows = stage.tasks
-      .map((taskDef) => {
-        const t = stageTasks?.[taskDef.id];
+    const taskDefById = new Map<string, (typeof stage.tasks)[number]>(
+      stage.tasks.map((taskDef) => [taskDef.id as string, taskDef]),
+    );
+    const knownTaskIds = new Set<string>(stage.tasks.map((taskDef) => taskDef.id as string));
+    const extraTaskIds = Object.keys(stageTasks)
+      .filter((taskId) => !knownTaskIds.has(taskId))
+      .sort();
+    const taskIds = [...stage.tasks.map((taskDef) => taskDef.id as string), ...extraTaskIds];
+
+    const rows = taskIds
+      .map((taskId) => {
+        const t = stageTasks?.[taskId];
         if (!t) return null;
+
+        const taskDef = taskDefById.get(taskId) ?? null;
+        const legacyMeta = legacyTaskMetaById[taskId] ?? null;
+        const taskName = taskDef?.name ?? legacyMeta?.name ?? taskId;
+        const targetReps = taskDef?.targetReps ?? legacyMeta?.targetReps ?? null;
 
         const faults = getRestrictedMockTestTaskFaults(t);
         const repetitions = t.repetitions ?? 0;
+        const faultTotal = Object.values(t.items || {}).reduce((sum, value) => {
+          return sum + (typeof value === "number" ? value : 0);
+        }, 0);
         const hasDetails =
-          repetitions > 0 || Boolean(t.location?.trim()) || Boolean(t.notes?.trim()) || faults.length > 0;
+          repetitions > 0 ||
+          faultTotal > 0 ||
+          Boolean(t.location?.trim()) ||
+          Boolean(t.notes?.trim()) ||
+          faults.length > 0;
         if (!hasDetails) return null;
+
+        const targetHtml =
+          targetReps != null
+            ? `<div class="task-target">${escapeHtml(String(targetReps))} reps</div>`
+            : "";
+
+        const statsHtml =
+          repetitions > 0 || faultTotal > 0
+            ? `
+              <div class="stats-row">
+                ${
+                  repetitions > 0
+                    ? `<div class="stat-blue">Repetitions: ${escapeHtml(String(repetitions))}</div>`
+                    : ""
+                }
+                <div class="stat-red">Faults: ${escapeHtml(String(faultTotal))}</div>
+              </div>
+            `
+            : "";
 
         return `
           <div class="task">
             <div class="task-head">
-              <div class="task-name">${escapeHtml(taskDef.name)}</div>
-              <div class="task-meta">
-                ${repetitions > 0 ? `<div class="task-reps">Repetitions: ${escapeHtml(String(repetitions))}</div>` : ""}
-                <div class="task-speed">Typical speed: ${escapeHtml(taskDef.speed)}</div>
-              </div>
+              <div class="task-name">${escapeHtml(taskName)}</div>
+              ${targetHtml}
             </div>
+            ${statsHtml}
             ${t.location?.trim() ? `<div><span class="label">Location:</span> ${escapeHtml(t.location.trim())}</div>` : ""}
-            ${faults.length ? `<div><span class="label">Faults:</span> ${escapeHtml(faults.join(", "))}</div>` : ""}
+            ${faults.length ? `<div><span class="label">Fault types:</span> ${escapeHtml(faults.join(", "))}</div>` : ""}
             ${t.notes?.trim() ? `<div class="pre"><span class="label">Notes:</span> ${escapeHtml(t.notes.trim())}</div>` : ""}
           </div>
         `;
@@ -150,19 +209,24 @@ function buildHtml(input: Input) {
         .value { font-size: 10.5px; }
         .section { margin-top: 10px; }
         .pre { white-space: pre-wrap; }
-        .pill-grid { display: flex; gap: 10px; flex-wrap: wrap; }
-        .pill { border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 10px; min-width: 160px; }
-        .pill-title { color: #475569; font-size: 10px; margin-bottom: 4px; font-weight: 700; }
-        .pill-value { font-size: 12px; font-weight: 700; }
         .list { margin: 6px 0 0 0; padding-left: 14px; }
         .list li { margin: 2px 0; }
-        .task { border-top: 1px solid #e2e8f0; padding-top: 8px; margin-top: 8px; }
+        .stats-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
+        .stat-blue { color: #2563eb; font-weight: 700; }
+        .stat-red { color: #dc2626; font-weight: 700; }
+        .overview-row { display: flex; gap: 12px; justify-content: space-between; align-items: flex-start; margin-top: 8px; }
+        .overview-stages { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+        .overview-errors { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; align-items: flex-start; }
+        .badge { border: 1px solid #e2e8f0; border-radius: 12px; padding: 6px 10px; white-space: nowrap; }
+        .badge-stage { border-color: #2563eb; }
+        .badge-critical { border-color: #fdba74; }
+        .badge-immediate { border-color: #dc2626; }
+        .badge-text { font-size: 10.5px; font-weight: 700; }
+        .task { break-inside: avoid; border-top: 1px solid #e2e8f0; padding-top: 8px; margin-top: 8px; }
         .task:first-child { border-top: none; padding-top: 0; margin-top: 0; }
-        .task-head { display: flex; justify-content: space-between; gap: 10px; }
+        .task-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
         .task-name { font-weight: 700; }
-        .task-meta { text-align: right; }
-        .task-reps { font-size: 10px; font-weight: 700; }
-        .task-speed { color: #475569; font-size: 10px; }
+        .task-target { font-weight: 700; white-space: nowrap; }
       </style>
     </head>
     <body>
@@ -188,44 +252,61 @@ function buildHtml(input: Input) {
       </div>
 
       <div class="section box-soft">
-        <h2>Overview</h2>
-        <div class="pill-grid">
-          <div class="pill">
-            <div class="pill-title">Stage 1 task faults</div>
-            <div class="pill-value">${escapeHtml(String(summary.stage1Faults))}</div>
+        <h2>Session overview</h2>
+        <div class="overview-row">
+          <div class="overview-stages">
+            <div class="badge badge-stage">
+              <div class="badge-text">
+                Stage 1 <span class="stat-blue">Reps: ${escapeHtml(String(stage1Repetitions))}</span>
+                <span class="stat-red"> Faults: ${escapeHtml(String(stage1Faults))}</span>
+              </div>
+            </div>
+            <div class="badge badge-stage">
+              <div class="badge-text">
+                Stage 2 <span class="stat-blue">Reps: ${escapeHtml(String(stage2Repetitions))}</span>
+                <span class="stat-red"> Faults: ${escapeHtml(String(stage2Faults))}</span>
+              </div>
+            </div>
           </div>
-          <div class="pill">
-            <div class="pill-title">Stage 2 task faults</div>
-            <div class="pill-value">${escapeHtml(String(summary.stage2Faults))}</div>
-          </div>
-          <div class="pill">
-            <div class="pill-title">Stage 1 repetitions</div>
-            <div class="pill-value">${escapeHtml(String(stage1Repetitions))}</div>
-          </div>
-          <div class="pill">
-            <div class="pill-title">Stage 2 repetitions</div>
-            <div class="pill-value">${escapeHtml(String(stage2Repetitions))}</div>
-          </div>
-          <div class="pill">
-            <div class="pill-title">Critical errors</div>
-            <div class="pill-value">${escapeHtml(String(summary.criticalTotal))}</div>
-          </div>
-          <div class="pill">
-            <div class="pill-title">Immediate failure errors</div>
-            <div class="pill-value">${escapeHtml(String(summary.immediateTotal))}</div>
+          <div class="overview-errors">
+            <div class="badge ${criticalTotal > 0 ? "badge-critical" : ""}">
+              <div class="badge-text">Critical: ${escapeHtml(String(criticalTotal))}</div>
+            </div>
+            <div class="badge ${immediateTotal > 0 ? "badge-immediate" : ""}">
+              <div class="badge-text">Immediate fail: ${escapeHtml(String(immediateTotal))}</div>
+            </div>
           </div>
         </div>
         <div class="section pre">${escapeHtml(summary.resultText || "")}</div>
       </div>
 
       <div class="section box-soft">
-        <h2>Stage 1 – recorded items (repetitions: ${escapeHtml(String(stage1Repetitions))})</h2>
+        <h2>${escapeHtml(restrictedMockTestStages.find((stage) => stage.id === "stage1")?.name || "Stage 1")}</h2>
+        <div class="stats-row">
+          <div class="stat-blue">Total Repetitions: ${escapeHtml(String(stage1Repetitions))}</div>
+          <div class="stat-red">Total Faults: ${escapeHtml(String(stage1Faults))}</div>
+        </div>
         ${renderStage("stage1")}
       </div>
 
       <div class="section box-soft">
-        <h2>Stage 2 – recorded items (repetitions: ${escapeHtml(String(stage2Repetitions))})</h2>
-        ${v.stage2Enabled ? renderStage("stage2") : `<div class="muted">Stage 2 not enabled.</div>`}
+        <h2>${escapeHtml(restrictedMockTestStages.find((stage) => stage.id === "stage2")?.name || "Stage 2")}</h2>
+        ${
+          stage2Used
+            ? `
+              <div class="stats-row">
+                <div class="stat-blue">Total Repetitions: ${escapeHtml(String(stage2Repetitions))}</div>
+                <div class="stat-red">Total Faults: ${escapeHtml(String(stage2Faults))}</div>
+              </div>
+              ${
+                v.stage2Enabled
+                  ? ""
+                  : `<div class="muted" style="margin-top: 6px;">Stage 2 was not enabled, but some items were recorded.</div>`
+              }
+              ${renderStage("stage2")}
+            `
+            : `<div class="muted">Stage 2 not enabled.</div>`
+        }
       </div>
 
       ${renderErrorCounts("Critical errors", restrictedMockTestCriticalErrors, v.critical || {})}

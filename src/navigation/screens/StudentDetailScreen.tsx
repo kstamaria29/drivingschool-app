@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Modal,
   Pressable,
-  type ScrollView,
+  ScrollView,
   View,
   useColorScheme,
 } from "react-native";
@@ -59,7 +59,7 @@ type Props = NativeStackScreenProps<StudentsStackParamList, "StudentDetail">;
 type LicenceImageItem = { key: "front" | "back"; label: string; uri: string };
 type StudentLicenseImageSide = "front" | "back";
 type StudentLicenseImageSource = "camera" | "library";
-type StudentActionMenuItemTone = "default" | "info" | "warning" | "danger";
+type StudentActionMenuItemTone = "default" | "info" | "success" | "warning" | "danger";
 type StudentActionMenuItemProps = {
   label: string;
   icon: LucideIcon;
@@ -115,6 +115,10 @@ function StudentActionMenuItem({
         ? isDark
           ? "#93c5fd"
           : "#1d4ed8"
+        : tone === "success"
+          ? isDark
+            ? "#4ade80"
+            : "#16a34a"
         : tone === "warning"
           ? isDark
             ? "#fdba74"
@@ -127,6 +131,8 @@ function StudentActionMenuItem({
       ? "!text-red-700 dark:!text-red-300"
       : tone === "info"
         ? "!text-blue-600 dark:!text-blue-400"
+        : tone === "success"
+          ? "!text-green-700 dark:!text-green-300"
         : tone === "warning"
           ? "!text-orange-700 dark:!text-orange-300"
           : "";
@@ -152,11 +158,11 @@ function StudentActionMenuItem({
         disabled && "opacity-50",
       )}
     >
-      <Icon size={18} color={iconColor} strokeWidth={2} />
+      <Icon size={20} color={iconColor} strokeWidth={2} />
       <View className="flex-1 flex-row items-center gap-2">
         <AppText
-          variant={tone === "default" ? "body" : "button"}
-          className={cn("flex-shrink", textClassName)}
+          variant="button"
+          className={cn("flex-shrink text-[17px]", textClassName)}
           numberOfLines={1}
         >
           {label}
@@ -210,6 +216,8 @@ export function StudentDetailScreen({ navigation, route }: Props) {
   );
   const [licenseGalleryVisible, setLicenseGalleryVisible] = useState(false);
   const [licenseGalleryIndex, setLicenseGalleryIndex] = useState(0);
+  const [licenseGalleryWidth, setLicenseGalleryWidth] = useState(0);
+  const licenseGalleryScrollRef = useRef<ScrollView | null>(null);
   const [licenseActionModalSide, setLicenseActionModalSide] =
     useState<StudentLicenseImageSide | null>(null);
   const [startAssessmentModalVisible, setStartAssessmentModalVisible] =
@@ -294,6 +302,16 @@ export function StudentDetailScreen({ navigation, route }: Props) {
     setLicenseGalleryIndex(startIndex);
     setLicenseGalleryVisible(true);
   }
+
+  useEffect(() => {
+    if (!licenseGalleryVisible) return;
+    if (licenseGalleryWidth <= 0) return;
+    licenseGalleryScrollRef.current?.scrollTo({
+      x: licenseGalleryIndex * licenseGalleryWidth,
+      y: 0,
+      animated: false,
+    });
+  }, [licenseGalleryIndex, licenseGalleryVisible, licenseGalleryWidth]);
 
   function showPreviousLicenseImage() {
     if (licenseImages.length <= 1) return;
@@ -553,7 +571,8 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                   </View>
                   {isArchived ? (
                     <AppText className="mt-2" variant="caption">
-                      Archived
+                      Archived on{" "}
+                      {student.archived_at ? formatIsoDateToDisplay(student.archived_at) : ""}
                     </AppText>
                   ) : null}
                 </View>
@@ -856,6 +875,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
               <StudentActionMenuItem
                 label="Edit details"
                 icon={Pencil}
+                tone="success"
                 onPress={() => {
                   if (!student) return;
                   closeActionMenu();
@@ -1058,14 +1078,38 @@ export function StudentDetailScreen({ navigation, route }: Props) {
               />
             </View>
 
-            <View className="flex-1 items-center justify-center">
-              {activeLicenseImage ? (
-                <AppImage
-                  source={{ uri: activeLicenseImage.uri }}
-                  resizeMode="contain"
-                  className="h-full w-full"
-                />
-              ) : null}
+            <View
+              className="flex-1 items-center justify-center"
+              onLayout={(event) => setLicenseGalleryWidth(event.nativeEvent.layout.width)}
+            >
+              <ScrollView
+                ref={licenseGalleryScrollRef}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                nestedScrollEnabled
+                keyboardShouldPersistTaps="handled"
+                onMomentumScrollEnd={(event) => {
+                  if (licenseGalleryWidth <= 0) return;
+                  const nextIndex = Math.round(event.nativeEvent.contentOffset.x / licenseGalleryWidth);
+                  const clamped = Math.max(0, Math.min(nextIndex, licenseImages.length - 1));
+                  if (clamped !== licenseGalleryIndex) setLicenseGalleryIndex(clamped);
+                }}
+              >
+                {licenseImages.map((image) => (
+                  <View
+                    key={image.key}
+                    style={{ width: licenseGalleryWidth }}
+                    className="flex-1 items-center justify-center"
+                  >
+                    <AppImage
+                      source={{ uri: image.uri }}
+                      resizeMode="contain"
+                      className="h-full w-full"
+                    />
+                  </View>
+                ))}
+              </ScrollView>
             </View>
 
             <View className="flex-row gap-2">

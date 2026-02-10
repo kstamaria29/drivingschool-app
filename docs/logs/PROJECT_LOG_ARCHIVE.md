@@ -1265,3 +1265,19 @@
 - **Summary:**
   - Added organization logo + student name to generated assessment PDFs (Driving Assessment, Restricted mock test, Full License mock test).
   - Standardized section borders across assessment PDFs to match the scoring guide style (darker border, square corners).
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test default collapse + show/hide colors
+- **Summary:**
+  - Set Stage 1, Critical errors, and Immediate failure errors to be collapsed by default when the Restricted mock test is initiated.
+  - Added per-section Show/Hide color rules: blue/red for stage+error sections and lighter blue/red for task cards.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** First-time guide for restricted mock test
+- **Summary:**
+  - Added a plain-language step-by-step guide for instructors using Mock Test - Restricted Licence for the first time.
+  - Included workflow coverage for stages, faults, repetitions, error sections, submit options, and history/PDF follow-up.

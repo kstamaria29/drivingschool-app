@@ -40,6 +40,7 @@ import {
   restrictedMockTestCriticalErrors,
   restrictedMockTestImmediateErrors,
   restrictedMockTestStages,
+  restrictedMockTestTaskItems,
 } from "../../features/assessments/restricted-mock-test/constants";
 import { exportRestrictedMockTestPdf } from "../../features/assessments/restricted-mock-test/pdf";
 import {
@@ -104,13 +105,13 @@ function getRestrictedMockTestSummary(assessment: Assessment) {
   if (!parsed.success) return null;
 
   const values = parsed.data;
-  const summary = values.summary
-    ? values.summary
-    : calculateRestrictedMockTestSummary({
-        stagesState: values.stagesState,
-        critical: values.critical,
-        immediate: values.immediate,
-      });
+  const computedSummary = calculateRestrictedMockTestSummary({
+    stagesState: values.stagesState,
+    critical: values.critical,
+    immediate: values.immediate,
+  });
+
+  const summary = values.summary ? { ...computedSummary, ...values.summary } : computedSummary;
 
   const s1 = summary.stage1Faults ?? 0;
   const s2 = summary.stage2Faults ?? 0;
@@ -122,7 +123,17 @@ function getRestrictedMockTestSummary(assessment: Assessment) {
   }, 0);
   const crit = summary.criticalTotal ?? 0;
   const imm = summary.immediateTotal ?? 0;
-  return `Stage 1: ${s1} faults / ${stage1Repetitions} reps \u00b7 Stage 2: ${s2} faults / ${stage2Repetitions} reps \u00b7 Critical: ${crit} \u00b7 Immediate: ${imm}`;
+
+  const stage2HasRecordedItems =
+    stage2Repetitions > 0 ||
+    s2 > 0 ||
+    Object.values(values.stagesState.stage2 || {}).some((task) => {
+      return Boolean(task.location?.trim()) || Boolean(task.notes?.trim());
+    });
+
+  const stage2Used = Boolean(values.stage2Enabled) || stage2HasRecordedItems;
+
+  return `Stage 1: ${s1} faults / ${stage1Repetitions} reps \u00b7 ${stage2Used ? `Stage 2: ${s2} faults / ${stage2Repetitions} reps` : "Stage 2: not enabled"} \u00b7 Critical: ${crit} \u00b7 Immediate: ${imm}`;
 }
 
 function getFullLicenseMockTestSummary(assessment: Assessment) {
@@ -542,13 +553,13 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
       }
 
       const values = parsed.data;
-      const summary = values.summary
-        ? values.summary
-        : calculateRestrictedMockTestSummary({
-            stagesState: values.stagesState,
-            critical: values.critical,
-            immediate: values.immediate,
-          });
+      const computedSummary = calculateRestrictedMockTestSummary({
+        stagesState: values.stagesState,
+        critical: values.critical,
+        immediate: values.immediate,
+      });
+
+      const summary = values.summary ? { ...computedSummary, ...values.summary } : computedSummary;
 
       const criticalTotal = summary.criticalTotal ?? 0;
       const immediateTotal = summary.immediateTotal ?? 0;
@@ -558,38 +569,100 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
       const stage2Repetitions = Object.values(values.stagesState.stage2 || {}).reduce((sum, task) => {
         return sum + (task.repetitions ?? 0);
       }, 0);
+      const stage1Faults = summary.stage1Faults ?? 0;
+      const stage2Faults = summary.stage2Faults ?? 0;
+      const stage2HasRecordedItems =
+        stage2Repetitions > 0 ||
+        stage2Faults > 0 ||
+        Object.values(values.stagesState.stage2 || {}).some((task) => {
+          return Boolean(task.location?.trim()) || Boolean(task.notes?.trim());
+        });
+      const stage2Used = Boolean(values.stage2Enabled) || stage2HasRecordedItems;
+
+      const legacyTaskMetaById: Record<string, { name: string; targetReps?: number }> = {
+        s1_3pt: { name: "Three-point turn (if used instead of RPP)" },
+        s2_turns: { name: "All turns give way", targetReps: 10 },
+        s2_laneChanges: { name: "All lane changes", targetReps: 5 },
+        s2_straight: { name: "All straight drives", targetReps: 4 },
+        s2_roundabouts: { name: "All roundabouts", targetReps: 4 },
+        s2_extra: { name: "All extra complex tasks / variations", targetReps: 5 },
+      };
 
       function renderRecordedTasks(stageId: "stage1" | "stage2") {
         const stage = restrictedMockTestStages.find((s) => s.id === stageId);
         if (!stage) return null;
 
+        const stageFaults = stageId === "stage1" ? stage1Faults : stage2Faults;
         const stageState = values.stagesState[stageId] || {};
         const stageRepetitions = Object.values(stageState).reduce((sum, task) => {
           return sum + (task.repetitions ?? 0);
         }, 0);
-        const tasks = stage.tasks
-          .map((taskDef) => {
-            const taskState = stageState?.[taskDef.id];
+
+        const taskDefById = new Map<string, (typeof stage.tasks)[number]>(
+          stage.tasks.map((taskDef) => [taskDef.id as string, taskDef]),
+        );
+        const knownTaskIds = new Set<string>(stage.tasks.map((taskDef) => taskDef.id as string));
+        const extraTaskIds = Object.keys(stageState)
+          .filter((taskId) => !knownTaskIds.has(taskId))
+          .sort();
+        const taskIds = [...stage.tasks.map((taskDef) => taskDef.id as string), ...extraTaskIds];
+
+        const tasks = taskIds
+          .map((taskId) => {
+            const taskState = stageState?.[taskId];
             if (!taskState) return null;
-            const faults = getRestrictedMockTestTaskFaults(taskState);
+
+            const taskDef = taskDefById.get(taskId) ?? null;
+            const legacyMeta = legacyTaskMetaById[taskId] ?? null;
+            const taskName = taskDef?.name ?? legacyMeta?.name ?? taskId;
+            const targetReps = taskDef?.targetReps ?? legacyMeta?.targetReps ?? null;
+
             const repetitions = taskState.repetitions ?? 0;
+            const faultTotal = restrictedMockTestTaskItems.reduce((sum, item) => {
+              return sum + (taskState.items?.[item.id] ?? 0);
+            }, 0);
+            const faults = getRestrictedMockTestTaskFaults(taskState);
+
             const hasDetails =
               repetitions > 0 ||
+              faultTotal > 0 ||
               Boolean(taskState.location?.trim()) ||
-              Boolean(taskState.notes?.trim()) ||
-              faults.length > 0;
+              Boolean(taskState.notes?.trim());
             if (!hasDetails) return null;
 
+            const showStats = repetitions > 0 || faultTotal > 0;
+
             return (
-              <AppCard key={taskDef.id} className="gap-2">
-                <AppText variant="heading">{taskDef.name}</AppText>
-                <AppText variant="body">Repetitions: {repetitions}</AppText>
-                <AppText variant="caption">Typical speed zone: {taskDef.speed} km/h</AppText>
+              <AppCard key={taskId} className="gap-2">
+                <View className="flex-row items-start justify-between gap-3">
+                  <AppText className="flex-1" variant="heading">
+                    {taskName}
+                  </AppText>
+                  {targetReps != null ? (
+                    <AppText className="shrink-0 text-right" variant="heading">
+                      {targetReps} reps
+                    </AppText>
+                  ) : null}
+                </View>
+
+                {showStats ? (
+                  <View className="flex-row flex-wrap items-center gap-x-4 gap-y-1">
+                    {repetitions > 0 ? (
+                      <AppText className="!text-blue-600 dark:!text-blue-400" variant="body">
+                        Repetitions: {repetitions}
+                      </AppText>
+                    ) : null}
+                    <AppText className="!text-red-600 dark:!text-red-400" variant="body">
+                      Faults: {faultTotal}
+                    </AppText>
+                  </View>
+                ) : null}
+
                 {taskState.location?.trim() ? (
                   <AppText variant="body">Location: {taskState.location.trim()}</AppText>
                 ) : null}
                 {faults.length ? (
-                  <AppText variant="body">Faults: {faults.join(", ")}</AppText>
+                  <AppText variant="body">Fault types: {faults.join(", ")}</AppText>
                 ) : null}
                 {taskState.notes?.trim() ? (
                   <AppText variant="body">Notes: {taskState.notes.trim()}</AppText>
@@ -599,11 +672,29 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
           })
           .filter((task): task is ReactElement => task != null);
 
+        const stageHeader = (
+          <View>
+            <AppText variant="heading">{stage.name}</AppText>
+            <View className="mt-1 flex-row flex-wrap items-center gap-x-4 gap-y-1">
+              <AppText className="!text-blue-600 dark:!text-blue-400" variant="body">
+                Total Repetitions: {stageRepetitions}
+              </AppText>
+              <AppText className="!text-red-600 dark:!text-red-400" variant="body">
+                Total Faults: {stageFaults}
+              </AppText>
+            </View>
+            {stageId === "stage2" && !values.stage2Enabled ? (
+              <AppText className="mt-1" variant="caption">
+                Stage 2 was not enabled, but some items were recorded.
+              </AppText>
+            ) : null}
+          </View>
+        );
+
         if (tasks.length === 0) {
           return (
             <AppCard className="gap-2">
-              <AppText variant="heading">{stage.name}</AppText>
-              <AppText variant="body">Total repetitions: {stageRepetitions}</AppText>
+              {stageHeader}
               <AppText variant="body">No items recorded for this stage.</AppText>
             </AppCard>
           );
@@ -611,12 +702,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
 
         return (
           <AppStack gap="sm">
-            <View>
-              <AppText variant="heading">{stage.name}</AppText>
-              <AppText className="mt-1" variant="body">
-                Total repetitions: {stageRepetitions}
-              </AppText>
-            </View>
+            {stageHeader}
             {tasks}
           </AppStack>
         );
@@ -673,19 +759,6 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
           <AppDivider />
 
           <AppCard className="gap-2">
-            <AppText variant="heading">Overview</AppText>
-            <AppText variant="body">
-              Stage 1 faults: {summary.stage1Faults ?? 0} {"\u00b7"} Stage 2 faults: {summary.stage2Faults ?? 0}
-            </AppText>
-            <AppText variant="body">
-              Stage 1 repetitions: {stage1Repetitions} {"\u00b7"} Stage 2 repetitions: {stage2Repetitions}
-            </AppText>
-            <AppText variant="body">Critical errors: {criticalTotal}</AppText>
-            <AppText variant="body">Immediate failure errors: {immediateTotal}</AppText>
-            {summary.resultText ? <AppText variant="caption">{summary.resultText}</AppText> : null}
-          </AppCard>
-
-          <AppCard className="gap-2">
             <AppText variant="heading">Session details</AppText>
             <AppText variant="body">Candidate: {values.candidateName || ""}</AppText>
             <AppText variant="body">Date: {values.date || ""}</AppText>
@@ -697,9 +770,23 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
             ) : null}
           </AppCard>
 
+          <AppCard className="gap-2">
+            <AppText variant="heading">Overview</AppText>
+            <AppText variant="body">
+              Stage 1: {stage1Repetitions} reps {"\u00b7"} {stage1Faults} faults
+            </AppText>
+            <AppText variant="body">
+              Stage 2:{" "}
+              {stage2Used ? `${stage2Repetitions} reps \u00b7 ${stage2Faults} faults` : "not enabled"}
+            </AppText>
+            <AppText variant="body">Critical errors: {criticalTotal}</AppText>
+            <AppText variant="body">Immediate failure errors: {immediateTotal}</AppText>
+            {summary.resultText ? <AppText variant="caption">{summary.resultText}</AppText> : null}
+          </AppCard>
+
           {renderRecordedTasks("stage1")}
 
-          {values.stage2Enabled ? renderRecordedTasks("stage2") : (
+          {stage2Used ? renderRecordedTasks("stage2") : (
             <AppCard className="gap-2">
               <AppText variant="heading">Stage 2</AppText>
               <AppText variant="body">Stage 2 not enabled.</AppText>

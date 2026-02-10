@@ -142,6 +142,34 @@ function WeatherIcon({
   return <Cloud size={size} color={color} strokeWidth={strokeWidth} />;
 }
 
+function isShowersCode(code: number) {
+  return code >= 80 && code <= 82;
+}
+
+function isThunderstormCode(code: number) {
+  return code === 95 || code === 96 || code === 99;
+}
+
+function getForecastBorderClassName(code: number) {
+  if (isThunderstormCode(code)) return "!border-red-600 dark:!border-red-500";
+  if (isShowersCode(code)) return "!border-amber-700 dark:!border-amber-500";
+  return "";
+}
+
+function getWeatherIconColor(code: number, colorScheme: "light" | "dark" | undefined) {
+  const isDark = colorScheme === "dark";
+
+  if (isThunderstormCode(code)) return isDark ? "#f87171" : "#dc2626";
+  if (isShowersCode(code) || (code >= 51 && code <= 57) || (code >= 61 && code <= 67))
+    return isDark ? "#60a5fa" : "#2563eb";
+  if (code === 85 || code === 86 || (code >= 71 && code <= 77)) return isDark ? "#67e8f9" : "#0891b2";
+  if (code === 0 || code === 1 || code === 2) return isDark ? "#fbbf24" : "#d97706";
+  if (code === 45 || code === 48) return isDark ? "#c4b5fd" : "#6d28d9";
+  if (code === 3) return isDark ? "#cbd5e1" : "#64748b";
+
+  return isDark ? theme.colors.mutedDark : theme.colors.mutedLight;
+}
+
 export function WeatherWidget() {
   const { colorScheme } = useColorScheme();
   const [coords, setCoords] = useState<Coords>({
@@ -262,7 +290,7 @@ export function WeatherWidget() {
   }, [forecast, nextFiveHours]);
 
   const iconMuted = colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
-  const iconAccent = theme.colors.accent;
+  const iconAccent = getWeatherIconColor(forecast?.current.weatherCode ?? 0, colorScheme);
 
   const subtitle = useMemo(() => {
     const usingLocation = coords.source === "device";
@@ -383,11 +411,18 @@ export function WeatherWidget() {
                     {nextFiveHours.map((hour) => (
                       <View
                         key={hour.timeISO}
-                        className="w-24 rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark"
+                        className={cn(
+                          "w-24 rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark",
+                          getForecastBorderClassName(hour.weatherCode),
+                        )}
                       >
                         <AppText variant="caption">{dayjs(hour.timeISO).format("h A")}</AppText>
                         <View className="mt-2 flex-row items-center justify-between">
-                          <WeatherIcon code={hour.weatherCode} size={18} color={iconMuted} />
+                          <WeatherIcon
+                            code={hour.weatherCode}
+                            size={18}
+                            color={getWeatherIconColor(hour.weatherCode, colorScheme)}
+                          />
                           <AppText variant="body">{formatTemp(hour.temperatureC)}</AppText>
                         </View>
                         {typeof hour.precipitationProbabilityPercent === "number" ? (
@@ -412,11 +447,18 @@ export function WeatherWidget() {
                 {nextFourDays.map((day) => (
                   <View
                     key={day.dateISO}
-                    className="flex-row items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark"
+                    className={cn(
+                      "flex-row items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark",
+                      getForecastBorderClassName(day.weatherCode),
+                    )}
                   >
                     <View className="flex-1">
                       <View className="flex-row items-center gap-2">
-                        <WeatherIcon code={day.weatherCode} size={18} color={iconMuted} />
+                        <WeatherIcon
+                          code={day.weatherCode}
+                          size={18}
+                          color={getWeatherIconColor(day.weatherCode, colorScheme)}
+                        />
                         <AppText variant="body">{dayjs(day.dateISO).format("ddd")}</AppText>
                       </View>
                       <AppText variant="caption">{describeWeatherCode(day.weatherCode)}</AppText>

@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
-import { ChevronDown, ChevronUp, User } from "lucide-react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Pressable, ScrollView, TextInput, View } from "react-native";
+import { User } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
-import { AppInput } from "../../components/AppInput";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import type { Student } from "../../features/students/api";
+import { fonts } from "../../theme/fonts";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 
@@ -52,8 +52,9 @@ export function AssessmentStudentDropdown({
   error,
 }: Props) {
   const { colorScheme } = useColorScheme();
-  const [open, setOpen] = useState(() => !selectedStudentId);
   const [search, setSearch] = useState("");
+  const [isChangingStudent, setIsChangingStudent] = useState(() => !selectedStudentId);
+  const searchInputRef = useRef<TextInput | null>(null);
 
   const selectedStudent = useMemo(
     () => students.find((student) => student.id === selectedStudentId) ?? null,
@@ -62,8 +63,11 @@ export function AssessmentStudentDropdown({
 
   useEffect(() => {
     if (selectedStudentId) {
-      setOpen(false);
+      setIsChangingStudent(false);
+      setSearch("");
+      return;
     }
+    setIsChangingStudent(true);
   }, [selectedStudentId]);
 
   const sortedStudents = useMemo(
@@ -89,10 +93,17 @@ export function AssessmentStudentDropdown({
   const hasSearchInput = search.trim().length > 0;
 
   const iconColor = colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
-  const chevronColor = colorScheme === "dark" ? theme.colors.foregroundDark : theme.colors.foregroundLight;
+
+  useEffect(() => {
+    if (!isChangingStudent) return;
+    const handle = setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 50);
+    return () => clearTimeout(handle);
+  }, [isChangingStudent]);
 
   function onSelect(student: Student) {
-    setOpen(false);
+    setIsChangingStudent(false);
     setSearch("");
     onSelectStudent(student);
   }
@@ -101,43 +112,57 @@ export function AssessmentStudentDropdown({
     <AppStack gap="sm">
       {error ? <AppText variant="error">{error}</AppText> : null}
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={selectedStudent ? `Selected student ${fullNameOf(selectedStudent)}` : "Select student"}
-        disabled={disabled}
+      <View
+        accessibilityLabel={
+          selectedStudent
+            ? `Selected student ${fullNameOf(selectedStudent)}`
+            : "Select student"
+        }
         className={cn(
           "rounded-xl border border-border bg-background px-3 py-3 dark:border-borderDark dark:bg-backgroundDark",
           disabled && "opacity-60",
         )}
-        onPress={() => setOpen((value) => !value)}
       >
         <View className="flex-row items-center justify-between gap-3">
           <View className="flex-1">
             <AppText variant="label">Select student</AppText>
-            <AppText className="mt-1" variant="body">
-              {selectedStudent ? fullNameOf(selectedStudent) : "Choose from the list"}
-            </AppText>
           </View>
-          {open ? (
-            <ChevronUp size={18} color={chevronColor} />
-          ) : (
-            <ChevronDown size={18} color={chevronColor} />
-          )}
+          {selectedStudentId && !disabled ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                setIsChangingStudent(true);
+                setSearch("");
+              }}
+            >
+              <AppText className="!text-blue-600 dark:!text-blue-400" variant="button">
+                Change student
+              </AppText>
+            </Pressable>
+          ) : null}
         </View>
-      </Pressable>
 
-      {open ? (
-        <View className="rounded-xl border border-border bg-card p-3 dark:border-borderDark dark:bg-cardDark">
-          <AppInput
-            label="Search students"
+        {selectedStudent && !isChangingStudent ? (
+          <AppText className="mt-1" variant="body">
+            {fullNameOf(selectedStudent)}
+          </AppText>
+        ) : (
+          <TextInput
+            ref={searchInputRef}
             autoCapitalize="none"
             autoCorrect={false}
+            editable={!disabled}
             value={search}
             onChangeText={setSearch}
             placeholder="Name, email, or phone"
+            placeholderTextColor={iconColor}
+            className={cn(theme.input.base, error && theme.input.error)}
+            style={[{ fontFamily: fonts.regular }, { paddingVertical: 0, textAlignVertical: "center" }]}
           />
+        )}
 
-          {!hasSearchInput ? (
+        {isChangingStudent ? (
+          !hasSearchInput ? (
             <AppText className="mt-3" variant="caption">
               Start typing to search students.
             </AppText>
@@ -174,9 +199,9 @@ export function AssessmentStudentDropdown({
                 })}
               </AppStack>
             </ScrollView>
-          )}
-        </View>
-      ) : null}
+          )
+        ) : null}
+      </View>
     </AppStack>
   );
 }

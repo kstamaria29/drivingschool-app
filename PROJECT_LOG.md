@@ -1,6 +1,22 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Student + assessment UX refinements
+- **Summary:**
+  - Improved student experience (swipeable licence photo viewer, clearer archive indicator, and kebab menu styling tweaks).
+  - Refined assessments UX (integrated student search picker, Restricted history ordering, weather severity styling, and Restricted PDF session overview layout).
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test history + PDF refresh
+- **Summary:**
+  - Updated Assessment History + Restricted PDF output to reflect the new repetitions/fault counting model (including per-fault counts).
+  - Ensured Stage 2 recorded items still render even when Stage 2 was not enabled (legacy/edge-case safety).
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Restricted mock test fault totals per repetition
 - **Summary:**
   - Fixed fault totals so recording multiple repetitions increments Faults/Total Faults correctly (even when the same fault is selected again).
@@ -139,19 +155,3 @@
 - **Summary:**
   - Arranged pre-drive fields into two-column rows (Date/Time, Vehicle/Route) for tablet-friendly data entry.
   - Replaced task dropdown cards with task buttons that open a modal (faults, location, notes), and moved Record repetition into the modal header.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** First-time guide for restricted mock test
-- **Summary:**
-  - Added a plain-language step-by-step guide for instructors using Mock Test - Restricted Licence for the first time.
-  - Included workflow coverage for stages, faults, repetitions, error sections, submit options, and history/PDF follow-up.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Restricted mock test default collapse + show/hide colors
-- **Summary:**
-  - Set Stage 1, Critical errors, and Immediate failure errors to be collapsed by default when the Restricted mock test is initiated.
-  - Added per-section Show/Hide color rules: blue/red for stage+error sections and lighter blue/red for task cards.

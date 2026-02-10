@@ -1,7 +1,6 @@
 import {
   restrictedMockTestCriticalErrors,
   restrictedMockTestImmediateErrors,
-  restrictedMockTestStages,
   restrictedMockTestTaskItems,
   type RestrictedMockTestStageId,
   type RestrictedMockTestTaskItemId,
@@ -39,12 +38,11 @@ export function calculateRestrictedMockTestSummary(input: {
   let stage1Faults = 0;
   let stage2Faults = 0;
 
-  restrictedMockTestStages.forEach((stage) => {
-    const stageTasks = input.stagesState[stage.id] ?? {};
-    const isStage1 = stage.id === "stage1";
+  (["stage1", "stage2"] as const).forEach((stageId) => {
+    const stageTasks = input.stagesState[stageId] ?? {};
+    const isStage1 = stageId === "stage1";
 
-    stage.tasks.forEach((taskDef) => {
-      const taskState = (stageTasks as Record<string, RestrictedMockTestTaskState | undefined>)[taskDef.id];
+    Object.values(stageTasks).forEach((taskState) => {
       if (!taskState?.items) return;
 
       restrictedMockTestTaskItems.forEach((taskItem) => {
