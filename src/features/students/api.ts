@@ -1,3 +1,5 @@
+import * as FileSystem from "expo-file-system/legacy";
+
 import { supabase } from "../../supabase/client";
 import type { Database } from "../../supabase/types";
 import { readUriAsUint8Array } from "../../utils/file-bytes";
@@ -18,6 +20,92 @@ export type RemoveStudentLicenseImageInput = {
   studentId: string;
   side: StudentLicenseImageSide;
 };
+
+const LICENSE_CARD_MAX_WIDTH_PX = 580;
+const LICENSE_CARD_QUALITY = 0.85;
+
+type CompressorModule = {
+  Image: {
+    compress: (
+      uri: string,
+      options?: {
+        compressionMethod?: "auto" | "manual";
+        maxWidth?: number;
+        quality?: number;
+      },
+    ) => Promise<string>;
+  };
+  getRealPath: (uri: string, type: "image" | "video") => Promise<string>;
+};
+
+function extensionFromUri(uri: string) {
+  const match = /\.([a-z0-9]+)(?:$|\?|#)/i.exec(uri);
+  const raw = match?.[1]?.toLowerCase() ?? null;
+  if (!raw) return null;
+  if (raw === "jpeg") return "jpg";
+  return raw;
+}
+
+function contentTypeFromExtension(extension: string) {
+  if (extension === "png") return "image/png";
+  if (extension === "webp") return "image/webp";
+  return "image/jpeg";
+}
+
+async function compressLicenseCardImageUri(inputUri: string): Promise<{
+  uri: string;
+  extension: string;
+  contentType: string;
+  shouldCleanupTempFile: boolean;
+}> {
+  let compressor: CompressorModule | null = null;
+  try {
+    compressor = require("react-native-compressor") as CompressorModule;
+  } catch {
+    // Library not installed / native module missing. Fall back to original file.
+    const extension = extensionFromUri(inputUri) ?? "jpg";
+    return {
+      uri: inputUri,
+      extension,
+      contentType: contentTypeFromExtension(extension),
+      shouldCleanupTempFile: false,
+    };
+  }
+
+  let resolvedUri = inputUri;
+  if (!resolvedUri.startsWith("file://")) {
+    try {
+      resolvedUri = await compressor.getRealPath(resolvedUri, "image");
+    } catch {
+      // Keep original URI if we can't resolve it; compression may still succeed.
+    }
+  }
+
+  try {
+    const compressedUri = await compressor.Image.compress(resolvedUri, {
+      compressionMethod: "manual",
+      maxWidth: LICENSE_CARD_MAX_WIDTH_PX,
+      quality: LICENSE_CARD_QUALITY,
+    });
+
+    const extension = extensionFromUri(compressedUri) ?? extensionFromUri(resolvedUri) ?? "jpg";
+
+    return {
+      uri: compressedUri,
+      extension,
+      contentType: contentTypeFromExtension(extension),
+      shouldCleanupTempFile: compressedUri !== resolvedUri,
+    };
+  } catch {
+    const extension = extensionFromUri(resolvedUri) ?? "jpg";
+    return {
+      uri: resolvedUri,
+      extension,
+      contentType: contentTypeFromExtension(extension),
+      shouldCleanupTempFile: false,
+    };
+  }
+}
 
 export type ListStudentsInput = {
   archived: boolean;
@@ -207,35 +295,49 @@ async function removeAllStudentLicenseImageFiles(
 export async function uploadStudentLicenseImage(
   input: UploadStudentLicenseImageInput,
 ): Promise<Student> {
-  const extension = guessFileExtension(input.asset);
-  const contentType = guessContentType(input.asset);
+  const originalExtension = guessFileExtension(input.asset);
+  const originalContentType = guessContentType(input.asset);
+  const compressed = await compressLicenseCardImageUri(input.asset.uri);
+  const extension = compressed.extension || originalExtension;
+  const contentType = compressed.contentType || originalContentType;
   const objectPath = `${input.organizationId}/${input.studentId}/${input.side}.${extension}`;
 
-  await removeExistingLicenseImageFilesForSide(
-    input.organizationId,
-    input.studentId,
-    input.side,
-  );
+  try {
+    await removeExistingLicenseImageFilesForSide(
+      input.organizationId,
+      input.studentId,
+      input.side,
+    );
 
-  const bytes = await readUriAsUint8Array(input.asset.uri);
-  const { error: uploadError } = await supabase.storage
-    .from("student-licenses")
-    .upload(objectPath, bytes, { contentType, upsert: true });
+    const bytes = await readUriAsUint8Array(compressed.uri);
+    const { error: uploadError } = await supabase.storage
+      .from("student-licenses")
+      .upload(objectPath, bytes, { contentType, upsert: true });
 
-  if (uploadError) throw uploadError;
+    if (uploadError) throw uploadError;
 
-  const { data: signed, error: signedError } = await supabase.storage
-    .from("student-licenses")
-    .createSignedUrl(objectPath, 60 * 60 * 24 * 365);
+    const { data: signed, error: signedError } = await supabase.storage
+      .from("student-licenses")
+      .createSignedUrl(objectPath, 60 * 60 * 24 * 365);
 
-  if (signedError) throw signedError;
+    if (signedError) throw signedError;
 
-  const studentUpdate: StudentUpdate =
-    input.side === "front"
-      ? { license_front_image_url: signed.signedUrl }
-      : { license_back_image_url: signed.signedUrl };
+    const studentUpdate: StudentUpdate =
+      input.side === "front"
+        ? { license_front_image_url: signed.signedUrl }
+        : { license_back_image_url: signed.signedUrl };
 
-  return updateStudent(input.studentId, studentUpdate);
+    return updateStudent(input.studentId, studentUpdate);
+  } finally {
+    if (compressed.shouldCleanupTempFile && compressed.uri.startsWith("file://")) {
+      // Best-effort cleanup of temp compressed file.
+      try {
+        await FileSystem.deleteAsync(compressed.uri, { idempotent: true });
+      } catch {
+        // Ignore.
+      }
+    }
+  }
 }
 
 export async function removeStudentLicenseImage(

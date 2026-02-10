@@ -66,7 +66,7 @@ type AssessmentType = Assessment["assessment_type"];
 
 const assessmentTypes: Array<{ type: AssessmentType; label: string }> = [
   { type: "driving_assessment", label: "Driving Assessment" },
-  { type: "second_assessment", label: "Mock Test - Restricted" },
+  { type: "second_assessment", label: "Mock Test - Restricted Licence" },
   { type: "third_assessment", label: "Mock Test - Full License" },
 ];
 
@@ -729,7 +729,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         <AppStack gap="md">
           <View className="flex-row items-start justify-between gap-3">
             <View className="flex-1">
-              <AppText variant="heading">Mock Test \u2013 Restricted</AppText>
+              <AppText variant="heading">Mock Test - Restricted Licence</AppText>
               <AppText className="mt-1" variant="caption">
                 Assessment on {formatAssessmentDate(assessment)}
               </AppText>

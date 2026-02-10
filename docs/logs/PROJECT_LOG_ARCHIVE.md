@@ -1281,3 +1281,19 @@
 - **Summary:**
   - Added a plain-language step-by-step guide for instructors using Mock Test - Restricted Licence for the first time.
   - Included workflow coverage for stages, faults, repetitions, error sections, submit options, and history/PDF follow-up.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test task modal + pre-drive grid
+- **Summary:**
+  - Arranged pre-drive fields into two-column rows (Date/Time, Vehicle/Route) for tablet-friendly data entry.
+  - Replaced task dropdown cards with task buttons that open a modal (faults, location, notes), and moved Record repetition into the modal header.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test task modal spacing polish
+- **Summary:**
+  - Adjusted task modal scroll sizing so the modal shrinks to its content (removing excess whitespace while staying centered).
+  - Updated the restricted mock test first-time guide to match the task popup workflow and repetition button placement.

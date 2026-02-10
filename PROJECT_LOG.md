@@ -1,6 +1,22 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Compress licence card images on upload
+- **Summary:**
+  - Added `react-native-compressor` resizing/compression so Front/Back licence card uploads are reduced before storage.
+  - Enforced a max width of `580px` for licence card images.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Assessment picker row + restricted history label cleanup
+- **Summary:**
+  - Updated the shared assessment student picker so selected student name and `Change student` appear on the same row.
+  - Standardized Restricted Assessment History labels to `Mock Test - Restricted Licence`.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Student + assessment UX refinements
 - **Summary:**
   - Improved student experience (swipeable licence photo viewer, clearer archive indicator, and kebab menu styling tweaks).
@@ -139,19 +155,3 @@
 - **Summary:**
   - Updated task modal header (green Record Repetition with icon) and reset faults after recording a repetition.
   - Made sections accordion-style (only one open), added active-section blue borders, highlighted tasks with repetitions in orange, and compacted Session overview to 4 badges with student name.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Restricted mock test task modal spacing polish
-- **Summary:**
-  - Adjusted task modal scroll sizing so the modal shrinks to its content (removing excess whitespace while staying centered).
-  - Updated the restricted mock test first-time guide to match the task popup workflow and repetition button placement.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Restricted mock test task modal + pre-drive grid
-- **Summary:**
-  - Arranged pre-drive fields into two-column rows (Date/Time, Vehicle/Route) for tablet-friendly data entry.
-  - Replaced task dropdown cards with task buttons that open a modal (faults, location, notes), and moved Record repetition into the modal header.

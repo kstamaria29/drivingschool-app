@@ -123,29 +123,27 @@ export function AssessmentStudentDropdown({
           disabled && "opacity-60",
         )}
       >
-        <View className="flex-row items-center justify-between gap-3">
-          <View className="flex-1">
-            <AppText variant="label">Select student</AppText>
-          </View>
-          {selectedStudentId && !disabled ? (
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => {
-                setIsChangingStudent(true);
-                setSearch("");
-              }}
-            >
-              <AppText className="!text-blue-600 dark:!text-blue-400" variant="button">
-                Change student
-              </AppText>
-            </Pressable>
-          ) : null}
-        </View>
+        <AppText variant="label">Select student</AppText>
 
         {selectedStudent && !isChangingStudent ? (
-          <AppText className="mt-1" variant="body">
-            {fullNameOf(selectedStudent)}
-          </AppText>
+          <View className="mt-1 flex-row items-center justify-between gap-3">
+            <AppText className="flex-1" variant="body">
+              {fullNameOf(selectedStudent)}
+            </AppText>
+            {selectedStudentId && !disabled ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => {
+                  setIsChangingStudent(true);
+                  setSearch("");
+                }}
+              >
+                <AppText className="!text-blue-600 dark:!text-blue-400" variant="button">
+                  Change student
+                </AppText>
+              </Pressable>
+            ) : null}
+          </View>
         ) : (
           <TextInput
             ref={searchInputRef}

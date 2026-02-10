@@ -29,8 +29,17 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       }
     : androidConfig.config;
 
+  const compressorPlugin = "react-native-compressor";
+  const existingPlugins = Array.isArray(config.plugins) ? config.plugins : [];
+  const hasCompressorPlugin = existingPlugins.some((plugin) => {
+    if (Array.isArray(plugin)) return plugin[0] === compressorPlugin;
+    return plugin === compressorPlugin;
+  });
+  const plugins = hasCompressorPlugin ? existingPlugins : [...existingPlugins, compressorPlugin];
+
   return {
     ...config,
+    plugins,
     ios: {
       ...iosConfig,
       ...(resolvedIosNativeConfig ? { config: resolvedIosNativeConfig } : null),
