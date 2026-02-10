@@ -1204,3 +1204,10 @@
 - **Task:** Student Profile focus reset for revisit stability
 - **Summary:**
   - Fixed the second-visit action-row clipping pattern by resetting Student Detail transient UI state and scroll position every time the screen regains focus.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile second-visit clipping fix (ScrollView flex)
+- **Summary:**
+  - Removed `flex-1` container sizing from Student Profile scroll layout to prevent Android ScrollView content mis-measurement on revisit.

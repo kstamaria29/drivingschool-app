@@ -28,6 +28,7 @@ import { AppInput } from "../../components/AppInput";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
+import { SubmitAssessmentConfirmModal } from "../../components/SubmitAssessmentConfirmModal";
 import { useCurrentUser } from "../../features/auth/current-user";
 import { useCreateAssessmentMutation } from "../../features/assessments/queries";
 import {
@@ -205,6 +206,8 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
   const [stage, setStage] = useState<DrivingAssessmentStage>("details");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [startTestModalVisible, setStartTestModalVisible] = useState(false);
+  const [submitConfirmVisible, setSubmitConfirmVisible] = useState(false);
+  const [pendingSubmitValues, setPendingSubmitValues] = useState<DrivingAssessmentFormValues | null>(null);
 
   const scrollRef = useRef<ScrollView | null>(null);
   const [openSuggestions, setOpenSuggestions] = useState<FeedbackKey | null>(null);
@@ -223,6 +226,11 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({ y: 0, animated });
     });
+  }
+
+  function closeSubmitConfirmModal() {
+    setSubmitConfirmVisible(false);
+    setPendingSubmitValues(null);
   }
 
   function onToggleSuggestions(key: FeedbackKey) {
@@ -793,21 +801,8 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
                 icon={FileDown}
                 onPress={form.handleSubmit(
                   (values) => {
-                    Alert.alert(
-                      "Submit assessment?",
-                      "Submit will save the assessment. Submit and Generate PDF will also export a PDF.",
-                      [
-                        { text: "Cancel", style: "cancel" },
-                        {
-                          text: "Submit",
-                          onPress: () => void submitOnly(values),
-                        },
-                        {
-                          text: "Submit and Generate PDF",
-                          onPress: () => void submitAndGeneratePdf(values),
-                        },
-                      ],
-                    );
+                    setPendingSubmitValues(values);
+                    setSubmitConfirmVisible(true);
                   },
                   (errors) => onInvalidSubmit(errors),
                 )}
@@ -824,6 +819,26 @@ export function DrivingAssessmentScreen({ navigation, route }: Props) {
         </AppStack>
       </ScrollView>
       </Screen>
+
+      <SubmitAssessmentConfirmModal
+        visible={submitConfirmVisible}
+        title="Submit assessment?"
+        message="Submit will save the assessment. Submit and Generate PDF will also export a PDF."
+        disabled={saving}
+        onCancel={closeSubmitConfirmModal}
+        onSubmit={() => {
+          const values = pendingSubmitValues;
+          closeSubmitConfirmModal();
+          if (!values) return;
+          void submitOnly(values);
+        }}
+        onSubmitAndGeneratePdf={() => {
+          const values = pendingSubmitValues;
+          closeSubmitConfirmModal();
+          if (!values) return;
+          void submitAndGeneratePdf(values);
+        }}
+      />
 
       <Modal
         visible={startTestModalVisible}

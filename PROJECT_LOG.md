@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test Stage 2 lock + submit confirm modal
+- **Summary:**
+  - Styled Stage 2 `Locked` status in green and hid Stage 2 totals while locked.
+  - Replaced submit confirmation alerts with a styled modal across all assessments and made the `Submit and Generate PDF` action dark green.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Mock test + student menu blue styling
 - **Summary:**
   - Re-applied important blue/red highlight utilities so active borders and Repetitions/Faults stats render reliably, including kebab Start Assessment.
@@ -147,10 +155,3 @@
 - **Summary:**
   - Consolidated repetitive kebab-size adjustments into one record and finalized the trigger at `55px` square (`h-[55px] w-[55px]`) with a larger `30px` icon.
   - Increased the organization name text under the student title from `23px` to `24px`.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile second-visit clipping fix (ScrollView flex)
-- **Summary:**
-  - Removed `flex-1` container sizing from Student Profile scroll layout to prevent Android ScrollView content mis-measurement on revisit.

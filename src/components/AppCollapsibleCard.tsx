@@ -15,6 +15,7 @@ type Props = PropsWithChildren<{
   showLabelClassName?: string;
   hideLabelClassName?: string;
   rightText?: string;
+  rightTextClassName?: string;
   expanded: boolean;
   onToggle: () => void;
   className?: string;
@@ -29,6 +30,7 @@ export function AppCollapsibleCard({
   showLabelClassName,
   hideLabelClassName,
   rightText,
+  rightTextClassName,
   expanded,
   onToggle,
   className,
@@ -49,7 +51,11 @@ export function AppCollapsibleCard({
         </View>
 
         <View className="items-end">
-          {rightText ? <AppText variant="caption">{rightText}</AppText> : null}
+          {rightText ? (
+            <AppText className={rightTextClassName} variant="caption">
+              {rightText}
+            </AppText>
+          ) : null}
           <AppText
             className={cn(
               "mt-1 text-sm",

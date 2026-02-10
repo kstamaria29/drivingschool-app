@@ -31,6 +31,7 @@ import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { AppTimeInput } from "../../components/AppTimeInput";
 import { Screen } from "../../components/Screen";
+import { SubmitAssessmentConfirmModal } from "../../components/SubmitAssessmentConfirmModal";
 import { useCurrentUser } from "../../features/auth/current-user";
 import { ensureAndroidDownloadsDirectoryUri } from "../../features/assessments/android-downloads";
 import { useCreateAssessmentMutation } from "../../features/assessments/queries";
@@ -157,6 +158,8 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   const [stage, setStage] = useState<Stage>("details");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [startTestModalVisible, setStartTestModalVisible] = useState(false);
+  const [submitConfirmVisible, setSubmitConfirmVisible] = useState(false);
+  const [pendingSubmitValues, setPendingSubmitValues] = useState<RestrictedMockTestFormValues | null>(null);
 
   const scrollRef = useRef<ScrollView | null>(null);
   const scrollOffsetYRef = useRef(0);
@@ -251,6 +254,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   function onRootTouchStart(event: GestureResponderEvent) {
     if (stage !== "test") return;
     if (taskModalVisible) return;
+    if (submitConfirmVisible) return;
     if (getOpenSection() == null) return;
 
     touchStartRef.current = {
@@ -262,6 +266,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   function onRootTouchEnd(event: GestureResponderEvent) {
     if (stage !== "test") return;
     if (taskModalVisible) return;
+    if (submitConfirmVisible) return;
 
     const start = touchStartRef.current;
     touchStartRef.current = null;
@@ -728,6 +733,11 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     setTaskModalItems(createEmptyItems());
   }
 
+  function closeSubmitConfirmModal() {
+    setSubmitConfirmVisible(false);
+    setPendingSubmitValues(null);
+  }
+
   const header = (
     <View>
       <AppText variant="title">Mock Test – Restricted Licence</AppText>
@@ -916,26 +926,29 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     const stageRepetitions = Object.values(stagesState[stageKey] ?? {}).reduce((sum, task) => {
       return sum + (task.repetitions ?? 0);
     }, 0);
-    const rightText =
-      stageKey === "stage2" && !stage2Enabled ? "Locked" : undefined;
+    const stageLocked = stageKey === "stage2" && !stage2Enabled;
+    const rightText = stageLocked ? "Locked" : undefined;
 
     return (
       <View ref={sectionRef} collapsable={false}>
         <AppCollapsibleCard
           title={stageDef.name}
           subtitleNode={
-            <View className="flex-row flex-wrap items-center gap-x-4 gap-y-1">
-              <AppText className="text-xl !text-blue-600 dark:!text-blue-400" variant="body">
-                Total Repetitions: {stageRepetitions}
-              </AppText>
-              <AppText className="text-xl !text-red-600 dark:!text-red-400" variant="body">
-                Total Faults: {stageFaults}
-              </AppText>
-            </View>
+            stageLocked ? undefined : (
+              <View className="flex-row flex-wrap items-center gap-x-4 gap-y-1">
+                <AppText className="text-xl !text-blue-600 dark:!text-blue-400" variant="body">
+                  Total Repetitions: {stageRepetitions}
+                </AppText>
+                <AppText className="text-xl !text-red-600 dark:!text-red-400" variant="body">
+                  Total Faults: {stageFaults}
+                </AppText>
+              </View>
+            )
           }
           showLabelClassName="!text-blue-600 dark:!text-blue-400"
           hideLabelClassName="!text-red-600 dark:!text-red-400"
           rightText={rightText}
+          rightTextClassName={stageLocked ? "!text-green-700 dark:!text-green-300" : undefined}
           expanded={expanded}
           className={cn(expanded && "!border-2 !border-blue-600 dark:!border-blue-400")}
           onToggle={() => toggleSection(stageKey)}
@@ -1189,18 +1202,8 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
           label={saving ? "Submitting..." : "Submit"}
           disabled={saving}
           onPress={form.handleSubmit((values) => {
-            Alert.alert(
-              "Submit mock test?",
-              "Submit will save the assessment. Submit and Generate PDF will also export a PDF.",
-              [
-                { text: "Cancel", style: "cancel" },
-                { text: "Submit", onPress: () => void submitOnly(values) },
-                {
-                  text: "Submit and Generate PDF",
-                  onPress: () => void submitAndGeneratePdf(values),
-                },
-              ],
-            );
+            setPendingSubmitValues(values);
+            setSubmitConfirmVisible(true);
           })}
         />
         <AppButton label="Cancel" variant="ghost" onPress={() => navigation.goBack()} />
@@ -1245,6 +1248,26 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
           </ScrollView>
         </AppStack>
       </Screen>
+
+      <SubmitAssessmentConfirmModal
+        visible={submitConfirmVisible}
+        title="Submit mock test?"
+        message="Submit will save the assessment. Submit and Generate PDF will also export a PDF."
+        disabled={saving}
+        onCancel={closeSubmitConfirmModal}
+        onSubmit={() => {
+          const values = pendingSubmitValues;
+          closeSubmitConfirmModal();
+          if (!values) return;
+          void submitOnly(values);
+        }}
+        onSubmitAndGeneratePdf={() => {
+          const values = pendingSubmitValues;
+          closeSubmitConfirmModal();
+          if (!values) return;
+          void submitAndGeneratePdf(values);
+        }}
+      />
 
       <Modal
         visible={taskModalVisible}
