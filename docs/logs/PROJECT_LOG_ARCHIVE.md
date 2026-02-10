@@ -1234,3 +1234,10 @@
 - **Summary:**
   - Consolidated repetitive kebab-size adjustments into one record and finalized the trigger at `55px` square (`h-[55px] w-[55px]`) with a larger `30px` icon.
   - Increased the organization name text under the student title from `23px` to `24px`.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile kebab archive/delete text emphasis
+- **Summary:**
+  - Updated kebab menu `Delete` label to explicit red text and made both `Archive/Unarchive` and `Delete` labels bold for stronger visual emphasis.

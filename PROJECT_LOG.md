@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test task list targets
+- **Summary:**
+  - Simplified Stage 1 and Stage 2 task list names and removed the 3-point turn item.
+  - Added a right-aligned static reps target label per task in the task list.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Restricted mock test active border priority fix
 - **Summary:**
   - Ensured expanded section borders (blue/orange/red) always override the "has values" darker border styling.
@@ -148,10 +156,3 @@
 - **Summary:**
   - Switched kebab `Archive/Unarchive` and `Delete` label rendering to `AppText` `button` variant (semibold font family) because utility `font-semibold` is overridden by the component-level font family on `body` variant.
   - Kept `Delete` label red and `Archive/Unarchive` green with the corrected bold rendering.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile kebab archive/delete text emphasis
-- **Summary:**
-  - Updated kebab menu `Delete` label to explicit red text and made both `Archive/Unarchive` and `Delete` labels bold for stronger visual emphasis.

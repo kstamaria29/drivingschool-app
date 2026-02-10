@@ -1028,7 +1028,17 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                       onPress={() => openTaskModal(stageKey, taskDef.id)}
                     >
                       <View className="gap-2">
-                        <AppText variant="heading">{taskDef.name}</AppText>
+                        <View className="flex-row items-start justify-between gap-3">
+                          <AppText className="flex-1" variant="heading">
+                            {taskDef.name}
+                          </AppText>
+                          <AppText
+                            className="text-right !text-muted dark:!text-mutedDark"
+                            variant="heading"
+                          >
+                            {taskDef.targetReps} reps
+                          </AppText>
+                        </View>
                         {repetitions > 0 ? (
                           <View className="flex-row flex-wrap items-center gap-x-4 gap-y-1">
                             <AppText className="text-xl !text-blue-600 dark:!text-blue-400" variant="body">
