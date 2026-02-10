@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test section collapse + stat colors
+- **Summary:**
+  - Restored blue Repetitions/red Faults text and active-section blue borders for the Stage/Error sections.
+  - Added tap-outside-to-collapse behavior and darkened the Session overview border with a larger student name.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Restricted mock test error totals placement + overview border
 - **Summary:**
   - Moved Critical/Immediate totals under their headings as `Total Errors: x` (orange/red) and removed the top-right `x recorded` label.
@@ -144,10 +152,3 @@
 - **Task:** Student Profile second-visit action layout stabilization
 - **Summary:**
   - Stabilized second-visit action button rendering by resetting Student Detail scroll/transient UI state on `studentId` changes and reducing badge row stacking side effects.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile badge overlap fix
-- **Summary:**
-  - Adjusted `AppButton` label-badge positioning and stacking so Student Profile count badges don't clip/overlap adjacent buttons.

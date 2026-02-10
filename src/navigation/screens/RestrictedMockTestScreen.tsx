@@ -16,6 +16,7 @@ import {
   TextInput,
   useWindowDimensions,
   View,
+  type GestureResponderEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from "react-native";
@@ -159,6 +160,11 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   const scrollRef = useRef<ScrollView | null>(null);
   const scrollOffsetYRef = useRef(0);
+  const stage1SectionRef = useRef<View | null>(null);
+  const stage2SectionRef = useRef<View | null>(null);
+  const criticalSectionRef = useRef<View | null>(null);
+  const immediateSectionRef = useRef<View | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const { width, height } = useWindowDimensions();
   const minDimension = Math.min(width, height);
   const keyboardAwareEnabled = minDimension >= 600 && height > width;
@@ -212,6 +218,66 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   function toggleSection(section: Exclude<ExclusiveSection, null>) {
     setOpenSection(getOpenSection() === section ? null : section);
+  }
+
+  type WindowRect = { x: number; y: number; width: number; height: number };
+
+  function measureInWindow(ref: { current: View | null }) {
+    return new Promise<WindowRect | null>((resolve) => {
+      const node = ref.current;
+      if (!node || typeof node.measureInWindow !== "function") {
+        resolve(null);
+        return;
+      }
+      node.measureInWindow((x, y, width, height) => resolve({ x, y, width, height }));
+    });
+  }
+
+  function isPointInRect(x: number, y: number, rect: WindowRect) {
+    return x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height;
+  }
+
+  async function isPointInsideAnySectionCard(x: number, y: number) {
+    const rects = await Promise.all([
+      measureInWindow(stage1SectionRef),
+      measureInWindow(stage2SectionRef),
+      measureInWindow(criticalSectionRef),
+      measureInWindow(immediateSectionRef),
+    ]);
+
+    return rects.some((rect) => rect != null && isPointInRect(x, y, rect));
+  }
+
+  function onRootTouchStart(event: GestureResponderEvent) {
+    if (stage !== "test") return;
+    if (taskModalVisible) return;
+    if (getOpenSection() == null) return;
+
+    touchStartRef.current = {
+      x: event.nativeEvent.pageX,
+      y: event.nativeEvent.pageY,
+    };
+  }
+
+  function onRootTouchEnd(event: GestureResponderEvent) {
+    if (stage !== "test") return;
+    if (taskModalVisible) return;
+
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    if (!start) return;
+
+    if (getOpenSection() == null) return;
+
+    const endX = event.nativeEvent.pageX;
+    const endY = event.nativeEvent.pageY;
+    const movedPx = Math.hypot(endX - start.x, endY - start.y);
+    if (movedPx > 10) return;
+
+    void (async () => {
+      const isInside = await isPointInsideAnySectionCard(endX, endY);
+      if (!isInside) setOpenSection(null);
+    })();
   }
 
   function scrollToTop(animated = false) {
@@ -722,9 +788,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   const summaryCard =
     stage === "test" ? (
-      <AppCard className="gap-3 !border-slate-300 dark:!border-borderDark">
+      <AppCard className="gap-3 border-slate-900 dark:border-borderDark">
         {selectedStudent ? (
-          <AppText variant="heading">
+          <AppText className={cn(!isCompact && "text-2xl")} variant="heading">
             {selectedStudent.first_name} {selectedStudent.last_name}
           </AppText>
         ) : null}
@@ -845,6 +911,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
     const stageKey = stageDef.id;
     const expanded = expandedStages[stageKey];
+    const sectionRef = stageKey === "stage1" ? stage1SectionRef : stage2SectionRef;
     const stageFaults = stageKey === "stage1" ? summary.stage1Faults : summary.stage2Faults;
     const stageRepetitions = Object.values(stagesState[stageKey] ?? {}).reduce((sum, task) => {
       return sum + (task.repetitions ?? 0);
@@ -853,172 +920,177 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
       stageKey === "stage2" && !stage2Enabled ? "Locked" : undefined;
 
     return (
-      <AppCollapsibleCard
-        title={stageDef.name}
-        subtitleNode={
-          <View className="flex-row flex-wrap items-center gap-x-4 gap-y-1">
-            <AppText className="text-xl !text-blue-600 dark:!text-blue-400" variant="body">
-              Total Repetitions: {stageRepetitions}
-            </AppText>
-            <AppText className="text-xl !text-red-600 dark:!text-red-400" variant="body">
-              Total Faults: {stageFaults}
-            </AppText>
-          </View>
-        }
-        showLabelClassName="!text-blue-600 dark:!text-blue-400"
-        hideLabelClassName="!text-red-600 dark:!text-red-400"
-        rightText={rightText}
-        expanded={expanded}
-        className={cn(expanded && "!border-2 !border-blue-600 dark:!border-blue-400")}
-        onToggle={() => toggleSection(stageKey)}
-      >
-        <AppStack gap="md">
-          <AppText variant="caption">{stageDef.note}</AppText>
-
-          {stageKey === "stage2" && !stage2Enabled ? (
-            <AppStack gap="sm">
-              <AppText variant="body">
-                Stage 2 is locked. Enable it only after Stage 1 performance is safe.
+      <View ref={sectionRef} collapsable={false}>
+        <AppCollapsibleCard
+          title={stageDef.name}
+          subtitleNode={
+            <View className="flex-row flex-wrap items-center gap-x-4 gap-y-1">
+              <AppText className="text-xl text-blue-600 dark:text-blue-400" variant="body">
+                Total Repetitions: {stageRepetitions}
               </AppText>
-              <AppButton
-                width="auto"
-                label="Enable Stage 2"
-                onPress={() => {
-                  setStage2Enabled(true);
-                  setOpenSection("stage2");
-                }}
-              />
-            </AppStack>
-          ) : (
-            <AppStack gap="md">
-              {stageDef.tasks.map((taskDef) => {
-                const taskState = stagesState[stageKey]?.[taskDef.id] ?? {
-                  items: createEmptyItems(),
-                  location: "",
-                  notes: "",
-                  repetitions: 0,
-                };
-                const faults = taskFaultCount(taskState);
-                const repetitions = taskState.repetitions ?? 0;
+              <AppText className="text-xl text-red-600 dark:text-red-400" variant="body">
+                Total Faults: {stageFaults}
+              </AppText>
+            </View>
+          }
+          showLabelClassName="text-blue-600 dark:text-blue-400"
+          hideLabelClassName="text-red-600 dark:text-red-400"
+          rightText={rightText}
+          expanded={expanded}
+          className={cn(expanded && "border-2 border-blue-600 dark:border-blue-400")}
+          onToggle={() => toggleSection(stageKey)}
+        >
+          <AppStack gap="md">
+            <AppText variant="caption">{stageDef.note}</AppText>
 
-                return (
-                  <Pressable
-                    key={taskDef.id}
-                    accessibilityRole="button"
-                    style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-                    className={cn(
-                      theme.card.base,
-                      "gap-2",
-                      repetitions > 0 && "!border-orange-500 dark:!border-orange-400",
-                    )}
-                    onPress={() => openTaskModal(stageKey, taskDef.id)}
-                  >
-                    <View className="gap-2">
-                      <AppText variant="heading">{taskDef.name}</AppText>
-                      {repetitions > 0 ? (
-                        <View className="flex-row flex-wrap items-center gap-x-4 gap-y-1">
-                          <AppText className="text-xl !text-blue-600 dark:!text-blue-400" variant="body">
-                            Repetitions: {repetitions}
-                          </AppText>
-                          <AppText className="text-xl !text-red-600 dark:!text-red-400" variant="body">
-                            Faults: {faults}
-                          </AppText>
-                        </View>
-                      ) : null}
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </AppStack>
-          )}
-        </AppStack>
-      </AppCollapsibleCard>
+            {stageKey === "stage2" && !stage2Enabled ? (
+              <AppStack gap="sm">
+                <AppText variant="body">
+                  Stage 2 is locked. Enable it only after Stage 1 performance is safe.
+                </AppText>
+                <AppButton
+                  width="auto"
+                  label="Enable Stage 2"
+                  onPress={() => {
+                    setStage2Enabled(true);
+                    setOpenSection("stage2");
+                  }}
+                />
+              </AppStack>
+            ) : (
+              <AppStack gap="md">
+                {stageDef.tasks.map((taskDef) => {
+                  const taskState = stagesState[stageKey]?.[taskDef.id] ?? {
+                    items: createEmptyItems(),
+                    location: "",
+                    notes: "",
+                    repetitions: 0,
+                  };
+                  const faults = taskFaultCount(taskState);
+                  const repetitions = taskState.repetitions ?? 0;
+
+                  return (
+                    <Pressable
+                      key={taskDef.id}
+                      accessibilityRole="button"
+                      style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+                      className={cn(
+                        theme.card.base,
+                        "gap-2",
+                        repetitions > 0 && "border-orange-500 dark:border-orange-400",
+                      )}
+                      onPress={() => openTaskModal(stageKey, taskDef.id)}
+                    >
+                      <View className="gap-2">
+                        <AppText variant="heading">{taskDef.name}</AppText>
+                        {repetitions > 0 ? (
+                          <View className="flex-row flex-wrap items-center gap-x-4 gap-y-1">
+                            <AppText className="text-xl text-blue-600 dark:text-blue-400" variant="body">
+                              Repetitions: {repetitions}
+                            </AppText>
+                            <AppText className="text-xl text-red-600 dark:text-red-400" variant="body">
+                              Faults: {faults}
+                            </AppText>
+                          </View>
+                        ) : null}
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </AppStack>
+            )}
+          </AppStack>
+        </AppCollapsibleCard>
+      </View>
     );
   }
 
   const errorsCard = (
     <>
-      <AppCollapsibleCard
-        title="Critical errors"
-        subtitleNode={
-          <View className="gap-1">
-            <AppText variant="caption">Recorded any time during route.</AppText>
-            {summary.criticalTotal > 0 ? (
-              <AppText className="text-xl !text-orange-600 dark:!text-orange-400" variant="body">
-                Total Errors: {summary.criticalTotal}
-              </AppText>
-            ) : null}
-          </View>
-        }
-        showLabelClassName="!text-blue-600 dark:!text-blue-400"
-        hideLabelClassName="!text-red-600 dark:!text-red-400"
-        expanded={criticalErrorsExpanded}
-        className={cn(criticalErrorsExpanded && "!border-2 !border-blue-600 dark:!border-blue-400")}
-        onToggle={() => toggleSection("critical")}
-      >
-        <AppStack gap="sm">
-          {restrictedMockTestCriticalErrors.map((label) => (
-            <View key={label} className="flex-row items-center justify-between gap-2">
-              <AppText className="flex-1" variant="body">
-                {label}
-              </AppText>
-              <View className="flex-row items-center gap-2">
-                <AppButton
-                  width="auto"
-                  variant="secondary"
-                  className="h-10 px-3"
-                  label="-"
-                  onPress={() => toggleErrorCount("critical", label, -1)}
-                />
-                <View className="min-w-10 items-center rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
-                  <AppText variant="caption">{String(critical[label] ?? 0)}</AppText>
-                </View>
-                <AppButton
-                  width="auto"
-                  className="h-10 px-3"
-                  label="+"
-                  onPress={() => toggleErrorCount("critical", label, 1)}
-                />
-              </View>
+      <View ref={criticalSectionRef} collapsable={false}>
+        <AppCollapsibleCard
+          title="Critical errors"
+          subtitleNode={
+            <View className="gap-1">
+              <AppText variant="caption">Recorded any time during route.</AppText>
+              {summary.criticalTotal > 0 ? (
+                <AppText className="text-xl text-orange-600 dark:text-orange-400" variant="body">
+                  Total Errors: {summary.criticalTotal}
+                </AppText>
+              ) : null}
             </View>
-          ))}
+          }
+          showLabelClassName="text-blue-600 dark:text-blue-400"
+          hideLabelClassName="text-red-600 dark:text-red-400"
+          expanded={criticalErrorsExpanded}
+          className={cn(criticalErrorsExpanded && "border-2 border-blue-600 dark:border-blue-400")}
+          onToggle={() => toggleSection("critical")}
+        >
+          <AppStack gap="sm">
+            {restrictedMockTestCriticalErrors.map((label) => (
+              <View key={label} className="flex-row items-center justify-between gap-2">
+                <AppText className="flex-1" variant="body">
+                  {label}
+                </AppText>
+                <View className="flex-row items-center gap-2">
+                  <AppButton
+                    width="auto"
+                    variant="secondary"
+                    className="h-10 px-3"
+                    label="-"
+                    onPress={() => toggleErrorCount("critical", label, -1)}
+                  />
+                  <View className="min-w-10 items-center rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
+                    <AppText variant="caption">{String(critical[label] ?? 0)}</AppText>
+                  </View>
+                  <AppButton
+                    width="auto"
+                    className="h-10 px-3"
+                    label="+"
+                    onPress={() => toggleErrorCount("critical", label, 1)}
+                  />
+                </View>
+              </View>
+            ))}
 
-          <Controller
-            control={form.control}
-            name="criticalNotes"
-            render={({ field }) => (
-              <AppInput
-                label="Critical error notes (what happened, where)"
-                value={field.value ?? ""}
-                onChangeText={field.onChange}
-                multiline
-                numberOfLines={5}
-                textAlignVertical="top"
-                inputClassName="h-28 py-3"
-              />
-            )}
-          />
-        </AppStack>
-      </AppCollapsibleCard>
+            <Controller
+              control={form.control}
+              name="criticalNotes"
+              render={({ field }) => (
+                <AppInput
+                  label="Critical error notes (what happened, where)"
+                  value={field.value ?? ""}
+                  onChangeText={field.onChange}
+                  multiline
+                  numberOfLines={5}
+                  textAlignVertical="top"
+                  inputClassName="h-28 py-3"
+                />
+              )}
+            />
+          </AppStack>
+        </AppCollapsibleCard>
+      </View>
 
-      <AppCollapsibleCard
-        title="Immediate failure errors"
-        subtitleNode={
-          <View className="gap-1">
-            <AppText variant="caption">Any one = fail.</AppText>
-            {summary.immediateTotal > 0 ? (
-              <AppText className="text-xl !text-red-600 dark:!text-red-400" variant="body">
-                Total Errors: {summary.immediateTotal}
-              </AppText>
-            ) : null}
-          </View>
-        }
-        showLabelClassName="!text-blue-600 dark:!text-blue-400"
-        hideLabelClassName="!text-red-600 dark:!text-red-400"
-        expanded={immediateErrorsExpanded}
-        className={cn(immediateErrorsExpanded && "!border-2 !border-blue-600 dark:!border-blue-400")}
-        onToggle={() => toggleSection("immediate")}
-      >
+      <View ref={immediateSectionRef} collapsable={false}>
+        <AppCollapsibleCard
+          title="Immediate failure errors"
+          subtitleNode={
+            <View className="gap-1">
+              <AppText variant="caption">Any one = fail.</AppText>
+              {summary.immediateTotal > 0 ? (
+                <AppText className="text-xl text-red-600 dark:text-red-400" variant="body">
+                  Total Errors: {summary.immediateTotal}
+                </AppText>
+              ) : null}
+            </View>
+          }
+          showLabelClassName="text-blue-600 dark:text-blue-400"
+          hideLabelClassName="text-red-600 dark:text-red-400"
+          expanded={immediateErrorsExpanded}
+          className={cn(immediateErrorsExpanded && "border-2 border-blue-600 dark:border-blue-400")}
+          onToggle={() => toggleSection("immediate")}
+        >
         <AppStack gap="sm">
           {restrictedMockTestImmediateErrors.map((label) => (
             <View key={label} className="flex-row items-center justify-between gap-2">
@@ -1063,7 +1135,8 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             )}
           />
         </AppStack>
-      </AppCollapsibleCard>
+        </AppCollapsibleCard>
+      </View>
     </>
   );
 
@@ -1137,7 +1210,12 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   return (
     <>
       <Screen>
-        <AppStack className="flex-1" gap={isCompact ? "md" : "lg"}>
+        <AppStack
+          className="flex-1"
+          gap={isCompact ? "md" : "lg"}
+          onTouchStart={onRootTouchStart}
+          onTouchEnd={onRootTouchEnd}
+        >
           <AppStack gap={isCompact ? "md" : "lg"}>
             {header}
             {stage !== "test" ? studentCard : null}
@@ -1208,10 +1286,10 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                     <View className="flex-1">
                       <AppText variant="heading">{activeTaskDef.name}</AppText>
                       <View className="mt-2 flex-row flex-wrap items-center gap-x-4 gap-y-1">
-                        <AppText className="text-xl !text-blue-600 dark:!text-blue-400" variant="body">
+                        <AppText className="text-xl text-blue-600 dark:text-blue-400" variant="body">
                           Repetitions: {activeTaskState.repetitions ?? 0}
                         </AppText>
-                        <AppText className="text-xl !text-red-600 dark:!text-red-400" variant="body">
+                        <AppText className="text-xl text-red-600 dark:text-red-400" variant="body">
                           Faults: {previewFaults}
                         </AppText>
                       </View>
@@ -1221,7 +1299,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                       <AppButton
                         width="auto"
                         variant="primary"
-                        className="!bg-green-600 !border-green-600 dark:!bg-green-500 dark:!border-green-500"
+                        className="bg-green-600 border-green-600 dark:bg-green-500 dark:border-green-500"
                         label="Record Repetition"
                         icon={Save}
                         onPress={() => {
