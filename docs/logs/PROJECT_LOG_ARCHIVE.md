@@ -1211,3 +1211,11 @@
 - **Task:** Student Profile second-visit clipping fix (ScrollView flex)
 - **Summary:**
   - Removed `flex-1` container sizing from Student Profile scroll layout to prevent Android ScrollView content mis-measurement on revisit.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile kebab sizing consolidation + label/icon polish
+- **Summary:**
+  - Consolidated repetitive kebab-size adjustments into one record and finalized the trigger at `55px` square (`h-[55px] w-[55px]`) with a larger `30px` icon.
+  - Increased the organization name text under the student title from `23px` to `24px`.

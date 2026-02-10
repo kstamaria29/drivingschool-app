@@ -800,7 +800,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     stage === "test" ? (
       <AppCard className="gap-3 border-slate-900 dark:border-borderDark">
         {selectedStudent ? (
-          <AppText className={cn(!isCompact && "text-2xl")} variant="heading">
+          <AppText className={cn(!isCompact && "!text-[28px]")} variant="heading">
             {selectedStudent.first_name} {selectedStudent.last_name}
           </AppText>
         ) : null}
@@ -810,22 +810,37 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
         <AppText variant="caption">
           Stage 2 is optional: enable it only after Stage 1 is safe enough to continue.
         </AppText>
-        <View className="flex-row flex-wrap gap-2">
-          <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
-            <AppText variant="caption">
-              Stage 1 faults:{summary.stage1Faults} reps:{stage1Repetitions}
-            </AppText>
+        <View className={cn("flex-row items-start gap-4", isCompact && "flex-col")}>
+          <View className="flex-1 flex-row flex-wrap gap-2">
+            <View className="rounded-xl border border-border bg-background px-3 py-2 !border-blue-600 dark:border-borderDark dark:bg-backgroundDark dark:!border-blue-400">
+              <AppText variant="caption">
+                Stage 1 faults:{summary.stage1Faults} reps:{stage1Repetitions}
+              </AppText>
+            </View>
+            <View className="rounded-xl border border-border bg-background px-3 py-2 !border-blue-600 dark:border-borderDark dark:bg-backgroundDark dark:!border-blue-400">
+              <AppText variant="caption">
+                Stage 2 faults:{summary.stage2Faults} reps:{stage2Repetitions}
+              </AppText>
+            </View>
           </View>
-          <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
-            <AppText variant="caption">
-              Stage 2 faults:{summary.stage2Faults} reps:{stage2Repetitions}
-            </AppText>
-          </View>
-          <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
-            <AppText variant="caption">Critical: {summary.criticalTotal}</AppText>
-          </View>
-          <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
-            <AppText variant="caption">Immediate fail: {summary.immediateTotal}</AppText>
+
+          <View className="flex-row flex-wrap justify-end gap-2">
+            <View
+              className={cn(
+                "rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark",
+                summary.criticalTotal > 0 && "!border-orange-300 dark:!border-orange-400",
+              )}
+            >
+              <AppText variant="caption">Critical: {summary.criticalTotal}</AppText>
+            </View>
+            <View
+              className={cn(
+                "rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark",
+                summary.immediateTotal > 0 && "!border-red-600 dark:!border-red-500",
+              )}
+            >
+              <AppText variant="caption">Immediate fail: {summary.immediateTotal}</AppText>
+            </View>
           </View>
         </View>
       </AppCard>

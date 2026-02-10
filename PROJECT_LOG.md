@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test overview badges + submit confirm styling
+- **Summary:**
+  - Made the submit confirmation modal show `Submit` in blue (and kept `Submit and Generate PDF` dark green) across all assessments.
+  - Reworked the Restricted mock test Session overview badges (right-aligned Critical/Immediate badges + conditional borders) and slightly increased the student name size.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Restricted mock test Stage 2 lock + submit confirm modal
 - **Summary:**
   - Styled Stage 2 `Locked` status in green and hid Stage 2 totals while locked.
@@ -147,11 +155,3 @@
 - **Summary:**
   - Added `Reminders` to the Student Profile kebab menu between Sessions and Assessments, renamed `Edit` to `Edit details`, and added right-side count badges for Sessions, Reminders, and Assessments.
   - Styled kebab `Archive/Unarchive` action text/icon green and updated the main profile action button to green `Set Reminders`.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile kebab sizing consolidation + label/icon polish
-- **Summary:**
-  - Consolidated repetitive kebab-size adjustments into one record and finalized the trigger at `55px` square (`h-[55px] w-[55px]`) with a larger `30px` icon.
-  - Increased the organization name text under the student title from `23px` to `24px`.

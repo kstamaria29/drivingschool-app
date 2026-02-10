@@ -47,6 +47,7 @@ export function SubmitAssessmentConfirmModal({
                 variant="secondary"
                 label="Submit"
                 disabled={disabled}
+                labelClassName="!text-blue-600 dark:!text-blue-400"
                 onPress={onSubmit}
               />
               <AppButton
