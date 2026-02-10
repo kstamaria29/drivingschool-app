@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test section borders + overview badge styling
+- **Summary:**
+  - Updated Critical/Immediate active section borders to orange/red and added a darker border state for any section with recorded values.
+  - Improved Session overview badges (Stage Reps/Faults with blue/red text, visible Critical/Immediate borders) and made gap taps collapse the active section reliably.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Restricted mock test overview badges + submit confirm styling
 - **Summary:**
   - Made the submit confirmation modal show `Submit` in blue (and kept `Submit and Generate PDF` dark green) across all assessments.
@@ -147,11 +155,3 @@
 - **Task:** Student Profile kebab menu hide zero badges
 - **Summary:**
   - Updated Student Profile kebab menu badge rendering so Sessions, Reminders, and Assessments badges are hidden when the count is `0`.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile kebab menu counts + reminders action polish
-- **Summary:**
-  - Added `Reminders` to the Student Profile kebab menu between Sessions and Assessments, renamed `Edit` to `Edit details`, and added right-side count badges for Sessions, Reminders, and Assessments.
-  - Styled kebab `Archive/Unarchive` action text/icon green and updated the main profile action button to green `Set Reminders`.

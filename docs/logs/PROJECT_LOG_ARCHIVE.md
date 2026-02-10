@@ -1215,6 +1215,14 @@
 ---
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile kebab menu counts + reminders action polish
+- **Summary:**
+  - Added `Reminders` to the Student Profile kebab menu between Sessions and Assessments, renamed `Edit` to `Edit details`, and added right-side count badges for Sessions, Reminders, and Assessments.
+  - Styled kebab `Archive/Unarchive` action text/icon green and updated the main profile action button to green `Set Reminders`.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Student Profile kebab sizing consolidation + label/icon polish
 - **Summary:**
   - Consolidated repetitive kebab-size adjustments into one record and finalized the trigger at `55px` square (`h-[55px] w-[55px]`) with a larger `30px` icon.

@@ -813,13 +813,25 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
         <View className={cn("flex-row items-start gap-4", isCompact && "flex-col")}>
           <View className="flex-1 flex-row flex-wrap gap-2">
             <View className="rounded-xl border border-border bg-background px-3 py-2 !border-blue-600 dark:border-borderDark dark:bg-backgroundDark dark:!border-blue-400">
-              <AppText variant="caption">
-                Stage 1 faults:{summary.stage1Faults} reps:{stage1Repetitions}
+              <AppText className="!text-foreground dark:!text-foregroundDark" variant="caption">
+                Stage 1{" "}
+                <AppText className="!text-blue-600 dark:!text-blue-400" variant="caption">
+                  Reps: {stage1Repetitions}
+                </AppText>{" "}
+                <AppText className="!text-red-600 dark:!text-red-400" variant="caption">
+                  Faults: {summary.stage1Faults}
+                </AppText>
               </AppText>
             </View>
             <View className="rounded-xl border border-border bg-background px-3 py-2 !border-blue-600 dark:border-borderDark dark:bg-backgroundDark dark:!border-blue-400">
-              <AppText variant="caption">
-                Stage 2 faults:{summary.stage2Faults} reps:{stage2Repetitions}
+              <AppText className="!text-foreground dark:!text-foregroundDark" variant="caption">
+                Stage 2{" "}
+                <AppText className="!text-blue-600 dark:!text-blue-400" variant="caption">
+                  Reps: {stage2Repetitions}
+                </AppText>{" "}
+                <AppText className="!text-red-600 dark:!text-red-400" variant="caption">
+                  Faults: {summary.stage2Faults}
+                </AppText>
               </AppText>
             </View>
           </View>
@@ -828,7 +840,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             <View
               className={cn(
                 "rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark",
-                summary.criticalTotal > 0 && "!border-orange-300 dark:!border-orange-400",
+                summary.criticalTotal > 0 && "!border-orange-400 dark:!border-orange-300",
               )}
             >
               <AppText variant="caption">Critical: {summary.criticalTotal}</AppText>
@@ -943,6 +955,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     }, 0);
     const stageLocked = stageKey === "stage2" && !stage2Enabled;
     const rightText = stageLocked ? "Locked" : undefined;
+    const stageHasValue = stageRepetitions > 0 || stageFaults > 0;
 
     return (
       <View ref={sectionRef} collapsable={false}>
@@ -965,7 +978,10 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
           rightText={rightText}
           rightTextClassName={stageLocked ? "!text-green-700 dark:!text-green-300" : undefined}
           expanded={expanded}
-          className={cn(expanded && "!border-2 !border-blue-600 dark:!border-blue-400")}
+          className={cn(
+            stageHasValue && "!border-slate-400 dark:!border-slate-600",
+            expanded && "!border-2 !border-blue-600 dark:!border-blue-400",
+          )}
           onToggle={() => toggleSection(stageKey)}
         >
           <AppStack gap="md">
@@ -1051,7 +1067,10 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
           showLabelClassName="!text-blue-600 dark:!text-blue-400"
           hideLabelClassName="!text-red-600 dark:!text-red-400"
           expanded={criticalErrorsExpanded}
-          className={cn(criticalErrorsExpanded && "!border-2 !border-blue-600 dark:!border-blue-400")}
+          className={cn(
+            summary.criticalTotal > 0 && "!border-slate-400 dark:!border-slate-600",
+            criticalErrorsExpanded && "!border-2 !border-orange-500 dark:!border-orange-400",
+          )}
           onToggle={() => toggleSection("critical")}
         >
           <AppStack gap="sm">
@@ -1116,11 +1135,14 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
           showLabelClassName="!text-blue-600 dark:!text-blue-400"
           hideLabelClassName="!text-red-600 dark:!text-red-400"
           expanded={immediateErrorsExpanded}
-          className={cn(immediateErrorsExpanded && "!border-2 !border-blue-600 dark:!border-blue-400")}
+          className={cn(
+            summary.immediateTotal > 0 && "!border-slate-400 dark:!border-slate-600",
+            immediateErrorsExpanded && "!border-2 !border-red-600 dark:!border-red-500",
+          )}
           onToggle={() => toggleSection("immediate")}
         >
-        <AppStack gap="sm">
-          {restrictedMockTestImmediateErrors.map((label) => (
+          <AppStack gap="sm">
+            {restrictedMockTestImmediateErrors.map((label) => (
             <View key={label} className="flex-row items-center justify-between gap-2">
               <AppText className="flex-1" variant="body">
                 {label}
@@ -1238,6 +1260,8 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
           <ScrollView
             ref={scrollRef}
             className="flex-1"
+            onTouchStart={onRootTouchStart}
+            onTouchEnd={onRootTouchEnd}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
             automaticallyAdjustKeyboardInsets={Platform.OS === "ios" && keyboardAwareEnabled}
