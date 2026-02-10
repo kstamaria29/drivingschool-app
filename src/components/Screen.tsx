@@ -21,6 +21,7 @@ type Props = PropsWithChildren<ViewProps> & {
   scroll?: boolean;
   scrollRef?: RefObject<ScrollView | null>;
   scrollViewProps?: Omit<ScrollViewProps, "ref" | "children">;
+  outerProps?: Omit<ViewProps, "children"> & { className?: string };
 };
 
 const TABLET_MIN_WIDTH = 600;
@@ -29,6 +30,7 @@ export function Screen({
   scroll = false,
   scrollRef: externalScrollRef,
   scrollViewProps,
+  outerProps,
   className,
   children,
   ...props
@@ -92,12 +94,15 @@ export function Screen({
     </View>
   );
 
+  const { className: outerClassName, ...outerViewProps } = outerProps ?? {};
+
   return (
-    <SafeAreaView className={theme.screen.safeArea}>
+    <SafeAreaView className={cn(theme.screen.safeArea, outerClassName)}>
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         enabled={keyboardAvoidingEnabled}
+        {...outerViewProps}
       >
         {scroll ? (
           <ScrollView

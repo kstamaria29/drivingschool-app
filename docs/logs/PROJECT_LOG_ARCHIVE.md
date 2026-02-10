@@ -1190,3 +1190,17 @@
 - **Task:** Student Profile badge overlap fix
 - **Summary:**
   - Adjusted `AppButton` label-badge positioning and stacking so Student Profile count badges don't clip/overlap adjacent buttons.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile second-visit action layout stabilization
+- **Summary:**
+  - Stabilized second-visit action button rendering by resetting Student Detail transient UI state and scroll position every time the screen regains focus.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile focus reset for revisit stability
+- **Summary:**
+  - Fixed the second-visit action-row clipping pattern by resetting Student Detail transient UI state and scroll position every time the screen regains focus.

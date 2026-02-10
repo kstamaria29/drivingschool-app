@@ -1,6 +1,22 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Mock test + student menu blue styling
+- **Summary:**
+  - Re-applied important blue/red highlight utilities so active borders and Repetitions/Faults stats render reliably, including kebab Start Assessment.
+  - Added background-tap collapse support for the Restricted mock test and added a visual gap in the student kebab menu.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Student detail actions menu + background collapse
+- **Summary:**
+  - Moved Student Detail primary actions into the kebab menu (Start Assessment top, inline green badges, orange Archive) and removed the action buttons panel.
+  - Updated Restricted Mock Test section collapse to also trigger when tapping the app background outside the centered container.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Restricted mock test section collapse + stat colors
 - **Summary:**
   - Restored blue Repetitions/red Faults text and active-section blue borders for the Stage/Error sections.
@@ -138,17 +154,3 @@
 - **Task:** Student Profile second-visit clipping fix (ScrollView flex)
 - **Summary:**
   - Removed `flex-1` container sizing from Student Profile scroll layout to prevent Android ScrollView content mis-measurement on revisit.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile focus reset for revisit stability
-- **Summary:**
-  - Fixed the second-visit action-row clipping pattern by resetting Student Detail transient UI state and scroll position every time the screen regains focus.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile second-visit action layout stabilization
-- **Summary:**
-  - Stabilized second-visit action button rendering by resetting Student Detail scroll/transient UI state on `studentId` changes and reducing badge row stacking side effects.
