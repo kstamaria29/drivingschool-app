@@ -956,6 +956,11 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     const stageLocked = stageKey === "stage2" && !stage2Enabled;
     const rightText = stageLocked ? "Locked" : undefined;
     const stageHasValue = stageRepetitions > 0 || stageFaults > 0;
+    const stageBorderClassName = expanded
+      ? "!border-2 !border-blue-600 dark:!border-blue-400"
+      : stageHasValue
+        ? "!border-slate-400 dark:!border-slate-600"
+        : undefined;
 
     return (
       <View ref={sectionRef} collapsable={false}>
@@ -978,10 +983,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
           rightText={rightText}
           rightTextClassName={stageLocked ? "!text-green-700 dark:!text-green-300" : undefined}
           expanded={expanded}
-          className={cn(
-            stageHasValue && "!border-slate-400 dark:!border-slate-600",
-            expanded && "!border-2 !border-blue-600 dark:!border-blue-400",
-          )}
+          className={stageBorderClassName}
           onToggle={() => toggleSection(stageKey)}
         >
           <AppStack gap="md">
@@ -1067,10 +1069,13 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
           showLabelClassName="!text-blue-600 dark:!text-blue-400"
           hideLabelClassName="!text-red-600 dark:!text-red-400"
           expanded={criticalErrorsExpanded}
-          className={cn(
-            summary.criticalTotal > 0 && "!border-slate-400 dark:!border-slate-600",
-            criticalErrorsExpanded && "!border-2 !border-orange-500 dark:!border-orange-400",
-          )}
+          className={
+            criticalErrorsExpanded
+              ? "!border-2 !border-orange-500 dark:!border-orange-400"
+              : summary.criticalTotal > 0
+                ? "!border-slate-400 dark:!border-slate-600"
+                : undefined
+          }
           onToggle={() => toggleSection("critical")}
         >
           <AppStack gap="sm">
@@ -1135,10 +1140,13 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
           showLabelClassName="!text-blue-600 dark:!text-blue-400"
           hideLabelClassName="!text-red-600 dark:!text-red-400"
           expanded={immediateErrorsExpanded}
-          className={cn(
-            summary.immediateTotal > 0 && "!border-slate-400 dark:!border-slate-600",
-            immediateErrorsExpanded && "!border-2 !border-red-600 dark:!border-red-500",
-          )}
+          className={
+            immediateErrorsExpanded
+              ? "!border-2 !border-red-600 dark:!border-red-500"
+              : summary.immediateTotal > 0
+                ? "!border-slate-400 dark:!border-slate-600"
+                : undefined
+          }
           onToggle={() => toggleSection("immediate")}
         >
           <AppStack gap="sm">

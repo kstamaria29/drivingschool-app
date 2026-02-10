@@ -1223,6 +1223,13 @@
 ---
 
 - **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile kebab menu hide zero badges
+- **Summary:**
+  - Updated Student Profile kebab menu badge rendering so Sessions, Reminders, and Assessments badges are hidden when the count is `0`.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Student Profile kebab sizing consolidation + label/icon polish
 - **Summary:**
   - Consolidated repetitive kebab-size adjustments into one record and finalized the trigger at `55px` square (`h-[55px] w-[55px]`) with a larger `30px` icon.

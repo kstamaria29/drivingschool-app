@@ -1,6 +1,13 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test active border priority fix
+- **Summary:**
+  - Ensured expanded section borders (blue/orange/red) always override the "has values" darker border styling.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Restricted mock test section borders + overview badge styling
 - **Summary:**
   - Updated Critical/Immediate active section borders to orange/red and added a darker border state for any section with recorded values.
@@ -148,10 +155,3 @@
 - **Task:** Student Profile kebab archive/delete text emphasis
 - **Summary:**
   - Updated kebab menu `Delete` label to explicit red text and made both `Archive/Unarchive` and `Delete` labels bold for stronger visual emphasis.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile kebab menu hide zero badges
-- **Summary:**
-  - Updated Student Profile kebab menu badge rendering so Sessions, Reminders, and Assessments badges are hidden when the count is `0`.
