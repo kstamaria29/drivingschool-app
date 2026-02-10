@@ -13,6 +13,7 @@ export type RestrictedMockTestTaskState = {
   items: Record<RestrictedMockTestTaskItemId, RestrictedMockTestFaultValue>;
   location: string;
   notes: string;
+  repetitions: number;
 };
 
 export type RestrictedMockTestStagesState = Record<

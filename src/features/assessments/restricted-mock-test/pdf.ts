@@ -51,6 +51,14 @@ function buildHtml(input: Input) {
         immediate: v.immediate,
       });
 
+  const stage1Repetitions = Object.values(v.stagesState.stage1 || {}).reduce((sum, task) => {
+    return sum + (task.repetitions ?? 0);
+  }, 0);
+
+  const stage2Repetitions = Object.values(v.stagesState.stage2 || {}).reduce((sum, task) => {
+    return sum + (task.repetitions ?? 0);
+  }, 0);
+
   const dateTime = [v.date?.trim(), v.time?.trim()].filter(Boolean).join(" ");
   const logoUrl = input.organizationLogoUrl?.trim() || "";
   const logoHtml = logoUrl
@@ -68,15 +76,19 @@ function buildHtml(input: Input) {
         if (!t) return null;
 
         const faults = getRestrictedMockTestTaskFaults(t);
+        const repetitions = t.repetitions ?? 0;
         const hasDetails =
-          Boolean(t.location?.trim()) || Boolean(t.notes?.trim()) || faults.length > 0;
+          repetitions > 0 || Boolean(t.location?.trim()) || Boolean(t.notes?.trim()) || faults.length > 0;
         if (!hasDetails) return null;
 
         return `
           <div class="task">
             <div class="task-head">
               <div class="task-name">${escapeHtml(taskDef.name)}</div>
-              <div class="task-speed">Typical speed: ${escapeHtml(taskDef.speed)}</div>
+              <div class="task-meta">
+                ${repetitions > 0 ? `<div class="task-reps">Repetitions: ${escapeHtml(String(repetitions))}</div>` : ""}
+                <div class="task-speed">Typical speed: ${escapeHtml(taskDef.speed)}</div>
+              </div>
             </div>
             ${t.location?.trim() ? `<div><span class="label">Location:</span> ${escapeHtml(t.location.trim())}</div>` : ""}
             ${faults.length ? `<div><span class="label">Faults:</span> ${escapeHtml(faults.join(", "))}</div>` : ""}
@@ -148,6 +160,8 @@ function buildHtml(input: Input) {
         .task:first-child { border-top: none; padding-top: 0; margin-top: 0; }
         .task-head { display: flex; justify-content: space-between; gap: 10px; }
         .task-name { font-weight: 700; }
+        .task-meta { text-align: right; }
+        .task-reps { font-size: 10px; font-weight: 700; }
         .task-speed { color: #475569; font-size: 10px; }
       </style>
     </head>
@@ -185,6 +199,14 @@ function buildHtml(input: Input) {
             <div class="pill-value">${escapeHtml(String(summary.stage2Faults))}</div>
           </div>
           <div class="pill">
+            <div class="pill-title">Stage 1 repetitions</div>
+            <div class="pill-value">${escapeHtml(String(stage1Repetitions))}</div>
+          </div>
+          <div class="pill">
+            <div class="pill-title">Stage 2 repetitions</div>
+            <div class="pill-value">${escapeHtml(String(stage2Repetitions))}</div>
+          </div>
+          <div class="pill">
             <div class="pill-title">Critical errors</div>
             <div class="pill-value">${escapeHtml(String(summary.criticalTotal))}</div>
           </div>
@@ -197,12 +219,12 @@ function buildHtml(input: Input) {
       </div>
 
       <div class="section box-soft">
-        <h2>Stage 1 – recorded items</h2>
+        <h2>Stage 1 – recorded items (repetitions: ${escapeHtml(String(stage1Repetitions))})</h2>
         ${renderStage("stage1")}
       </div>
 
       <div class="section box-soft">
-        <h2>Stage 2 – recorded items</h2>
+        <h2>Stage 2 – recorded items (repetitions: ${escapeHtml(String(stage2Repetitions))})</h2>
         ${v.stage2Enabled ? renderStage("stage2") : `<div class="muted">Stage 2 not enabled.</div>`}
       </div>
 

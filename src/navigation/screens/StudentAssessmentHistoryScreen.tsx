@@ -114,9 +114,15 @@ function getRestrictedMockTestSummary(assessment: Assessment) {
 
   const s1 = summary.stage1Faults ?? 0;
   const s2 = summary.stage2Faults ?? 0;
+  const stage1Repetitions = Object.values(values.stagesState.stage1 || {}).reduce((sum, task) => {
+    return sum + (task.repetitions ?? 0);
+  }, 0);
+  const stage2Repetitions = Object.values(values.stagesState.stage2 || {}).reduce((sum, task) => {
+    return sum + (task.repetitions ?? 0);
+  }, 0);
   const crit = summary.criticalTotal ?? 0;
   const imm = summary.immediateTotal ?? 0;
-  return `Stage 1: ${s1} faults \u00b7 Stage 2: ${s2} faults \u00b7 Critical: ${crit} \u00b7 Immediate: ${imm}`;
+  return `Stage 1: ${s1} faults / ${stage1Repetitions} reps \u00b7 Stage 2: ${s2} faults / ${stage2Repetitions} reps \u00b7 Critical: ${crit} \u00b7 Immediate: ${imm}`;
 }
 
 function getFullLicenseMockTestSummary(assessment: Assessment) {
@@ -546,18 +552,29 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
 
       const criticalTotal = summary.criticalTotal ?? 0;
       const immediateTotal = summary.immediateTotal ?? 0;
+      const stage1Repetitions = Object.values(values.stagesState.stage1 || {}).reduce((sum, task) => {
+        return sum + (task.repetitions ?? 0);
+      }, 0);
+      const stage2Repetitions = Object.values(values.stagesState.stage2 || {}).reduce((sum, task) => {
+        return sum + (task.repetitions ?? 0);
+      }, 0);
 
       function renderRecordedTasks(stageId: "stage1" | "stage2") {
         const stage = restrictedMockTestStages.find((s) => s.id === stageId);
         if (!stage) return null;
 
         const stageState = values.stagesState[stageId] || {};
+        const stageRepetitions = Object.values(stageState).reduce((sum, task) => {
+          return sum + (task.repetitions ?? 0);
+        }, 0);
         const tasks = stage.tasks
           .map((taskDef) => {
             const taskState = stageState?.[taskDef.id];
             if (!taskState) return null;
             const faults = getRestrictedMockTestTaskFaults(taskState);
+            const repetitions = taskState.repetitions ?? 0;
             const hasDetails =
+              repetitions > 0 ||
               Boolean(taskState.location?.trim()) ||
               Boolean(taskState.notes?.trim()) ||
               faults.length > 0;
@@ -566,6 +583,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
             return (
               <AppCard key={taskDef.id} className="gap-2">
                 <AppText variant="heading">{taskDef.name}</AppText>
+                <AppText variant="body">Repetitions: {repetitions}</AppText>
                 <AppText variant="caption">Typical speed zone: {taskDef.speed} km/h</AppText>
                 {taskState.location?.trim() ? (
                   <AppText variant="body">Location: {taskState.location.trim()}</AppText>
@@ -585,6 +603,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
           return (
             <AppCard className="gap-2">
               <AppText variant="heading">{stage.name}</AppText>
+              <AppText variant="body">Total repetitions: {stageRepetitions}</AppText>
               <AppText variant="body">No items recorded for this stage.</AppText>
             </AppCard>
           );
@@ -592,7 +611,12 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
 
         return (
           <AppStack gap="sm">
-            <AppText variant="heading">{stage.name}</AppText>
+            <View>
+              <AppText variant="heading">{stage.name}</AppText>
+              <AppText className="mt-1" variant="body">
+                Total repetitions: {stageRepetitions}
+              </AppText>
+            </View>
             {tasks}
           </AppStack>
         );
@@ -652,6 +676,9 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
             <AppText variant="heading">Overview</AppText>
             <AppText variant="body">
               Stage 1 faults: {summary.stage1Faults ?? 0} {"\u00b7"} Stage 2 faults: {summary.stage2Faults ?? 0}
+            </AppText>
+            <AppText variant="body">
+              Stage 1 repetitions: {stage1Repetitions} {"\u00b7"} Stage 2 repetitions: {stage2Repetitions}
             </AppText>
             <AppText variant="body">Critical errors: {criticalTotal}</AppText>
             <AppText variant="body">Immediate failure errors: {immediateTotal}</AppText>

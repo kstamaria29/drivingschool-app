@@ -59,12 +59,12 @@ type Props = NativeStackScreenProps<StudentsStackParamList, "StudentDetail">;
 type LicenceImageItem = { key: "front" | "back"; label: string; uri: string };
 type StudentLicenseImageSide = "front" | "back";
 type StudentLicenseImageSource = "camera" | "library";
+type StudentActionMenuItemTone = "default" | "info" | "warning" | "danger";
 type StudentActionMenuItemProps = {
   label: string;
   icon: LucideIcon;
   onPress: () => void;
-  danger?: boolean;
-  success?: boolean;
+  tone?: StudentActionMenuItemTone;
   disabled?: boolean;
   badgeCount?: number;
 };
@@ -100,22 +100,36 @@ function StudentActionMenuItem({
   label,
   icon: Icon,
   onPress,
-  danger = false,
-  success = false,
+  tone = "default",
   disabled = false,
   badgeCount,
 }: StudentActionMenuItemProps) {
   const colorScheme = useColorScheme();
-  const successColor = colorScheme === "dark" ? "#86efac" : "#166534";
-  const iconColor = danger
-    ? colorScheme === "dark"
-      ? theme.colors.dangerDark
-      : theme.colors.danger
-    : success
-      ? successColor
-    : colorScheme === "dark"
-      ? theme.colors.foregroundDark
-      : theme.colors.foregroundLight;
+  const isDark = colorScheme === "dark";
+  const iconColor =
+    tone === "danger"
+      ? isDark
+        ? theme.colors.dangerDark
+        : theme.colors.danger
+      : tone === "info"
+        ? isDark
+          ? "#93c5fd"
+          : "#1d4ed8"
+        : tone === "warning"
+          ? isDark
+            ? "#fdba74"
+            : "#c2410c"
+          : isDark
+            ? theme.colors.foregroundDark
+            : theme.colors.foregroundLight;
+  const textClassName =
+    tone === "danger"
+      ? "!text-red-700 dark:!text-red-300"
+      : tone === "info"
+        ? "!text-blue-600 dark:!text-blue-400"
+        : tone === "warning"
+          ? "!text-orange-700 dark:!text-orange-300"
+          : "";
   const normalizedBadgeCount =
     typeof badgeCount === "number" && Number.isFinite(badgeCount) && badgeCount > 0
       ? Math.min(Math.floor(badgeCount), 99)
@@ -139,26 +153,26 @@ function StudentActionMenuItem({
       )}
     >
       <Icon size={18} color={iconColor} strokeWidth={2} />
-      <AppText
-        variant={danger || success ? "button" : "body"}
-        className={cn(
-          danger && "text-red-700 dark:text-red-300",
-          success && "text-green-800 dark:text-green-200",
-        )}
-      >
-        {label}
-      </AppText>
-      {normalizedBadgeCount != null ? (
-        <View className="ml-auto h-5 min-w-[20px] items-center justify-center rounded-full border border-primary/30 bg-primary/15 px-1.5 dark:border-primaryDark/30 dark:bg-primaryDark/20">
-          <AppText
-            variant="caption"
-            className="text-[10px] font-semibold leading-[10px] text-primary dark:text-primaryDark"
-            numberOfLines={1}
-          >
-            {badgeText}
-          </AppText>
-        </View>
-      ) : null}
+      <View className="flex-1 flex-row items-center gap-2">
+        <AppText
+          variant={tone === "default" ? "body" : "button"}
+          className={cn("flex-shrink", textClassName)}
+          numberOfLines={1}
+        >
+          {label}
+        </AppText>
+        {normalizedBadgeCount != null ? (
+          <View className="h-5 min-w-[20px] items-center justify-center rounded-full border border-green-700/30 bg-green-700/10 px-1.5 dark:border-green-300/30 dark:bg-green-300/10">
+            <AppText
+              variant="caption"
+              className="text-[10px] font-semibold leading-[10px] text-green-800 dark:text-green-200"
+              numberOfLines={1}
+            >
+              {badgeText}
+            </AppText>
+          </View>
+        ) : null}
+      </View>
     </Pressable>
   );
 }
@@ -757,77 +771,6 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                   </AppCard>
                 ) : null}
                 </AppStack>
-
-                <View className={cn(isSidebar && "flex-1 min-w-[360px]")}>
-                <AppStack key={`student-actions-${student.id}`} gap="md">
-                  <View className="flex-row gap-3">
-                    <AppButton
-                      width="auto"
-                      className="flex-1"
-                      label="Session History"
-                      variant="secondary"
-                      icon={Clock}
-                      badgePosition="label-top-right"
-                      badgeCount={
-                        sessionsQuery.isPending ? undefined : sessionCount
-                      }
-                      onPress={() =>
-                        navigation.navigate("StudentSessionHistory", {
-                          studentId: student.id,
-                        })
-                      }
-                    />
-
-                    <AppButton
-                      width="auto"
-                      className="flex-1"
-                      label="Assessment History"
-                      variant="secondary"
-                      icon={ClipboardList}
-                      badgePosition="label-top-right"
-                      badgeCount={
-                        assessmentsQuery.isPending ? undefined : assessmentCount
-                      }
-                      onPress={() =>
-                        navigation.navigate("StudentAssessmentHistory", {
-                          studentId: student.id,
-                        })
-                      }
-                    />
-                  </View>
-
-                  <View className="flex-row gap-3">
-                    <AppButton
-                      width="auto"
-                      className="flex-1 border-green-600 bg-green-600 dark:border-green-500 dark:bg-green-500"
-                      label="Set Reminders"
-                      variant="primary"
-                      icon={Bell}
-                      badgePosition="label-top-right"
-                      badgeCount={
-                        remindersQuery.isPending || remindersQuery.isError
-                          ? undefined
-                          : reminderCount
-                      }
-                      onPress={() =>
-                        navigation.navigate("StudentReminders", {
-                          studentId: student.id,
-                        })
-                      }
-                    />
-
-                    <AppButton
-                      width="auto"
-                      className="flex-1"
-                      label="Start Assessment"
-                      variant="primary"
-                      icon={Play}
-                      disabled={!drawerNavigation}
-                      onPress={onStartAssessmentPress}
-                    />
-                  </View>
-                </AppStack>
-                </View>
               </View>
             </>
           )}
@@ -853,12 +796,14 @@ export function StudentDetailScreen({ navigation, route }: Props) {
           >
             <AppCard className="gap-1 p-2">
               <StudentActionMenuItem
-                label="Edit details"
-                icon={Pencil}
+                label="Start Assessment"
+                icon={Play}
+                tone="info"
+                disabled={!drawerNavigation}
                 onPress={() => {
                   if (!student) return;
                   closeActionMenu();
-                  navigation.navigate("StudentEdit", { studentId: student.id });
+                  onStartAssessmentPress();
                 }}
               />
               <StudentActionMenuItem
@@ -907,6 +852,16 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                   });
                 }}
               />
+              <View className="h-2" />
+              <StudentActionMenuItem
+                label="Edit details"
+                icon={Pencil}
+                onPress={() => {
+                  if (!student) return;
+                  closeActionMenu();
+                  navigation.navigate("StudentEdit", { studentId: student.id });
+                }}
+              />
               <StudentActionMenuItem
                 label={
                   isArchived
@@ -914,7 +869,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
                     : (archiveMutation.isPending ? "Archiving..." : "Archive")
                 }
                 icon={isArchived ? Undo2 : Archive}
-                success
+                tone="warning"
                 disabled={
                   archiveMutation.isPending ||
                   unarchiveMutation.isPending ||
@@ -932,7 +887,7 @@ export function StudentDetailScreen({ navigation, route }: Props) {
               <StudentActionMenuItem
                 label={deleteMutation.isPending ? "Deleting..." : "Delete"}
                 icon={Trash2}
-                danger
+                tone="danger"
                 disabled={
                   deleteMutation.isPending ||
                   archiveMutation.isPending ||

@@ -1,154 +1,157 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Assessment PDF header/logo styling
+- **Task:** Restricted mock test stage titles
 - **Summary:**
-  - Added organization logo + student name to generated assessment PDFs (Driving Assessment, Restricted mock test, Full License mock test).
-  - Standardized section borders across assessment PDFs to match the scoring guide style (darker border, square corners).
+  - Updated Stage 1 and Stage 2 section titles to simplified wording (duration-only) as requested.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile kebab archive/delete true bold fix
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test Stage 2 tasks + reps label styling
 - **Summary:**
-  - Switched kebab `Archive/Unarchive` and `Delete` label rendering to `AppText` `button` variant (semibold font family) because utility `font-semibold` is overridden by the component-level font family on `body` variant.
-  - Kept `Delete` label red and `Archive/Unarchive` green with the corrected bold rendering.
+  - Restored the detailed Stage 2 task list with hard-coded reps targets per task (and kept Stage 1 targets).
+  - Updated the task-list reps target text styling to match the task title (same weight/color).
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile kebab archive/delete text emphasis
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test task list targets
 - **Summary:**
-  - Updated kebab menu `Delete` label to explicit red text and made both `Archive/Unarchive` and `Delete` labels bold for stronger visual emphasis.
+  - Simplified Stage 1 and Stage 2 task list names and removed the 3-point turn item.
+  - Added a right-aligned static reps target label per task in the task list.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile kebab menu hide zero badges
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test active border priority fix
 - **Summary:**
-  - Updated Student Profile kebab menu badge rendering so Sessions, Reminders, and Assessments badges are hidden when the count is `0`.
+  - Ensured expanded section borders (blue/orange/red) always override the "has values" darker border styling.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile kebab menu counts + reminders action polish
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test section borders + overview badge styling
 - **Summary:**
-  - Added `Reminders` to the Student Profile kebab menu between Sessions and Assessments, renamed `Edit` to `Edit details`, and added right-side count badges for Sessions, Reminders, and Assessments.
-  - Styled kebab `Archive/Unarchive` action text/icon green and updated the main profile action button to green `Set Reminders`.
+  - Updated Critical/Immediate active section borders to orange/red and added a darker border state for any section with recorded values.
+  - Improved Session overview badges (Stage Reps/Faults with blue/red text, visible Critical/Immediate borders) and made gap taps collapse the active section reliably.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile kebab sizing consolidation + label/icon polish
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test overview badges + submit confirm styling
 - **Summary:**
-  - Consolidated repetitive kebab-size adjustments into one record and finalized the trigger at `55px` square (`h-[55px] w-[55px]`) with a larger `30px` icon.
-  - Increased the organization name text under the student title from `23px` to `24px`.
+  - Made the submit confirmation modal show `Submit` in blue (and kept `Submit and Generate PDF` dark green) across all assessments.
+  - Reworked the Restricted mock test Session overview badges (right-aligned Critical/Immediate badges + conditional borders) and slightly increased the student name size.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile second-visit clipping fix (ScrollView flex)
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test Stage 2 lock + submit confirm modal
 - **Summary:**
-  - Removed `flex-1` container sizing from Student Profile scroll layout to prevent Android ScrollView content mis-measurement on revisit.
+  - Styled Stage 2 `Locked` status in green and hid Stage 2 totals while locked.
+  - Replaced submit confirmation alerts with a styled modal across all assessments and made the `Submit and Generate PDF` action dark green.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile focus reset for revisit stability
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Mock test + student menu blue styling
 - **Summary:**
-  - Fixed the second-visit action-row clipping pattern by resetting Student Detail transient UI state and scroll position every time the screen regains focus.
+  - Re-applied important blue/red highlight utilities so active borders and Repetitions/Faults stats render reliably, including kebab Start Assessment.
+  - Added background-tap collapse support for the Restricted mock test and added a visual gap in the student kebab menu.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile second-visit action layout stabilization
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Student detail actions menu + background collapse
 - **Summary:**
-  - Stabilized second-visit action button rendering by resetting Student Detail scroll/transient UI state on `studentId` changes and reducing badge row stacking side effects.
+  - Moved Student Detail primary actions into the kebab menu (Start Assessment top, inline green badges, orange Archive) and removed the action buttons panel.
+  - Updated Restricted Mock Test section collapse to also trigger when tapping the app background outside the centered container.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile kebab action menu + remove bottom archive row
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test section collapse + stat colors
 - **Summary:**
-  - Replaced the top-right edit icon with a taller kebab action button and added a dropdown-style modal menu for Edit, Sessions, Assessments, Archive/Unarchive, and Delete.
-  - Removed the bottom Archive/Delete buttons from Student Profile to simplify layout and avoid the intermittent action-row UI overlap state.
+  - Restored blue Repetitions/red Faults text and active-section blue borders for the Stage/Error sections.
+  - Added tap-outside-to-collapse behavior and darkened the Session overview border with a larger student name.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile badge overlap fix
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test error totals placement + overview border
 - **Summary:**
-  - Adjusted `AppButton` label-badge positioning and stacking so Student Profile count badges don't clip/overlap adjacent buttons.
+  - Moved Critical/Immediate totals under their headings as `Total Errors: x` (orange/red) and removed the top-right `x recorded` label.
+  - Darkened the Session overview card border for stronger visual separation.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Lessons editor UX + history badge fix
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test stat color specificity fix
 - **Summary:**
-  - Fixed Student Profile history/reminder count badges so they position correctly on tablet portrait buttons.
-  - Updated Lesson Create/Edit screens to use search-only student results, hide student selection on edit, hide instructor selection when no instructors exist, and exclude admin accounts.
+  - Forced Repetitions/Faults text colors (blue/red) using `!text-*` utilities so they are not overridden by base text classes.
+  - Forced active-section blue borders using `!border-*` utilities so expanded section blocks visibly highlight as expected.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Mobile portrait compact spacing pass
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test repetition colors + active borders
 - **Summary:**
-  - Reduced global card and picker modal padding for compact/mobile screens to fit more content per view.
-  - Updated remaining screens to use compact gaps/modal padding while keeping tablet layouts unchanged.
+  - Forced Repetitions (blue) and Faults (red) styling via text color styles so they render correctly across themes.
+  - Restored active-section highlighting with a thicker blue border when a section is expanded.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Mobile portrait layout polish
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test repetitions/faults header styling
 - **Summary:**
-  - Reduced mobile (compact) screen padding/spacing to fit more content without cramped cards.
-  - Tightened key screens (Home quick-actions + titles, Student Detail header, and compact form spacing) while keeping tablet layouts unchanged.
+  - Moved faults counts into the same line as repetitions for Stage headers, task cards, and the task modal (blue Repetitions, red Faults).
+  - Swapped the Record Repetition icon to a Save icon and simplified modal header details.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Tablet landscape layouts + collapsed sidebar default
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test modal + overview polish
 - **Summary:**
-  - Improved tablet-landscape layouts across key screens (Home, Settings, Assessments, Student Detail, Lesson Edit) while keeping tablet-portrait unchanged.
-  - Set the permanent sidebar to start collapsed in tablet-landscape and removed landscape max-width constraints to eliminate side whitespace.
+  - Updated task modal header (green Record Repetition with icon) and reset faults after recording a repetition.
+  - Made sections accordion-style (only one open), added active-section blue borders, highlighted tasks with repetitions in orange, and compacted Session overview to 4 badges with student name.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Theme coverage for recent UI updates
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test task modal spacing polish
 - **Summary:**
-  - Fixed missing theme classes for primary/border tokens in badges, dividers, avatars, and assessment history chips.
-  - Updated a few icon color fallbacks to respect dark-mode palette variants.
+  - Adjusted task modal scroll sizing so the modal shrinks to its content (removing excess whitespace while staying centered).
+  - Updated the restricted mock test first-time guide to match the task popup workflow and repetition button placement.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Lessons reminders show student name
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test task modal + pre-drive grid
 - **Summary:**
-  - Updated Lessons selected-day Reminders list to show student name above reminder title.
-  - Joined student names in the reminders date-range query used by the Lessons calendar.
+  - Arranged pre-drive fields into two-column rows (Date/Time, Vehicle/Route) for tablet-friendly data entry.
+  - Replaced task dropdown cards with task buttons that open a modal (faults, location, notes), and moved Record repetition into the modal header.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Lessons agenda title + upcoming reminders student label
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** First-time guide for restricted mock test
 - **Summary:**
-  - Added a Lessons section title in the Lessons agenda card for visual consistency with Reminders.
-  - Updated Home Upcoming Reminders to show the student name more clearly.
+  - Added a plain-language step-by-step guide for instructors using Mock Test - Restricted Licence for the first time.
+  - Included workflow coverage for stages, faults, repetitions, error sections, submit options, and history/PDF follow-up.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Session History edit flow + Lessons agenda reminders
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test default collapse + show/hide colors
 - **Summary:**
-  - Defaulted Session History task suggestions to show and added an edit/update action for session entries.
-  - Updated the Lessons agenda to list reminders for the selected day and removed the duplicate New button.
+  - Set Stage 1, Critical errors, and Immediate failure errors to be collapsed by default when the Restricted mock test is initiated.
+  - Added per-section Show/Hide color rules: blue/red for stage+error sections and lighter blue/red for task cards.
 
 ---
 
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Lessons calendar reminder markers + legend
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test repetitions + UI polish
 - **Summary:**
-  - Replaced the Lessons calendar today dot with a circled day highlight and added reminder markers with a legend.
-  - Updated the weekly strip to show lesson vs reminder markers consistently.
-
+  - Added per-task repetition recording (with confirmation) and displayed repetition totals per task/stage in the Restricted mock test.
+  - Kept the Restricted mock test header/student/overview sticky, redesigned fault selection as 2-column buttons, added collapsible errors, and included repetitions in PDF + assessment history.

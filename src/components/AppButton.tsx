@@ -26,6 +26,7 @@ type Props = Omit<PressableProps, "children"> & {
   badgeCount?: number;
   badgePosition?: AppButtonBadgePosition;
   renderIcon?: (input: { size: number; color: string; strokeWidth: number }) => ReactNode;
+  labelClassName?: string;
 };
 
 export function AppButton({
@@ -41,6 +42,7 @@ export function AppButton({
   badgeCount,
   badgePosition = "icon",
   renderIcon,
+  labelClassName,
   className,
   disabled,
   ...props
@@ -133,7 +135,7 @@ export function AppButton({
         {hasLabel ? (
           <AppText
             variant="button"
-            className={cn(theme.button.labelBase, theme.button.labelVariant[variant])}
+            className={cn(theme.button.labelBase, theme.button.labelVariant[variant], labelClassName)}
           >
             {label}
           </AppText>

@@ -20,6 +20,7 @@ import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { AppTimeInput } from "../../components/AppTimeInput";
 import { Screen } from "../../components/Screen";
+import { SubmitAssessmentConfirmModal } from "../../components/SubmitAssessmentConfirmModal";
 import { useCurrentUser } from "../../features/auth/current-user";
 import { ensureAndroidDownloadsDirectoryUri } from "../../features/assessments/android-downloads";
 import { useCreateAssessmentMutation } from "../../features/assessments/queries";
@@ -153,6 +154,8 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
   const [stage, setStage] = useState<Stage>("details");
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [startTestModalVisible, setStartTestModalVisible] = useState(false);
+  const [submitConfirmVisible, setSubmitConfirmVisible] = useState(false);
+  const [pendingSubmitValues, setPendingSubmitValues] = useState<FullLicenseMockTestFormValues | null>(null);
   const scrollRef = useRef<ScrollView | null>(null);
   const { leaveWithoutPrompt } = useAssessmentLeaveGuard({
     navigation,
@@ -477,6 +480,11 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
 
   const draftHydratedRef = useRef<string | null>(null);
   const draftSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function closeSubmitConfirmModal() {
+    setSubmitConfirmVisible(false);
+    setPendingSubmitValues(null);
+  }
 
   function resetSession(options?: { keepDetails?: boolean }) {
     setSessionId(uid("session"));
@@ -1162,18 +1170,8 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
           disabled={saving}
           icon={Timer}
           onPress={form.handleSubmit((values) => {
-            Alert.alert(
-              "Submit mock test?",
-              "Submit will save the assessment. Submit and Generate PDF will also export a PDF.",
-              [
-                { text: "Cancel", style: "cancel" },
-                { text: "Submit", onPress: () => void submitOnly(values) },
-                {
-                  text: "Submit and Generate PDF",
-                  onPress: () => void submitAndGeneratePdf(values),
-                },
-              ],
-            );
+            setPendingSubmitValues(values);
+            setSubmitConfirmVisible(true);
           })}
         />
         <AppButton width="auto" variant="secondary" label="Back to session" onPress={() => setStage("run")} />
@@ -1920,6 +1918,27 @@ export function FullLicenseMockTestScreen({ navigation, route }: Props) {
           ) : null}
         </AppStack>
       </Screen>
+
+      <SubmitAssessmentConfirmModal
+        visible={submitConfirmVisible}
+        title="Submit mock test?"
+        message="Submit will save the assessment. Submit and Generate PDF will also export a PDF."
+        disabled={saving}
+        onCancel={closeSubmitConfirmModal}
+        onSubmit={() => {
+          const values = pendingSubmitValues;
+          closeSubmitConfirmModal();
+          if (!values) return;
+          void submitOnly(values);
+        }}
+        onSubmitAndGeneratePdf={() => {
+          const values = pendingSubmitValues;
+          closeSubmitConfirmModal();
+          if (!values) return;
+          void submitAndGeneratePdf(values);
+        }}
+      />
+
       {hazardPickerModal}
       {startTestModal}
     </>
