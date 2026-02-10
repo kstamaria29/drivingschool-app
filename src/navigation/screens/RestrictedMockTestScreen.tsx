@@ -857,19 +857,19 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
         title={stageDef.name}
         subtitleNode={
           <View className="flex-row flex-wrap items-center gap-x-4 gap-y-1">
-            <AppText className="text-xl text-blue-600 dark:text-blue-400" variant="body">
+            <AppText className="text-xl !text-blue-600 dark:!text-blue-400" variant="body">
               Total Repetitions: {stageRepetitions}
             </AppText>
-            <AppText className="text-xl text-red-600 dark:text-red-400" variant="body">
+            <AppText className="text-xl !text-red-600 dark:!text-red-400" variant="body">
               Total Faults: {stageFaults}
             </AppText>
           </View>
         }
-        showLabelClassName="text-blue-600 dark:text-blue-400"
-        hideLabelClassName="text-red-600 dark:text-red-400"
+        showLabelClassName="!text-blue-600 dark:!text-blue-400"
+        hideLabelClassName="!text-red-600 dark:!text-red-400"
         rightText={rightText}
         expanded={expanded}
-        className={cn(expanded && "border-blue-600 dark:border-blue-400")}
+        className={cn(expanded && "!border-2 !border-blue-600 dark:!border-blue-400")}
         onToggle={() => toggleSection(stageKey)}
       >
         <AppStack gap="md">
@@ -909,7 +909,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                     className={cn(
                       theme.card.base,
                       "gap-2",
-                      repetitions > 0 && "border-orange-500 dark:border-orange-400",
+                      repetitions > 0 && "!border-orange-500 dark:!border-orange-400",
                     )}
                     onPress={() => openTaskModal(stageKey, taskDef.id)}
                   >
@@ -917,10 +917,10 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                       <AppText variant="heading">{taskDef.name}</AppText>
                       {repetitions > 0 ? (
                         <View className="flex-row flex-wrap items-center gap-x-4 gap-y-1">
-                          <AppText className="text-xl text-blue-600 dark:text-blue-400" variant="body">
+                          <AppText className="text-xl !text-blue-600 dark:!text-blue-400" variant="body">
                             Repetitions: {repetitions}
                           </AppText>
-                          <AppText className="text-xl text-red-600 dark:text-red-400" variant="body">
+                          <AppText className="text-xl !text-red-600 dark:!text-red-400" variant="body">
                             Faults: {faults}
                           </AppText>
                         </View>
@@ -941,11 +941,11 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
       <AppCollapsibleCard
         title="Critical errors"
         subtitle="Recorded any time during route."
-        showLabelClassName="text-blue-600 dark:text-blue-400"
-        hideLabelClassName="text-red-600 dark:text-red-400"
+        showLabelClassName="!text-blue-600 dark:!text-blue-400"
+        hideLabelClassName="!text-red-600 dark:!text-red-400"
         rightText={summary.criticalTotal > 0 ? `${summary.criticalTotal} recorded` : undefined}
         expanded={criticalErrorsExpanded}
-        className={cn(criticalErrorsExpanded && "border-blue-600 dark:border-blue-400")}
+        className={cn(criticalErrorsExpanded && "!border-2 !border-blue-600 dark:!border-blue-400")}
         onToggle={() => toggleSection("critical")}
       >
         <AppStack gap="sm">
@@ -996,11 +996,11 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
       <AppCollapsibleCard
         title="Immediate failure errors"
         subtitle="Any one = fail."
-        showLabelClassName="text-blue-600 dark:text-blue-400"
-        hideLabelClassName="text-red-600 dark:text-red-400"
+        showLabelClassName="!text-blue-600 dark:!text-blue-400"
+        hideLabelClassName="!text-red-600 dark:!text-red-400"
         rightText={summary.immediateTotal > 0 ? `${summary.immediateTotal} recorded` : undefined}
         expanded={immediateErrorsExpanded}
-        className={cn(immediateErrorsExpanded && "border-blue-600 dark:border-blue-400")}
+        className={cn(immediateErrorsExpanded && "!border-2 !border-blue-600 dark:!border-blue-400")}
         onToggle={() => toggleSection("immediate")}
       >
         <AppStack gap="sm">
@@ -1192,10 +1192,10 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                     <View className="flex-1">
                       <AppText variant="heading">{activeTaskDef.name}</AppText>
                       <View className="mt-2 flex-row flex-wrap items-center gap-x-4 gap-y-1">
-                        <AppText className="text-xl text-blue-600 dark:text-blue-400" variant="body">
+                        <AppText className="text-xl !text-blue-600 dark:!text-blue-400" variant="body">
                           Repetitions: {activeTaskState.repetitions ?? 0}
                         </AppText>
-                        <AppText className="text-xl text-red-600 dark:text-red-400" variant="body">
+                        <AppText className="text-xl !text-red-600 dark:!text-red-400" variant="body">
                           Faults: {previewFaults}
                         </AppText>
                       </View>
@@ -1205,7 +1205,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                       <AppButton
                         width="auto"
                         variant="primary"
-                        className="bg-green-600 border-green-600 dark:bg-green-500 dark:border-green-500"
+                        className="!bg-green-600 !border-green-600 dark:!bg-green-500 dark:!border-green-500"
                         label="Record Repetition"
                         icon={Save}
                         onPress={() => {

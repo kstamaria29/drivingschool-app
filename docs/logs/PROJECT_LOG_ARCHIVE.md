@@ -1159,3 +1159,19 @@
 - **Summary:**
   - Reduced mobile (compact) screen padding/spacing to fit more content without cramped cards.
   - Tightened key screens (Home quick-actions + titles, Student Detail header, and compact form spacing) while keeping tablet layouts unchanged.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Mobile portrait compact spacing pass
+- **Summary:**
+  - Reduced global card and picker modal padding for compact/mobile screens to fit more content per view.
+  - Updated remaining screens to use compact gaps/modal padding while keeping tablet layouts unchanged.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Lessons editor UX + history badge fix
+- **Summary:**
+  - Fixed Student Profile history/reminder count badges so they position correctly on tablet portrait buttons.
+  - Updated Lesson Create/Edit screens to use search-only student results, hide student selection on edit, hide instructor selection when no instructors exist, and exclude admin accounts.

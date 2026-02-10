@@ -1,6 +1,22 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test stat color specificity fix
+- **Summary:**
+  - Forced Repetitions/Faults text colors (blue/red) using `!text-*` utilities so they are not overridden by base text classes.
+  - Forced active-section blue borders using `!border-*` utilities so expanded section blocks visibly highlight as expected.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test repetition colors + active borders
+- **Summary:**
+  - Forced Repetitions (blue) and Faults (red) styling via text color styles so they render correctly across themes.
+  - Restored active-section highlighting with a thicker blue border when a section is expanded.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Restricted mock test repetitions/faults header styling
 - **Summary:**
   - Moved faults counts into the same line as repetitions for Stage headers, task cards, and the task modal (blue Repetitions, red Faults).
@@ -135,19 +151,3 @@
 - **Task:** Student Profile badge overlap fix
 - **Summary:**
   - Adjusted `AppButton` label-badge positioning and stacking so Student Profile count badges don't clip/overlap adjacent buttons.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Lessons editor UX + history badge fix
-- **Summary:**
-  - Fixed Student Profile history/reminder count badges so they position correctly on tablet portrait buttons.
-  - Updated Lesson Create/Edit screens to use search-only student results, hide student selection on edit, hide instructor selection when no instructors exist, and exclude admin accounts.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Mobile portrait compact spacing pass
-- **Summary:**
-  - Reduced global card and picker modal padding for compact/mobile screens to fit more content per view.
-  - Updated remaining screens to use compact gaps/modal padding while keeping tablet layouts unchanged.
