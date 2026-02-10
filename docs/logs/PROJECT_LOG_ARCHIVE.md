@@ -1253,6 +1253,14 @@
 ---
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test repetitions + UI polish
+- **Summary:**
+  - Added per-task repetition recording (with confirmation) and displayed repetition totals per task/stage in the Restricted mock test.
+  - Kept the Restricted mock test header/student/overview sticky, redesigned fault selection as 2-column buttons, added collapsible errors, and included repetitions in PDF + assessment history.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Assessment PDF header/logo styling
 - **Summary:**
   - Added organization logo + student name to generated assessment PDFs (Driving Assessment, Restricted mock test, Full License mock test).

@@ -22,10 +22,22 @@ export const restrictedMockTestFormSchema = z.object({
 
 export type RestrictedMockTestFormValues = z.infer<typeof restrictedMockTestFormSchema>;
 
-const faultValue = z.union([z.literal(""), z.literal("fault")]);
+const legacyFaultValue = z.union([z.literal(""), z.literal("fault")]);
+
+const faultCountsSchema = z
+  .record(z.string(), z.union([z.number().int().min(0), legacyFaultValue]))
+  .optional()
+  .default({})
+  .transform((items) => {
+    const output: Record<string, number> = {};
+    Object.entries(items).forEach(([key, value]) => {
+      output[key] = typeof value === "number" ? value : value === "fault" ? 1 : 0;
+    });
+    return output;
+  });
 
 const taskStateSchema = z.object({
-  items: z.record(z.string(), faultValue).default({}),
+  items: faultCountsSchema,
   location: z.string().default(""),
   notes: z.string().default(""),
   repetitions: z.number().int().min(0).default(0),

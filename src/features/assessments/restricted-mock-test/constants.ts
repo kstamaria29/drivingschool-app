@@ -8,7 +8,7 @@ export const restrictedMockTestTaskItems = [
   { id: "parkObs", label: "Parking observation" },
   { id: "parkMove", label: "Parking movement" },
   { id: "leavePark", label: "Leaving park" },
-  { id: "turnMovement", label: "Turning movement (3-pt turn)" },
+  { id: "turnMovement", label: "Turning movement (3pt turn)" },
 ] as const;
 
 export type RestrictedMockTestTaskItemId = (typeof restrictedMockTestTaskItems)[number]["id"];

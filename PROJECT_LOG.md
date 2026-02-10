@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test fault totals per repetition
+- **Summary:**
+  - Fixed fault totals so recording multiple repetitions increments Faults/Total Faults correctly (even when the same fault is selected again).
+  - Updated the Turning movement fault label text.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Restricted mock test stage titles
 - **Summary:**
   - Updated Stage 1 and Stage 2 section titles to simplified wording (duration-only) as requested.
@@ -147,11 +155,3 @@
 - **Summary:**
   - Set Stage 1, Critical errors, and Immediate failure errors to be collapsed by default when the Restricted mock test is initiated.
   - Added per-section Show/Hide color rules: blue/red for stage+error sections and lighter blue/red for task cards.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Restricted mock test repetitions + UI polish
-- **Summary:**
-  - Added per-task repetition recording (with confirmation) and displayed repetition totals per task/stage in the Restricted mock test.
-  - Kept the Restricted mock test header/student/overview sticky, redesigned fault selection as 2-column buttons, added collapsible errors, and included repetitions in PDF + assessment history.

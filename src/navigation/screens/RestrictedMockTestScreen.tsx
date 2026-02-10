@@ -103,12 +103,22 @@ function createEmptyItems() {
   );
 }
 
+function createEmptyFaultCounts() {
+  return restrictedMockTestTaskItems.reduce<Record<RestrictedMockTestTaskItemId, number>>(
+    (acc, item) => {
+      acc[item.id] = 0;
+      return acc;
+    },
+    {} as Record<RestrictedMockTestTaskItemId, number>,
+  );
+}
+
 function createEmptyStagesState(): RestrictedMockTestStagesState {
   const state: RestrictedMockTestStagesState = { stage1: {}, stage2: {} };
   restrictedMockTestStages.forEach((stage) => {
     const tasks: Record<string, RestrictedMockTestTaskState> = {};
     stage.tasks.forEach((task) => {
-      tasks[task.id] = { items: createEmptyItems(), location: "", notes: "", repetitions: 0 };
+      tasks[task.id] = { items: createEmptyFaultCounts(), location: "", notes: "", repetitions: 0 };
     });
     state[stage.id] = tasks;
   });
@@ -123,7 +133,7 @@ function updateTaskState(
 ): RestrictedMockTestStagesState {
   const stage = prev[stageId];
   const task: RestrictedMockTestTaskState = stage[taskId] || {
-    items: createEmptyItems(),
+    items: createEmptyFaultCounts(),
     location: "",
     notes: "",
     repetitions: 0,
@@ -142,7 +152,7 @@ function updateTaskState(
 function taskFaultCount(task: RestrictedMockTestTaskState) {
   let count = 0;
   restrictedMockTestTaskItems.forEach((item) => {
-    if (task.items[item.id] === "fault") count += 1;
+    count += task.items[item.id] ?? 0;
   });
   return count;
 }
@@ -458,7 +468,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     if (!activeTask) return null;
     return (
       stagesState[activeTask.stageId]?.[activeTask.taskId] ?? {
-        items: createEmptyItems(),
+        items: createEmptyFaultCounts(),
         location: "",
         notes: "",
         repetitions: 0,
@@ -1006,12 +1016,12 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             ) : (
               <AppStack gap="md">
                 {stageDef.tasks.map((taskDef) => {
-                  const taskState = stagesState[stageKey]?.[taskDef.id] ?? {
-                    items: createEmptyItems(),
-                    location: "",
-                    notes: "",
-                    repetitions: 0,
-                  };
+                   const taskState = stagesState[stageKey]?.[taskDef.id] ?? {
+                     items: createEmptyFaultCounts(),
+                     location: "",
+                     notes: "",
+                     repetitions: 0,
+                   };
                   const faults = taskFaultCount(taskState);
                   const repetitions = taskState.repetitions ?? 0;
 
@@ -1351,11 +1361,14 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
               {activeTask && activeTaskDef && activeTaskState ? (
                 <>
                   {(() => {
-                    const currentItems = activeTaskState.items as Record<RestrictedMockTestTaskItemId, FaultValue>;
-                    const previewFaults = restrictedMockTestTaskItems.reduce((count, item) => {
-                      const isFault = currentItems[item.id] === "fault" || taskModalItems[item.id] === "fault";
-                      return isFault ? count + 1 : count;
+                    const currentItems = activeTaskState.items as Record<RestrictedMockTestTaskItemId, number>;
+                    const recordedFaults = restrictedMockTestTaskItems.reduce((sum, item) => {
+                      return sum + (currentItems[item.id] ?? 0);
                     }, 0);
+                    const selectedFaults = restrictedMockTestTaskItems.reduce((sum, item) => {
+                      return taskModalItems[item.id] === "fault" ? sum + 1 : sum;
+                    }, 0);
+                    const previewFaults = recordedFaults + selectedFaults;
 
                     return (
                   <View className="flex-row items-start justify-between gap-3">
@@ -1390,15 +1403,17 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                               { text: "Cancel", style: "cancel" },
                               {
                                 text: "Record",
-                                onPress: () => {
-                                  setStagesState((prev) =>
-                                    updateTaskState(prev, stageId, taskId, (task) => {
-                                      const nextItems: Record<RestrictedMockTestTaskItemId, FaultValue> = {
+                                 onPress: () => {
+                                   setStagesState((prev) =>
+                                     updateTaskState(prev, stageId, taskId, (task) => {
+                                      const nextItems: Record<RestrictedMockTestTaskItemId, number> = {
                                         ...task.items,
                                       };
 
                                       restrictedMockTestTaskItems.forEach((item) => {
-                                        if (taskModalItems[item.id] === "fault") nextItems[item.id] = "fault";
+                                        if (taskModalItems[item.id] === "fault") {
+                                          nextItems[item.id] = (nextItems[item.id] ?? 0) + 1;
+                                        }
                                       });
 
                                       return {

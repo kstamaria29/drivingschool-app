@@ -7,10 +7,8 @@ import {
   type RestrictedMockTestTaskItemId,
 } from "./constants";
 
-export type RestrictedMockTestFaultValue = "" | "fault";
-
 export type RestrictedMockTestTaskState = {
-  items: Record<RestrictedMockTestTaskItemId, RestrictedMockTestFaultValue>;
+  items: Record<RestrictedMockTestTaskItemId, number>;
   location: string;
   notes: string;
   repetitions: number;
@@ -50,9 +48,10 @@ export function calculateRestrictedMockTestSummary(input: {
       if (!taskState?.items) return;
 
       restrictedMockTestTaskItems.forEach((taskItem) => {
-        if (taskState.items?.[taskItem.id] !== "fault") return;
-        if (isStage1) stage1Faults += 1;
-        else stage2Faults += 1;
+        const count = taskState.items?.[taskItem.id] ?? 0;
+        if (count <= 0) return;
+        if (isStage1) stage1Faults += count;
+        else stage2Faults += count;
       });
     });
   });
@@ -101,7 +100,9 @@ export function calculateRestrictedMockTestSummary(input: {
 export function getRestrictedMockTestTaskFaults(task: RestrictedMockTestTaskState) {
   const faults: string[] = [];
   restrictedMockTestTaskItems.forEach((item) => {
-    if (task.items[item.id] === "fault") faults.push(item.label);
+    const count = task.items[item.id] ?? 0;
+    if (count <= 0) return;
+    faults.push(count > 1 ? `${item.label} (${count})` : item.label);
   });
   return faults;
 }
