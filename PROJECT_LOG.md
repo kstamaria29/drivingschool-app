@@ -1,6 +1,21 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test stage titles
+- **Summary:**
+  - Updated Stage 1 and Stage 2 section titles to simplified wording (duration-only) as requested.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test Stage 2 tasks + reps label styling
+- **Summary:**
+  - Restored the detailed Stage 2 task list with hard-coded reps targets per task (and kept Stage 1 targets).
+  - Updated the task-list reps target text styling to match the task title (same weight/color).
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Restricted mock test task list targets
 - **Summary:**
   - Simplified Stage 1 and Stage 2 task list names and removed the 3-point turn item.
@@ -140,19 +155,3 @@
 - **Summary:**
   - Added per-task repetition recording (with confirmation) and displayed repetition totals per task/stage in the Restricted mock test.
   - Kept the Restricted mock test header/student/overview sticky, redesigned fault selection as 2-column buttons, added collapsible errors, and included repetitions in PDF + assessment history.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Assessment PDF header/logo styling
-- **Summary:**
-  - Added organization logo + student name to generated assessment PDFs (Driving Assessment, Restricted mock test, Full License mock test).
-  - Standardized section borders across assessment PDFs to match the scoring guide style (darker border, square corners).
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Student Profile kebab archive/delete true bold fix
-- **Summary:**
-  - Switched kebab `Archive/Unarchive` and `Delete` label rendering to `AppText` `button` variant (semibold font family) because utility `font-semibold` is overridden by the component-level font family on `body` variant.
-  - Kept `Delete` label red and `Archive/Unarchive` green with the corrected bold rendering.

@@ -1241,3 +1241,19 @@
 - **Task:** Student Profile kebab archive/delete text emphasis
 - **Summary:**
   - Updated kebab menu `Delete` label to explicit red text and made both `Archive/Unarchive` and `Delete` labels bold for stronger visual emphasis.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Student Profile kebab archive/delete true bold fix
+- **Summary:**
+  - Switched kebab `Archive/Unarchive` and `Delete` label rendering to `AppText` `button` variant (semibold font family) because utility `font-semibold` is overridden by the component-level font family on `body` variant.
+  - Kept `Delete` label red and `Archive/Unarchive` green with the corrected bold rendering.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Assessment PDF header/logo styling
+- **Summary:**
+  - Added organization logo + student name to generated assessment PDFs (Driving Assessment, Restricted mock test, Full License mock test).
+  - Standardized section borders across assessment PDFs to match the scoring guide style (darker border, square corners).

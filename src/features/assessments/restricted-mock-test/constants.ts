@@ -16,7 +16,7 @@ export type RestrictedMockTestTaskItemId = (typeof restrictedMockTestTaskItems)[
 export const restrictedMockTestStages = [
   {
     id: "stage1",
-    name: "Stage 1 – Basic tasks (approx. 10 min, ≤60 km/h)",
+    name: "Stage 1 - Basic Tasks(approx 10min)",
     note: "Screening stage in simpler traffic. If performance is clearly unsafe, don’t continue to Stage 2.",
     badge: "Screening stage",
     tasks: [
@@ -30,16 +30,28 @@ export const restrictedMockTestStages = [
   },
   {
     id: "stage2",
-    name: "Stage 2 – Higher-demand tasks (approx. 35 min, ≤110 km/h)",
+    name: "Stage 2 - Higher-Demand Tasks (approx 35min)",
     note: "Moderate to heavy traffic, wider range of turns, lane changes, merges, roundabouts and speeds.",
     badge: "Main assessment",
     tasks: [
-      { id: "s2_turns", name: "All turns give way", speed: "50–60", targetReps: 10 },
-      { id: "s2_laneChanges", name: "All lane changes", speed: "50–80", targetReps: 5 },
+      { id: "s2_rt1", name: "Right turn giving way (1 lane each way)", speed: "50–60", targetReps: 10 },
+      { id: "s2_rt2", name: "Right turn giving way (2 lanes each way)", speed: "50–60", targetReps: 10 },
+      { id: "s2_rtOncoming1", name: "Right turn across 1 lane oncoming", speed: "50–60", targetReps: 10 },
+      { id: "s2_rtOncoming2", name: "Right turn across 2 lanes oncoming", speed: "50–60", targetReps: 10 },
+      { id: "s2_lt1", name: "Left turn giving way (1 lane each way)", speed: "50–60", targetReps: 10 },
+      { id: "s2_lt2", name: "Left turn giving way (2 lanes each way)", speed: "50–60", targetReps: 10 },
+      { id: "s2_ltPrio", name: "Left turn with priority", speed: "50–60", targetReps: 10 },
+      { id: "s2_lcr", name: "Lane change right", speed: "50–80", targetReps: 5 },
+      { id: "s2_lcl", name: "Lane change left", speed: "50–80", targetReps: 5 },
+      { id: "s2_lcrTurn", name: "Lane change right for upcoming turn", speed: "50–80", targetReps: 5 },
+      { id: "s2_lclTurn", name: "Lane change left for upcoming turn", speed: "50–80", targetReps: 5 },
       { id: "s2_merge", name: "Merge lanes", speed: "70–100", targetReps: 6 },
-      { id: "s2_straight", name: "All straight drives", speed: "60–110", targetReps: 4 },
-      { id: "s2_roundabouts", name: "All roundabouts", speed: "Varies", targetReps: 4 },
-      { id: "s2_extra", name: "All extra complex tasks / variations", speed: "Custom", targetReps: 5 },
+      { id: "s2_stMed", name: "Straight drive - medium speed", speed: "60–80", targetReps: 4 },
+      { id: "s2_stArt", name: "Straight drive - arterial road / 100-110", speed: "80–110", targetReps: 4 },
+      { id: "s2_rbRight", name: "Right turn at roundabout", speed: "Varies", targetReps: 4 },
+      { id: "s2_rbStraight", name: "Straight through at roundabout", speed: "Varies", targetReps: 4 },
+      { id: "s2_extra1", name: "Extra complex task / variation 1", speed: "Custom", targetReps: 5 },
+      { id: "s2_extra2", name: "Extra complex task / variation 2", speed: "Custom", targetReps: 5 },
     ],
   },
 ] as const;

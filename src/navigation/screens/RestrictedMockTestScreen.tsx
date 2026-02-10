@@ -1033,8 +1033,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                             {taskDef.name}
                           </AppText>
                           <AppText
-                            className="text-right !text-muted dark:!text-mutedDark"
+                            className="shrink-0 text-right"
                             variant="heading"
+                            numberOfLines={1}
                           >
                             {taskDef.targetReps} reps
                           </AppText>
