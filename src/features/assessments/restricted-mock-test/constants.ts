@@ -31,7 +31,7 @@ export const restrictedMockTestStages = [
   },
   {
     id: "stage2",
-    name: "Stage 2 – Higher-demand tasks (approx. 35 min, up to 110 km/h)",
+    name: "Stage 2 – Higher-demand tasks (approx. 35 min, ≤110 km/h)",
     note: "Moderate to heavy traffic, wider range of turns, lane changes, merges, roundabouts and speeds.",
     badge: "Main assessment",
     tasks: [
@@ -82,4 +82,3 @@ export const restrictedMockTestImmediateErrors = [
   "Failing to stop (Stop sign, red/yellow, rail)",
   "Other dangerous action",
 ] as const;
-

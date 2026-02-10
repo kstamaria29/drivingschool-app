@@ -1135,3 +1135,27 @@
 - **Summary:**
   - Updated Lessons selected-day Reminders list to show student name above reminder title.
   - Joined student names in the reminders date-range query used by the Lessons calendar.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Tablet landscape layouts + collapsed sidebar default
+- **Summary:**
+  - Improved tablet-landscape layouts across key screens (Home, Settings, Assessments, Student Detail, Lesson Edit) while keeping tablet-portrait unchanged.
+  - Set the permanent sidebar to start collapsed in tablet-landscape and removed landscape max-width constraints to eliminate side whitespace.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Theme coverage for recent UI updates
+- **Summary:**
+  - Fixed missing theme classes for primary/border tokens in badges, dividers, avatars, and assessment history chips.
+  - Updated a few icon color fallbacks to respect dark-mode palette variants.
+
+---
+
+- **Date:** 2026-02-09 (Pacific/Auckland)
+- **Task:** Mobile portrait layout polish
+- **Summary:**
+  - Reduced mobile (compact) screen padding/spacing to fit more content without cramped cards.
+  - Tightened key screens (Home quick-actions + titles, Student Detail header, and compact form spacing) while keeping tablet layouts unchanged.

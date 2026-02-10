@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { DrawerNavigationProp } from "@react-navigation/drawer";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import dayjs from "dayjs";
+import { Save } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -75,6 +76,7 @@ type Props = NativeStackScreenProps<AssessmentsStackParamList, "RestrictedMockTe
 type Stage = "details" | "confirm" | "test";
 type FaultValue = "" | "fault";
 type ActiveTask = { stageId: RestrictedMockTestStageId; taskId: RestrictedMockTestTaskId };
+type ExclusiveSection = RestrictedMockTestStageId | "critical" | "immediate" | null;
 
 const DRAFT_VERSION = 1;
 
@@ -179,6 +181,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   const [immediateErrorsExpanded, setImmediateErrorsExpanded] = useState(false);
   const [taskModalVisible, setTaskModalVisible] = useState(false);
   const [activeTask, setActiveTask] = useState<ActiveTask | null>(null);
+  const [taskModalItems, setTaskModalItems] = useState<
+    Record<RestrictedMockTestTaskItemId, FaultValue>
+  >(() => createEmptyItems());
   const [draftResolvedStudentId, setDraftResolvedStudentId] = useState<string | null>(null);
   const { leaveWithoutPrompt } = useAssessmentLeaveGuard({
     navigation,
@@ -190,6 +195,24 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   const organizationName = organizationQuery.data?.name ?? "Driving School";
   const organizationLogoUrl = organizationSettingsQuery.data?.logo_url ?? null;
+
+  function getOpenSection(): ExclusiveSection {
+    if (criticalErrorsExpanded) return "critical";
+    if (immediateErrorsExpanded) return "immediate";
+    if (expandedStages.stage1) return "stage1";
+    if (expandedStages.stage2) return "stage2";
+    return null;
+  }
+
+  function setOpenSection(section: ExclusiveSection) {
+    setExpandedStages({ stage1: section === "stage1", stage2: section === "stage2" });
+    setCriticalErrorsExpanded(section === "critical");
+    setImmediateErrorsExpanded(section === "immediate");
+  }
+
+  function toggleSection(section: Exclude<ExclusiveSection, null>) {
+    setOpenSection(getOpenSection() === section ? null : section);
+  }
 
   function scrollToTop(animated = false) {
     requestAnimationFrame(() => {
@@ -272,9 +295,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     setStagesState(createEmptyStagesState());
     setCritical(createErrorCounts(restrictedMockTestCriticalErrors));
     setImmediate(createErrorCounts(restrictedMockTestImmediateErrors));
-    setExpandedStages({ stage1: false, stage2: false });
-    setCriticalErrorsExpanded(false);
-    setImmediateErrorsExpanded(false);
+    setOpenSection(null);
     setTaskModalVisible(false);
     setActiveTask(null);
     setDraftResolvedStudentId(null);
@@ -300,9 +321,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     setStagesState(createEmptyStagesState());
     setCritical(createErrorCounts(restrictedMockTestCriticalErrors));
     setImmediate(createErrorCounts(restrictedMockTestImmediateErrors));
-    setExpandedStages({ stage1: false, stage2: false });
-    setCriticalErrorsExpanded(false);
-    setImmediateErrorsExpanded(false);
+    setOpenSection(null);
     setTaskModalVisible(false);
     setActiveTask(null);
     setDraftResolvedStudentId(null);
@@ -422,9 +441,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             setStagesState(createEmptyStagesState());
             setCritical(createErrorCounts(restrictedMockTestCriticalErrors));
             setImmediate(createErrorCounts(restrictedMockTestImmediateErrors));
-            setExpandedStages({ stage1: false, stage2: false });
-            setCriticalErrorsExpanded(false);
-            setImmediateErrorsExpanded(false);
+            setOpenSection(null);
             setTaskModalVisible(false);
             setActiveTask(null);
             form.reset({
@@ -457,9 +474,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             setStagesState(parsed?.stagesState ?? createEmptyStagesState());
             setCritical(parsed?.critical ?? createErrorCounts(restrictedMockTestCriticalErrors));
             setImmediate(parsed?.immediate ?? createErrorCounts(restrictedMockTestImmediateErrors));
-            setExpandedStages({ stage1: false, stage2: false });
-            setCriticalErrorsExpanded(false);
-            setImmediateErrorsExpanded(false);
+            setOpenSection(null);
             setDraftResolvedStudentId(studentId);
           },
         },
@@ -637,12 +652,14 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   function openTaskModal(stageId: RestrictedMockTestStageId, taskId: RestrictedMockTestTaskId) {
     setActiveTask({ stageId, taskId });
+    setTaskModalItems(createEmptyItems());
     setTaskModalVisible(true);
   }
 
   function closeTaskModal() {
     setTaskModalVisible(false);
     setActiveTask(null);
+    setTaskModalItems(createEmptyItems());
   }
 
   const header = (
@@ -706,22 +723,27 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   const summaryCard =
     stage === "test" ? (
       <AppCard className="gap-3">
-        <AppText variant="heading">Session overview</AppText>
+        {selectedStudent ? (
+          <AppText variant="heading">
+            {selectedStudent.first_name} {selectedStudent.last_name}
+          </AppText>
+        ) : null}
+        <AppText className={cn(selectedStudent && "mt-2")} variant="heading">
+          Session overview
+        </AppText>
         <AppText variant="caption">
           Stage 2 is optional: enable it only after Stage 1 is safe enough to continue.
         </AppText>
         <View className="flex-row flex-wrap gap-2">
           <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
-            <AppText variant="caption">Stage 1 faults: {summary.stage1Faults}</AppText>
+            <AppText variant="caption">
+              Stage 1 faults:{summary.stage1Faults} reps:{stage1Repetitions}
+            </AppText>
           </View>
           <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
-            <AppText variant="caption">Stage 2 faults: {summary.stage2Faults}</AppText>
-          </View>
-          <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
-            <AppText variant="caption">Stage 1 repetitions: {stage1Repetitions}</AppText>
-          </View>
-          <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
-            <AppText variant="caption">Stage 2 repetitions: {stage2Repetitions}</AppText>
+            <AppText variant="caption">
+              Stage 2 faults:{summary.stage2Faults} reps:{stage2Repetitions}
+            </AppText>
           </View>
           <View className="rounded-xl border border-border bg-background px-3 py-2 dark:border-borderDark dark:bg-backgroundDark">
             <AppText variant="caption">Critical: {summary.criticalTotal}</AppText>
@@ -730,7 +752,6 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             <AppText variant="caption">Immediate fail: {summary.immediateTotal}</AppText>
           </View>
         </View>
-        <AppText variant={summary.resultTone === "danger" ? "error" : "body"}>{summary.resultText}</AppText>
       </AppCard>
     ) : null;
 
@@ -829,23 +850,27 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
       return sum + (task.repetitions ?? 0);
     }, 0);
     const rightText =
-      stageKey === "stage2" && !stage2Enabled
-        ? "Locked"
-        : stageFaults > 0
-          ? `${stageFaults} fault${stageFaults === 1 ? "" : "s"}`
-          : undefined;
+      stageKey === "stage2" && !stage2Enabled ? "Locked" : undefined;
 
     return (
       <AppCollapsibleCard
         title={stageDef.name}
-        subtitle={`Total repetitions: ${stageRepetitions}`}
-        subtitleVariant="body"
-        subtitleClassName="text-xl text-muted dark:text-mutedDark"
+        subtitleNode={
+          <View className="flex-row flex-wrap items-center gap-x-4 gap-y-1">
+            <AppText className="text-xl text-blue-600 dark:text-blue-400" variant="body">
+              Total Repetitions: {stageRepetitions}
+            </AppText>
+            <AppText className="text-xl text-red-600 dark:text-red-400" variant="body">
+              Total Faults: {stageFaults}
+            </AppText>
+          </View>
+        }
         showLabelClassName="text-blue-600 dark:text-blue-400"
         hideLabelClassName="text-red-600 dark:text-red-400"
         rightText={rightText}
         expanded={expanded}
-        onToggle={() => setExpandedStages((prev) => ({ ...prev, [stageKey]: !prev[stageKey] }))}
+        className={cn(expanded && "border-blue-600 dark:border-blue-400")}
+        onToggle={() => toggleSection(stageKey)}
       >
         <AppStack gap="md">
           <AppText variant="caption">{stageDef.note}</AppText>
@@ -860,7 +885,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                 label="Enable Stage 2"
                 onPress={() => {
                   setStage2Enabled(true);
-                  setExpandedStages((prev) => ({ ...prev, stage2: true }));
+                  setOpenSection("stage2");
                 }}
               />
             </AppStack>
@@ -875,36 +900,31 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                 };
                 const faults = taskFaultCount(taskState);
                 const repetitions = taskState.repetitions ?? 0;
-                const faultLabel =
-                  faults > 0 ? `${faults} fault${faults === 1 ? "" : "s"}` : "No faults";
 
                 return (
                   <Pressable
                     key={taskDef.id}
                     accessibilityRole="button"
                     style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-                    className={cn(theme.card.base, "gap-2")}
+                    className={cn(
+                      theme.card.base,
+                      "gap-2",
+                      repetitions > 0 && "border-orange-500 dark:border-orange-400",
+                    )}
                     onPress={() => openTaskModal(stageKey, taskDef.id)}
                   >
-                    <View className="flex-row items-start justify-between gap-3">
-                      <View className="flex-1">
-                        <AppText variant="heading">{taskDef.name}</AppText>
-                        <AppText
-                          className="mt-1 text-xl text-muted dark:text-mutedDark"
-                          variant="body"
-                        >
-                          Repetitions: {repetitions}
-                        </AppText>
-                      </View>
-
-                      <View className="items-end gap-1">
-                        <AppText
-                          className={cn(faults > 0 && "text-red-600 dark:text-red-400")}
-                          variant="caption"
-                        >
-                          {faultLabel}
-                        </AppText>
-                      </View>
+                    <View className="gap-2">
+                      <AppText variant="heading">{taskDef.name}</AppText>
+                      {repetitions > 0 ? (
+                        <View className="flex-row flex-wrap items-center gap-x-4 gap-y-1">
+                          <AppText className="text-xl text-blue-600 dark:text-blue-400" variant="body">
+                            Repetitions: {repetitions}
+                          </AppText>
+                          <AppText className="text-xl text-red-600 dark:text-red-400" variant="body">
+                            Faults: {faults}
+                          </AppText>
+                        </View>
+                      ) : null}
                     </View>
                   </Pressable>
                 );
@@ -925,7 +945,8 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
         hideLabelClassName="text-red-600 dark:text-red-400"
         rightText={summary.criticalTotal > 0 ? `${summary.criticalTotal} recorded` : undefined}
         expanded={criticalErrorsExpanded}
-        onToggle={() => setCriticalErrorsExpanded((value) => !value)}
+        className={cn(criticalErrorsExpanded && "border-blue-600 dark:border-blue-400")}
+        onToggle={() => toggleSection("critical")}
       >
         <AppStack gap="sm">
           {restrictedMockTestCriticalErrors.map((label) => (
@@ -979,7 +1000,8 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
         hideLabelClassName="text-red-600 dark:text-red-400"
         rightText={summary.immediateTotal > 0 ? `${summary.immediateTotal} recorded` : undefined}
         expanded={immediateErrorsExpanded}
-        onToggle={() => setImmediateErrorsExpanded((value) => !value)}
+        className={cn(immediateErrorsExpanded && "border-blue-600 dark:border-blue-400")}
+        onToggle={() => toggleSection("immediate")}
       >
         <AppStack gap="sm">
           {restrictedMockTestImmediateErrors.map((label) => (
@@ -1102,7 +1124,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
         <AppStack className="flex-1" gap={isCompact ? "md" : "lg"}>
           <AppStack gap={isCompact ? "md" : "lg"}>
             {header}
-            {studentCard}
+            {stage !== "test" ? studentCard : null}
             {summaryCard}
           </AppStack>
 
@@ -1142,46 +1164,50 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
         onRequestClose={closeTaskModal}
       >
         <Pressable
-          className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
+          className={cn(
+            "flex-1 items-center justify-center bg-black/40",
+            isCompact ? "px-4 py-6" : "px-6 py-10",
+          )}
           onPress={closeTaskModal}
         >
           <Pressable
-            className={cn("m-auto w-full", isCompact ? "" : "max-w-[720px]")}
+            className={cn("w-full", isCompact ? "" : "max-w-[720px]")}
             onPress={(event) => event.stopPropagation()}
           >
             <AppCard
-              className="gap-4"
+              className={cn("gap-3 rounded-none", isCompact ? "p-3" : "p-4")}
               style={{ maxHeight: Math.round(height * (isCompact ? 0.92 : 0.85)) }}
             >
               {activeTask && activeTaskDef && activeTaskState ? (
                 <>
+                  {(() => {
+                    const currentItems = activeTaskState.items as Record<RestrictedMockTestTaskItemId, FaultValue>;
+                    const previewFaults = restrictedMockTestTaskItems.reduce((count, item) => {
+                      const isFault = currentItems[item.id] === "fault" || taskModalItems[item.id] === "fault";
+                      return isFault ? count + 1 : count;
+                    }, 0);
+
+                    return (
                   <View className="flex-row items-start justify-between gap-3">
                     <View className="flex-1">
                       <AppText variant="heading">{activeTaskDef.name}</AppText>
-                      <AppText className="mt-1" variant="caption">
-                        Typical speed zone: {activeTaskDef.speed}
-                      </AppText>
-                      <AppText className="mt-1 text-xl text-muted dark:text-mutedDark" variant="body">
-                        Repetitions: {activeTaskState.repetitions ?? 0}
-                      </AppText>
+                      <View className="mt-2 flex-row flex-wrap items-center gap-x-4 gap-y-1">
+                        <AppText className="text-xl text-blue-600 dark:text-blue-400" variant="body">
+                          Repetitions: {activeTaskState.repetitions ?? 0}
+                        </AppText>
+                        <AppText className="text-xl text-red-600 dark:text-red-400" variant="body">
+                          Faults: {previewFaults}
+                        </AppText>
+                      </View>
                     </View>
 
                     <View className="items-end gap-2">
-                      <AppText
-                        className={cn(
-                          taskFaultCount(activeTaskState) > 0 && "text-red-600 dark:text-red-400",
-                        )}
-                        variant="caption"
-                      >
-                        {taskFaultCount(activeTaskState) > 0
-                          ? `${taskFaultCount(activeTaskState)} fault${taskFaultCount(activeTaskState) === 1 ? "" : "s"}`
-                          : "No faults"}
-                      </AppText>
-
                       <AppButton
                         width="auto"
-                        variant="secondary"
-                        label="Record repetition"
+                        variant="primary"
+                        className="bg-green-600 border-green-600 dark:bg-green-500 dark:border-green-500"
+                        label="Record Repetition"
+                        icon={Save}
                         onPress={() => {
                           const stageId = activeTask.stageId;
                           const taskId = activeTask.taskId;
@@ -1194,13 +1220,26 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                               { text: "Cancel", style: "cancel" },
                               {
                                 text: "Record",
-                                onPress: () =>
+                                onPress: () => {
                                   setStagesState((prev) =>
-                                    updateTaskState(prev, stageId, taskId, (task) => ({
-                                      ...task,
-                                      repetitions: (task.repetitions ?? 0) + 1,
-                                    })),
-                                  ),
+                                    updateTaskState(prev, stageId, taskId, (task) => {
+                                      const nextItems: Record<RestrictedMockTestTaskItemId, FaultValue> = {
+                                        ...task.items,
+                                      };
+
+                                      restrictedMockTestTaskItems.forEach((item) => {
+                                        if (taskModalItems[item.id] === "fault") nextItems[item.id] = "fault";
+                                      });
+
+                                      return {
+                                        ...task,
+                                        repetitions: (task.repetitions ?? 0) + 1,
+                                        items: nextItems,
+                                      };
+                                    }),
+                                  );
+                                  setTaskModalItems(createEmptyItems());
+                                },
                               },
                             ],
                           );
@@ -1208,14 +1247,20 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                       />
                     </View>
                   </View>
+                    );
+                  })()}
 
                   <ScrollView
-                    className="flex-1"
+                    // Ensure the modal shrinks to content when short, but still scrolls when it overflows.
+                    style={{
+                      maxHeight: Math.round(height * (isCompact ? 0.68 : 0.56)),
+                      flexGrow: 0,
+                    }}
                     keyboardShouldPersistTaps="handled"
                     keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
                     automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
                   >
-                    <AppStack gap="md">
+                    <AppStack gap="md" className={cn(isCompact ? "pt-1" : "pt-2")}>
                       <AppInput
                         label="Location / reference (street, landmark, direction)"
                         value={activeTaskState.location}
@@ -1237,7 +1282,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                         </AppText>
                         <View className="flex-row flex-wrap gap-2">
                           {restrictedMockTestTaskItems.map((item) => {
-                            const current = activeTaskState.items[item.id] as FaultValue;
+                            const current = taskModalItems[item.id] as FaultValue;
                             const isFault = current === "fault";
                             return (
                               <Pressable
@@ -1251,17 +1296,10 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                                     : "border-border bg-background dark:border-borderDark dark:bg-backgroundDark",
                                 )}
                                 onPress={() => {
-                                  const stageId = activeTask.stageId;
-                                  const taskId = activeTask.taskId;
-                                  setStagesState((prev) =>
-                                    updateTaskState(prev, stageId, taskId, (task) => ({
-                                      ...task,
-                                      items: {
-                                        ...task.items,
-                                        [item.id]: isFault ? "" : "fault",
-                                      },
-                                    })),
-                                  );
+                                  setTaskModalItems((prev) => ({
+                                    ...prev,
+                                    [item.id]: isFault ? "" : "fault",
+                                  }));
                                 }}
                               >
                                 <AppText className={cn("text-center", isFault && "text-primaryForeground")} variant="button">

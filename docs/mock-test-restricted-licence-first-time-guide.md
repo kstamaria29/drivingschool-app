@@ -48,40 +48,40 @@ If you leave and come back later, the app can offer to resume your saved draft f
 
 ## 5. Understand the layout on test screen
 
-- The top area stays visible: Header, Student, and Session overview.
+- The top area stays visible: Header and Session overview.
+- Once the test has started, the student name is shown at the top of the Session overview card.
 - The sections below are scrollable.
 - Stage 1, Critical errors, and Immediate failure errors start hidden by default.
+- Only one section can be open at a time (Stage 1, Stage 2, Critical errors, or Immediate failure errors).
 
 ### Show/Hide colors
 
 - Stage and error sections:
 - `Show` text is blue
 - `Hide` text is red
-- Individual task cards:
-- `Show` text is light blue
-- `Hide` text is light red
 
 ## 6. Stage 1 workflow (basic tasks)
 
 1. Tap `Show` on Stage 1.
-2. Open a task (for example, right turn giving way).
+2. Tap a task (for example, right turn giving way) to open the task popup.
 3. Enter location/reference if needed.
-4. Mark faults using the task buttons:
+4. Mark faults using the task buttons in the popup:
 - Buttons are shown in 2 columns
 - Tap once to mark Fault (button turns red)
 - Tap again to clear it back to OK / n/a
 5. Add task notes if needed.
-6. Tap `Record repetition` when one attempt of that task is complete.
-7. Confirm in the popup.
+6. When one attempt of that task is complete, tap `Record Repetition` (green button, top right in the popup).
+7. Confirm in the popup, then tap `Close` to return to the task list.
 
 You can record multiple repetitions for the same task.
+Tip: After you record a repetition, the task fault buttons reset back to OK / n/a (ready for the next attempt).
 
 ## 7. Stage 2 workflow (higher-demand tasks)
 
 - Stage 2 may be locked at first.
 - Enable Stage 2 only if Stage 1 performance is safe enough to continue.
 - Use the same process as Stage 1:
-- Open task
+- Tap a task to open the popup
 - Mark faults
 - Add notes
 - Record repetition
@@ -109,6 +109,7 @@ Repetition means one completed attempt of a task.
 - Each task shows its own repetition total under the task name.
 - Each stage shows a total repetition count under the stage heading.
 - Session overview also reflects stage totals while you assess.
+Tip: Tasks that have repetitions recorded will be highlighted with an orange border in the task list.
 
 ## 11. Submit options
 
@@ -152,4 +153,3 @@ You can also download the PDF from history.
 - Critical and immediate sections reviewed
 - Submit completed
 - PDF generated (optional)
-

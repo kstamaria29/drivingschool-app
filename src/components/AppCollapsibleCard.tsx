@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from "react";
+import type { PropsWithChildren, ReactNode } from "react";
 import { Pressable, View } from "react-native";
 
 import { cn } from "../utils/cn";
@@ -9,6 +9,7 @@ import { AppText, type AppTextVariant } from "./AppText";
 type Props = PropsWithChildren<{
   title: string;
   subtitle?: string;
+  subtitleNode?: ReactNode;
   subtitleVariant?: AppTextVariant;
   subtitleClassName?: string;
   showLabelClassName?: string;
@@ -22,6 +23,7 @@ type Props = PropsWithChildren<{
 export function AppCollapsibleCard({
   title,
   subtitle,
+  subtitleNode,
   subtitleVariant = "caption",
   subtitleClassName,
   showLabelClassName,
@@ -37,7 +39,9 @@ export function AppCollapsibleCard({
       <Pressable accessibilityRole="button" onPress={onToggle} className="flex-row items-start gap-3">
         <View className="flex-1">
           <AppText variant="heading">{title}</AppText>
-          {subtitle ? (
+          {subtitleNode ? (
+            <View className={cn("mt-1")}>{subtitleNode}</View>
+          ) : subtitle ? (
             <AppText className={cn("mt-1", subtitleClassName)} variant={subtitleVariant}>
               {subtitle}
             </AppText>

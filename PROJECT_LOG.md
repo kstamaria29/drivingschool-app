@@ -1,6 +1,30 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test repetitions/faults header styling
+- **Summary:**
+  - Moved faults counts into the same line as repetitions for Stage headers, task cards, and the task modal (blue Repetitions, red Faults).
+  - Swapped the Record Repetition icon to a Save icon and simplified modal header details.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test modal + overview polish
+- **Summary:**
+  - Updated task modal header (green Record Repetition with icon) and reset faults after recording a repetition.
+  - Made sections accordion-style (only one open), added active-section blue borders, highlighted tasks with repetitions in orange, and compacted Session overview to 4 badges with student name.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test task modal spacing polish
+- **Summary:**
+  - Adjusted task modal scroll sizing so the modal shrinks to its content (removing excess whitespace while staying centered).
+  - Updated the restricted mock test first-time guide to match the task popup workflow and repetition button placement.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Restricted mock test task modal + pre-drive grid
 - **Summary:**
   - Arranged pre-drive fields into two-column rows (Date/Time, Vehicle/Route) for tablet-friendly data entry.
@@ -127,27 +151,3 @@
 - **Summary:**
   - Reduced global card and picker modal padding for compact/mobile screens to fit more content per view.
   - Updated remaining screens to use compact gaps/modal padding while keeping tablet layouts unchanged.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Mobile portrait layout polish
-- **Summary:**
-  - Reduced mobile (compact) screen padding/spacing to fit more content without cramped cards.
-  - Tightened key screens (Home quick-actions + titles, Student Detail header, and compact form spacing) while keeping tablet layouts unchanged.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Tablet landscape layouts + collapsed sidebar default
-- **Summary:**
-  - Improved tablet-landscape layouts across key screens (Home, Settings, Assessments, Student Detail, Lesson Edit) while keeping tablet-portrait unchanged.
-  - Set the permanent sidebar to start collapsed in tablet-landscape and removed landscape max-width constraints to eliminate side whitespace.
-
----
-
-- **Date:** 2026-02-09 (Pacific/Auckland)
-- **Task:** Theme coverage for recent UI updates
-- **Summary:**
-  - Fixed missing theme classes for primary/border tokens in badges, dividers, avatars, and assessment history chips.
-  - Updated a few icon color fallbacks to respect dark-mode palette variants.
