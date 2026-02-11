@@ -1,5 +1,20 @@
 # PROJECT_LOG.md
 
+- **Date:** 2026-02-11 (Pacific/Auckland)
+- **Task:** Licence upload width set to 500px
+- **Summary:**
+  - Updated automatic licence card image resize width from `400px` to `500px` for Front/Back uploads.
+
+---
+
+- **Date:** 2026-02-11 (Pacific/Auckland)
+- **Task:** Licence compression width + Stage 2 roundabout task
+- **Summary:**
+  - Updated licence card upload compression to use a max width of `400px` (from `580px`).
+  - Added `Left turn at roundabout` (4 reps) to Restricted Stage 2 so assessment entry, history, and PDF use the same updated task set.
+
+---
+
 - **Date:** 2026-02-10 (Pacific/Auckland)
 - **Task:** Compress licence card images on upload
 - **Summary:**
@@ -141,17 +156,3 @@
   - Restored active-section highlighting with a thicker blue border when a section is expanded.
 
 ---
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Restricted mock test repetitions/faults header styling
-- **Summary:**
-  - Moved faults counts into the same line as repetitions for Stage headers, task cards, and the task modal (blue Repetitions, red Faults).
-  - Swapped the Record Repetition icon to a Save icon and simplified modal header details.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Restricted mock test modal + overview polish
-- **Summary:**
-  - Updated task modal header (green Record Repetition with icon) and reset faults after recording a repetition.
-  - Made sections accordion-style (only one open), added active-section blue borders, highlighted tasks with repetitions in orange, and compacted Session overview to 4 badges with student name.

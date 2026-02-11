@@ -21,7 +21,7 @@ export type RemoveStudentLicenseImageInput = {
   side: StudentLicenseImageSide;
 };
 
-const LICENSE_CARD_MAX_WIDTH_PX = 580;
+const LICENSE_CARD_MAX_WIDTH_PX = 500;
 const LICENSE_CARD_QUALITY = 0.85;
 
 type CompressorModule = {

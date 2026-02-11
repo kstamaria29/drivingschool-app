@@ -48,6 +48,7 @@ export const restrictedMockTestStages = [
       { id: "s2_merge", name: "Merge lanes", speed: "70–100", targetReps: 6 },
       { id: "s2_stMed", name: "Straight drive - medium speed", speed: "60–80", targetReps: 4 },
       { id: "s2_stArt", name: "Straight drive - arterial road / 100-110", speed: "80–110", targetReps: 4 },
+      { id: "s2_rbLeft", name: "Left turn at roundabout", speed: "Varies", targetReps: 4 },
       { id: "s2_rbRight", name: "Right turn at roundabout", speed: "Varies", targetReps: 4 },
       { id: "s2_rbStraight", name: "Straight through at roundabout", speed: "Varies", targetReps: 4 },
       { id: "s2_extra1", name: "Extra complex task / variation 1", speed: "Custom", targetReps: 5 },

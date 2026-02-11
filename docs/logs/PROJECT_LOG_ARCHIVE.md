@@ -1297,3 +1297,11 @@
 - **Summary:**
   - Adjusted task modal scroll sizing so the modal shrinks to its content (removing excess whitespace while staying centered).
   - Updated the restricted mock test first-time guide to match the task popup workflow and repetition button placement.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test repetitions/faults header styling
+- **Summary:**
+  - Moved faults counts into the same line as repetitions for Stage headers, task cards, and the task modal (blue Repetitions, red Faults).
+  - Swapped the Record Repetition icon to a Save icon and simplified modal header details.
