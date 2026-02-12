@@ -16,8 +16,8 @@ export type SessionsStackParamList = {
 const Stack = createNativeStackNavigator<SessionsStackParamList>();
 
 export function SessionsStackNavigator() {
-  const { scheme } = useAppColorScheme();
-  const baseOptions = useMemo(() => getNativeStackScreenOptions(scheme), [scheme]);
+  const { scheme, themeKey } = useAppColorScheme();
+  const baseOptions = useMemo(() => getNativeStackScreenOptions(scheme), [scheme, themeKey]);
 
   return (
     <Stack.Navigator
@@ -34,4 +34,3 @@ export function SessionsStackNavigator() {
     </Stack.Navigator>
   );
 }
-

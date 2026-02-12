@@ -20,8 +20,8 @@ type Props = {
 };
 
 export function AuthStackNavigator({ initialRouteName }: Props) {
-  const { scheme } = useAppColorScheme();
-  const baseOptions = useMemo(() => getNativeStackScreenOptions(scheme), [scheme]);
+  const { scheme, themeKey } = useAppColorScheme();
+  const baseOptions = useMemo(() => getNativeStackScreenOptions(scheme), [scheme, themeKey]);
 
   return (
     <Stack.Navigator

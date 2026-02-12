@@ -26,8 +26,8 @@ export type StudentsStackParamList = {
 const Stack = createNativeStackNavigator<StudentsStackParamList>();
 
 export function StudentsStackNavigator() {
-  const { scheme } = useAppColorScheme();
-  const baseOptions = useMemo(() => getNativeStackScreenOptions(scheme), [scheme]);
+  const { scheme, themeKey } = useAppColorScheme();
+  const baseOptions = useMemo(() => getNativeStackScreenOptions(scheme), [scheme, themeKey]);
 
   return (
     <Stack.Navigator

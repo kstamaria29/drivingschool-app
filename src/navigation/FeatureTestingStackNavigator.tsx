@@ -14,8 +14,8 @@ export type FeatureTestingStackParamList = {
 const Stack = createNativeStackNavigator<FeatureTestingStackParamList>();
 
 export function FeatureTestingStackNavigator() {
-  const { scheme } = useAppColorScheme();
-  const baseOptions = useMemo(() => getNativeStackScreenOptions(scheme), [scheme]);
+  const { scheme, themeKey } = useAppColorScheme();
+  const baseOptions = useMemo(() => getNativeStackScreenOptions(scheme), [scheme, themeKey]);
 
   return (
     <Stack.Navigator

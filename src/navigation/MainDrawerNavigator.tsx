@@ -48,7 +48,7 @@ export function MainDrawerNavigator() {
   const { isSidebar } = useNavigationLayout();
   const { profile } = useCurrentUser();
   const [collapsed, setCollapsed] = useState(true);
-  const { scheme } = useAppColorScheme();
+  const { scheme, themeKey } = useAppColorScheme();
   const queryClient = useQueryClient();
   const isAdmin = profile.role === "admin";
 
@@ -59,7 +59,7 @@ export function MainDrawerNavigator() {
 
   const drawerThemeOptions = useMemo(
     () => getDrawerScreenOptions(scheme, drawerWidth),
-    [drawerWidth, scheme],
+    [drawerWidth, scheme, themeKey],
   );
 
   useEffect(() => {

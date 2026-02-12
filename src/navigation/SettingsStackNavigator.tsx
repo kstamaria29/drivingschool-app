@@ -28,8 +28,8 @@ export type SettingsStackParamList = {
 const Stack = createNativeStackNavigator<SettingsStackParamList>();
 
 export function SettingsStackNavigator() {
-  const { scheme } = useAppColorScheme();
-  const baseOptions = useMemo(() => getNativeStackScreenOptions(scheme), [scheme]);
+  const { scheme, themeKey } = useAppColorScheme();
+  const baseOptions = useMemo(() => getNativeStackScreenOptions(scheme), [scheme, themeKey]);
 
   return (
     <Stack.Navigator

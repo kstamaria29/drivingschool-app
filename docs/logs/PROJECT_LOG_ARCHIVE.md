@@ -1386,3 +1386,11 @@
   - Added a right-aligned static reps target label per task in the task list.
 
 ---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test Stage 2 tasks + reps label styling
+- **Summary:**
+  - Restored the detailed Stage 2 task list with hard-coded reps targets per task (and kept Stage 1 targets).
+  - Updated the task-list reps target text styling to match the task title (same weight/color).
+
+---

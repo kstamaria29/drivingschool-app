@@ -13,8 +13,8 @@ export type ForcedPasswordChangeStackParamList = {
 const Stack = createNativeStackNavigator<ForcedPasswordChangeStackParamList>();
 
 export function ForcedPasswordChangeStackNavigator() {
-  const { scheme } = useAppColorScheme();
-  const baseOptions = useMemo(() => getNativeStackScreenOptions(scheme), [scheme]);
+  const { scheme, themeKey } = useAppColorScheme();
+  const baseOptions = useMemo(() => getNativeStackScreenOptions(scheme), [scheme, themeKey]);
 
   return (
     <Stack.Navigator
@@ -30,4 +30,3 @@ export function ForcedPasswordChangeStackNavigator() {
     </Stack.Navigator>
   );
 }
-

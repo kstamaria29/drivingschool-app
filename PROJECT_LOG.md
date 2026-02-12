@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Navigation header theme preset reactivity fix
+- **Summary:**
+  - Updated all stack and drawer navigator theme option memos to depend on `themeKey` so header/drawer colors refresh when a theme preset is selected.
+  - Fixed the top navbar color surface (hamburger/back/avatar row) not updating until scheme changes.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
 - **Task:** Admin-only Feature Testing drawer screen
 - **Summary:**
   - Added a new `Feature Testing` drawer destination above `Settings`, visible only to `admin` users.
@@ -146,13 +154,5 @@
 - **Task:** Restricted mock test stage titles
 - **Summary:**
   - Updated Stage 1 and Stage 2 section titles to simplified wording (duration-only) as requested.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Restricted mock test Stage 2 tasks + reps label styling
-- **Summary:**
-  - Restored the detailed Stage 2 task list with hard-coded reps targets per task (and kept Stage 1 targets).
-  - Updated the task-list reps target text styling to match the task title (same weight/color).
 
 ---
