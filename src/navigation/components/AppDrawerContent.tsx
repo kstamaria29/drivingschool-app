@@ -6,6 +6,7 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
+  ClipboardCheck,
   ClipboardList,
   Clock3,
   Home,
@@ -38,6 +39,7 @@ type DrawerRouteName =
   | "Sessions"
   | "Assessments"
   | "GoogleMaps"
+  | "FeatureTesting"
   | "Settings";
 
 type Props = DrawerContentComponentProps & {
@@ -101,6 +103,7 @@ export function AppDrawerContent({
   const settingsQuery = useOrganizationSettingsQuery(profile.organization_id);
 
   const currentRouteName = state.routes[state.index]?.name as DrawerRouteName | undefined;
+  const isAdmin = profile.role === "admin";
 
   const orgName = organizationQuery.data?.name ?? "Organization";
   const logoUrl = settingsQuery.data?.logo_url ?? null;
@@ -250,6 +253,15 @@ export function AppDrawerContent({
           <View className="my-2">
             <AppDivider />
           </View>
+          {isAdmin ? (
+            <DrawerRow
+              collapsed={collapsed}
+              label="Feature Testing"
+              icon={<ClipboardCheck color={iconColor} size={20} />}
+              active={currentRouteName === "FeatureTesting"}
+              onPress={() => navigation.navigate("FeatureTesting")}
+            />
+          ) : null}
           <DrawerRow
             collapsed={collapsed}
             label="Settings"

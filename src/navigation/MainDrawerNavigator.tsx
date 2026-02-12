@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAppColorScheme } from "../providers/ColorSchemeProvider";
 import { listStudents } from "../features/students/api";
 import { studentKeys } from "../features/students/queries";
+import { useCurrentUser } from "../features/auth/current-user";
 
 import type { HomeStackParamList } from "./HomeStackNavigator";
 import { HomeStackNavigator } from "./HomeStackNavigator";
@@ -21,6 +22,8 @@ import type { MapsStackParamList } from "./MapsStackNavigator";
 import { MapsStackNavigator } from "./MapsStackNavigator";
 import type { SessionsStackParamList } from "./SessionsStackNavigator";
 import { SessionsStackNavigator } from "./SessionsStackNavigator";
+import type { FeatureTestingStackParamList } from "./FeatureTestingStackNavigator";
+import { FeatureTestingStackNavigator } from "./FeatureTestingStackNavigator";
 import { AppDrawerContent } from "./components/AppDrawerContent";
 import { getDrawerScreenOptions } from "./navigationTheme";
 import { useNavigationLayout } from "./useNavigationLayout";
@@ -32,6 +35,7 @@ export type MainDrawerParamList = {
   Sessions: NavigatorScreenParams<SessionsStackParamList> | undefined;
   Assessments: NavigatorScreenParams<AssessmentsStackParamList> | undefined;
   GoogleMaps: NavigatorScreenParams<MapsStackParamList> | undefined;
+  FeatureTesting: NavigatorScreenParams<FeatureTestingStackParamList> | undefined;
   Settings: NavigatorScreenParams<SettingsStackParamList> | undefined;
 };
 
@@ -42,9 +46,11 @@ const SIDEBAR_COLLAPSED_WIDTH = 88;
 
 export function MainDrawerNavigator() {
   const { isSidebar } = useNavigationLayout();
+  const { profile } = useCurrentUser();
   const [collapsed, setCollapsed] = useState(true);
   const { scheme } = useAppColorScheme();
   const queryClient = useQueryClient();
+  const isAdmin = profile.role === "admin";
 
   const drawerWidth = useMemo(() => {
     if (!isSidebar) return undefined;
@@ -91,6 +97,9 @@ export function MainDrawerNavigator() {
       <Drawer.Screen name="Sessions" component={SessionsStackNavigator} />
       <Drawer.Screen name="Assessments" component={AssessmentsStackNavigator} />
       <Drawer.Screen name="GoogleMaps" component={MapsStackNavigator} />
+      {isAdmin ? (
+        <Drawer.Screen name="FeatureTesting" component={FeatureTestingStackNavigator} />
+      ) : null}
       <Drawer.Screen name="Settings" component={SettingsStackNavigator} />
     </Drawer.Navigator>
   );

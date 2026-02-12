@@ -1379,3 +1379,10 @@
   - Ensured expanded section borders (blue/orange/red) always override the "has values" darker border styling.
 
 ---
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test task list targets
+- **Summary:**
+  - Simplified Stage 1 and Stage 2 task list names and removed the 3-point turn item.
+  - Added a right-aligned static reps target label per task in the task list.
+
+---

@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Admin-only Feature Testing drawer screen
+- **Summary:**
+  - Added a new `Feature Testing` drawer destination above `Settings`, visible only to `admin` users.
+  - Added a blank `Feature Testing` screen with a `Back` button and non-admin access guard messaging.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
 - **Task:** Assessments recent card route preselect + back flow
 - **Summary:**
   - Tapping a card in `Last 5 Assessments` now opens `StudentAssessmentHistory` inside the Assessments stack with the tapped assessment type tab preselected.
@@ -148,13 +156,3 @@
   - Updated the task-list reps target text styling to match the task title (same weight/color).
 
 ---
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Restricted mock test task list targets
-- **Summary:**
-  - Simplified Stage 1 and Stage 2 task list names and removed the 3-point turn item.
-  - Added a right-aligned static reps target label per task in the task list.
-
----
-
-
