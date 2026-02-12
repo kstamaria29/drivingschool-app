@@ -1401,3 +1401,19 @@
   - Updated Stage 1 and Stage 2 section titles to simplified wording (duration-only) as requested.
 
 ---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test fault totals per repetition
+- **Summary:**
+  - Fixed fault totals so recording multiple repetitions increments Faults/Total Faults correctly (even when the same fault is selected again).
+  - Updated the Turning movement fault label text.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test history + PDF refresh
+- **Summary:**
+  - Updated Assessment History + Restricted PDF output to reflect the new repetitions/fault counting model (including per-fault counts).
+  - Ensured Stage 2 recorded items still render even when Stage 2 was not enabled (legacy/edge-case safety).
+
+---

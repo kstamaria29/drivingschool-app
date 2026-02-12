@@ -1,6 +1,22 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Move themes UI to dedicated screen
+- **Summary:**
+  - Added a new `Themes` screen in Settings stack and moved the full theme selector UI there.
+  - Replaced the Settings page theme block with a top-level `Themes` navigation button above `Organization`.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Settings cards keep identity details when collapsed
+- **Summary:**
+  - Updated Settings collapsible behavior so `Organization` and `Account Settings` always show logo/avatar and summary text.
+  - Restricted Show/Hide to control only the action buttons inside each card.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
 - **Task:** Settings organization/account collapsible sections
 - **Summary:**
   - Made `Organization` and `Account Settings` cards collapsed by default with top-right `Show` controls.
@@ -139,21 +155,5 @@
 - **Summary:**
   - Improved student experience (swipeable licence photo viewer, clearer archive indicator, and kebab menu styling tweaks).
   - Refined assessments UX (integrated student search picker, Restricted history ordering, weather severity styling, and Restricted PDF session overview layout).
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Restricted mock test history + PDF refresh
-- **Summary:**
-  - Updated Assessment History + Restricted PDF output to reflect the new repetitions/fault counting model (including per-fault counts).
-  - Ensured Stage 2 recorded items still render even when Stage 2 was not enabled (legacy/edge-case safety).
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Restricted mock test fault totals per repetition
-- **Summary:**
-  - Fixed fault totals so recording multiple repetitions increments Faults/Total Faults correctly (even when the same fault is selected again).
-  - Updated the Turning movement fault label text.
 
 ---

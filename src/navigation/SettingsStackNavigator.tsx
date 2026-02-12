@@ -12,10 +12,12 @@ import { EditOrganizationNameScreen } from "./screens/EditOrganizationNameScreen
 import { EditRoleDisplayScreen } from "./screens/EditRoleDisplayScreen";
 import { MemberProfileScreen } from "./screens/MemberProfileScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
+import { ThemesScreen } from "./screens/ThemesScreen";
 import { ViewMembersScreen } from "./screens/ViewMembersScreen";
 
 export type SettingsStackParamList = {
   SettingsMain: undefined;
+  Themes: undefined;
   EditDetails: undefined;
   ChangePassword: undefined;
   EditOrganizationName: undefined;
@@ -46,6 +48,11 @@ export function SettingsStackNavigator() {
           headerTitle: "",
           headerRight: () => <HeaderRightAvatar />,
         }}
+      />
+      <Stack.Screen
+        name="Themes"
+        component={ThemesScreen}
+        options={{ headerTitle: "Themes" }}
       />
       <Stack.Screen
         name="EditDetails"
