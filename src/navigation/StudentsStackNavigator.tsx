@@ -11,11 +11,12 @@ import { StudentEditScreen } from "./screens/StudentEditScreen";
 import { StudentRemindersScreen } from "./screens/StudentRemindersScreen";
 import { StudentSessionHistoryScreen } from "./screens/StudentSessionHistoryScreen";
 import { StudentsListScreen } from "./screens/StudentsListScreen";
+import type { StudentAssessmentHistoryParams } from "./studentAssessmentHistoryParams";
 
 export type StudentsStackParamList = {
   StudentsList: undefined;
   StudentDetail: { studentId: string };
-  StudentAssessmentHistory: { studentId: string };
+  StudentAssessmentHistory: StudentAssessmentHistoryParams;
   StudentSessionHistory: { studentId: string; openNewSession?: boolean };
   StudentReminders: { studentId: string; openNewReminder?: boolean };
   StudentCreate: undefined;

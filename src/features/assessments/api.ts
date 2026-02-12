@@ -4,10 +4,20 @@ import type { Database } from "../../supabase/types";
 export type Assessment = Database["public"]["Tables"]["assessments"]["Row"];
 export type AssessmentInsert = Database["public"]["Tables"]["assessments"]["Insert"];
 export type AssessmentUpdate = Database["public"]["Tables"]["assessments"]["Update"];
+export type AssessmentWithStudent = Assessment & {
+  students: Pick<
+    Database["public"]["Tables"]["students"]["Row"],
+    "first_name" | "last_name" | "organization_name"
+  > | null;
+};
 
 export type ListAssessmentsInput = {
   studentId?: string;
   assessmentType?: Assessment["assessment_type"];
+  limit?: number;
+};
+
+export type ListRecentAssessmentsInput = {
   limit?: number;
 };
 
@@ -23,6 +33,22 @@ export async function listAssessments(input: ListAssessmentsInput): Promise<Asse
   if (input.limit) query = query.limit(input.limit);
 
   const { data, error } = await query.overrideTypes<Assessment[], { merge: false }>();
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function listRecentAssessments(
+  input: ListRecentAssessmentsInput = {},
+): Promise<AssessmentWithStudent[]> {
+  let query = supabase
+    .from("assessments")
+    .select("*, students(first_name, last_name, organization_name)")
+    .order("assessment_date", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (input.limit) query = query.limit(input.limit);
+
+  const { data, error } = await query.overrideTypes<AssessmentWithStudent[], { merge: false }>();
   if (error) throw error;
   return data ?? [];
 }

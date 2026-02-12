@@ -9,6 +9,8 @@ import { AssessmentsListScreen } from "./screens/AssessmentsListScreen";
 import { DrivingAssessmentScreen } from "./screens/DrivingAssessmentScreen";
 import { FullLicenseMockTestScreen } from "./screens/FullLicenseMockTestScreen";
 import { RestrictedMockTestScreen } from "./screens/RestrictedMockTestScreen";
+import { StudentAssessmentHistoryScreen } from "./screens/StudentAssessmentHistoryScreen";
+import type { StudentAssessmentHistoryParams } from "./studentAssessmentHistoryParams";
 
 export type AssessmentsStackParamList = {
   AssessmentsMain: undefined;
@@ -21,6 +23,7 @@ export type AssessmentsStackParamList = {
   FullLicenseMockTest:
     | { studentId?: string; returnToStudentId?: string }
     | undefined;
+  StudentAssessmentHistory: StudentAssessmentHistoryParams;
 };
 
 const Stack = createNativeStackNavigator<AssessmentsStackParamList>();
@@ -43,6 +46,7 @@ export function AssessmentsStackNavigator() {
       <Stack.Screen name="DrivingAssessment" component={DrivingAssessmentScreen} />
       <Stack.Screen name="RestrictedMockTest" component={RestrictedMockTestScreen} />
       <Stack.Screen name="FullLicenseMockTest" component={FullLicenseMockTestScreen} />
+      <Stack.Screen name="StudentAssessmentHistory" component={StudentAssessmentHistoryScreen} />
     </Stack.Navigator>
   );
 }

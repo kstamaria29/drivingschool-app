@@ -4,18 +4,28 @@ import {
   createAssessment,
   deleteAssessment,
   listAssessments,
+  listRecentAssessments,
   type AssessmentInsert,
   type ListAssessmentsInput,
+  type ListRecentAssessmentsInput,
 } from "./api";
 
 export const assessmentKeys = {
   list: (input: ListAssessmentsInput) => ["assessments", input] as const,
+  recent: (input: ListRecentAssessmentsInput) => ["assessments", "recent", input] as const,
 };
 
 export function useAssessmentsQuery(input: ListAssessmentsInput) {
   return useQuery({
     queryKey: assessmentKeys.list(input),
     queryFn: () => listAssessments(input),
+  });
+}
+
+export function useRecentAssessmentsQuery(input: ListRecentAssessmentsInput) {
+  return useQuery({
+    queryKey: assessmentKeys.recent(input),
+    queryFn: () => listRecentAssessments(input),
   });
 }
 

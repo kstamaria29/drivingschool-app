@@ -1359,3 +1359,23 @@
   - Replaced submit confirmation alerts with a styled modal across all assessments and made the `Submit and Generate PDF` action dark green.
 
 ---
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test overview badges + submit confirm styling
+- **Summary:**
+  - Made the submit confirmation modal show `Submit` in blue (and kept `Submit and Generate PDF` dark green) across all assessments.
+  - Reworked the Restricted mock test Session overview badges (right-aligned Critical/Immediate badges + conditional borders) and slightly increased the student name size.
+
+---
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test section borders + overview badge styling
+- **Summary:**
+  - Updated Critical/Immediate active section borders to orange/red and added a darker border state for any section with recorded values.
+  - Improved Session overview badges (Stage Reps/Faults with blue/red text, visible Critical/Immediate borders) and made gap taps collapse the active section reliably.
+
+---
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test active border priority fix
+- **Summary:**
+  - Ensured expanded section borders (blue/orange/red) always override the "has values" darker border styling.
+
+---

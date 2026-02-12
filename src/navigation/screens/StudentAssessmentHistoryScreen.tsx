@@ -57,10 +57,16 @@ import { DISPLAY_DATE_FORMAT, parseDateInputToISODate } from "../../utils/dates"
 import { toErrorMessage } from "../../utils/errors";
 import { openPdfUri } from "../../utils/open-pdf";
 import { useNavigationLayout } from "../useNavigationLayout";
+import type { StudentAssessmentHistoryParams } from "../studentAssessmentHistoryParams";
 
-import type { StudentsStackParamList } from "../StudentsStackNavigator";
+type StudentAssessmentHistoryScreenParamList = {
+  StudentAssessmentHistory: StudentAssessmentHistoryParams;
+};
 
-type Props = NativeStackScreenProps<StudentsStackParamList, "StudentAssessmentHistory">;
+type Props = NativeStackScreenProps<
+  StudentAssessmentHistoryScreenParamList,
+  "StudentAssessmentHistory"
+>;
 
 type AssessmentType = Assessment["assessment_type"];
 
@@ -169,7 +175,9 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
   const { isTablet, isLandscape, isCompact } = useNavigationLayout();
   const { profile } = useCurrentUser();
 
-  const [assessmentType, setAssessmentType] = useState<AssessmentType>("driving_assessment");
+  const [assessmentType, setAssessmentType] = useState<AssessmentType>(
+    route.params.initialAssessmentType ?? "driving_assessment",
+  );
   const [selectedAssessmentId, setSelectedAssessmentId] = useState<string | null>(null);
   const [downloadingAssessmentId, setDownloadingAssessmentId] = useState<string | null>(null);
   const [deletingAssessmentId, setDeletingAssessmentId] = useState<string | null>(null);
@@ -186,6 +194,10 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
   useEffect(() => {
     setSelectedAssessmentId(null);
   }, [assessmentType, studentId]);
+
+  useEffect(() => {
+    setAssessmentType(route.params.initialAssessmentType ?? "driving_assessment");
+  }, [route.params.initialAssessmentType, studentId]);
 
   useEffect(() => {
     if (selectedAssessmentId) return;
