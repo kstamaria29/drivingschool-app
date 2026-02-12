@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Settings organization/account collapsible sections
+- **Summary:**
+  - Made `Organization` and `Account Settings` cards collapsed by default with top-right `Show` controls.
+  - Added toggle behavior so tapping `Show` expands card actions and switches the control to red `Hide`.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
 - **Task:** Navigation header theme preset reactivity fix
 - **Summary:**
   - Updated all stack and drawer navigator theme option memos to depend on `themeKey` so header/drawer colors refresh when a theme preset is selected.
@@ -147,12 +155,5 @@
 - **Summary:**
   - Fixed fault totals so recording multiple repetitions increments Faults/Total Faults correctly (even when the same fault is selected again).
   - Updated the Turning movement fault label text.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Restricted mock test stage titles
-- **Summary:**
-  - Updated Stage 1 and Stage 2 section titles to simplified wording (duration-only) as requested.
 
 ---

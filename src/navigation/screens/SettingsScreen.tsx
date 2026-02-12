@@ -60,6 +60,8 @@ export function SettingsScreen() {
   const { profile } = useCurrentUser();
   const canManageOrganization = isOwnerOrAdminRole(profile.role);
   const [pickerError, setPickerError] = useState<string | null>(null);
+  const [organizationExpanded, setOrganizationExpanded] = useState(false);
+  const [accountExpanded, setAccountExpanded] = useState(false);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const settingsScrollRef = useRef<ScrollView>(null);
   const { scheme, setScheme, themeKey, setThemeKey } = useAppColorScheme();
@@ -107,125 +109,175 @@ export function SettingsScreen() {
 
   const organizationCard = canManageOrganization ? (
     <AppCard className="gap-3">
-      <AppText variant="heading">Organization</AppText>
+      <View className="flex-row items-center justify-between gap-3">
+        <AppText variant="heading">Organization</AppText>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={
+            organizationExpanded ? "Hide organization settings" : "Show organization settings"
+          }
+          onPress={() => setOrganizationExpanded((expanded) => !expanded)}
+        >
+          <AppText
+            className={
+              organizationExpanded
+                ? "text-red-600 dark:text-red-400"
+                : "text-blue-600 dark:text-blue-400"
+            }
+            variant="caption"
+          >
+            {organizationExpanded ? "Hide" : "Show"}
+          </AppText>
+        </Pressable>
+      </View>
 
-      {orgQuery.isPending || orgSettingsQuery.isPending ? (
-        <View className={cn("items-center justify-center py-6", theme.text.base)}>
-          <ActivityIndicator />
-          <AppText className="mt-3 text-center" variant="body">
-            Loading organization...
-          </AppText>
-        </View>
-      ) : orgQuery.isError || orgSettingsQuery.isError ? (
-        <AppStack gap="md">
-          <AppText variant="body">
-            {toErrorMessage(orgQuery.error ?? orgSettingsQuery.error)}
-          </AppText>
+      {organizationExpanded ? (
+        <>
+          {orgQuery.isPending || orgSettingsQuery.isPending ? (
+            <View className={cn("items-center justify-center py-6", theme.text.base)}>
+              <ActivityIndicator />
+              <AppText className="mt-3 text-center" variant="body">
+                Loading organization...
+              </AppText>
+            </View>
+          ) : orgQuery.isError || orgSettingsQuery.isError ? (
+            <AppStack gap="md">
+              <AppText variant="body">
+                {toErrorMessage(orgQuery.error ?? orgSettingsQuery.error)}
+              </AppText>
+              <AppButton
+                label="Retry"
+                variant="secondary"
+                icon={RefreshCw}
+                onPress={() => {
+                  void orgQuery.refetch();
+                  void orgSettingsQuery.refetch();
+                }}
+              />
+            </AppStack>
+          ) : (
+            <View className="flex-row items-center gap-4">
+              {orgSettingsQuery.data?.logo_url ? (
+                <AppImage
+                  source={{ uri: orgSettingsQuery.data.logo_url }}
+                  resizeMode="contain"
+                  className="h-16 w-16 bg-transparent"
+                />
+              ) : (
+                <View className="h-16 w-16 border border-border bg-card dark:border-borderDark dark:bg-cardDark" />
+              )}
+              <View className="flex-1">
+                <AppText variant="body">{orgQuery.data?.name ?? "Organization"}</AppText>
+                <AppText variant="caption">
+                  Owners and admins can update the organization logo.
+                </AppText>
+              </View>
+            </View>
+          )}
+
           <AppButton
-            label="Retry"
+            label="Change organization name"
             variant="secondary"
-            icon={RefreshCw}
-            onPress={() => {
-              void orgQuery.refetch();
-              void orgSettingsQuery.refetch();
+            icon={Building2}
+            disabled={!canManageOrganization}
+            onPress={() => navigation.navigate("EditOrganizationName")}
+          />
+
+          <AppButton
+            label={
+              uploadOrgLogoMutation.isPending ? "Uploading logo..." : "Change organization logo"
+            }
+            variant="secondary"
+            icon={ImageUp}
+            disabled={!canManageOrganization || uploadOrgLogoMutation.isPending}
+            onPress={async () => {
+              try {
+                setPickerError(null);
+                const asset = await pickOrgLogo();
+                if (!asset) return;
+                uploadOrgLogoMutation.mutate({ asset });
+              } catch (error) {
+                setPickerError(toErrorMessage(error));
+              }
             }}
           />
-        </AppStack>
-      ) : (
-        <View className="flex-row items-center gap-4">
-          {orgSettingsQuery.data?.logo_url ? (
-            <AppImage
-              source={{ uri: orgSettingsQuery.data.logo_url }}
-              resizeMode="contain"
-              className="h-16 w-16 bg-transparent"
-            />
-          ) : (
-            <View className="h-16 w-16 border border-border bg-card dark:border-borderDark dark:bg-cardDark" />
-          )}
-          <View className="flex-1">
-            <AppText variant="body">{orgQuery.data?.name ?? "Organization"}</AppText>
-            <AppText variant="caption">
-              Owners and admins can update the organization logo.
-            </AppText>
-          </View>
-        </View>
-      )}
 
-      <AppButton
-        label="Change organization name"
-        variant="secondary"
-        icon={Building2}
-        disabled={!canManageOrganization}
-        onPress={() => navigation.navigate("EditOrganizationName")}
-      />
+          <AppButton
+            label="View members"
+            variant="secondary"
+            icon={Users}
+            disabled={!canManageOrganization}
+            onPress={() => navigation.navigate("ViewMembers")}
+          />
 
-      <AppButton
-        label={
-          uploadOrgLogoMutation.isPending ? "Uploading logo..." : "Change organization logo"
-        }
-        variant="secondary"
-        icon={ImageUp}
-        disabled={!canManageOrganization || uploadOrgLogoMutation.isPending}
-        onPress={async () => {
-          try {
-            setPickerError(null);
-            const asset = await pickOrgLogo();
-            if (!asset) return;
-            uploadOrgLogoMutation.mutate({ asset });
-          } catch (error) {
-            setPickerError(toErrorMessage(error));
-          }
-        }}
-      />
-
-      <AppButton
-        label="View members"
-        variant="secondary"
-        icon={Users}
-        disabled={!canManageOrganization}
-        onPress={() => navigation.navigate("ViewMembers")}
-      />
-
-      {uploadOrgLogoMutation.isError ? (
-        <AppText variant="error">{toErrorMessage(uploadOrgLogoMutation.error)}</AppText>
+          {uploadOrgLogoMutation.isError ? (
+            <AppText variant="error">{toErrorMessage(uploadOrgLogoMutation.error)}</AppText>
+          ) : null}
+          {pickerError ? <AppText variant="error">{pickerError}</AppText> : null}
+        </>
       ) : null}
-      {pickerError ? <AppText variant="error">{pickerError}</AppText> : null}
     </AppCard>
   ) : null;
 
   const accountCard = (
     <AppCard className="gap-3">
-      <AppText variant="heading">Account Settings</AppText>
-
-      <View className="flex-row items-center gap-4">
-        <Avatar uri={profile.avatar_url} size={64} label={getProfileFullName(profile)} />
-        <View className="flex-1">
-          <AppText variant="body">{getProfileFullName(profile) || profile.display_name}</AppText>
-          <AppText variant="caption">{getRoleDisplayLabel(profile)}</AppText>
-        </View>
+      <View className="flex-row items-center justify-between gap-3">
+        <AppText variant="heading">Account Settings</AppText>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={
+            accountExpanded ? "Hide account settings" : "Show account settings"
+          }
+          onPress={() => setAccountExpanded((expanded) => !expanded)}
+        >
+          <AppText
+            className={
+              accountExpanded
+                ? "text-red-600 dark:text-red-400"
+                : "text-blue-600 dark:text-blue-400"
+            }
+            variant="caption"
+          >
+            {accountExpanded ? "Hide" : "Show"}
+          </AppText>
+        </Pressable>
       </View>
 
-      <AppButton
-        label="Edit details"
-        variant="secondary"
-        icon={UserRoundPen}
-        onPress={() => navigation.navigate("EditDetails")}
-      />
+      {accountExpanded ? (
+        <>
+          <View className="flex-row items-center gap-4">
+            <Avatar uri={profile.avatar_url} size={64} label={getProfileFullName(profile)} />
+            <View className="flex-1">
+              <AppText variant="body">
+                {getProfileFullName(profile) || profile.display_name}
+              </AppText>
+              <AppText variant="caption">{getRoleDisplayLabel(profile)}</AppText>
+            </View>
+          </View>
 
-      <AppButton
-        label="Change password"
-        variant="secondary"
-        icon={KeyRound}
-        onPress={() => navigation.navigate("ChangePassword")}
-      />
+          <AppButton
+            label="Edit details"
+            variant="secondary"
+            icon={UserRoundPen}
+            onPress={() => navigation.navigate("EditDetails")}
+          />
 
-      {canManageOrganization ? (
-        <AppButton
-          label="Change role display"
-          variant="secondary"
-          icon={IdCard}
-          onPress={() => navigation.navigate("EditRoleDisplay")}
-        />
+          <AppButton
+            label="Change password"
+            variant="secondary"
+            icon={KeyRound}
+            onPress={() => navigation.navigate("ChangePassword")}
+          />
+
+          {canManageOrganization ? (
+            <AppButton
+              label="Change role display"
+              variant="secondary"
+              icon={IdCard}
+              onPress={() => navigation.navigate("EditRoleDisplay")}
+            />
+          ) : null}
+        </>
       ) : null}
     </AppCard>
   );

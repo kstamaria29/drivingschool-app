@@ -1394,3 +1394,10 @@
   - Updated the task-list reps target text styling to match the task title (same weight/color).
 
 ---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test stage titles
+- **Summary:**
+  - Updated Stage 1 and Stage 2 section titles to simplified wording (duration-only) as requested.
+
+---
