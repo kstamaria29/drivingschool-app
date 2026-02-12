@@ -8,11 +8,28 @@ type ThemeTone = {
   danger: string;
 };
 
-type ThemePreset = {
+export type ThemeBackdropKind =
+  | "brick"
+  | "wood"
+  | "floral"
+  | "marble"
+  | "blueprint"
+  | "carbon"
+  | "neon"
+  | "metal";
+
+export type ThemeBackdrop = {
+  kind: ThemeBackdropKind;
+  intensity?: number;
+};
+
+export type ThemePreset = {
   name: string;
   description: string;
   accent: string;
   tone: ThemeTone;
+  premium?: boolean;
+  backdrop?: ThemeBackdrop;
 };
 
 export const LIGHT_THEME_PRESETS = {
@@ -111,6 +128,86 @@ export const LIGHT_THEME_PRESETS = {
       border: "#d6e0ee",
       muted: "#4f637b",
       primary: "#2563eb",
+      danger: "#dc2626",
+    },
+  },
+  brickCourtyard: {
+    name: "Brick Courtyard",
+    description: "Premium terracotta + plaster with subtle brick texture.",
+    accent: "#f97316",
+    premium: true,
+    backdrop: { kind: "brick", intensity: 0.55 },
+    tone: {
+      background: "#fff7f0",
+      foreground: "#2a1711",
+      card: "#ffffff",
+      border: "#f2d2c5",
+      muted: "#8a5a4a",
+      primary: "#c2410c",
+      danger: "#dc2626",
+    },
+  },
+  walnutWorkshop: {
+    name: "Walnut Workshop",
+    description: "Premium walnut warmth with brass accents and woodgrain depth.",
+    accent: "#fbbf24",
+    premium: true,
+    backdrop: { kind: "wood", intensity: 0.5 },
+    tone: {
+      background: "#faf6f0",
+      foreground: "#1f2937",
+      card: "#ffffff",
+      border: "#e7dccf",
+      muted: "#7c6f63",
+      primary: "#1e3a8a",
+      danger: "#dc2626",
+    },
+  },
+  sakuraSilk: {
+    name: "Sakura Silk",
+    description: "Premium sakura blush with porcelain surfaces and soft floral detail.",
+    accent: "#fb7185",
+    premium: true,
+    backdrop: { kind: "floral", intensity: 0.45 },
+    tone: {
+      background: "#fff7f7",
+      foreground: "#2b1b1b",
+      card: "#ffffff",
+      border: "#f7d1d1",
+      muted: "#7f6b6b",
+      primary: "#1e40af",
+      danger: "#dc2626",
+    },
+  },
+  marbleGallery: {
+    name: "Marble Gallery",
+    description: "Premium cool marble neutrals with indigo ink and golden highlights.",
+    accent: "#f59e0b",
+    premium: true,
+    backdrop: { kind: "marble", intensity: 0.4 },
+    tone: {
+      background: "#f4f6f9",
+      foreground: "#101827",
+      card: "#ffffff",
+      border: "#dde3eb",
+      muted: "#5f6b7a",
+      primary: "#4f46e5",
+      danger: "#dc2626",
+    },
+  },
+  blueprintStudio: {
+    name: "Blueprint Studio",
+    description: "Premium drafting-paper blues with crisp grid texture and high focus.",
+    accent: "#06b6d4",
+    premium: true,
+    backdrop: { kind: "blueprint", intensity: 0.6 },
+    tone: {
+      background: "#f0f7ff",
+      foreground: "#0b1a2b",
+      card: "#ffffff",
+      border: "#c7dff8",
+      muted: "#355a7a",
+      primary: "#0b4dbb",
       danger: "#dc2626",
     },
   },
@@ -215,6 +312,86 @@ export const DARK_THEME_PRESETS = {
       danger: "#fb7185",
     },
   },
+  brickNoir: {
+    name: "Brick Noir",
+    description: "Premium kiln-brick shadows with warm gold and brick-red punch.",
+    accent: "#f59e0b",
+    premium: true,
+    backdrop: { kind: "brick", intensity: 0.6 },
+    tone: {
+      background: "#120a07",
+      foreground: "#fff7ed",
+      card: "#1b110d",
+      border: "#3a241b",
+      muted: "#d6b29f",
+      primary: "#ef4444",
+      danger: "#fb7185",
+    },
+  },
+  carbonWeave: {
+    name: "Carbon Weave",
+    description: "Premium carbon-fiber depth with crisp highlights and clean contrast.",
+    accent: "#60a5fa",
+    premium: true,
+    backdrop: { kind: "carbon", intensity: 0.55 },
+    tone: {
+      background: "#0a0c10",
+      foreground: "#e5e7eb",
+      card: "#11141b",
+      border: "#242a36",
+      muted: "#9ca3af",
+      primary: "#f59e0b",
+      danger: "#fb7185",
+    },
+  },
+  sakuraMidnight: {
+    name: "Sakura Midnight",
+    description: "Premium midnight blossoms with soft petal glow and deep ink cards.",
+    accent: "#f472b6",
+    premium: true,
+    backdrop: { kind: "floral", intensity: 0.5 },
+    tone: {
+      background: "#150c12",
+      foreground: "#fce7f3",
+      card: "#20101a",
+      border: "#3d2032",
+      muted: "#c4a2b2",
+      primary: "#34d399",
+      danger: "#fb7185",
+    },
+  },
+  neonArcade: {
+    name: "Neon Arcade",
+    description: "Premium neon gradients with a sleek cyber atmosphere and sharp focus.",
+    accent: "#22d3ee",
+    premium: true,
+    backdrop: { kind: "neon", intensity: 0.65 },
+    tone: {
+      background: "#070816",
+      foreground: "#e0e7ff",
+      card: "#0d0f24",
+      border: "#22254d",
+      muted: "#a5b4fc",
+      primary: "#a855f7",
+      danger: "#fb7185",
+    },
+  },
+  lunarSteel: {
+    name: "Lunar Steel",
+    description: "Premium brushed metal with moonlight blues and restrained gold glow.",
+    accent: "#93c5fd",
+    premium: true,
+    backdrop: { kind: "metal", intensity: 0.5 },
+    tone: {
+      background: "#0b0f14",
+      foreground: "#e5f0ff",
+      card: "#111a22",
+      border: "#263644",
+      muted: "#93a5b4",
+      primary: "#fbbf24",
+      danger: "#fb7185",
+    },
+  },
 } as const satisfies Record<string, ThemePreset>;
 
 export type LightThemeKey = keyof typeof LIGHT_THEME_PRESETS;
@@ -225,6 +402,7 @@ export type ThemeOption<T extends string> = {
   value: T;
   label: string;
   description: string;
+  premium?: boolean;
 };
 
 export const DEFAULT_LIGHT_THEME_KEY: LightThemeKey = "lightDefault";
@@ -239,6 +417,7 @@ function buildOptions<T extends string>(
     value: key,
     label: key === defaultKey ? `${presets[key].name} (Default)` : presets[key].name,
     description: presets[key].description,
+    premium: presets[key].premium,
   }));
 }
 
@@ -258,4 +437,10 @@ export function isDarkThemeKey(value: string | null | undefined): value is DarkT
 export function isAppThemeKey(value: string | null | undefined): value is AppThemeKey {
   if (!value) return false;
   return isLightThemeKey(value) || isDarkThemeKey(value);
+}
+
+export function getThemePreset(key: AppThemeKey): ThemePreset | undefined {
+  if (isLightThemeKey(key)) return LIGHT_THEME_PRESETS[key];
+  if (isDarkThemeKey(key)) return DARK_THEME_PRESETS[key];
+  return undefined;
 }

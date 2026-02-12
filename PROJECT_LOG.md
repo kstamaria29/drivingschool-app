@@ -1,6 +1,30 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Premium themes + textured backdrops
+- **Summary:**
+  - Added 10 new premium theme presets (5 light, 5 dark) and surfaced premium labeling in the Themes list.
+  - Added themed backdrop textures/gradients so premium themes feel materially different beyond color alone.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Theme selection first-update navbar color fix
+- **Summary:**
+  - Updated theme setter actions to apply theme colors synchronously before state updates so navigation reads fresh palette values immediately.
+  - Fixed first theme selection in `Themes` screen not updating navbar/header colors until a later interaction.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Themes screen list-style selector
+- **Summary:**
+  - Replaced the Themes screen style dropdown with an always-visible list of theme presets.
+  - Kept selected-theme highlighting and tap-to-select behavior for the active light/dark mode.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
 - **Task:** Move themes UI to dedicated screen
 - **Summary:**
   - Added a new `Themes` screen in Settings stack and moved the full theme selector UI there.
@@ -131,29 +155,3 @@
 - **Summary:**
   - Updated licence card upload compression to use a max width of `400px` (from `580px`).
   - Added `Left turn at roundabout` (4 reps) to Restricted Stage 2 so assessment entry, history, and PDF use the same updated task set.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Compress licence card images on upload
-- **Summary:**
-  - Added `react-native-compressor` resizing/compression so Front/Back licence card uploads are reduced before storage.
-  - Enforced a max width of `580px` for licence card images.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Assessment picker row + restricted history label cleanup
-- **Summary:**
-  - Updated the shared assessment student picker so selected student name and `Change student` appear on the same row.
-  - Standardized Restricted Assessment History labels to `Mock Test - Restricted Licence`.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Student + assessment UX refinements
-- **Summary:**
-  - Improved student experience (swipeable licence photo viewer, clearer archive indicator, and kebab menu styling tweaks).
-  - Refined assessments UX (integrated student search picker, Restricted history ordering, weather severity styling, and Restricted PDF session overview layout).
-
----

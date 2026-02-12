@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { theme } from "../theme/theme";
 import { cn } from "../utils/cn";
+import { ThemedBackdrop } from "./ThemedBackdrop";
 
 type Props = PropsWithChildren<ViewProps> & {
   scroll?: boolean;
@@ -97,7 +98,8 @@ export function Screen({
   const { className: outerClassName, ...outerViewProps } = outerProps ?? {};
 
   return (
-    <SafeAreaView className={cn(theme.screen.safeArea, outerClassName)}>
+    <SafeAreaView className={cn(theme.screen.safeArea, "relative", outerClassName)}>
+      <ThemedBackdrop />
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : "height"}

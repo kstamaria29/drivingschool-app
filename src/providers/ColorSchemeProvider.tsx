@@ -108,18 +108,21 @@ export function ColorSchemeProvider({ children }: PropsWithChildren) {
       darkThemeKey,
       ready,
       setScheme: (next) => {
+        applyThemeColors(lightThemeKey, darkThemeKey, next);
         setSchemeState(next);
         setColorScheme(next);
         void AsyncStorage.setItem(SCHEME_STORAGE_KEY, next);
       },
       setLightThemeKey: (next) => {
         if (!isLightThemeKey(next)) return;
+        applyThemeColors(next, darkThemeKey, scheme);
         setLightThemeKeyState(next);
         void AsyncStorage.setItem(LIGHT_THEME_STORAGE_KEY, next);
         void AsyncStorage.removeItem(LEGACY_THEME_STORAGE_KEY);
       },
       setDarkThemeKey: (next) => {
         if (!isDarkThemeKey(next)) return;
+        applyThemeColors(lightThemeKey, next, scheme);
         setDarkThemeKeyState(next);
         void AsyncStorage.setItem(DARK_THEME_STORAGE_KEY, next);
         void AsyncStorage.removeItem(LEGACY_THEME_STORAGE_KEY);
@@ -127,10 +130,12 @@ export function ColorSchemeProvider({ children }: PropsWithChildren) {
       setThemeKey: (next) => {
         if (scheme === "dark") {
           if (!isDarkThemeKey(next)) return;
+          applyThemeColors(lightThemeKey, next, scheme);
           setDarkThemeKeyState(next);
           void AsyncStorage.setItem(DARK_THEME_STORAGE_KEY, next);
         } else {
           if (!isLightThemeKey(next)) return;
+          applyThemeColors(next, darkThemeKey, scheme);
           setLightThemeKeyState(next);
           void AsyncStorage.setItem(LIGHT_THEME_STORAGE_KEY, next);
         }

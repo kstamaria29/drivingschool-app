@@ -1417,3 +1417,27 @@
   - Ensured Stage 2 recorded items still render even when Stage 2 was not enabled (legacy/edge-case safety).
 
 ---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Student + assessment UX refinements
+- **Summary:**
+  - Improved student experience (swipeable licence photo viewer, clearer archive indicator, and kebab menu styling tweaks).
+  - Refined assessments UX (integrated student search picker, Restricted history ordering, weather severity styling, and Restricted PDF session overview layout).
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Assessment picker row + restricted history label cleanup
+- **Summary:**
+  - Updated the shared assessment student picker so selected student name and `Change student` appear on the same row.
+  - Standardized Restricted Assessment History labels to `Mock Test - Restricted Licence`.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Compress licence card images on upload
+- **Summary:**
+  - Added `react-native-compressor` resizing/compression so Front/Back licence card uploads are reduced before storage.
+  - Enforced a max width of `580px` for licence card images.
+
+---
