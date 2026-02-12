@@ -1305,3 +1305,11 @@
 - **Summary:**
   - Moved faults counts into the same line as repetitions for Stage headers, task cards, and the task modal (blue Repetitions, red Faults).
   - Swapped the Record Repetition icon to a Save icon and simplified modal header details.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test repetition colors + active borders
+- **Summary:**
+  - Forced Repetitions (blue) and Faults (red) styling via text color styles so they render correctly across themes.
+  - Restored active-section highlighting with a thicker blue border when a section is expanded.

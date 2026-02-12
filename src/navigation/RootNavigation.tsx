@@ -1,5 +1,5 @@
 import { NavigationContainer } from "@react-navigation/native";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { useMyProfileQuery, useSignOutMutation } from "../features/auth/queries";
 import { CurrentUserProvider } from "../features/auth/current-user";
@@ -16,16 +16,32 @@ import { AuthGateErrorScreen } from "./screens/AuthGateErrorScreen";
 import { MissingSupabaseConfigScreen } from "./screens/MissingSupabaseConfigScreen";
 import { isSupabaseConfigured } from "../supabase/env";
 
-export function RootNavigation() {
-  if (!isSupabaseConfigured) {
-    return <MissingSupabaseConfigScreen />;
-  }
+type Props = {
+  onBootReady?: () => void;
+};
 
+export function RootNavigation({ onBootReady }: Props) {
   const { scheme, themeKey, ready } = useAppColorScheme();
   const navigationTheme = useMemo(() => getNavigationTheme(scheme), [scheme, themeKey]);
   const { session, isLoading } = useAuthSession();
   const profileQuery = useMyProfileQuery(session?.user.id);
   const signOutMutation = useSignOutMutation();
+  const didNotifyBootReadyRef = useRef(false);
+
+  const isBootLoading =
+    isSupabaseConfigured && (!ready || isLoading || (Boolean(session) && profileQuery.isPending));
+
+  useEffect(() => {
+    if (didNotifyBootReadyRef.current) return;
+    if (isBootLoading) return;
+
+    didNotifyBootReadyRef.current = true;
+    onBootReady?.();
+  }, [isBootLoading, onBootReady]);
+
+  if (!isSupabaseConfigured) {
+    return <MissingSupabaseConfigScreen />;
+  }
 
   if (!ready) {
     return <AuthBootstrapScreen label="Preparing app..." />;

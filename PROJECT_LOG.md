@@ -1,5 +1,13 @@
 # PROJECT_LOG.md
 
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Custom animated launch screen + splash handoff
+- **Summary:**
+  - Added a branded animated React Native launch screen and startup state machine (fonts, boot readiness, minimum duration, failsafe timeout).
+  - Wired `RootNavigation` boot-ready callback and native splash control using `expo-splash-screen` to reduce startup flicker.
+
+---
+
 - **Date:** 2026-02-11 (Pacific/Auckland)
 - **Task:** Licence upload width set to 500px
 - **Summary:**
@@ -146,13 +154,5 @@
 - **Summary:**
   - Forced Repetitions/Faults text colors (blue/red) using `!text-*` utilities so they are not overridden by base text classes.
   - Forced active-section blue borders using `!border-*` utilities so expanded section blocks visibly highlight as expected.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Restricted mock test repetition colors + active borders
-- **Summary:**
-  - Forced Repetitions (blue) and Faults (red) styling via text color styles so they render correctly across themes.
-  - Restored active-section highlighting with a thicker blue border when a section is expanded.
 
 ---
