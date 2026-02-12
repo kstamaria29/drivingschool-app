@@ -1,6 +1,38 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Session History button icon and label update
+- **Summary:**
+  - Updated the Session History header action from `Add new` to `New Session`.
+  - Added a leading Lucide session-style clock icon to the `New Session` button.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Session icon and button-label capitalization polish
+- **Summary:**
+  - Replaced the Sessions `New Session` button plus icon with a session-style clock icon.
+  - Updated Lessons and Students list action labels to `New Lesson` and `New Student`.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Sessions button label and icon update
+- **Summary:**
+  - Renamed the Sessions screen header action button from `Add new` to `New Session`.
+  - Added a leading plus icon to the `New Session` button.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Sessions recents list set to 5
+- **Summary:**
+  - Updated the Sessions hub latest list query limit from `10` to `5`.
+  - Renamed the Sessions subtitle text from `Latest 10 sessions` to `Last 5 sessions`.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
 - **Task:** Sessions hub with latest sessions and create modal
 - **Summary:**
   - Added a new drawer + Home-accessible Sessions area with a latest-10 sessions list and tap-through into Student Session History while preserving back-to-sessions flow.
@@ -121,37 +153,5 @@
 - **Summary:**
   - Made the submit confirmation modal show `Submit` in blue (and kept `Submit and Generate PDF` dark green) across all assessments.
   - Reworked the Restricted mock test Session overview badges (right-aligned Critical/Immediate badges + conditional borders) and slightly increased the student name size.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Restricted mock test Stage 2 lock + submit confirm modal
-- **Summary:**
-  - Styled Stage 2 `Locked` status in green and hid Stage 2 totals while locked.
-  - Replaced submit confirmation alerts with a styled modal across all assessments and made the `Submit and Generate PDF` action dark green.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Mock test + student menu blue styling
-- **Summary:**
-  - Re-applied important blue/red highlight utilities so active borders and Repetitions/Faults stats render reliably, including kebab Start Assessment.
-  - Added background-tap collapse support for the Restricted mock test and added a visual gap in the student kebab menu.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Student detail actions menu + background collapse
-- **Summary:**
-  - Moved Student Detail primary actions into the kebab menu (Start Assessment top, inline green badges, orange Archive) and removed the action buttons panel.
-  - Updated Restricted Mock Test section collapse to also trigger when tapping the app background outside the centered container.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Restricted mock test section collapse + stat colors
-- **Summary:**
-  - Restored blue Repetitions/red Faults text and active-section blue borders for the Stage/Error sections.
-  - Added tap-outside-to-collapse behavior and darkened the Session overview border with a larger student name.
 
 ---

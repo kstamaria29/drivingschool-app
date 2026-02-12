@@ -1331,3 +1331,31 @@
   - Darkened the Session overview card border for stronger visual separation.
 
 ---
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test section collapse + stat colors
+- **Summary:**
+  - Restored blue Repetitions/red Faults text and active-section blue borders for the Stage/Error sections.
+  - Added tap-outside-to-collapse behavior and darkened the Session overview border with a larger student name.
+
+---
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Student detail actions menu + background collapse
+- **Summary:**
+  - Moved Student Detail primary actions into the kebab menu (Start Assessment top, inline green badges, orange Archive) and removed the action buttons panel.
+  - Updated Restricted Mock Test section collapse to also trigger when tapping the app background outside the centered container.
+
+---
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Mock test + student menu blue styling
+- **Summary:**
+  - Re-applied important blue/red highlight utilities so active borders and Repetitions/Faults stats render reliably, including kebab Start Assessment.
+  - Added background-tap collapse support for the Restricted mock test and added a visual gap in the student kebab menu.
+
+---
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test Stage 2 lock + submit confirm modal
+- **Summary:**
+  - Styled Stage 2 `Locked` status in green and hid Stage 2 totals while locked.
+  - Replaced submit confirmation alerts with a styled modal across all assessments and made the `Submit and Generate PDF` action dark green.
+
+---

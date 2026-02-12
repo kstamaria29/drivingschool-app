@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { Alert, Modal, Pressable, ScrollView, View } from "react-native";
-import { X } from "lucide-react-native";
+import { Clock3, X } from "lucide-react-native";
 import { Controller, useForm } from "react-hook-form";
 import { useColorScheme } from "nativewind";
 
@@ -136,7 +136,7 @@ export function SessionsListScreen({ navigation }: Props) {
   const { colorScheme } = useColorScheme();
   const { isCompact } = useNavigationLayout();
 
-  const recentSessionsQuery = useRecentStudentSessionsQuery({ limit: 10 });
+  const recentSessionsQuery = useRecentStudentSessionsQuery({ limit: 5 });
   const studentsQuery = useStudentsQuery({ archived: false });
   const createMutation = useCreateStudentSessionMutation();
 
@@ -248,11 +248,17 @@ export function SessionsListScreen({ navigation }: Props) {
             <View className="flex-1">
               <AppText variant="title">Sessions</AppText>
               <AppText className="mt-2" variant="caption">
-                Latest 10 sessions
+                Last 5 sessions
               </AppText>
             </View>
 
-            <AppButton width="auto" variant="primary" label="Add new" onPress={openCreateModal} />
+            <AppButton
+              width="auto"
+              variant="primary"
+              label="New Session"
+              icon={Clock3}
+              onPress={openCreateModal}
+            />
           </View>
 
           {recentSessionsQuery.isPending ? (
@@ -613,4 +619,3 @@ export function SessionsListScreen({ navigation }: Props) {
     </>
   );
 }
-

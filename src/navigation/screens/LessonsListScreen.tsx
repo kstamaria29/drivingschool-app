@@ -380,7 +380,7 @@ export function LessonsListScreen({ navigation }: Props) {
             <AppButton
               width="auto"
               icon={CalendarPlus}
-              label="New lesson"
+              label="New Lesson"
               onPress={() => navigation.navigate("LessonCreate", { initialDate: selectedDate.format("YYYY-MM-DD") })}
             />
           </View>

@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, View } from "react-native";
-import { Pencil, RefreshCw, Trash2, X } from "lucide-react-native";
+import { Clock3, Pencil, RefreshCw, Trash2, X } from "lucide-react-native";
 import { Controller, useForm } from "react-hook-form";
 import { useColorScheme } from "nativewind";
 
@@ -355,7 +355,8 @@ export function StudentSessionHistoryScreen({ route }: Props) {
           <AppButton
             width="auto"
             variant="primary"
-            label="Add new"
+            label="New Session"
+            icon={Clock3}
             onPress={openCreateModal}
           />
         </View>

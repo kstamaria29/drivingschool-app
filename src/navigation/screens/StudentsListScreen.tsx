@@ -838,7 +838,7 @@ export function StudentsListScreen({ navigation }: Props) {
 
           <AppButton
             width="auto"
-            label="New student"
+            label="New Student"
             icon={UserPlus}
             onPress={() => navigation.navigate("StudentCreate")}
           />
