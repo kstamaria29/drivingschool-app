@@ -100,13 +100,17 @@ export function LaunchScreen({ shouldDismiss, onFinish, onFirstLayout }: Props) 
       }}
     >
       <View style={styles.content}>
-        <Animated.Image source={require("../../assets/splash-icon.png")} resizeMode="contain" style={[styles.logo, logoStyle]} />
+        <Animated.Image
+          source={require("../../assets/splash-icon.png")}
+          resizeMode="contain"
+          style={[styles.logo, logoStyle]}
+        />
         <Animated.View style={[styles.copy, textStyle]}>
           <AppText style={styles.title} variant="title">
-            Driving School
+            Driving School Management
           </AppText>
           <AppText style={styles.subtitle} variant="body">
-            Preparing your driving workspace...
+            Developed by SM Driving School Ltd
           </AppText>
         </Animated.View>
       </View>

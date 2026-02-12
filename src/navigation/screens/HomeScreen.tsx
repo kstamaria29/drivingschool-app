@@ -2,7 +2,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import dayjs from "dayjs";
 import { useMemo } from "react";
 import { View } from "react-native";
-import { BookOpen, ClipboardList, Map as MapIcon, Users } from "lucide-react-native";
+import { BookOpen, ClipboardList, Clock3, Map as MapIcon, Users } from "lucide-react-native";
 
 import { CenteredLoadingState, ErrorStateCard } from "../../components/AsyncState";
 import { AppButton } from "../../components/AppButton";
@@ -146,6 +146,20 @@ export function HomeScreen({ navigation }: Props) {
           width="auto"
           className={`flex-1 ${isCompact ? "min-w-40" : "min-w-48"}`}
           variant="secondary"
+          label="Sessions"
+          icon={Clock3}
+          onPress={() =>
+            parent?.navigate("Sessions", {
+              screen: "SessionsList",
+            })
+          }
+        />
+      </View>
+      <View className="flex-row flex-wrap gap-2">
+        <AppButton
+          width="auto"
+          className={`flex-1 ${isCompact ? "min-w-40" : "min-w-48"}`}
+          variant="secondary"
           label="Assessments"
           icon={ClipboardList}
           onPress={() =>
@@ -154,8 +168,6 @@ export function HomeScreen({ navigation }: Props) {
             })
           }
         />
-      </View>
-      <View className="flex-row flex-wrap gap-2">
         <AppButton
           width="auto"
           className={`flex-1 ${isCompact ? "min-w-40" : "min-w-48"}`}

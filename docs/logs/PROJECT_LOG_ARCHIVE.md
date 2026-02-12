@@ -1313,3 +1313,21 @@
 - **Summary:**
   - Forced Repetitions (blue) and Faults (red) styling via text color styles so they render correctly across themes.
   - Restored active-section highlighting with a thicker blue border when a section is expanded.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test stat color specificity fix
+- **Summary:**
+  - Forced Repetitions/Faults text colors (blue/red) using `!text-*` utilities so they are not overridden by base text classes.
+  - Forced active-section blue borders using `!border-*` utilities so expanded section blocks visibly highlight as expected.
+
+---
+
+- **Date:** 2026-02-10 (Pacific/Auckland)
+- **Task:** Restricted mock test error totals placement + overview border
+- **Summary:**
+  - Moved Critical/Immediate totals under their headings as `Total Errors: x` (orange/red) and removed the top-right `x recorded` label.
+  - Darkened the Session overview card border for stronger visual separation.
+
+---

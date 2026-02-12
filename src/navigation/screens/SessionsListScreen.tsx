@@ -1,16 +1,16 @@
 import dayjs from "dayjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, View } from "react-native";
-import { Pencil, RefreshCw, Trash2, X } from "lucide-react-native";
+import { useMemo, useState } from "react";
+import { Alert, Modal, Pressable, ScrollView, View } from "react-native";
+import { X } from "lucide-react-native";
 import { Controller, useForm } from "react-hook-form";
 import { useColorScheme } from "nativewind";
 
+import { CenteredLoadingState, EmptyStateCard, ErrorStateCard } from "../../components/AsyncState";
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
 import { AppDateInput } from "../../components/AppDateInput";
-import { AppDivider } from "../../components/AppDivider";
 import { AppInput } from "../../components/AppInput";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
@@ -18,27 +18,22 @@ import { AppTimeInput } from "../../components/AppTimeInput";
 import { Screen } from "../../components/Screen";
 import { useCurrentUser } from "../../features/auth/current-user";
 import { isOwnerOrAdminRole } from "../../features/auth/roles";
-import type { StudentSession } from "../../features/sessions/api";
 import {
   useCreateStudentSessionMutation,
-  useDeleteStudentSessionMutation,
+  useRecentStudentSessionsQuery,
   useStudentSessionsQuery,
-  useUpdateStudentSessionMutation,
 } from "../../features/sessions/queries";
 import { studentSessionFormSchema, type StudentSessionFormValues } from "../../features/sessions/schemas";
-import { useStudentQuery } from "../../features/students/queries";
-import { theme } from "../../theme/theme";
+import { useStudentsQuery } from "../../features/students/queries";
 import { cn } from "../../utils/cn";
 import { DISPLAY_DATE_FORMAT, parseDateInputToISODate } from "../../utils/dates";
 import { toErrorMessage } from "../../utils/errors";
 
-import type { StudentsStackParamList } from "../StudentsStackNavigator";
+import { AssessmentStudentDropdown } from "../components/AssessmentStudentDropdown";
 import type { SessionsStackParamList } from "../SessionsStackNavigator";
 import { useNavigationLayout } from "../useNavigationLayout";
 
-type Props =
-  | NativeStackScreenProps<StudentsStackParamList, "StudentSessionHistory">
-  | NativeStackScreenProps<SessionsStackParamList, "StudentSessionHistory">;
+type Props = NativeStackScreenProps<SessionsStackParamList, "SessionsList">;
 
 const taskSuggestions = [
   "Pre-drive checks",
@@ -53,6 +48,17 @@ const taskSuggestions = [
   "Reversing",
 ] as const;
 
+const taskPalettes = [
+  {
+    wrapper: "border-emerald-500/30 bg-emerald-500/15 dark:border-emerald-400/30 dark:bg-emerald-400/15",
+    text: "text-emerald-700 dark:text-emerald-300",
+  },
+  {
+    wrapper: "border-orange-500/30 bg-orange-500/15 dark:border-orange-400/30 dark:bg-orange-400/15",
+    text: "text-orange-700 dark:text-orange-300",
+  },
+] as const;
+
 function normalizeTaskLabel(value: string) {
   return value.trim().replace(/\s+/g, " ");
 }
@@ -65,17 +71,6 @@ function hashString(value: string) {
   return Math.abs(hash);
 }
 
-const taskPalettes = [
-  {
-    wrapper: "border-emerald-500/30 bg-emerald-500/15 dark:border-emerald-400/30 dark:bg-emerald-400/15",
-    text: "text-emerald-700 dark:text-emerald-300",
-  },
-  {
-    wrapper: "border-orange-500/30 bg-orange-500/15 dark:border-orange-400/30 dark:bg-orange-400/15",
-    text: "text-orange-700 dark:text-orange-300",
-  },
-] as const;
-
 function getTaskPalette(task: string) {
   return taskPalettes[hashString(task) % taskPalettes.length];
 }
@@ -85,13 +80,12 @@ function toggleTask(list: string[], task: string) {
   return [...list, task];
 }
 
-function TaskBadge({ task, rightText }: { task: string; rightText?: string }) {
+function TaskBadge({ task }: { task: string }) {
   const palette = getTaskPalette(task);
   return (
     <View className={cn("rounded-full border px-3 py-1", palette.wrapper)}>
       <AppText className={cn("text-xs font-semibold", palette.text)} variant="caption">
         {task}
-        {rightText ? ` - ${rightText}` : ""}
       </AppText>
     </View>
   );
@@ -132,144 +126,47 @@ function TaskChip({
   );
 }
 
-export function StudentSessionHistoryScreen({ route }: Props) {
-  const { studentId, openNewSession } = route.params;
+function getStudentFullName(student: { first_name: string; last_name: string } | null) {
+  if (!student) return "Unknown student";
+  return `${student.first_name} ${student.last_name}`.trim() || "Unknown student";
+}
+
+export function SessionsListScreen({ navigation }: Props) {
   const { userId, profile } = useCurrentUser();
   const { colorScheme } = useColorScheme();
   const { isCompact } = useNavigationLayout();
 
-  const trashColor = colorScheme === "dark" ? theme.colors.dangerDark : theme.colors.danger;
-  const editColor = colorScheme === "dark" ? "#4ade80" : "#16a34a";
-
-  const studentQuery = useStudentQuery(studentId);
-  const sessionsQuery = useStudentSessionsQuery({ studentId });
+  const recentSessionsQuery = useRecentStudentSessionsQuery({ limit: 10 });
+  const studentsQuery = useStudentsQuery({ archived: false });
   const createMutation = useCreateStudentSessionMutation();
-  const deleteMutation = useDeleteStudentSessionMutation();
-  const updateMutation = useUpdateStudentSessionMutation();
 
-  const [createModalVisible, setCreateModalVisible] = useState(Boolean(openNewSession));
+  const [createModalVisible, setCreateModalVisible] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(true);
   const [customTask, setCustomTask] = useState("");
-  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
-  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [studentError, setStudentError] = useState<string | undefined>(undefined);
 
-  const defaultTime = useMemo(() => dayjs().format("HH:mm"), []);
+  const selectedStudent = useMemo(() => {
+    if (!selectedStudentId) return null;
+    return studentsQuery.data?.find((student) => student.id === selectedStudentId) ?? null;
+  }, [selectedStudentId, studentsQuery.data]);
+
+  const selectedStudentSessionsQuery = useStudentSessionsQuery(
+    selectedStudentId ? { studentId: selectedStudentId, limit: 1 } : undefined,
+  );
+  const lastSession = selectedStudentSessionsQuery.data?.[0] ?? null;
 
   const form = useForm<StudentSessionFormValues>({
     resolver: zodResolver(studentSessionFormSchema),
     defaultValues: {
       date: dayjs().format(DISPLAY_DATE_FORMAT),
-      time: defaultTime,
+      time: dayjs().format("HH:mm"),
       durationMinutes: "60",
       tasks: [],
       nextFocus: "",
       notes: "",
     },
   });
-
-  useEffect(() => {
-    if (!openNewSession) return;
-    openCreateModal();
-  }, [openNewSession]);
-
-  const sessions = sessionsQuery.data ?? [];
-  const lastSession = sessions[0] ?? null;
-
-  const topTasks = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const session of sessions) {
-      for (const task of session.tasks ?? []) {
-        counts.set(task, (counts.get(task) ?? 0) + 1);
-      }
-    }
-    return [...counts.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
-      .map(([task, count]) => ({ task, count }));
-  }, [sessions]);
-
-  const confirmSave = form.handleSubmit((values) => {
-    const isEdit = Boolean(editingSessionId);
-    Alert.alert(
-      isEdit ? "Update session?" : "Save session?",
-      isEdit ? "Update this session in the student's history?" : "Add this session to the student's history?",
-      [
-      { text: "Cancel", style: "cancel" },
-      { text: isEdit ? "Update" : "Save", onPress: () => void (isEdit ? onUpdate(values) : onCreate(values)) },
-      ],
-    );
-  });
-
-  async function onCreate(values: StudentSessionFormValues) {
-    const student = studentQuery.data ?? null;
-    if (!student) return;
-
-    const dateISO = parseDateInputToISODate(values.date);
-    if (!dateISO) return;
-
-    const sessionAt = dayjs(`${dateISO}T${values.time}`).toISOString();
-    const duration =
-      values.durationMinutes.trim() === "" ? null : Math.max(15, Number(values.durationMinutes.trim()));
-
-    const instructorId = isOwnerOrAdminRole(profile.role) ? student.assigned_instructor_id : userId;
-
-    try {
-      await createMutation.mutateAsync({
-        organization_id: profile.organization_id,
-        student_id: student.id,
-        instructor_id: instructorId,
-        session_at: sessionAt,
-        duration_minutes: duration,
-        tasks: values.tasks,
-        next_focus: values.nextFocus.trim() ? values.nextFocus.trim() : null,
-        notes: values.notes.trim() ? values.notes.trim() : null,
-      });
-
-      form.reset({
-        date: dayjs().format(DISPLAY_DATE_FORMAT),
-        time: dayjs().format("HH:mm"),
-        durationMinutes: "60",
-        tasks: [],
-        nextFocus: "",
-        notes: "",
-      });
-      setCustomTask("");
-      setSuggestionsOpen(true);
-      closeCreateModal();
-    } catch (error) {
-      Alert.alert("Couldn't save session", toErrorMessage(error));
-    }
-  }
-
-  async function onUpdate(values: StudentSessionFormValues) {
-    const sessionId = editingSessionId;
-    if (!sessionId) return;
-
-    const dateISO = parseDateInputToISODate(values.date);
-    if (!dateISO) return;
-
-    const sessionAt = dayjs(`${dateISO}T${values.time}`).toISOString();
-    const duration =
-      values.durationMinutes.trim() === "" ? null : Math.max(15, Number(values.durationMinutes.trim()));
-
-    try {
-      await updateMutation.mutateAsync({
-        sessionId,
-        input: {
-          session_at: sessionAt,
-          duration_minutes: duration,
-          tasks: values.tasks,
-          next_focus: values.nextFocus.trim() ? values.nextFocus.trim() : null,
-          notes: values.notes.trim() ? values.notes.trim() : null,
-        },
-      });
-
-      resetCreateForm();
-      closeCreateModal();
-    } catch (error) {
-      Alert.alert("Couldn't update session", toErrorMessage(error));
-    }
-  }
 
   function resetCreateForm() {
     form.reset({
@@ -282,215 +179,154 @@ export function StudentSessionHistoryScreen({ route }: Props) {
     });
     setCustomTask("");
     setSuggestionsOpen(true);
+    setSelectedStudentId(null);
+    setStudentError(undefined);
   }
 
   function openCreateModal() {
-    setEditingSessionId(null);
     resetCreateForm();
-    setCreateModalVisible(true);
-  }
-
-  function openEditModal(session: StudentSession) {
-    const sessionAt = dayjs(session.session_at);
-    const date = sessionAt.isValid() ? sessionAt.format(DISPLAY_DATE_FORMAT) : dayjs().format(DISPLAY_DATE_FORMAT);
-    const time = sessionAt.isValid() ? sessionAt.format("HH:mm") : dayjs().format("HH:mm");
-
-    form.reset({
-      date,
-      time,
-      durationMinutes: session.duration_minutes ? String(session.duration_minutes) : "",
-      tasks: session.tasks ?? [],
-      nextFocus: session.next_focus ?? "",
-      notes: session.notes ?? "",
-    });
-    setCustomTask("");
-    setSuggestionsOpen(true);
-    setEditingSessionId(session.id);
     setCreateModalVisible(true);
   }
 
   function closeCreateModal() {
     setCreateModalVisible(false);
-    setEditingSessionId(null);
   }
 
-  function onDeletePress(sessionId: string) {
-    Alert.alert("Delete session?", "This permanently deletes the session.", [
+  const confirmSave = form.handleSubmit((values) => {
+    if (!selectedStudent) {
+      setStudentError("Select a student");
+      return;
+    }
+
+    Alert.alert("Save session?", "Add this session to the student's history?", [
       { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: () => void deleteSession(sessionId),
-      },
+      { text: "Save", onPress: () => void onCreate(values) },
     ]);
-  }
+  });
 
-  async function deleteSession(sessionId: string) {
-    setDeletingSessionId(sessionId);
+  async function onCreate(values: StudentSessionFormValues) {
+    if (!selectedStudent) {
+      setStudentError("Select a student");
+      return;
+    }
+
+    const dateISO = parseDateInputToISODate(values.date);
+    if (!dateISO) return;
+
+    const sessionAt = dayjs(`${dateISO}T${values.time}`).toISOString();
+    const duration =
+      values.durationMinutes.trim() === "" ? null : Math.max(15, Number(values.durationMinutes.trim()));
+
+    const instructorId = isOwnerOrAdminRole(profile.role) ? selectedStudent.assigned_instructor_id : userId;
+
     try {
-      await deleteMutation.mutateAsync(sessionId);
+      await createMutation.mutateAsync({
+        organization_id: profile.organization_id,
+        student_id: selectedStudent.id,
+        instructor_id: instructorId,
+        session_at: sessionAt,
+        duration_minutes: duration,
+        tasks: values.tasks,
+        next_focus: values.nextFocus.trim() ? values.nextFocus.trim() : null,
+        notes: values.notes.trim() ? values.notes.trim() : null,
+      });
+
+      resetCreateForm();
+      closeCreateModal();
     } catch (error) {
-      Alert.alert("Couldn't delete session", toErrorMessage(error));
-    } finally {
-      setDeletingSessionId(null);
+      Alert.alert("Couldn't save session", toErrorMessage(error));
     }
   }
 
+  const recentSessions = recentSessionsQuery.data ?? [];
+
   return (
     <>
-      <Screen scroll className={cn("max-w-6xl")}>
+      <Screen scroll className="max-w-6xl">
         <AppStack gap={isCompact ? "md" : "lg"}>
-        <View className="flex-row items-start justify-between gap-3">
-          <View className="flex-1">
-            <AppText variant="title">Session History</AppText>
-            <AppText className="mt-2" variant="caption">
-              {studentQuery.data
-                ? `${studentQuery.data.first_name} ${studentQuery.data.last_name}`
-                : studentQuery.isPending
-                  ? "Loading student..."
-                  : "Student"}
-            </AppText>
-          </View>
-
-          <AppButton
-            width="auto"
-            variant="primary"
-            label="Add new"
-            onPress={openCreateModal}
-          />
-        </View>
-
-        <AppCard className="gap-3">
-          <View className="flex-row flex-wrap items-center justify-between gap-3">
-            <View className="min-w-56 flex-1 gap-1">
-              <AppText variant="label">Total sessions</AppText>
-              <AppText variant="heading">{sessions.length}</AppText>
-            </View>
-
-            <View className="min-w-56 flex-1 gap-1">
-              <AppText variant="label">Last session</AppText>
-              <AppText variant="heading">
-                {lastSession ? dayjs(lastSession.session_at).format(DISPLAY_DATE_FORMAT) : "-"}
+          <View className="flex-row items-start justify-between gap-3">
+            <View className="flex-1">
+              <AppText variant="title">Sessions</AppText>
+              <AppText className="mt-2" variant="caption">
+                Latest 10 sessions
               </AppText>
             </View>
 
-            <View className="min-w-56 flex-1 gap-2">
-              <AppText variant="label">Most practiced</AppText>
-              {topTasks.length ? (
-                <View className="flex-row flex-wrap gap-2">
-                  {topTasks.map(({ task, count }) => (
-                    <TaskBadge key={task} task={task} rightText={String(count)} />
-                  ))}
-                </View>
-              ) : (
-                <AppText variant="caption">-</AppText>
-              )}
-            </View>
+            <AppButton width="auto" variant="primary" label="Add new" onPress={openCreateModal} />
           </View>
-        </AppCard>
 
-        <AppDivider />
-
-        {sessionsQuery.isPending ? (
-          <View className="items-center justify-center py-8">
-            <ActivityIndicator />
-            <AppText className="mt-3 text-center" variant="body">
-              Loading sessions...
-            </AppText>
-          </View>
-        ) : sessionsQuery.isError ? (
-          <AppStack gap="md">
-            <AppCard className="gap-2">
-              <AppText variant="heading">Couldn't load sessions</AppText>
-              <AppText variant="body">{toErrorMessage(sessionsQuery.error)}</AppText>
-            </AppCard>
-            <AppButton
-              label="Retry"
-              icon={RefreshCw}
-              variant="secondary"
-              onPress={() => sessionsQuery.refetch()}
+          {recentSessionsQuery.isPending ? (
+            <CenteredLoadingState label="Loading sessions..." />
+          ) : recentSessionsQuery.isError ? (
+            <ErrorStateCard
+              title="Couldn't load sessions"
+              message={toErrorMessage(recentSessionsQuery.error)}
+              onRetry={() => recentSessionsQuery.refetch()}
+              retryPlacement="inside"
             />
-          </AppStack>
-        ) : sessions.length === 0 ? (
-          <AppCard className="gap-2">
-            <AppText variant="heading">No sessions yet</AppText>
-            <AppText variant="body">Add your first session to start tracking progress.</AppText>
-          </AppCard>
-        ) : (
-          <AppStack gap="md">
-            {sessions.map((session) => {
-              const when = dayjs(session.session_at).isValid()
-                ? dayjs(session.session_at).format(DISPLAY_DATE_FORMAT)
-                : "Unknown date";
-              const tasks = session.tasks ?? [];
-              const subtitleParts = [
-                tasks.length ? `Tasks: ${tasks.length}` : null,
-                session.duration_minutes ? `${session.duration_minutes} min` : null,
-                session.next_focus?.trim() ? `Next: ${session.next_focus.trim()}` : null,
-              ].filter(Boolean);
+          ) : recentSessions.length === 0 ? (
+            <EmptyStateCard
+              title="No sessions yet"
+              message="Create a session to start tracking student progress."
+            />
+          ) : (
+            <AppStack gap="md">
+              {recentSessions.map((session) => {
+                const sessionDate = dayjs(session.session_at).isValid()
+                  ? dayjs(session.session_at).format(DISPLAY_DATE_FORMAT)
+                  : "Unknown date";
+                const studentName = getStudentFullName(session.students);
+                const tasks = session.tasks ?? [];
 
-              return (
-                <AppCard key={session.id} className="gap-4">
-                  <View className="flex-row items-start justify-between gap-3">
-                    <View className="flex-1">
-                      <AppText variant="heading">Session on {when}</AppText>
-                      <AppText className="mt-1" variant="caption">
-                        {subtitleParts.length ? subtitleParts.join(" - ") : "-"}
-                      </AppText>
-                    </View>
- 
-                    <View className="flex-row items-center gap-2">
-                      <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel="Edit session"
-                        disabled={deletingSessionId === session.id}
-                        onPress={() => openEditModal(session)}
-                        className={cn(
-                          "h-10 w-10 items-center justify-center rounded-full border",
-                          "border-green-600/30 bg-green-600/10 dark:border-green-400/30 dark:bg-green-400/10",
-                          deletingSessionId === session.id && "opacity-60",
+                return (
+                  <Pressable
+                    key={session.id}
+                    accessibilityRole="button"
+                    onPress={() =>
+                      navigation.navigate("StudentSessionHistory", {
+                        studentId: session.student_id,
+                      })
+                    }
+                    className="active:opacity-90"
+                  >
+                    <AppCard className="gap-3">
+                      <View className="gap-1">
+                        <AppText variant="heading">{studentName}</AppText>
+                        <AppText variant="caption">Session date: {sessionDate}</AppText>
+                      </View>
+
+                      <View className="gap-2">
+                        <AppText variant="label">Task covered</AppText>
+                        {tasks.length ? (
+                          <View className="flex-row flex-wrap gap-2">
+                            {tasks.map((task) => (
+                              <TaskBadge key={task} task={task} />
+                            ))}
+                          </View>
+                        ) : (
+                          <AppText variant="caption">No tasks recorded.</AppText>
                         )}
-                      >
-                        <Pencil size={18} color={editColor} />
-                      </Pressable>
+                      </View>
 
-                      <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel="Delete session"
-                        disabled={deletingSessionId === session.id}
-                        onPress={() => onDeletePress(session.id)}
-                        className={cn(
-                          "h-10 w-10 items-center justify-center rounded-full border",
-                          "border-red-500/30 bg-red-500/10 dark:border-red-400/30 dark:bg-red-400/10",
-                          deletingSessionId === session.id && "opacity-60",
-                        )}
-                      >
-                        <Trash2 size={18} color={trashColor} />
-                      </Pressable>
-                    </View>
-                  </View>
+                      {session.next_focus?.trim() ? (
+                        <View className="gap-1">
+                          <AppText variant="label">Next focus</AppText>
+                          <AppText variant="body">{session.next_focus.trim()}</AppText>
+                        </View>
+                      ) : null}
 
-                  {tasks.length ? (
-                    <View className="flex-row flex-wrap gap-2">
-                      {tasks.map((task) => (
-                        <TaskBadge key={task} task={task} />
-                      ))}
-                    </View>
-                  ) : (
-                    <AppText variant="caption">No tasks recorded.</AppText>
-                  )}
-
-                  {session.notes?.trim() ? (
-                    <AppStack gap="sm">
-                      <AppText variant="label">Notes</AppText>
-                      <AppText variant="body">{session.notes.trim()}</AppText>
-                    </AppStack>
-                  ) : null}
-                </AppCard>
-              );
-            })}
-          </AppStack>
-        )}
+                      {session.notes?.trim() ? (
+                        <View className="gap-1">
+                          <AppText variant="label">Notes</AppText>
+                          <AppText variant="body">{session.notes.trim()}</AppText>
+                        </View>
+                      ) : null}
+                    </AppCard>
+                  </Pressable>
+                );
+              })}
+            </AppStack>
+          )}
         </AppStack>
       </Screen>
 
@@ -504,13 +340,10 @@ export function StudentSessionHistoryScreen({ route }: Props) {
           className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
           onPress={closeCreateModal}
         >
-          <Pressable
-            className="m-auto w-full max-w-2xl"
-            onPress={(event) => event.stopPropagation()}
-          >
+          <Pressable className="m-auto w-full max-w-2xl" onPress={(event) => event.stopPropagation()}>
             <AppCard className="gap-4">
               <View className="flex-row items-center justify-between gap-2">
-                <AppText variant="heading">{editingSessionId ? "Edit Session History" : "Add Session History"}</AppText>
+                <AppText variant="heading">Add Session History</AppText>
                 <AppButton
                   label=""
                   width="auto"
@@ -522,16 +355,38 @@ export function StudentSessionHistoryScreen({ route }: Props) {
                 />
               </View>
 
-              {isOwnerOrAdminRole(profile.role) && studentQuery.data ? (
+              {isOwnerOrAdminRole(profile.role) && selectedStudent ? (
                 <AppText variant="caption">
                   Recorded under assigned instructor for this student.
                 </AppText>
               ) : null}
 
-              <ScrollView
-                keyboardShouldPersistTaps="handled"
-                contentContainerClassName="gap-4 pb-1"
-              >
+              <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="gap-4 pb-1">
+                <AppStack gap="sm">
+                  <AppText variant="label">Student</AppText>
+                  {studentsQuery.isPending ? (
+                    <AppText variant="caption">Loading students...</AppText>
+                  ) : studentsQuery.isError ? (
+                    <ErrorStateCard
+                      title="Couldn't load students"
+                      message={toErrorMessage(studentsQuery.error)}
+                      onRetry={() => studentsQuery.refetch()}
+                      retryPlacement="inside"
+                    />
+                  ) : (
+                    <AssessmentStudentDropdown
+                      students={studentsQuery.data ?? []}
+                      selectedStudentId={selectedStudentId}
+                      currentUserId={userId}
+                      onSelectStudent={(student) => {
+                        setSelectedStudentId(student.id);
+                        setStudentError(undefined);
+                      }}
+                      error={studentError}
+                    />
+                  )}
+                </AppStack>
+
                 <View className="flex-row flex-wrap gap-4">
                   <View className="min-w-56 flex-1">
                     <Controller
@@ -629,7 +484,7 @@ export function StudentSessionHistoryScreen({ route }: Props) {
                             suggestionsOpen ? "Hide task suggestions" : "Show task suggestions"
                           }
                           className="px-1 py-1"
-                          onPress={() => setSuggestionsOpen((v) => !v)}
+                          onPress={() => setSuggestionsOpen((value) => !value)}
                         >
                           <AppText
                             variant="label"
@@ -741,18 +596,12 @@ export function StudentSessionHistoryScreen({ route }: Props) {
                 <AppButton
                   width="auto"
                   className="flex-1"
-                  label={
-                    createMutation.isPending || updateMutation.isPending
-                      ? "Saving..."
-                      : editingSessionId
-                        ? "Update"
-                        : "Save"
-                  }
+                  label={createMutation.isPending ? "Saving..." : "Save"}
                   disabled={
                     createMutation.isPending ||
-                    updateMutation.isPending ||
-                    studentQuery.isPending ||
-                    !studentQuery.data
+                    studentsQuery.isPending ||
+                    studentsQuery.isError ||
+                    !selectedStudent
                   }
                   onPress={confirmSave}
                 />
@@ -764,3 +613,4 @@ export function StudentSessionHistoryScreen({ route }: Props) {
     </>
   );
 }
+

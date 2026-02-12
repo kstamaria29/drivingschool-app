@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  Clock3,
   Home,
   LogOut,
   Map,
@@ -34,6 +35,7 @@ type DrawerRouteName =
   | "Home"
   | "Lessons"
   | "Students"
+  | "Sessions"
   | "Assessments"
   | "GoogleMaps"
   | "Settings";
@@ -213,6 +215,17 @@ export function AppDrawerContent({
             onPress={() =>
               navigation.navigate("Students", {
                 screen: "StudentsList",
+              })
+            }
+          />
+          <DrawerRow
+            collapsed={collapsed}
+            label="Sessions"
+            icon={<Clock3 color={iconColor} size={20} />}
+            active={currentRouteName === "Sessions"}
+            onPress={() =>
+              navigation.navigate("Sessions", {
+                screen: "SessionsList",
               })
             }
           />

@@ -19,6 +19,8 @@ import type { AssessmentsStackParamList } from "./AssessmentsStackNavigator";
 import { AssessmentsStackNavigator } from "./AssessmentsStackNavigator";
 import type { MapsStackParamList } from "./MapsStackNavigator";
 import { MapsStackNavigator } from "./MapsStackNavigator";
+import type { SessionsStackParamList } from "./SessionsStackNavigator";
+import { SessionsStackNavigator } from "./SessionsStackNavigator";
 import { AppDrawerContent } from "./components/AppDrawerContent";
 import { getDrawerScreenOptions } from "./navigationTheme";
 import { useNavigationLayout } from "./useNavigationLayout";
@@ -27,6 +29,7 @@ export type MainDrawerParamList = {
   Home: NavigatorScreenParams<HomeStackParamList> | undefined;
   Lessons: NavigatorScreenParams<LessonsStackParamList> | undefined;
   Students: NavigatorScreenParams<StudentsStackParamList> | undefined;
+  Sessions: NavigatorScreenParams<SessionsStackParamList> | undefined;
   Assessments: NavigatorScreenParams<AssessmentsStackParamList> | undefined;
   GoogleMaps: NavigatorScreenParams<MapsStackParamList> | undefined;
   Settings: NavigatorScreenParams<SettingsStackParamList> | undefined;
@@ -85,6 +88,7 @@ export function MainDrawerNavigator() {
       <Drawer.Screen name="Home" component={HomeStackNavigator} />
       <Drawer.Screen name="Lessons" component={LessonsStackNavigator} />
       <Drawer.Screen name="Students" component={StudentsStackNavigator} />
+      <Drawer.Screen name="Sessions" component={SessionsStackNavigator} />
       <Drawer.Screen name="Assessments" component={AssessmentsStackNavigator} />
       <Drawer.Screen name="GoogleMaps" component={MapsStackNavigator} />
       <Drawer.Screen name="Settings" component={SettingsStackNavigator} />

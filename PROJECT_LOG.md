@@ -1,6 +1,21 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Sessions hub with latest sessions and create modal
+- **Summary:**
+  - Added a new drawer + Home-accessible Sessions area with a latest-10 sessions list and tap-through into Student Session History while preserving back-to-sessions flow.
+  - Added create-session from the Sessions screen using the Add Session History modal structure plus student autocomplete, and wired shared sessions query invalidation for recents/history sync.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Launch screen minimum duration set to 3 seconds
+- **Summary:**
+  - Increased `MIN_LAUNCH_DURATION_MS` from `900ms` to `3000ms` so the custom animated launch screen stays visible longer.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
 - **Task:** Custom animated launch screen + splash handoff
 - **Summary:**
   - Added a branded animated React Native launch screen and startup state machine (fonts, boot readiness, minimum duration, failsafe timeout).
@@ -138,21 +153,5 @@
 - **Summary:**
   - Restored blue Repetitions/red Faults text and active-section blue borders for the Stage/Error sections.
   - Added tap-outside-to-collapse behavior and darkened the Session overview border with a larger student name.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Restricted mock test error totals placement + overview border
-- **Summary:**
-  - Moved Critical/Immediate totals under their headings as `Total Errors: x` (orange/red) and removed the top-right `x recorded` label.
-  - Darkened the Session overview card border for stronger visual separation.
-
----
-
-- **Date:** 2026-02-10 (Pacific/Auckland)
-- **Task:** Restricted mock test stat color specificity fix
-- **Summary:**
-  - Forced Repetitions/Faults text colors (blue/red) using `!text-*` utilities so they are not overridden by base text classes.
-  - Forced active-section blue borders using `!border-*` utilities so expanded section blocks visibly highlight as expected.
 
 ---

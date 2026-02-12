@@ -3,8 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createStudentSession,
   deleteStudentSession,
+  listRecentStudentSessions,
   listStudentSessions,
   updateStudentSession,
+  type ListRecentStudentSessionsInput,
   type ListStudentSessionsInput,
   type StudentSessionInsert,
   type StudentSessionUpdate,
@@ -12,6 +14,7 @@ import {
 
 export const studentSessionKeys = {
   list: (input: ListStudentSessionsInput) => ["studentSessions", input] as const,
+  recent: (input: ListRecentStudentSessionsInput) => ["studentSessions", "recent", input] as const,
 };
 
 export function useStudentSessionsQuery(input?: ListStudentSessionsInput) {
@@ -22,14 +25,21 @@ export function useStudentSessionsQuery(input?: ListStudentSessionsInput) {
   });
 }
 
+export function useRecentStudentSessionsQuery(input: ListRecentStudentSessionsInput) {
+  return useQuery({
+    queryKey: studentSessionKeys.recent(input),
+    queryFn: () => listRecentStudentSessions(input),
+  });
+}
+
 export function useCreateStudentSessionMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (input: StudentSessionInsert) => createStudentSession(input),
-    onSuccess: async (session) => {
+    onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: studentSessionKeys.list({ studentId: session.student_id }),
+        queryKey: ["studentSessions"],
       });
     },
   });
@@ -40,9 +50,9 @@ export function useDeleteStudentSessionMutation() {
 
   return useMutation({
     mutationFn: (sessionId: string) => deleteStudentSession(sessionId),
-    onSuccess: async (session) => {
+    onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: studentSessionKeys.list({ studentId: session.student_id }),
+        queryKey: ["studentSessions"],
       });
     },
   });
@@ -58,9 +68,9 @@ export function useUpdateStudentSessionMutation() {
 
   return useMutation({
     mutationFn: (payload: UpdateStudentSessionInput) => updateStudentSession(payload.sessionId, payload.input),
-    onSuccess: async (session) => {
+    onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: studentSessionKeys.list({ studentId: session.student_id }),
+        queryKey: ["studentSessions"],
       });
     },
   });

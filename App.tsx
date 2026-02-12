@@ -19,7 +19,7 @@ import { useAppColorScheme } from "./src/providers/ColorSchemeProvider";
 import { AppProviders } from "./src/providers/AppProviders";
 
 const NATIVE_SPLASH_FADE_DURATION_MS = 250;
-const MIN_LAUNCH_DURATION_MS = 900;
+const MIN_LAUNCH_DURATION_MS = 5000;
 const LAUNCH_FAILSAFE_TIMEOUT_MS = 8000;
 
 void SplashScreen.preventAutoHideAsync().catch(() => {
@@ -51,7 +51,8 @@ export default function App() {
   const [launchFinished, setLaunchFinished] = useState(false);
   const didHideNativeSplashRef = useRef(false);
 
-  const shouldDismissLaunchScreen = forceLaunchDismiss || (bootReady && minimumLaunchElapsed);
+  const shouldDismissLaunchScreen =
+    forceLaunchDismiss || (bootReady && minimumLaunchElapsed);
 
   const hideNativeSplash = useCallback(() => {
     if (didHideNativeSplashRef.current) return;
