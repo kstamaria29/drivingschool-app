@@ -1,7 +1,7 @@
 import { TextInput, View, type TextInputProps } from "react-native";
 import { useColorScheme } from "nativewind";
 
-import { fonts } from "../theme/fonts";
+import { useThemeFonts } from "../providers/ThemeFontsProvider";
 import { theme } from "../theme/theme";
 import { cn } from "../utils/cn";
 
@@ -23,6 +23,7 @@ export function AppInput({
   ...props
 }: Props) {
   const { colorScheme } = useColorScheme();
+  const { fonts } = useThemeFonts();
   const placeholderTextColor =
     colorScheme === "dark" ? theme.colors.mutedDark : theme.colors.mutedLight;
   const isMultiline = Boolean(props.multiline);

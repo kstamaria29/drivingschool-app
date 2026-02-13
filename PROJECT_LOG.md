@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Themes screen free/premium sections + premium fonts
+- **Summary:**
+  - Split Themes screen into collapsible Free vs Premium blocks and auto-collapsed the non-selected group.
+  - Added per-premium-theme typography via Google Fonts remote font loading so premium selections update the app font.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
 - **Task:** Premium themes + textured backdrops
 - **Summary:**
   - Added 10 new premium theme presets (5 light, 5 dark) and surfaced premium labeling in the Themes list.
@@ -147,11 +155,3 @@
 - **Task:** Licence upload width set to 500px
 - **Summary:**
   - Updated automatic licence card image resize width from `400px` to `500px` for Front/Back uploads.
-
----
-
-- **Date:** 2026-02-11 (Pacific/Auckland)
-- **Task:** Licence compression width + Stage 2 roundabout task
-- **Summary:**
-  - Updated licence card upload compression to use a max width of `400px` (from `580px`).
-  - Added `Left turn at roundabout` (4 reps) to Restricted Stage 2 so assessment entry, history, and PDF use the same updated task set.

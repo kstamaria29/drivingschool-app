@@ -6,7 +6,7 @@ import { useColorScheme } from "nativewind";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import type { Student } from "../../features/students/api";
-import { fonts } from "../../theme/fonts";
+import { useThemeFonts } from "../../providers/ThemeFontsProvider";
 import { theme } from "../../theme/theme";
 import { cn } from "../../utils/cn";
 
@@ -52,6 +52,7 @@ export function AssessmentStudentDropdown({
   error,
 }: Props) {
   const { colorScheme } = useColorScheme();
+  const { fonts } = useThemeFonts();
   const [search, setSearch] = useState("");
   const [isChangingStudent, setIsChangingStudent] = useState(() => !selectedStudentId);
   const searchInputRef = useRef<TextInput | null>(null);

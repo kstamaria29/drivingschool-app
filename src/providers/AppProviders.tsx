@@ -5,14 +5,17 @@ import { AuthSessionProvider } from "../features/auth/session";
 
 import { ColorSchemeProvider } from "./ColorSchemeProvider";
 import { QueryProvider } from "./QueryProvider";
+import { ThemeFontsProvider } from "./ThemeFontsProvider";
 
 export function AppProviders({ children }: PropsWithChildren) {
   return (
     <SafeAreaProvider>
       <ColorSchemeProvider>
-        <QueryProvider>
-          <AuthSessionProvider>{children}</AuthSessionProvider>
-        </QueryProvider>
+        <ThemeFontsProvider>
+          <QueryProvider>
+            <AuthSessionProvider>{children}</AuthSessionProvider>
+          </QueryProvider>
+        </ThemeFontsProvider>
       </ColorSchemeProvider>
     </SafeAreaProvider>
   );

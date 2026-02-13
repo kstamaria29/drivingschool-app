@@ -979,6 +979,14 @@
 
 ---
 
+- **Date:** 2026-02-11 (Pacific/Auckland)
+- **Task:** Licence compression width + Stage 2 roundabout task
+- **Summary:**
+  - Updated licence card upload compression to use a max width of `400px` (from `580px`).
+  - Added `Left turn at roundabout` (4 reps) to Restricted Stage 2 so assessment entry, history, and PDF use the same updated task set.
+
+---
+
 - **Date:** 2026-02-09 (Pacific/Auckland)
 - **Task:** Student profile detail-card layout refresh
 - **Summary:**

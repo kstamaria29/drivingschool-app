@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from "react";
 import { Text, type TextProps } from "react-native";
 
-import { fonts } from "../theme/fonts";
+import { useThemeFonts } from "../providers/ThemeFontsProvider";
 import { theme } from "../theme/theme";
 import { cn } from "../utils/cn";
 
@@ -11,17 +11,19 @@ type Props = PropsWithChildren<TextProps> & {
   variant?: AppTextVariant;
 };
 
-function getFontFamily(variant: AppTextVariant) {
-  if (variant === "title" || variant === "heading" || variant === "button") return fonts.semibold;
-  if (variant === "label") return fonts.medium;
-  return fonts.regular;
+function getFontFamily(variant: AppTextVariant, input: { regular: string; medium: string; semibold: string }) {
+  if (variant === "title" || variant === "heading" || variant === "button") return input.semibold;
+  if (variant === "label") return input.medium;
+  return input.regular;
 }
 
 export function AppText({ variant = "body", className, style, ...props }: Props) {
+  const { fonts } = useThemeFonts();
+
   return (
     <Text
       className={cn(theme.text.base, theme.text.variant[variant], className)}
-      style={[{ fontFamily: getFontFamily(variant) }, style]}
+      style={[{ fontFamily: getFontFamily(variant, fonts) }, style]}
       {...props}
     />
   );
