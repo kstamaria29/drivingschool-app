@@ -485,12 +485,8 @@ export function ThemedBackdrop() {
   const { scheme, themeKey } = useAppColorScheme();
   const preset = getThemePreset(themeKey);
   const backdrop = preset?.backdrop ?? null;
-  if (!backdrop) return null;
-
-  const intensity = clamp01(backdrop.intensity ?? 0.45);
-  if (intensity <= 0) return null;
-
-  const shouldPulse = backdrop.kind === "neon";
+  const intensity = clamp01(backdrop?.intensity ?? 0);
+  const shouldPulse = backdrop?.kind === "neon";
   const pulse = useRef(new Animated.Value(0)).current;
   const pulseLoopRef = useRef<Animated.CompositeAnimation | null>(null);
 
@@ -528,6 +524,10 @@ export function ThemedBackdrop() {
   const containerOpacity = shouldPulse
     ? pulse.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] })
     : 1;
+
+  if (!backdrop || intensity <= 0) {
+    return null;
+  }
 
   return (
     <Animated.View pointerEvents="none" style={[styles.container, { opacity: containerOpacity }]}>

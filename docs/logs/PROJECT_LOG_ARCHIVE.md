@@ -980,6 +980,13 @@
 ---
 
 - **Date:** 2026-02-11 (Pacific/Auckland)
+- **Task:** Licence upload width set to 500px
+- **Summary:**
+  - Updated automatic licence card image resize width from `400px` to `500px` for Front/Back uploads.
+
+---
+
+- **Date:** 2026-02-11 (Pacific/Auckland)
 - **Task:** Licence compression width + Stage 2 roundabout task
 - **Summary:**
   - Updated licence card upload compression to use a max width of `400px` (from `580px`).

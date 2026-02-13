@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Fix ThemedBackdrop hook order crash
+- **Summary:**
+  - Removed conditional hook execution in `ThemedBackdrop` by making `useRef` and `useEffect` run on every render.
+  - Fixed runtime hook-order errors when switching between themes with and without premium backdrops.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
 - **Task:** Themes screen free/premium sections + premium fonts
 - **Summary:**
   - Split Themes screen into collapsible Free vs Premium blocks and auto-collapsed the non-selected group.
@@ -148,10 +156,3 @@
 - **Summary:**
   - Added a branded animated React Native launch screen and startup state machine (fonts, boot readiness, minimum duration, failsafe timeout).
   - Wired `RootNavigation` boot-ready callback and native splash control using `expo-splash-screen` to reduce startup flicker.
-
----
-
-- **Date:** 2026-02-11 (Pacific/Auckland)
-- **Task:** Licence upload width set to 500px
-- **Summary:**
-  - Updated automatic licence card image resize width from `400px` to `500px` for Front/Back uploads.
