@@ -4,11 +4,12 @@ import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 
 import { formatIsoDateToDisplay } from "../../utils/dates";
+import { getAndroidNotificationChannelId } from "../notifications/channels";
+import { loadNotificationPreferences } from "../notifications/preferences";
 
 import { getReminderOffsetLabel } from "./constants";
 import type { StudentReminder } from "./api";
 
-const REMINDERS_CHANNEL_ID = "student-reminders";
 const REMINDER_STORAGE_KEY_PREFIX = "drivingschool.student-reminders.notifications.v1";
 const DEFAULT_REMINDER_TIME = "09:00";
 
@@ -76,14 +77,6 @@ async function cancelScheduledIds(ids: string[]) {
   }
 }
 
-async function ensureAndroidChannel() {
-  if (Platform.OS !== "android") return;
-  await Notifications.setNotificationChannelAsync(REMINDERS_CHANNEL_ID, {
-    name: "Student reminders",
-    importance: Notifications.AndroidImportance.DEFAULT,
-  });
-}
-
 function normalizeReminderTime(reminderTime: string | null | undefined) {
   const match = reminderTime?.match(/^([01]\d|2[0-3]):[0-5]\d/);
   return match ? match[0] : DEFAULT_REMINDER_TIME;
@@ -115,6 +108,14 @@ async function scheduleNotificationsForOffsets(input: {
   studentName: string;
   offsets: number[];
 }) {
+  const prefs = await loadNotificationPreferences();
+  const categoryPrefs = prefs.studentReminders;
+  const androidChannelId = getAndroidNotificationChannelId({
+    category: "student_reminders",
+    soundEnabled: categoryPrefs.soundEnabled,
+    vibrationEnabled: categoryPrefs.vibrationEnabled,
+  });
+
   const baseDate = buildReminderBaseDate(
     input.reminder.reminder_date,
     input.reminder.reminder_time,
@@ -131,7 +132,7 @@ async function scheduleNotificationsForOffsets(input: {
         ? {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
             date: triggerDate.toDate(),
-            channelId: REMINDERS_CHANNEL_ID,
+            channelId: androidChannelId,
           }
         : {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -142,7 +143,9 @@ async function scheduleNotificationsForOffsets(input: {
       content: {
         title: `Reminder: ${input.reminder.title}`,
         body: `${input.studentName} - ${formatIsoDateToDisplay(input.reminder.reminder_date)} ${formatReminderTimeLabel(input.reminder.reminder_time)} (${getReminderOffsetLabel(offsetMinutes)})`,
+        ...(categoryPrefs.soundEnabled ? { sound: "default" } : null),
         data: {
+          category: "student_reminders",
           reminderId: input.reminder.id,
           studentId: input.reminder.student_id,
         },
@@ -157,8 +160,6 @@ async function scheduleNotificationsForOffsets(input: {
 }
 
 export async function requestReminderNotificationPermission() {
-  await ensureAndroidChannel();
-
   const existing = await Notifications.getPermissionsAsync();
   if (existing.status === "granted") return true;
 

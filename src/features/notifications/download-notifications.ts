@@ -3,40 +3,29 @@ import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 
 import { openPdfUri } from "../../utils/open-pdf";
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
-
-const DOWNLOADS_CHANNEL_ID = "downloads";
-
-async function ensureAndroidChannel() {
-  if (Platform.OS !== "android") return;
-  await Notifications.setNotificationChannelAsync(DOWNLOADS_CHANNEL_ID, {
-    name: "Downloads",
-    importance: Notifications.AndroidImportance.DEFAULT,
-  });
-}
+import { getAndroidNotificationChannelId } from "./channels";
+import { loadNotificationPreferences } from "./preferences";
 
 export async function requestDownloadNotificationPermission() {
-  await ensureAndroidChannel();
-
   const existing = await Notifications.getPermissionsAsync();
   if (existing.status === "granted") return true;
 
   const requested = await Notifications.requestPermissionsAsync({
-    ios: { allowAlert: true, allowSound: false, allowBadge: false },
+    ios: { allowAlert: true, allowSound: true, allowBadge: false },
   });
 
   return requested.status === "granted";
 }
 
 export async function notifyPdfSaved(input: { fileName: string; uri: string; savedTo: string }) {
+  const prefs = await loadNotificationPreferences();
+  const categoryPrefs = prefs.downloads;
+  const androidChannelId = getAndroidNotificationChannelId({
+    category: "downloads",
+    soundEnabled: categoryPrefs.soundEnabled,
+    vibrationEnabled: categoryPrefs.vibrationEnabled,
+  });
+
   const ok = await requestDownloadNotificationPermission();
   if (!ok) return false;
 
@@ -44,9 +33,13 @@ export async function notifyPdfSaved(input: { fileName: string; uri: string; sav
     content: {
       title: "PDF saved",
       body: `${input.fileName}.pdf saved to ${input.savedTo}. Tap to open.`,
-      data: { pdfUri: input.uri },
+      ...(categoryPrefs.soundEnabled ? { sound: "default" } : null),
+      data: { category: "downloads", pdfUri: input.uri },
     },
-    trigger: null,
+    trigger:
+      Platform.OS === "android"
+        ? ({ channelId: androidChannelId } as Notifications.ChannelAwareTriggerInput)
+        : null,
   });
 
   return true;

@@ -2,6 +2,7 @@ import * as ImagePicker from "expo-image-picker";
 import { ActivityIndicator, Pressable, View } from "react-native";
 import { useState } from "react";
 import {
+  BellRing,
   Building2,
   IdCard,
   ImageUp,
@@ -56,14 +57,23 @@ export function SettingsScreen() {
       throw new Error("Permission to access photos was denied.");
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "images",
-      allowsEditing: false,
-    });
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: "images",
+    allowsEditing: false,
+  });
 
     if (result.canceled) return null;
     return result.assets[0] ?? null;
   }
+
+  const notificationsButton = (
+    <AppButton
+      label="Notifications"
+      variant="secondary"
+      icon={BellRing}
+      onPress={() => navigation.navigate("Notifications")}
+    />
+  );
 
   const themesButton = (
     <AppButton
@@ -279,6 +289,7 @@ export function SettingsScreen() {
           </AppText>
         </View>
 
+        {notificationsButton}
         {themesButton}
         {organizationCard}
         {accountCard}

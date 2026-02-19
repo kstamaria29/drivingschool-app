@@ -428,6 +428,141 @@ export type Database = {
         };
         Relationships: [];
       };
+      notification_settings: {
+        Row: {
+          profile_id: string;
+          organization_id: string;
+          downloads_sound_enabled: boolean;
+          downloads_vibration_enabled: boolean;
+          student_reminders_sound_enabled: boolean;
+          student_reminders_vibration_enabled: boolean;
+          lesson_reminders_enabled: boolean;
+          lesson_reminder_offsets_minutes: number[];
+          lesson_reminders_sound_enabled: boolean;
+          lesson_reminders_vibration_enabled: boolean;
+          daily_digest_enabled: boolean;
+          daily_digest_time: string;
+          daily_digest_sound_enabled: boolean;
+          daily_digest_vibration_enabled: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          profile_id: string;
+          organization_id: string;
+          downloads_sound_enabled?: boolean;
+          downloads_vibration_enabled?: boolean;
+          student_reminders_sound_enabled?: boolean;
+          student_reminders_vibration_enabled?: boolean;
+          lesson_reminders_enabled?: boolean;
+          lesson_reminder_offsets_minutes?: number[];
+          lesson_reminders_sound_enabled?: boolean;
+          lesson_reminders_vibration_enabled?: boolean;
+          daily_digest_enabled?: boolean;
+          daily_digest_time?: string;
+          daily_digest_sound_enabled?: boolean;
+          daily_digest_vibration_enabled?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          organization_id?: string;
+          downloads_sound_enabled?: boolean;
+          downloads_vibration_enabled?: boolean;
+          student_reminders_sound_enabled?: boolean;
+          student_reminders_vibration_enabled?: boolean;
+          lesson_reminders_enabled?: boolean;
+          lesson_reminder_offsets_minutes?: number[];
+          lesson_reminders_sound_enabled?: boolean;
+          lesson_reminders_vibration_enabled?: boolean;
+          daily_digest_enabled?: boolean;
+          daily_digest_time?: string;
+          daily_digest_sound_enabled?: boolean;
+          daily_digest_vibration_enabled?: boolean;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      push_tokens: {
+        Row: {
+          id: string;
+          organization_id: string;
+          profile_id: string;
+          expo_push_token: string;
+          platform: "ios" | "android";
+          last_seen_at: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          profile_id: string;
+          expo_push_token: string;
+          platform: "ios" | "android";
+          last_seen_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          organization_id?: string;
+          profile_id?: string;
+          expo_push_token?: string;
+          platform?: "ios" | "android";
+          last_seen_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      lesson_notification_deliveries: {
+        Row: {
+          id: string;
+          organization_id: string;
+          profile_id: string;
+          lesson_id: string;
+          offset_minutes: number;
+          delivered_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          profile_id: string;
+          lesson_id: string;
+          offset_minutes: number;
+          delivered_at?: string;
+        };
+        Update: {
+          organization_id?: string;
+          profile_id?: string;
+          lesson_id?: string;
+          offset_minutes?: number;
+          delivered_at?: string;
+        };
+        Relationships: [];
+      };
+      daily_digest_deliveries: {
+        Row: {
+          id: string;
+          organization_id: string;
+          profile_id: string;
+          digest_date: string;
+          delivered_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          profile_id: string;
+          digest_date: string;
+          delivered_at?: string;
+        };
+        Update: {
+          organization_id?: string;
+          profile_id?: string;
+          digest_date?: string;
+          delivered_at?: string;
+        };
+        Relationships: [];
+      };
       [key: string]: SupabaseTable;
     };
     Views: Record<string, never>;

@@ -1456,3 +1456,18 @@
   - Enforced a max width of `580px` for licence card images.
 
 ---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Custom animated launch screen + splash handoff
+- **Summary:**
+  - Added a branded animated React Native launch screen and startup state machine (fonts, boot readiness, minimum duration, failsafe timeout).
+  - Wired `RootNavigation` boot-ready callback and native splash control using `expo-splash-screen` to reduce startup flicker.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Launch screen minimum duration set to 3 seconds
+- **Summary:**
+  - Increased `MIN_LAUNCH_DURATION_MS` from `900ms` to `3000ms` so the custom animated launch screen stays visible longer.
+
+---

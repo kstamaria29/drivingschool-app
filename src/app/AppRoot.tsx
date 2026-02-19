@@ -1,4 +1,5 @@
 import { RootNavigation } from "../navigation/RootNavigation";
+import { useConfigureNotifications } from "../features/notifications/setup";
 import { useOpenPdfFromDownloadNotifications } from "../features/notifications/download-notifications";
 
 type Props = {
@@ -6,6 +7,7 @@ type Props = {
 };
 
 export function AppRoot({ onBootReady }: Props) {
+  useConfigureNotifications();
   useOpenPdfFromDownloadNotifications();
   return <RootNavigation onBootReady={onBootReady} />;
 }

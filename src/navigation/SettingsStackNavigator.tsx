@@ -11,12 +11,14 @@ import { EditDetailsScreen } from "./screens/EditDetailsScreen";
 import { EditOrganizationNameScreen } from "./screens/EditOrganizationNameScreen";
 import { EditRoleDisplayScreen } from "./screens/EditRoleDisplayScreen";
 import { MemberProfileScreen } from "./screens/MemberProfileScreen";
+import { NotificationsScreen } from "./screens/NotificationsScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
 import { ThemesScreen } from "./screens/ThemesScreen";
 import { ViewMembersScreen } from "./screens/ViewMembersScreen";
 
 export type SettingsStackParamList = {
   SettingsMain: undefined;
+  Notifications: undefined;
   Themes: undefined;
   EditDetails: undefined;
   ChangePassword: undefined;
@@ -48,6 +50,11 @@ export function SettingsStackNavigator() {
           headerTitle: "",
           headerRight: () => <HeaderRightAvatar />,
         }}
+      />
+      <Stack.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{ headerTitle: "Notifications" }}
       />
       <Stack.Screen
         name="Themes"

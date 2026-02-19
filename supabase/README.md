@@ -26,6 +26,7 @@ In the Supabase Dashboard:
    - `supabase/migrations/018_students_date_of_birth.sql`
    - `supabase/migrations/019_student_reminders.sql`
    - `supabase/migrations/020_student_reminders_time.sql`
+   - `supabase/migrations/021_notifications_settings_push.sql`
 
 ## Edge Functions
 
@@ -45,6 +46,36 @@ Deploy (requires Supabase CLI):
 Notes:
 
 - `create-instructor` validates caller JWT inside the function (`auth.getUser(accessToken)`), so gateway `verify_jwt` is intentionally disabled to avoid edge pre-auth mismatches.
+
+### `send-test-notification` (authenticated users)
+
+Sends a push notification to all of the caller's registered Expo push tokens (useful for verifying
+push notifications work across devices).
+
+Deploy (requires Supabase CLI):
+
+- `supabase functions deploy send-test-notification --no-verify-jwt`
+- Set secrets (Dashboard or CLI):
+  - `SUPABASE_URL`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+
+### `notifications-cron` (scheduled)
+
+Intended to be invoked on a schedule to deliver:
+
+- Upcoming lesson reminders (based on `notification_settings.lesson_reminder_offsets_minutes`)
+- Daily "Today's lessons" digest
+
+Deploy (requires Supabase CLI):
+
+- `supabase functions deploy notifications-cron --no-verify-jwt`
+- Set secrets (Dashboard or CLI):
+  - `SUPABASE_URL`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+
+Scheduling:
+
+- Create a scheduled job in Supabase Dashboard to call `notifications-cron` (recommended every 5 minutes).
 
 ## Storage buckets + policies
 

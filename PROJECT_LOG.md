@@ -1,5 +1,21 @@
 # PROJECT_LOG.md
 
+- **Date:** 2026-02-19 (Pacific/Auckland)
+- **Task:** Notifications preferences + lesson alerts
+- **Summary:**
+  - Added per-category sound/vibration preferences, test notifications, and push-token registration for cross-device alerts.
+  - Added upcoming-lesson offsets + daily digest settings, plus Supabase tables/Edge Functions for scheduled push delivery.
+
+---
+
+- **Date:** 2026-02-19 (Pacific/Auckland)
+- **Task:** Settings notifications screen
+- **Summary:**
+  - Added a `Notifications` button above `Themes` in Settings.
+  - Added a Notifications screen to show permission status and open/request device notification permissions.
+
+---
+
 - **Date:** 2026-02-13 (Pacific/Auckland)
 - **Task:** Fix ThemedBackdrop hook order crash
 - **Summary:**
@@ -141,18 +157,3 @@
 - **Summary:**
   - Added a new drawer + Home-accessible Sessions area with a latest-10 sessions list and tap-through into Student Session History while preserving back-to-sessions flow.
   - Added create-session from the Sessions screen using the Add Session History modal structure plus student autocomplete, and wired shared sessions query invalidation for recents/history sync.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Launch screen minimum duration set to 3 seconds
-- **Summary:**
-  - Increased `MIN_LAUNCH_DURATION_MS` from `900ms` to `3000ms` so the custom animated launch screen stays visible longer.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Custom animated launch screen + splash handoff
-- **Summary:**
-  - Added a branded animated React Native launch screen and startup state machine (fonts, boot readiness, minimum duration, failsafe timeout).
-  - Wired `RootNavigation` boot-ready callback and native splash control using `expo-splash-screen` to reduce startup flicker.
