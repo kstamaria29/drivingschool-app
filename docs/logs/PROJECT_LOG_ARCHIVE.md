@@ -1479,3 +1479,11 @@
   - Added create-session from the Sessions screen using the Add Session History modal structure plus student autocomplete, and wired shared sessions query invalidation for recents/history sync.
 
 ---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Sessions recents list set to 5
+- **Summary:**
+  - Updated the Sessions hub latest list query limit from `10` to `5`.
+  - Renamed the Sessions subtitle text from `Latest 10 sessions` to `Last 5 sessions`.
+
+---

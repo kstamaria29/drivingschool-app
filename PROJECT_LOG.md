@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-21 (Pacific/Auckland)
+- **Task:** Notifications screen toggle switches
+- **Summary:**
+  - Replaced On/Off segmented controls with right-aligned toggle switches and slightly larger labels.
+  - Restricted "Send test notification" buttons to `admin` users only.
+
+---
+
+- **Date:** 2026-02-21 (Pacific/Auckland)
 - **Task:** Android FCM setup for push notifications
 - **Summary:**
   - Added Expo Android `googleServicesFile` config so Android devices can register for push notifications.
@@ -149,11 +157,3 @@
 - **Summary:**
   - Renamed the Sessions screen header action button from `Add new` to `New Session`.
   - Added a leading plus icon to the `New Session` button.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Sessions recents list set to 5
-- **Summary:**
-  - Updated the Sessions hub latest list query limit from `10` to `5`.
-  - Renamed the Sessions subtitle text from `Latest 10 sessions` to `Last 5 sessions`.

@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Linking, Modal, Platform, Pressable, View } from "react-native";
+import { ActivityIndicator, Alert, Linking, Modal, Platform, Pressable, Switch, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Notifications from "expo-notifications";
 import { BellRing, ChevronDown, Send, Settings as SettingsIcon } from "lucide-react-native";
 
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
-import { AppSegmentedControl } from "../../components/AppSegmentedControl";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { Screen } from "../../components/Screen";
@@ -56,25 +55,57 @@ const LESSON_OFFSET_OPTIONS = [
   { minutes: 2880, label: "2 days before" },
 ] as const;
 
-function BooleanSegmentedControl({
+const SWITCH_ON_TRACK_COLOR = "#16a34a";
+const SWITCH_OFF_TRACK_COLOR = "#dc2626";
+
+function BooleanSwitch({
+  value,
+  onChange,
+  disabled,
+  accessibilityLabel,
+}: {
+  value: boolean;
+  onChange: (next: boolean) => void;
+  disabled?: boolean;
+  accessibilityLabel: string;
+}) {
+  return (
+    <Switch
+      accessibilityRole="switch"
+      accessibilityLabel={accessibilityLabel}
+      value={value}
+      disabled={disabled}
+      onValueChange={onChange}
+      trackColor={{ false: SWITCH_OFF_TRACK_COLOR, true: SWITCH_ON_TRACK_COLOR }}
+      ios_backgroundColor={SWITCH_OFF_TRACK_COLOR}
+      thumbColor="#ffffff"
+    />
+  );
+}
+
+function ToggleRow({
+  label,
   value,
   onChange,
   disabled,
 }: {
+  label: string;
   value: boolean;
   onChange: (next: boolean) => void;
   disabled?: boolean;
 }) {
   return (
-    <AppSegmentedControl
-      value={value ? "on" : "off"}
-      disabled={disabled}
-      options={[
-        { value: "on", label: "On" },
-        { value: "off", label: "Off" },
-      ]}
-      onChange={(next) => onChange(next === "on")}
-    />
+    <View className={cn("flex-row items-center justify-between gap-3", disabled ? "opacity-60" : "")}>
+      <AppText className="flex-1 font-medium" variant="body">
+        {label}
+      </AppText>
+      <BooleanSwitch
+        accessibilityLabel={label}
+        value={value}
+        disabled={disabled}
+        onChange={onChange}
+      />
+    </View>
   );
 }
 
@@ -135,6 +166,7 @@ export function NotificationsScreen() {
   const { isCompact } = useNavigationLayout();
   const { profile } = useCurrentUser();
   const mountedRef = useRef(true);
+  const isAdmin = profile.role === "admin";
 
   const [permission, setPermission] = useState<PermissionResponse | null>(null);
   const [loadingPermission, setLoadingPermission] = useState(true);
@@ -464,16 +496,14 @@ export function NotificationsScreen() {
                 Get notified before your scheduled lessons. Choose multiple offsets.
               </AppText>
 
-              <View className="gap-2">
-                <AppText variant="label">Enabled</AppText>
-                <BooleanSegmentedControl
-                  value={settingsQuery.data.lesson_reminders_enabled}
-                  disabled={updateSettingsMutation.isPending}
-                  onChange={(next) => {
-                    void updateSettings({ lesson_reminders_enabled: next });
-                  }}
-                />
-              </View>
+              <ToggleRow
+                label="Enabled"
+                value={settingsQuery.data.lesson_reminders_enabled}
+                disabled={updateSettingsMutation.isPending}
+                onChange={(next) => {
+                  void updateSettings({ lesson_reminders_enabled: next });
+                }}
+              />
 
               <Pressable
                 accessibilityRole="button"
@@ -488,35 +518,33 @@ export function NotificationsScreen() {
                 <ChevronDown size={18} color={theme.colors.mutedLight} />
               </Pressable>
 
-              <View className="gap-2">
-                <AppText variant="label">Sound</AppText>
-                <BooleanSegmentedControl
-                  value={settingsQuery.data.lesson_reminders_sound_enabled}
-                  disabled={updateSettingsMutation.isPending}
-                  onChange={(next) => {
-                    void updateSettings({ lesson_reminders_sound_enabled: next });
-                  }}
-                />
-              </View>
-
-              <View className="gap-2">
-                <AppText variant="label">Vibration (Android)</AppText>
-                <BooleanSegmentedControl
-                  value={settingsQuery.data.lesson_reminders_vibration_enabled}
-                  disabled={updateSettingsMutation.isPending || Platform.OS !== "android"}
-                  onChange={(next) => {
-                    void updateSettings({ lesson_reminders_vibration_enabled: next });
-                  }}
-                />
-              </View>
-
-              <AppButton
-                label={sendingTest === "lesson_reminders" ? "Sending..." : "Send test notification"}
-                variant="secondary"
-                icon={Send}
-                disabled={sendingTest != null}
-                onPress={() => void sendPushTest("lesson_reminders")}
+              <ToggleRow
+                label="Sound"
+                value={settingsQuery.data.lesson_reminders_sound_enabled}
+                disabled={updateSettingsMutation.isPending}
+                onChange={(next) => {
+                  void updateSettings({ lesson_reminders_sound_enabled: next });
+                }}
               />
+
+              <ToggleRow
+                label="Vibration (Android)"
+                value={settingsQuery.data.lesson_reminders_vibration_enabled}
+                disabled={updateSettingsMutation.isPending || Platform.OS !== "android"}
+                onChange={(next) => {
+                  void updateSettings({ lesson_reminders_vibration_enabled: next });
+                }}
+              />
+
+              {isAdmin ? (
+                <AppButton
+                  label={sendingTest === "lesson_reminders" ? "Sending..." : "Send test notification"}
+                  variant="secondary"
+                  icon={Send}
+                  disabled={sendingTest != null}
+                  onPress={() => void sendPushTest("lesson_reminders")}
+                />
+              ) : null}
             </AppCard>
 
             <AppCard className="gap-4">
@@ -525,46 +553,42 @@ export function NotificationsScreen() {
                 Get a daily notification with your lessons for today (sent at {digestTimeLabel}).
               </AppText>
 
-              <View className="gap-2">
-                <AppText variant="label">Enabled</AppText>
-                <BooleanSegmentedControl
-                  value={settingsQuery.data.daily_digest_enabled}
-                  disabled={updateSettingsMutation.isPending}
-                  onChange={(next) => {
-                    void updateSettings({ daily_digest_enabled: next });
-                  }}
-                />
-              </View>
-
-              <View className="gap-2">
-                <AppText variant="label">Sound</AppText>
-                <BooleanSegmentedControl
-                  value={settingsQuery.data.daily_digest_sound_enabled}
-                  disabled={updateSettingsMutation.isPending}
-                  onChange={(next) => {
-                    void updateSettings({ daily_digest_sound_enabled: next });
-                  }}
-                />
-              </View>
-
-              <View className="gap-2">
-                <AppText variant="label">Vibration (Android)</AppText>
-                <BooleanSegmentedControl
-                  value={settingsQuery.data.daily_digest_vibration_enabled}
-                  disabled={updateSettingsMutation.isPending || Platform.OS !== "android"}
-                  onChange={(next) => {
-                    void updateSettings({ daily_digest_vibration_enabled: next });
-                  }}
-                />
-              </View>
-
-              <AppButton
-                label={sendingTest === "daily_digest" ? "Sending..." : "Send test notification"}
-                variant="secondary"
-                icon={Send}
-                disabled={sendingTest != null}
-                onPress={() => void sendPushTest("daily_digest")}
+              <ToggleRow
+                label="Enabled"
+                value={settingsQuery.data.daily_digest_enabled}
+                disabled={updateSettingsMutation.isPending}
+                onChange={(next) => {
+                  void updateSettings({ daily_digest_enabled: next });
+                }}
               />
+
+              <ToggleRow
+                label="Sound"
+                value={settingsQuery.data.daily_digest_sound_enabled}
+                disabled={updateSettingsMutation.isPending}
+                onChange={(next) => {
+                  void updateSettings({ daily_digest_sound_enabled: next });
+                }}
+              />
+
+              <ToggleRow
+                label="Vibration (Android)"
+                value={settingsQuery.data.daily_digest_vibration_enabled}
+                disabled={updateSettingsMutation.isPending || Platform.OS !== "android"}
+                onChange={(next) => {
+                  void updateSettings({ daily_digest_vibration_enabled: next });
+                }}
+              />
+
+              {isAdmin ? (
+                <AppButton
+                  label={sendingTest === "daily_digest" ? "Sending..." : "Send test notification"}
+                  variant="secondary"
+                  icon={Send}
+                  disabled={sendingTest != null}
+                  onPress={() => void sendPushTest("daily_digest")}
+                />
+              ) : null}
             </AppCard>
 
             <AppCard className="gap-4">
@@ -573,35 +597,33 @@ export function NotificationsScreen() {
                 Controls the sound/vibration for student reminder notifications.
               </AppText>
 
-              <View className="gap-2">
-                <AppText variant="label">Sound</AppText>
-                <BooleanSegmentedControl
-                  value={settingsQuery.data.student_reminders_sound_enabled}
-                  disabled={updateSettingsMutation.isPending}
-                  onChange={(next) => {
-                    void updateSettings({ student_reminders_sound_enabled: next });
-                  }}
-                />
-              </View>
-
-              <View className="gap-2">
-                <AppText variant="label">Vibration (Android)</AppText>
-                <BooleanSegmentedControl
-                  value={settingsQuery.data.student_reminders_vibration_enabled}
-                  disabled={updateSettingsMutation.isPending || Platform.OS !== "android"}
-                  onChange={(next) => {
-                    void updateSettings({ student_reminders_vibration_enabled: next });
-                  }}
-                />
-              </View>
-
-              <AppButton
-                label={sendingTest === "student_reminders" ? "Sending..." : "Send test notification"}
-                variant="secondary"
-                icon={BellRing}
-                disabled={sendingTest != null}
-                onPress={() => void sendLocalTest("student_reminders")}
+              <ToggleRow
+                label="Sound"
+                value={settingsQuery.data.student_reminders_sound_enabled}
+                disabled={updateSettingsMutation.isPending}
+                onChange={(next) => {
+                  void updateSettings({ student_reminders_sound_enabled: next });
+                }}
               />
+
+              <ToggleRow
+                label="Vibration (Android)"
+                value={settingsQuery.data.student_reminders_vibration_enabled}
+                disabled={updateSettingsMutation.isPending || Platform.OS !== "android"}
+                onChange={(next) => {
+                  void updateSettings({ student_reminders_vibration_enabled: next });
+                }}
+              />
+
+              {isAdmin ? (
+                <AppButton
+                  label={sendingTest === "student_reminders" ? "Sending..." : "Send test notification"}
+                  variant="secondary"
+                  icon={BellRing}
+                  disabled={sendingTest != null}
+                  onPress={() => void sendLocalTest("student_reminders")}
+                />
+              ) : null}
             </AppCard>
 
             <AppCard className="gap-4">
@@ -610,35 +632,33 @@ export function NotificationsScreen() {
                 Controls the sound/vibration for PDF saved notifications.
               </AppText>
 
-              <View className="gap-2">
-                <AppText variant="label">Sound</AppText>
-                <BooleanSegmentedControl
-                  value={settingsQuery.data.downloads_sound_enabled}
-                  disabled={updateSettingsMutation.isPending}
-                  onChange={(next) => {
-                    void updateSettings({ downloads_sound_enabled: next });
-                  }}
-                />
-              </View>
-
-              <View className="gap-2">
-                <AppText variant="label">Vibration (Android)</AppText>
-                <BooleanSegmentedControl
-                  value={settingsQuery.data.downloads_vibration_enabled}
-                  disabled={updateSettingsMutation.isPending || Platform.OS !== "android"}
-                  onChange={(next) => {
-                    void updateSettings({ downloads_vibration_enabled: next });
-                  }}
-                />
-              </View>
-
-              <AppButton
-                label={sendingTest === "downloads" ? "Sending..." : "Send test notification"}
-                variant="secondary"
-                icon={BellRing}
-                disabled={sendingTest != null}
-                onPress={() => void sendLocalTest("downloads")}
+              <ToggleRow
+                label="Sound"
+                value={settingsQuery.data.downloads_sound_enabled}
+                disabled={updateSettingsMutation.isPending}
+                onChange={(next) => {
+                  void updateSettings({ downloads_sound_enabled: next });
+                }}
               />
+
+              <ToggleRow
+                label="Vibration (Android)"
+                value={settingsQuery.data.downloads_vibration_enabled}
+                disabled={updateSettingsMutation.isPending || Platform.OS !== "android"}
+                onChange={(next) => {
+                  void updateSettings({ downloads_vibration_enabled: next });
+                }}
+              />
+
+              {isAdmin ? (
+                <AppButton
+                  label={sendingTest === "downloads" ? "Sending..." : "Send test notification"}
+                  variant="secondary"
+                  icon={BellRing}
+                  disabled={sendingTest != null}
+                  onPress={() => void sendLocalTest("downloads")}
+                />
+              ) : null}
             </AppCard>
 
             <Modal
