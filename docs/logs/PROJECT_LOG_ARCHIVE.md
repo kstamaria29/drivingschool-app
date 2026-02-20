@@ -1471,3 +1471,11 @@
   - Increased `MIN_LAUNCH_DURATION_MS` from `900ms` to `3000ms` so the custom animated launch screen stays visible longer.
 
 ---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Sessions hub with latest sessions and create modal
+- **Summary:**
+  - Added a new drawer + Home-accessible Sessions area with a latest-10 sessions list and tap-through into Student Session History while preserving back-to-sessions flow.
+  - Added create-session from the Sessions screen using the Add Session History modal structure plus student autocomplete, and wired shared sessions query invalidation for recents/history sync.
+
+---

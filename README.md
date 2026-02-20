@@ -68,7 +68,17 @@ EAS builds do not automatically use your local `.env` (it is gitignored). You mu
 
 Then rebuild (for example): `eas build -p android --profile preview`
 
-## 4) Run the app
+## 4) Push notifications (Android / FCM)
+
+This app uses Expo Push Notifications (`expo-notifications`). For Android devices, you must configure Firebase Cloud Messaging (FCM):
+
+1. Create (or open) a Firebase project and add an Android app with package name `com.kstamaria29.drivingschoolapp`.
+2. Download `google-services.json` and place it at the repo root: `./google-services.json`.
+3. Upload FCM V1 credentials to EAS (Google Service Account Key) so Expo can deliver pushes to Android.
+
+See: https://docs.expo.dev/push-notifications/fcm-credentials/
+
+## 5) Run the app
 
 ```
 npm install
@@ -77,7 +87,7 @@ npm run start
 
 Then press `a` for Android (or scan the QR code with Expo Go).
 
-## 5) What's implemented
+## 6) What's implemented
 
 - NativeWind styling + shared UI primitives (`src/components/*`)
 - React Navigation `AuthStack` + responsive sidebar/drawer navigation with an auth gate (`src/navigation/RootNavigation.tsx`)
@@ -89,6 +99,6 @@ Then press `a` for Android (or scan the QR code with Expo Go).
 - Assessments v1 (Driving Assessment: score criteria + save + export PDF)
 - Google Maps screen (drawer entry) with map layer toggle, organization-safe map pins, anchored vector/snapshot annotations, and NZ address search/autocomplete
 
-## 6) Repo notes
+## 7) Repo notes
 
 - Screens do not call Supabase directly; they use `features/*/api.ts` + React Query hooks.

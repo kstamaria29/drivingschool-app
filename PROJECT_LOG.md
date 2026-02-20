@@ -1,5 +1,13 @@
 # PROJECT_LOG.md
 
+- **Date:** 2026-02-21 (Pacific/Auckland)
+- **Task:** Android FCM setup for push notifications
+- **Summary:**
+  - Added Expo Android `googleServicesFile` config so Android devices can register for push notifications.
+  - Documented the required Firebase/EAS FCM credential setup steps for Android push delivery.
+
+---
+
 - **Date:** 2026-02-19 (Pacific/Auckland)
 - **Task:** Notifications preferences + lesson alerts
 - **Summary:**
@@ -149,11 +157,3 @@
 - **Summary:**
   - Updated the Sessions hub latest list query limit from `10` to `5`.
   - Renamed the Sessions subtitle text from `Latest 10 sessions` to `Last 5 sessions`.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Sessions hub with latest sessions and create modal
-- **Summary:**
-  - Added a new drawer + Home-accessible Sessions area with a latest-10 sessions list and tap-through into Student Session History while preserving back-to-sessions flow.
-  - Added create-session from the Sessions screen using the Add Session History modal structure plus student autocomplete, and wired shared sessions query invalidation for recents/history sync.

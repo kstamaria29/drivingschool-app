@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1026784130208",
+    "project_id": "driving-school-managemen-23a71",
+    "storage_bucket": "driving-school-managemen-23a71.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1026784130208:android:5553cbe61adea2450205c5",
+        "android_client_info": {
+          "package_name": "com.kstamaria29.drivingschoolapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAv7_9Hl5-XitwmZy9RVa5H9ybhbxiXZJI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
