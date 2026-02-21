@@ -1,6 +1,21 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-21 (Pacific/Auckland)
+- **Task:** Restricted history feedback ordering
+- **Summary:**
+  - Moved General feedback + Improvement(s) needed cards to sit directly under Overview for restricted mock tests.
+
+---
+
+- **Date:** 2026-02-21 (Pacific/Auckland)
+- **Task:** Restricted mock test PDF page break + suggestion auto-open
+- **Summary:**
+  - Auto-opened suggestions when tapping into task errors and feedback textboxes, and renamed Improvement needed to Improvement(s) needed across UI/history/PDF.
+  - Adjusted Restricted PDF layout so feedback stays on page 1 and Stage 1/2 start on page 2.
+
+---
+
+- **Date:** 2026-02-21 (Pacific/Auckland)
 - **Task:** Restricted mock test repetition errors + modal polish
 - **Summary:**
   - Saved task Critical/Immediate errors per repetition (snapshotted on Record Repetition) and updated History + PDF to render Repetition #N sections.
@@ -140,19 +155,3 @@
 - **Summary:**
   - Made `Organization` and `Account Settings` cards collapsed by default with top-right `Show` controls.
   - Added toggle behavior so tapping `Show` expands card actions and switches the control to red `Hide`.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Navigation header theme preset reactivity fix
-- **Summary:**
-  - Updated all stack and drawer navigator theme option memos to depend on `themeKey` so header/drawer colors refresh when a theme preset is selected.
-  - Fixed the top navbar color surface (hamburger/back/avatar row) not updating until scheme changes.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Admin-only Feature Testing drawer screen
-- **Summary:**
-  - Added a new `Feature Testing` drawer destination above `Settings`, visible only to `admin` users.
-  - Added a blank `Feature Testing` screen with a `Back` button and non-admin access guard messaging.

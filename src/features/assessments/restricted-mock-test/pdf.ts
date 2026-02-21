@@ -371,6 +371,7 @@ function buildHtml(input: Input) {
         .repetition { border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px; margin-top: 8px; background: #f8fafc; }
         .repetition:first-child { margin-top: 0; }
         .repetition-title { font-weight: 800; font-size: 10px; color: #0f172a; margin-bottom: 4px; }
+        .page-break { page-break-before: always; break-before: page; }
       </style>
     </head>
     <body>
@@ -424,6 +425,11 @@ function buildHtml(input: Input) {
         <div class="section pre">${escapeHtml(summary.resultText || "")}</div>
       </div>
 
+      ${renderCategorizedSection("General feedback", v.generalFeedback ?? "")}
+      ${renderCategorizedSection("Improvement(s) needed", v.improvementNeeded ?? "")}
+
+      <div class="page-break"></div>
+
       <div class="section box-soft">
         <h2>${escapeHtml(restrictedMockTestStages.find((stage) => stage.id === "stage1")?.name || "Stage 1")}</h2>
         <div class="stats-row">
@@ -452,9 +458,6 @@ function buildHtml(input: Input) {
             : `<div class="muted">Stage 2 not enabled.</div>`
         }
       </div>
-
-      ${renderCategorizedSection("General feedback", v.generalFeedback ?? "")}
-      ${renderCategorizedSection("Improvement needed", v.improvementNeeded ?? "")}
 
       ${
         showLegacyCritical

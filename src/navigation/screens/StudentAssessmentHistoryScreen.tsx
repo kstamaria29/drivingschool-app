@@ -925,17 +925,6 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
             {summary.resultText ? <AppText variant="caption">{summary.resultText}</AppText> : null}
           </AppCard>
 
-          {renderRecordedTasks("stage1")}
-
-          {stage2Used ? renderRecordedTasks("stage2") : (
-            <AppCard className="gap-2">
-              <AppText variant="heading">Stage 2</AppText>
-              <AppText variant="body">Stage 2 not enabled.</AppText>
-            </AppCard>
-          )}
-
-          <AppDivider />
-
           <AppCard className="gap-2">
             <AppText variant="heading">General feedback</AppText>
             {values.generalFeedback?.trim()
@@ -944,11 +933,22 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
           </AppCard>
 
           <AppCard className="gap-2">
-            <AppText variant="heading">Improvement needed</AppText>
+            <AppText variant="heading">Improvement(s) needed</AppText>
             {values.improvementNeeded?.trim()
               ? renderCategorizedLines(values.improvementNeeded.trim())
               : <AppText variant="body">None recorded.</AppText>}
           </AppCard>
+
+          <AppDivider />
+
+          {renderRecordedTasks("stage1")}
+
+          {stage2Used ? renderRecordedTasks("stage2") : (
+            <AppCard className="gap-2">
+              <AppText variant="heading">Stage 2</AppText>
+              <AppText variant="body">Stage 2 not enabled.</AppText>
+            </AppCard>
+          )}
 
           {showLegacyCritical ? (
             <AppCard className="gap-2">

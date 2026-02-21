@@ -1171,6 +1171,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   label="General feedback"
                   value={value}
                   onChangeText={field.onChange}
+                  onPressIn={() => setOpenFeedbackSuggestions("generalFeedback")}
                   multiline
                   numberOfLines={5}
                   textAlignVertical="top"
@@ -1237,22 +1238,23 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                     onPress={() => setOpenFeedbackSuggestions(null)}
                   />
                 ) : null}
-                <View className="flex-row items-start justify-between gap-3">
-                  <View className="flex-1">
-                    <AppText variant="heading">Improvement needed</AppText>
-                    <AppText className="mt-1" variant="caption">
-                      Select from suggestions or add your own.
-                    </AppText>
-                  </View>
+                  <View className="flex-row items-start justify-between gap-3">
+                    <View className="flex-1">
+                      <AppText variant="heading">Improvement(s) needed</AppText>
+                      <AppText className="mt-1" variant="caption">
+                        Select from suggestions or add your own.
+                      </AppText>
+                    </View>
                   <AppText className="text-right" variant="caption">
                     {selectedCount > 0 ? `${selectedCount} selected` : "—"}
                   </AppText>
                 </View>
 
                 <AppInput
-                  label="Improvement needed"
+                  label="Improvement(s) needed"
                   value={value}
                   onChangeText={field.onChange}
+                  onPressIn={() => setOpenFeedbackSuggestions("improvementNeeded")}
                   multiline
                   numberOfLines={5}
                   textAlignVertical="top"
@@ -1611,6 +1613,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                             })),
                           );
                         }}
+                        onPressIn={() => setOpenTaskSuggestions("criticalErrors")}
                         multiline
                         numberOfLines={5}
                         textAlignVertical="top"
@@ -1679,6 +1682,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                             })),
                           );
                         }}
+                        onPressIn={() => setOpenTaskSuggestions("immediateFailureErrors")}
                         multiline
                         numberOfLines={5}
                         textAlignVertical="top"

@@ -1535,3 +1535,19 @@
   - Back from that history screen now returns to the Assessments screen rather than switching to the Students area.
 
 ---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Admin-only Feature Testing drawer screen
+- **Summary:**
+  - Added a new `Feature Testing` drawer destination above `Settings`, visible only to `admin` users.
+  - Added a blank `Feature Testing` screen with a `Back` button and non-admin access guard messaging.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Navigation header theme preset reactivity fix
+- **Summary:**
+  - Updated all stack and drawer navigator theme option memos to depend on `themeKey` so header/drawer colors refresh when a theme preset is selected.
+  - Fixed the top navbar color surface (hamburger/back/avatar row) not updating until scheme changes.
+
+---
