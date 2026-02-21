@@ -112,16 +112,17 @@ function createEmptyStagesState(): RestrictedMockTestStagesState {
   const state: RestrictedMockTestStagesState = { stage1: {}, stage2: {} };
   restrictedMockTestStages.forEach((stage) => {
     const tasks: Record<string, RestrictedMockTestTaskState> = {};
-    stage.tasks.forEach((task) => {
-      tasks[task.id] = {
-        items: createEmptyFaultCounts(),
-        location: "",
-        criticalErrors: "",
-        immediateFailureErrors: "",
-        notes: "",
-        repetitions: 0,
-      };
-    });
+      stage.tasks.forEach((task) => {
+        tasks[task.id] = {
+          items: createEmptyFaultCounts(),
+          location: "",
+          criticalErrors: "",
+          immediateFailureErrors: "",
+          repetitionErrors: [],
+          notes: "",
+          repetitions: 0,
+        };
+      });
     state[stage.id] = tasks;
   });
   return state;
@@ -139,6 +140,7 @@ function updateTaskState(
     location: "",
     criticalErrors: "",
     immediateFailureErrors: "",
+    repetitionErrors: [],
     notes: "",
     repetitions: 0,
   };
@@ -518,6 +520,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
         location: "",
         criticalErrors: "",
         immediateFailureErrors: "",
+        repetitionErrors: [],
         notes: "",
         repetitions: 0,
       }
@@ -1081,6 +1084,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                      location: "",
                      criticalErrors: "",
                      immediateFailureErrors: "",
+                     repetitionErrors: [],
                      notes: "",
                      repetitions: 0,
                    };
@@ -1144,7 +1148,13 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             const value = field.value ?? "";
             const selectedCount = countSelectedLines(value);
             return (
-              <AppCard className="gap-4 border-slate-900 dark:border-borderDark">
+              <AppCard className="relative gap-4 border-slate-900 dark:border-borderDark">
+                {openFeedbackSuggestions === "generalFeedback" ? (
+                  <Pressable
+                    className="absolute inset-0 z-10"
+                    onPress={() => setOpenFeedbackSuggestions(null)}
+                  />
+                ) : null}
                 <View className="flex-row items-start justify-between gap-3">
                   <View className="flex-1">
                     <AppText variant="heading">General feedback</AppText>
@@ -1183,28 +1193,30 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                 />
 
                 {openFeedbackSuggestions === "generalFeedback" ? (
-                  <AppStack gap="md">
-                    {generalFeedbackSuggestionGroups.map(({ category, suggestions }) => (
-                      <View key={category} className="gap-2">
-                        <AppText variant="label">{category}</AppText>
-                        <AppStack gap="sm">
-                          {suggestions.map((option) => {
-                            const line = buildSuggestionLine(option);
-                            const selected = hasSuggestionLine(value, line);
-                            return (
-                              <AppButton
-                                key={line}
-                                width="auto"
-                                variant={selected ? "primary" : "secondary"}
-                                label={option.text}
-                                onPress={() => field.onChange(toggleSuggestionLine(value, line))}
-                              />
-                            );
-                          })}
-                        </AppStack>
-                      </View>
-                    ))}
-                  </AppStack>
+                  <View className="relative z-20 rounded-2xl border border-border bg-card p-3 shadow-sm shadow-black/5 dark:border-borderDark dark:bg-cardDark dark:shadow-black/30">
+                    <AppStack gap="md">
+                      {generalFeedbackSuggestionGroups.map(({ category, suggestions }) => (
+                        <View key={category} className="gap-2">
+                          <AppText variant="label">{category}</AppText>
+                          <AppStack gap="sm">
+                            {suggestions.map((option) => {
+                              const line = buildSuggestionLine(option);
+                              const selected = hasSuggestionLine(value, line);
+                              return (
+                                <AppButton
+                                  key={line}
+                                  width="auto"
+                                  variant={selected ? "primary" : "secondary"}
+                                  label={option.text}
+                                  onPress={() => field.onChange(toggleSuggestionLine(value, line))}
+                                />
+                              );
+                            })}
+                          </AppStack>
+                        </View>
+                      ))}
+                    </AppStack>
+                  </View>
                 ) : null}
               </AppCard>
             );
@@ -1218,7 +1230,13 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             const value = field.value ?? "";
             const selectedCount = countSelectedLines(value);
             return (
-              <AppCard className="gap-4 border-slate-900 dark:border-borderDark">
+              <AppCard className="relative gap-4 border-slate-900 dark:border-borderDark">
+                {openFeedbackSuggestions === "improvementNeeded" ? (
+                  <Pressable
+                    className="absolute inset-0 z-10"
+                    onPress={() => setOpenFeedbackSuggestions(null)}
+                  />
+                ) : null}
                 <View className="flex-row items-start justify-between gap-3">
                   <View className="flex-1">
                     <AppText variant="heading">Improvement needed</AppText>
@@ -1257,28 +1275,30 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                 />
 
                 {openFeedbackSuggestions === "improvementNeeded" ? (
-                  <AppStack gap="md">
-                    {improvementNeededSuggestionGroups.map(({ category, suggestions }) => (
-                      <View key={category} className="gap-2">
-                        <AppText variant="label">{category}</AppText>
-                        <AppStack gap="sm">
-                          {suggestions.map((option) => {
-                            const line = buildSuggestionLine(option);
-                            const selected = hasSuggestionLine(value, line);
-                            return (
-                              <AppButton
-                                key={line}
-                                width="auto"
-                                variant={selected ? "primary" : "secondary"}
-                                label={option.text}
-                                onPress={() => field.onChange(toggleSuggestionLine(value, line))}
-                              />
-                            );
-                          })}
-                        </AppStack>
-                      </View>
-                    ))}
-                  </AppStack>
+                  <View className="relative z-20 rounded-2xl border border-border bg-card p-3 shadow-sm shadow-black/5 dark:border-borderDark dark:bg-cardDark dark:shadow-black/30">
+                    <AppStack gap="md">
+                      {improvementNeededSuggestionGroups.map(({ category, suggestions }) => (
+                        <View key={category} className="gap-2">
+                          <AppText variant="label">{category}</AppText>
+                          <AppStack gap="sm">
+                            {suggestions.map((option) => {
+                              const line = buildSuggestionLine(option);
+                              const selected = hasSuggestionLine(value, line);
+                              return (
+                                <AppButton
+                                  key={line}
+                                  width="auto"
+                                  variant={selected ? "primary" : "secondary"}
+                                  label={option.text}
+                                  onPress={() => field.onChange(toggleSuggestionLine(value, line))}
+                                />
+                              );
+                            })}
+                          </AppStack>
+                        </View>
+                      ))}
+                    </AppStack>
+                  </View>
                 ) : null}
               </AppCard>
             );
@@ -1412,19 +1432,19 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
         onRequestClose={closeTaskModal}
       >
         <Pressable
-          className={cn(
-            "flex-1 items-center justify-center bg-black/40",
-            isCompact ? "px-4 py-6" : "px-6 py-10",
-          )}
+          className="flex-1 items-stretch justify-center bg-black/40 px-4"
           onPress={closeTaskModal}
         >
           <Pressable
-            className={cn("w-full", isCompact ? "" : "max-w-[720px]")}
+            className="w-full"
             onPress={(event) => event.stopPropagation()}
           >
             <AppCard
-              className={cn("gap-3 rounded-none", isCompact ? "p-3" : "p-4")}
-              style={{ maxHeight: Math.round(height * (isCompact ? 0.92 : 0.85)) }}
+              className={cn(
+                "gap-3 overflow-hidden rounded-3xl border-slate-900/40 shadow-2xl shadow-black/20 dark:border-slate-50/10 dark:shadow-black/60",
+                isCompact ? "p-3" : "p-4",
+              )}
+              style={{ height: Math.round(height * 0.9) }}
             >
               {activeTask && activeTaskDef && activeTaskState ? (
                 <>
@@ -1460,6 +1480,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                         label="Record Repetition"
                         icon={Save}
                         onPress={() => {
+                          if (openTaskSuggestions) setOpenTaskSuggestions(null);
                           const stageId = activeTask.stageId;
                           const taskId = activeTask.taskId;
                           const taskName = activeTaskDef.name;
@@ -1469,14 +1490,15 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                             `Save repetition #${nextCount} for "${taskName}"?`,
                             [
                               { text: "Cancel", style: "cancel" },
-                              {
-                                text: "Record",
-                                 onPress: () => {
-                                   setStagesState((prev) =>
-                                     updateTaskState(prev, stageId, taskId, (task) => {
-                                      const nextItems: Record<RestrictedMockTestTaskItemId, number> = {
-                                        ...task.items,
-                                      };
+                               {
+                                 text: "Record",
+                                  onPress: () => {
+                                    Keyboard.dismiss();
+                                    setStagesState((prev) =>
+                                      updateTaskState(prev, stageId, taskId, (task) => {
+                                       const nextItems: Record<RestrictedMockTestTaskItemId, number> = {
+                                         ...task.items,
+                                       };
 
                                       restrictedMockTestTaskItems.forEach((item) => {
                                         if (taskModalItems[item.id] === "fault") {
@@ -1484,19 +1506,29 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                                         }
                                       });
 
-                                      return {
-                                        ...task,
-                                        repetitions: (task.repetitions ?? 0) + 1,
-                                        items: nextItems,
-                                      };
-                                    }),
-                                  );
-                                  setTaskModalItems(createEmptyItems());
-                                },
-                              },
-                            ],
-                          );
-                        }}
+                                       return {
+                                         ...task,
+                                         repetitions: (task.repetitions ?? 0) + 1,
+                                         items: nextItems,
+                                         repetitionErrors: [
+                                           ...(task.repetitionErrors ?? []),
+                                           {
+                                             criticalErrors: task.criticalErrors ?? "",
+                                             immediateFailureErrors: task.immediateFailureErrors ?? "",
+                                           },
+                                         ],
+                                         criticalErrors: "",
+                                         immediateFailureErrors: "",
+                                       };
+                                     }),
+                                   );
+                                    setTaskModalItems(createEmptyItems());
+                                    setOpenTaskSuggestions(null);
+                                 },
+                               },
+                             ],
+                           );
+                         }}
                       />
                     </View>
                   </View>
@@ -1504,16 +1536,18 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   })()}
 
                   <ScrollView
-                    // Ensure the modal shrinks to content when short, but still scrolls when it overflows.
-                    style={{
-                      maxHeight: Math.round(height * (isCompact ? 0.68 : 0.56)),
-                      flexGrow: 0,
-                    }}
+                    style={{ flex: 1 }}
                     keyboardShouldPersistTaps="handled"
                     keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
                     automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
                   >
-                    <AppStack gap="md" className={cn(isCompact ? "pt-1" : "pt-2")}>
+                    <AppStack gap="md" className={cn("relative", isCompact ? "pt-1" : "pt-2")}>
+                      {openTaskSuggestions ? (
+                        <Pressable
+                          className="absolute inset-0 z-10"
+                          onPress={() => setOpenTaskSuggestions(null)}
+                        />
+                      ) : null}
                       <AppInput
                         label="Location / reference (street, landmark, direction)"
                         value={activeTaskState.location}
@@ -1597,37 +1631,39 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                       />
 
                       {openTaskSuggestions === "criticalErrors" ? (
-                        <AppStack gap="md">
-                          {taskCriticalSuggestionGroups.map(({ category, suggestions }) => (
-                            <View key={category} className="gap-2">
-                              <AppText variant="label">{category}</AppText>
-                              <AppStack gap="sm">
-                                {suggestions.map((option) => {
-                                  const line = buildSuggestionLine(option);
-                                  const selected = hasSuggestionLine(activeTaskState.criticalErrors ?? "", line);
-                                  return (
-                                    <AppButton
-                                      key={line}
-                                      width="auto"
-                                      variant={selected ? "primary" : "secondary"}
-                                      label={option.text}
-                                      onPress={() => {
-                                        const stageId = activeTask.stageId;
-                                        const taskId = activeTask.taskId;
-                                        setStagesState((prev) =>
-                                          updateTaskState(prev, stageId, taskId, (task) => ({
-                                            ...task,
-                                            criticalErrors: toggleSuggestionLine(task.criticalErrors ?? "", line),
-                                          })),
-                                        );
-                                      }}
-                                    />
-                                  );
-                                })}
-                              </AppStack>
-                            </View>
-                          ))}
-                        </AppStack>
+                        <View className="relative z-20 rounded-2xl border border-border bg-card p-3 shadow-sm shadow-black/5 dark:border-borderDark dark:bg-cardDark dark:shadow-black/30">
+                          <AppStack gap="md">
+                            {taskCriticalSuggestionGroups.map(({ category, suggestions }) => (
+                              <View key={category} className="gap-2">
+                                <AppText variant="label">{category}</AppText>
+                                <AppStack gap="sm">
+                                  {suggestions.map((option) => {
+                                    const line = buildSuggestionLine(option);
+                                    const selected = hasSuggestionLine(activeTaskState.criticalErrors ?? "", line);
+                                    return (
+                                      <AppButton
+                                        key={line}
+                                        width="auto"
+                                        variant={selected ? "primary" : "secondary"}
+                                        label={option.text}
+                                        onPress={() => {
+                                          const stageId = activeTask.stageId;
+                                          const taskId = activeTask.taskId;
+                                          setStagesState((prev) =>
+                                            updateTaskState(prev, stageId, taskId, (task) => ({
+                                              ...task,
+                                              criticalErrors: toggleSuggestionLine(task.criticalErrors ?? "", line),
+                                            })),
+                                          );
+                                        }}
+                                      />
+                                    );
+                                  })}
+                                </AppStack>
+                              </View>
+                            ))}
+                          </AppStack>
+                        </View>
                       ) : null}
 
                       <AppInput
@@ -1665,43 +1701,45 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                       />
 
                       {openTaskSuggestions === "immediateFailureErrors" ? (
-                        <AppStack gap="md">
-                          {taskImmediateSuggestionGroups.map(({ category, suggestions }) => (
-                            <View key={category} className="gap-2">
-                              <AppText variant="label">{category}</AppText>
-                              <AppStack gap="sm">
-                                {suggestions.map((option) => {
-                                  const line = buildSuggestionLine(option);
-                                  const selected = hasSuggestionLine(
-                                    activeTaskState.immediateFailureErrors ?? "",
-                                    line,
-                                  );
-                                  return (
-                                    <AppButton
-                                      key={line}
-                                      width="auto"
-                                      variant={selected ? "danger" : "secondary"}
-                                      label={option.text}
-                                      onPress={() => {
-                                        const stageId = activeTask.stageId;
-                                        const taskId = activeTask.taskId;
-                                        setStagesState((prev) =>
-                                          updateTaskState(prev, stageId, taskId, (task) => ({
-                                            ...task,
-                                            immediateFailureErrors: toggleSuggestionLine(
-                                              task.immediateFailureErrors ?? "",
-                                              line,
-                                            ),
-                                          })),
-                                        );
-                                      }}
-                                    />
-                                  );
-                                })}
-                              </AppStack>
-                            </View>
-                          ))}
-                        </AppStack>
+                        <View className="relative z-20 rounded-2xl border border-border bg-card p-3 shadow-sm shadow-black/5 dark:border-borderDark dark:bg-cardDark dark:shadow-black/30">
+                          <AppStack gap="md">
+                            {taskImmediateSuggestionGroups.map(({ category, suggestions }) => (
+                              <View key={category} className="gap-2">
+                                <AppText variant="label">{category}</AppText>
+                                <AppStack gap="sm">
+                                  {suggestions.map((option) => {
+                                    const line = buildSuggestionLine(option);
+                                    const selected = hasSuggestionLine(
+                                      activeTaskState.immediateFailureErrors ?? "",
+                                      line,
+                                    );
+                                    return (
+                                      <AppButton
+                                        key={line}
+                                        width="auto"
+                                        variant={selected ? "danger" : "secondary"}
+                                        label={option.text}
+                                        onPress={() => {
+                                          const stageId = activeTask.stageId;
+                                          const taskId = activeTask.taskId;
+                                          setStagesState((prev) =>
+                                            updateTaskState(prev, stageId, taskId, (task) => ({
+                                              ...task,
+                                              immediateFailureErrors: toggleSuggestionLine(
+                                                task.immediateFailureErrors ?? "",
+                                                line,
+                                              ),
+                                            })),
+                                          );
+                                        }}
+                                      />
+                                    );
+                                  })}
+                                </AppStack>
+                              </View>
+                            ))}
+                          </AppStack>
+                        </View>
                       ) : null}
 
                       <AppButton width="auto" variant="secondary" label="Close" onPress={closeTaskModal} />

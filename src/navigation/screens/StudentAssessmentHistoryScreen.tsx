@@ -596,6 +596,11 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
             Boolean(task.location?.trim()) ||
             Boolean(task.criticalErrors?.trim()) ||
             Boolean(task.immediateFailureErrors?.trim()) ||
+            Boolean(
+              task.repetitionErrors?.some(
+                (rep) => Boolean(rep.criticalErrors?.trim()) || Boolean(rep.immediateFailureErrors?.trim()),
+              ),
+            ) ||
             Boolean(task.notes?.trim())
           );
         });
@@ -688,6 +693,10 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
               return sum + (taskState.items?.[item.id] ?? 0);
             }, 0);
             const faults = getRestrictedMockTestTaskFaults(taskState);
+            const repetitionErrors = taskState.repetitionErrors ?? [];
+            const hasRepetitionErrors = repetitionErrors.some(
+              (rep) => Boolean(rep.criticalErrors?.trim()) || Boolean(rep.immediateFailureErrors?.trim()),
+            );
 
             const hasDetails =
               repetitions > 0 ||
@@ -695,6 +704,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
               Boolean(taskState.location?.trim()) ||
               Boolean(taskState.criticalErrors?.trim()) ||
               Boolean(taskState.immediateFailureErrors?.trim()) ||
+              hasRepetitionErrors ||
               Boolean(taskState.notes?.trim());
             if (!hasDetails) return null;
 
@@ -732,16 +742,60 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
                 {faults.length ? (
                   <AppText variant="body">Fault types: {faults.join(", ")}</AppText>
                 ) : null}
+                {repetitionErrors.length > 0 ? (
+                  <View className="gap-3">
+                    {Array.from({ length: Math.max(repetitions, repetitionErrors.length) }, (_, index) => {
+                      const rep = repetitionErrors[index] ?? {
+                        criticalErrors: "",
+                        immediateFailureErrors: "",
+                      };
+                      const criticalValue = rep.criticalErrors?.trim() ?? "";
+                      const immediateValue = rep.immediateFailureErrors?.trim() ?? "";
+                      const showCritical = Boolean(criticalValue);
+                      const showImmediate = Boolean(immediateValue);
+
+                      return (
+                        <View
+                          key={`repetition-${index + 1}`}
+                          className="gap-2 rounded-xl border border-border bg-background px-3 py-3 dark:border-borderDark dark:bg-backgroundDark"
+                        >
+                          <AppText variant="label">Repetition #{index + 1}</AppText>
+                          {showCritical ? (
+                            <View className="gap-2">
+                              <AppText variant="label">Critical error(s)</AppText>
+                              {renderCategorizedLines(criticalValue)}
+                            </View>
+                          ) : null}
+                          {showImmediate ? (
+                            <View className="gap-2">
+                              <AppText className="text-red-600 dark:text-red-400" variant="label">
+                                Immediate failure error
+                              </AppText>
+                              {renderCategorizedLines(immediateValue)}
+                            </View>
+                          ) : null}
+                          {!showCritical && !showImmediate ? (
+                            <AppText variant="caption">No critical/immediate errors recorded.</AppText>
+                          ) : null}
+                        </View>
+                      );
+                    })}
+                  </View>
+                ) : null}
                 {taskState.criticalErrors?.trim() ? (
                   <View className="gap-2">
-                    <AppText variant="label">Critical error(s)</AppText>
+                    <AppText variant="label">
+                      {repetitionErrors.length > 0 ? "Critical error(s) (legacy)" : "Critical error(s)"}
+                    </AppText>
                     {renderCategorizedLines(taskState.criticalErrors.trim())}
                   </View>
                 ) : null}
                 {taskState.immediateFailureErrors?.trim() ? (
                   <View className="gap-2">
                     <AppText className="text-red-600 dark:text-red-400" variant="label">
-                      Immediate failure error
+                      {repetitionErrors.length > 0
+                        ? "Immediate failure error (legacy)"
+                        : "Immediate failure error"}
                     </AppText>
                     {renderCategorizedLines(taskState.immediateFailureErrors.trim())}
                   </View>

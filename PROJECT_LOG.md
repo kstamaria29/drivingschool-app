@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-21 (Pacific/Auckland)
+- **Task:** Restricted mock test repetition errors + modal polish
+- **Summary:**
+  - Saved task Critical/Immediate errors per repetition (snapshotted on Record Repetition) and updated History + PDF to render Repetition #N sections.
+  - Redesigned the task modal (90% height, full-width card) and improved suggestion UX (tap outside to hide, auto-hide on record).
+
+---
+
+- **Date:** 2026-02-21 (Pacific/Auckland)
 - **Task:** Restricted mock test feedback + task errors
 - **Summary:**
   - Replaced per-task notes with Critical/Immediate error fields (multi-select suggestions) and saved them per task.
@@ -148,11 +156,3 @@
 - **Summary:**
   - Added a new `Feature Testing` drawer destination above `Settings`, visible only to `admin` users.
   - Added a blank `Feature Testing` screen with a `Back` button and non-admin access guard messaging.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Assessments recent card route preselect + back flow
-- **Summary:**
-  - Tapping a card in `Last 5 Assessments` now opens `StudentAssessmentHistory` inside the Assessments stack with the tapped assessment type tab preselected.
-  - Back from that history screen now returns to the Assessments screen rather than switching to the Students area.

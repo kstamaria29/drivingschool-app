@@ -11,6 +11,10 @@ export type RestrictedMockTestTaskState = {
   location: string;
   criticalErrors: string;
   immediateFailureErrors: string;
+  repetitionErrors: Array<{
+    criticalErrors: string;
+    immediateFailureErrors: string;
+  }>;
   notes: string;
   repetitions: number;
 };
@@ -61,6 +65,12 @@ export function calculateRestrictedMockTestSummary(input: {
         if (count <= 0) return;
         if (isStage1) stage1Faults += count;
         else stage2Faults += count;
+      });
+
+      const repetitionErrors = taskState.repetitionErrors ?? [];
+      repetitionErrors.forEach((rep) => {
+        taskCriticalLines.push(...extractNonEmptyLines(rep.criticalErrors ?? ""));
+        taskImmediateLines.push(...extractNonEmptyLines(rep.immediateFailureErrors ?? ""));
       });
 
       taskCriticalLines.push(...extractNonEmptyLines(taskState.criticalErrors ?? ""));

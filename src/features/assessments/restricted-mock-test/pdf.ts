@@ -69,6 +69,11 @@ function buildHtml(input: Input) {
         Boolean(task.location?.trim()) ||
         Boolean(task.criticalErrors?.trim()) ||
         Boolean(task.immediateFailureErrors?.trim()) ||
+        Boolean(
+          task.repetitionErrors?.some(
+            (rep) => Boolean(rep.criticalErrors?.trim()) || Boolean(rep.immediateFailureErrors?.trim()),
+          ),
+        ) ||
         Boolean(task.notes?.trim())
       );
     });
@@ -155,6 +160,35 @@ function buildHtml(input: Input) {
     `;
   }
 
+  function renderRepetitionErrors(
+    repetitions: number,
+    repetitionErrors: Array<{ criticalErrors?: string | null; immediateFailureErrors?: string | null }>,
+  ) {
+    const count = Math.max(repetitions, repetitionErrors.length);
+    if (count <= 0) return "";
+
+    const blocks = Array.from({ length: count }, (_, index) => {
+      const rep = repetitionErrors[index] ?? {};
+      const criticalHtml = renderCategorizedTaskBlock("Critical error(s)", rep.criticalErrors ?? "");
+      const immediateHtml = renderCategorizedTaskBlock("Immediate failure error", rep.immediateFailureErrors ?? "");
+      const emptyHtml =
+        !criticalHtml && !immediateHtml
+          ? `<div class="muted">No critical/immediate errors recorded.</div>`
+          : "";
+
+      return `
+        <div class="repetition">
+          <div class="repetition-title">Repetition #${escapeHtml(String(index + 1))}</div>
+          ${criticalHtml}
+          ${immediateHtml}
+          ${emptyHtml}
+        </div>
+      `;
+    }).join("");
+
+    return `<div class="repetitions">${blocks}</div>`;
+  }
+
   function renderStage(stageId: "stage1" | "stage2") {
     const stage = restrictedMockTestStages.find((s) => s.id === stageId);
     if (!stage) return "";
@@ -181,6 +215,7 @@ function buildHtml(input: Input) {
 
         const faults = getRestrictedMockTestTaskFaults(t);
         const repetitions = t.repetitions ?? 0;
+        const repetitionErrors = t.repetitionErrors ?? [];
         const faultTotal = Object.values(t.items || {}).reduce((sum, value) => {
           return sum + (typeof value === "number" ? value : 0);
         }, 0);
@@ -190,13 +225,23 @@ function buildHtml(input: Input) {
           Boolean(t.location?.trim()) ||
           Boolean(t.criticalErrors?.trim()) ||
           Boolean(t.immediateFailureErrors?.trim()) ||
+          Boolean(
+            repetitionErrors.some(
+              (rep) => Boolean(rep.criticalErrors?.trim()) || Boolean(rep.immediateFailureErrors?.trim()),
+            ),
+          ) ||
           Boolean(t.notes?.trim()) ||
           faults.length > 0;
         if (!hasDetails) return null;
 
-        const taskCriticalHtml = renderCategorizedTaskBlock("Critical error(s)", t.criticalErrors ?? "");
+        const repetitionErrorsHtml =
+          repetitionErrors.length > 0 ? renderRepetitionErrors(repetitions, repetitionErrors) : "";
+        const taskCriticalHtml = renderCategorizedTaskBlock(
+          repetitionErrors.length > 0 ? "Critical error(s) (legacy)" : "Critical error(s)",
+          t.criticalErrors ?? "",
+        );
         const taskImmediateHtml = renderCategorizedTaskBlock(
-          "Immediate failure error",
+          repetitionErrors.length > 0 ? "Immediate failure error (legacy)" : "Immediate failure error",
           t.immediateFailureErrors ?? "",
         );
 
@@ -228,6 +273,7 @@ function buildHtml(input: Input) {
             ${statsHtml}
             ${t.location?.trim() ? `<div><span class="label">Location:</span> ${escapeHtml(t.location.trim())}</div>` : ""}
             ${faults.length ? `<div><span class="label">Fault types:</span> ${escapeHtml(faults.join(", "))}</div>` : ""}
+            ${repetitionErrorsHtml}
             ${taskCriticalHtml}
             ${taskImmediateHtml}
             ${t.notes?.trim() ? `<div class="pre"><span class="label">Notes:</span> ${escapeHtml(t.notes.trim())}</div>` : ""}
@@ -321,6 +367,10 @@ function buildHtml(input: Input) {
         .group-list { margin-top: 4px; }
         .task-block { margin-top: 6px; }
         .task-block-title { font-weight: 700; font-size: 10px; color: #334155; margin-bottom: 4px; }
+        .repetitions { margin-top: 6px; }
+        .repetition { border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px; margin-top: 8px; background: #f8fafc; }
+        .repetition:first-child { margin-top: 0; }
+        .repetition-title { font-weight: 800; font-size: 10px; color: #0f172a; margin-bottom: 4px; }
       </style>
     </head>
     <body>

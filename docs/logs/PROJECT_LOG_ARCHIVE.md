@@ -1527,3 +1527,11 @@
   - Made each recent assessment card navigable to that student's `StudentAssessmentHistory` screen.
 
 ---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Assessments recent card route preselect + back flow
+- **Summary:**
+  - Tapping a card in `Last 5 Assessments` now opens `StudentAssessmentHistory` inside the Assessments stack with the tapped assessment type tab preselected.
+  - Back from that history screen now returns to the Assessments screen rather than switching to the Students area.
+
+---

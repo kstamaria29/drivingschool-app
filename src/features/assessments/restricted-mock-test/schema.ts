@@ -43,6 +43,15 @@ const taskStateSchema = z.object({
   location: z.string().default(""),
   criticalErrors: z.string().default(""),
   immediateFailureErrors: z.string().default(""),
+  repetitionErrors: z
+    .array(
+      z.object({
+        criticalErrors: z.string().default(""),
+        immediateFailureErrors: z.string().default(""),
+      }),
+    )
+    .optional()
+    .default([]),
   notes: z.string().default(""),
   repetitions: z.number().int().min(0).default(0),
 });
