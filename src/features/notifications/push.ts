@@ -15,6 +15,18 @@ function readProjectId() {
   return fromExtra ?? fromEasConfig ?? fromEnv ?? null;
 }
 
+export async function getMyExpoPushTokenAsync() {
+  const projectId = readProjectId();
+  if (!projectId) return null;
+
+  try {
+    const token = await Notifications.getExpoPushTokenAsync({ projectId });
+    return token.data ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function registerMyExpoPushToken(input: { profileId: string; organizationId: string }) {
   const projectId = readProjectId();
   if (!projectId) {
@@ -60,4 +72,3 @@ export async function registerMyExpoPushToken(input: { profileId: string; organi
 
   return expoPushToken;
 }
-

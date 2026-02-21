@@ -110,6 +110,8 @@ async function scheduleNotificationsForOffsets(input: {
 }) {
   const prefs = await loadNotificationPreferences();
   const categoryPrefs = prefs.studentReminders;
+  if (!categoryPrefs.soundEnabled && !categoryPrefs.vibrationEnabled) return [];
+
   const androidChannelId = getAndroidNotificationChannelId({
     category: "student_reminders",
     soundEnabled: categoryPrefs.soundEnabled,
@@ -184,11 +186,34 @@ export async function cancelReminderNotificationsForReminder(input: {
   return state.ids.length;
 }
 
+export async function cancelAllReminderNotificationsForUser(input: { userId: string }) {
+  const map = await loadReminderMap(input.userId);
+  const ids = [
+    ...new Set(
+      Object.values(map)
+        .flatMap((state) => state.ids)
+        .filter((id) => typeof id === "string" && id.length > 0),
+    ),
+  ];
+
+  await cancelScheduledIds(ids);
+  await saveReminderMap(input.userId, {});
+  return ids.length;
+}
+
 export async function scheduleReminderNotificationsForReminder(input: {
   userId: string;
   reminder: StudentReminder;
   studentName: string;
 }) {
+  const prefs = await loadNotificationPreferences();
+  const categoryPrefs = prefs.studentReminders;
+  const enabled = categoryPrefs.soundEnabled || categoryPrefs.vibrationEnabled;
+  if (!enabled) {
+    await cancelAllReminderNotificationsForUser({ userId: input.userId });
+    return { permissionGranted: true, scheduledCount: 0 };
+  }
+
   const map = await loadReminderMap(input.userId);
   const existing = map[input.reminder.id];
   if (existing) {
@@ -229,6 +254,14 @@ export async function syncReminderNotificationsForStudent(input: {
   studentName: string;
   reminders: StudentReminder[];
 }) {
+  const prefs = await loadNotificationPreferences();
+  const categoryPrefs = prefs.studentReminders;
+  const enabled = categoryPrefs.soundEnabled || categoryPrefs.vibrationEnabled;
+  if (!enabled) {
+    await cancelAllReminderNotificationsForUser({ userId: input.userId });
+    return { permissionGranted: true, scheduledCount: 0 };
+  }
+
   const map = await loadReminderMap(input.userId);
   const activeReminderIds = new Set(input.reminders.map((reminder) => reminder.id));
 

@@ -20,6 +20,8 @@ export async function requestDownloadNotificationPermission() {
 export async function notifyPdfSaved(input: { fileName: string; uri: string; savedTo: string }) {
   const prefs = await loadNotificationPreferences();
   const categoryPrefs = prefs.downloads;
+  if (!categoryPrefs.soundEnabled && !categoryPrefs.vibrationEnabled) return false;
+
   const androidChannelId = getAndroidNotificationChannelId({
     category: "downloads",
     soundEnabled: categoryPrefs.soundEnabled,

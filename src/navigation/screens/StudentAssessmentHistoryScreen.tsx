@@ -37,8 +37,8 @@ import {
 } from "../../features/assessments/full-license-mock-test/scoring";
 import { fullLicenseMockTestStoredDataSchema } from "../../features/assessments/full-license-mock-test/schema";
 import {
-  restrictedMockTestCriticalErrors,
-  restrictedMockTestImmediateErrors,
+  restrictedMockTestLegacyCriticalErrors,
+  restrictedMockTestLegacyImmediateErrors,
   restrictedMockTestStages,
   restrictedMockTestTaskItems,
 } from "../../features/assessments/restricted-mock-test/constants";
@@ -134,7 +134,12 @@ function getRestrictedMockTestSummary(assessment: Assessment) {
     stage2Repetitions > 0 ||
     s2 > 0 ||
     Object.values(values.stagesState.stage2 || {}).some((task) => {
-      return Boolean(task.location?.trim()) || Boolean(task.notes?.trim());
+      return (
+        Boolean(task.location?.trim()) ||
+        Boolean(task.criticalErrors?.trim()) ||
+        Boolean(task.immediateFailureErrors?.trim()) ||
+        Boolean(task.notes?.trim())
+      );
     });
 
   const stage2Used = Boolean(values.stage2Enabled) || stage2HasRecordedItems;
@@ -587,7 +592,12 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         stage2Repetitions > 0 ||
         stage2Faults > 0 ||
         Object.values(values.stagesState.stage2 || {}).some((task) => {
-          return Boolean(task.location?.trim()) || Boolean(task.notes?.trim());
+          return (
+            Boolean(task.location?.trim()) ||
+            Boolean(task.criticalErrors?.trim()) ||
+            Boolean(task.immediateFailureErrors?.trim()) ||
+            Boolean(task.notes?.trim())
+          );
         });
       const stage2Used = Boolean(values.stage2Enabled) || stage2HasRecordedItems;
 
@@ -599,6 +609,50 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         s2_roundabouts: { name: "All roundabouts", targetReps: 4 },
         s2_extra: { name: "All extra complex tasks / variations", targetReps: 5 },
       };
+
+      type CategorizedGroup = { category: string; items: string[] };
+
+      function extractCategorizedGroups(value: string): CategorizedGroup[] {
+        const output = new Map<string, string[]>();
+
+        value
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .forEach((rawLine) => {
+            const line = rawLine.replace(/^[-•\u2022]\s+/, "");
+            const match = line.match(/^(.+?)\s*-\s*(.+)$/);
+            const category = match ? match[1].trim() : "Other";
+            const item = match ? match[2].trim() : line;
+            if (!item) return;
+
+            const items = output.get(category) ?? [];
+            items.push(item);
+            output.set(category, items);
+          });
+
+        return Array.from(output.entries()).map(([category, items]) => ({ category, items }));
+      }
+
+      function renderCategorizedLines(value: string): ReactElement | null {
+        const groups = extractCategorizedGroups(value);
+        if (groups.length === 0) return null;
+
+        return (
+          <AppStack gap="sm">
+            {groups.map((group) => (
+              <View key={group.category} className="gap-1">
+                <AppText variant="label">{group.category}</AppText>
+                {group.items.map((item, index) => (
+                  <AppText key={`${group.category}-${index}`} className="ml-3" variant="body">
+                    • {item}
+                  </AppText>
+                ))}
+              </View>
+            ))}
+          </AppStack>
+        );
+      }
 
       function renderRecordedTasks(stageId: "stage1" | "stage2") {
         const stage = restrictedMockTestStages.find((s) => s.id === stageId);
@@ -639,6 +693,8 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
               repetitions > 0 ||
               faultTotal > 0 ||
               Boolean(taskState.location?.trim()) ||
+              Boolean(taskState.criticalErrors?.trim()) ||
+              Boolean(taskState.immediateFailureErrors?.trim()) ||
               Boolean(taskState.notes?.trim());
             if (!hasDetails) return null;
 
@@ -675,6 +731,20 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
                 ) : null}
                 {faults.length ? (
                   <AppText variant="body">Fault types: {faults.join(", ")}</AppText>
+                ) : null}
+                {taskState.criticalErrors?.trim() ? (
+                  <View className="gap-2">
+                    <AppText variant="label">Critical error(s)</AppText>
+                    {renderCategorizedLines(taskState.criticalErrors.trim())}
+                  </View>
+                ) : null}
+                {taskState.immediateFailureErrors?.trim() ? (
+                  <View className="gap-2">
+                    <AppText className="text-red-600 dark:text-red-400" variant="label">
+                      Immediate failure error
+                    </AppText>
+                    {renderCategorizedLines(taskState.immediateFailureErrors.trim())}
+                  </View>
                 ) : null}
                 {taskState.notes?.trim() ? (
                   <AppText variant="body">Notes: {taskState.notes.trim()}</AppText>
@@ -731,11 +801,16 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
         return lines.length ? lines.join("\n") : "";
       }
 
-      const criticalLines = renderErrorLines(restrictedMockTestCriticalErrors, values.critical || {});
-      const immediateLines = renderErrorLines(
-        restrictedMockTestImmediateErrors,
+      const legacyCriticalLines = renderErrorLines(
+        restrictedMockTestLegacyCriticalErrors,
+        values.critical || {},
+      );
+      const legacyImmediateLines = renderErrorLines(
+        restrictedMockTestLegacyImmediateErrors,
         values.immediate || {},
       );
+      const showLegacyCritical = Boolean(legacyCriticalLines.trim()) || Boolean(values.criticalNotes?.trim());
+      const showLegacyImmediate = Boolean(legacyImmediateLines.trim()) || Boolean(values.immediateNotes?.trim());
 
       return (
         <AppStack gap="md">
@@ -808,20 +883,38 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
           <AppDivider />
 
           <AppCard className="gap-2">
-            <AppText variant="heading">Critical errors</AppText>
-            <AppText variant="body">{criticalLines || "None recorded."}</AppText>
-            {values.criticalNotes?.trim() ? (
-              <AppText variant="body">Notes: {values.criticalNotes.trim()}</AppText>
-            ) : null}
+            <AppText variant="heading">General feedback</AppText>
+            {values.generalFeedback?.trim()
+              ? renderCategorizedLines(values.generalFeedback.trim())
+              : <AppText variant="body">None recorded.</AppText>}
           </AppCard>
 
           <AppCard className="gap-2">
-            <AppText variant="heading">Immediate failure errors</AppText>
-            <AppText variant="body">{immediateLines || "None recorded."}</AppText>
-            {values.immediateNotes?.trim() ? (
-              <AppText variant="body">Notes: {values.immediateNotes.trim()}</AppText>
-            ) : null}
+            <AppText variant="heading">Improvement needed</AppText>
+            {values.improvementNeeded?.trim()
+              ? renderCategorizedLines(values.improvementNeeded.trim())
+              : <AppText variant="body">None recorded.</AppText>}
           </AppCard>
+
+          {showLegacyCritical ? (
+            <AppCard className="gap-2">
+              <AppText variant="heading">Critical errors (legacy)</AppText>
+              <AppText variant="body">{legacyCriticalLines || "None recorded."}</AppText>
+              {values.criticalNotes?.trim() ? (
+                <AppText variant="body">Notes: {values.criticalNotes.trim()}</AppText>
+              ) : null}
+            </AppCard>
+          ) : null}
+
+          {showLegacyImmediate ? (
+            <AppCard className="gap-2">
+              <AppText variant="heading">Immediate failure errors (legacy)</AppText>
+              <AppText variant="body">{legacyImmediateLines || "None recorded."}</AppText>
+              {values.immediateNotes?.trim() ? (
+                <AppText variant="body">Notes: {values.immediateNotes.trim()}</AppText>
+              ) : null}
+            </AppCard>
+          ) : null}
 
           <AppDivider />
 

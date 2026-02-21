@@ -4,8 +4,8 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as Print from "expo-print";
 
 import {
-  restrictedMockTestCriticalErrors,
-  restrictedMockTestImmediateErrors,
+  restrictedMockTestLegacyCriticalErrors,
+  restrictedMockTestLegacyImmediateErrors,
   restrictedMockTestStages,
 } from "./constants";
 import { calculateRestrictedMockTestSummary, getRestrictedMockTestTaskFaults } from "./scoring";
@@ -65,7 +65,12 @@ function buildHtml(input: Input) {
     stage2Repetitions > 0 ||
     stage2Faults > 0 ||
     Object.values(v.stagesState.stage2 || {}).some((task) => {
-      return Boolean(task.location?.trim()) || Boolean(task.notes?.trim());
+      return (
+        Boolean(task.location?.trim()) ||
+        Boolean(task.criticalErrors?.trim()) ||
+        Boolean(task.immediateFailureErrors?.trim()) ||
+        Boolean(task.notes?.trim())
+      );
     });
   const stage2Used = Boolean(v.stage2Enabled) || stage2HasRecordedItems;
   const criticalTotal = summary.criticalTotal ?? 0;
@@ -85,6 +90,70 @@ function buildHtml(input: Input) {
     s2_roundabouts: { name: "All roundabouts", targetReps: 4 },
     s2_extra: { name: "All extra complex tasks / variations", targetReps: 5 },
   };
+
+  type CategorizedGroup = { category: string; items: string[] };
+
+  function extractCategorizedGroups(value: string): CategorizedGroup[] {
+    const output = new Map<string, string[]>();
+
+    value
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .forEach((rawLine) => {
+        const line = rawLine.replace(/^[-•\u2022]\s+/, "");
+        const match = line.match(/^(.+?)\s*-\s*(.+)$/);
+        const category = match ? match[1].trim() : "Other";
+        const item = match ? match[2].trim() : line;
+        if (!item) return;
+
+        const items = output.get(category) ?? [];
+        items.push(item);
+        output.set(category, items);
+      });
+
+    return Array.from(output.entries()).map(([category, items]) => ({ category, items }));
+  }
+
+  function renderCategorizedGroups(groups: CategorizedGroup[]) {
+    return groups
+      .map(({ category, items }) => {
+        const lines = items.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+        return `
+          <div class="group">
+            <div class="group-title">${escapeHtml(category)}</div>
+            <ul class="list group-list">${lines}</ul>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  function renderCategorizedSection(title: string, value: string) {
+    const groups = extractCategorizedGroups(value);
+
+    return `
+      <div class="section box-soft">
+        <h2>${escapeHtml(title)}</h2>
+        ${
+          groups.length
+            ? renderCategorizedGroups(groups)
+            : `<div class="muted">None recorded.</div>`
+        }
+      </div>
+    `;
+  }
+
+  function renderCategorizedTaskBlock(title: string, value: string) {
+    const groups = extractCategorizedGroups(value);
+    if (!groups.length) return "";
+    return `
+      <div class="task-block">
+        <div class="task-block-title">${escapeHtml(title)}</div>
+        ${renderCategorizedGroups(groups)}
+      </div>
+    `;
+  }
 
   function renderStage(stageId: "stage1" | "stage2") {
     const stage = restrictedMockTestStages.find((s) => s.id === stageId);
@@ -119,9 +188,17 @@ function buildHtml(input: Input) {
           repetitions > 0 ||
           faultTotal > 0 ||
           Boolean(t.location?.trim()) ||
+          Boolean(t.criticalErrors?.trim()) ||
+          Boolean(t.immediateFailureErrors?.trim()) ||
           Boolean(t.notes?.trim()) ||
           faults.length > 0;
         if (!hasDetails) return null;
+
+        const taskCriticalHtml = renderCategorizedTaskBlock("Critical error(s)", t.criticalErrors ?? "");
+        const taskImmediateHtml = renderCategorizedTaskBlock(
+          "Immediate failure error",
+          t.immediateFailureErrors ?? "",
+        );
 
         const targetHtml =
           targetReps != null
@@ -151,6 +228,8 @@ function buildHtml(input: Input) {
             ${statsHtml}
             ${t.location?.trim() ? `<div><span class="label">Location:</span> ${escapeHtml(t.location.trim())}</div>` : ""}
             ${faults.length ? `<div><span class="label">Fault types:</span> ${escapeHtml(faults.join(", "))}</div>` : ""}
+            ${taskCriticalHtml}
+            ${taskImmediateHtml}
             ${t.notes?.trim() ? `<div class="pre"><span class="label">Notes:</span> ${escapeHtml(t.notes.trim())}</div>` : ""}
           </div>
         `;
@@ -181,6 +260,15 @@ function buildHtml(input: Input) {
       </div>
     `;
   }
+
+  const hasLegacyCriticalCounts = restrictedMockTestLegacyCriticalErrors.some((label) => {
+    return (v.critical?.[label] ?? 0) > 0;
+  });
+  const hasLegacyImmediateCounts = restrictedMockTestLegacyImmediateErrors.some((label) => {
+    return (v.immediate?.[label] ?? 0) > 0;
+  });
+  const showLegacyCritical = hasLegacyCriticalCounts || Boolean(v.criticalNotes?.trim());
+  const showLegacyImmediate = hasLegacyImmediateCounts || Boolean(v.immediateNotes?.trim());
 
   return `
   <html>
@@ -227,6 +315,12 @@ function buildHtml(input: Input) {
         .task-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
         .task-name { font-weight: 700; }
         .task-target { font-weight: 700; white-space: nowrap; }
+        .group { margin-top: 6px; }
+        .group:first-child { margin-top: 0; }
+        .group-title { font-weight: 700; font-size: 10px; color: #334155; }
+        .group-list { margin-top: 4px; }
+        .task-block { margin-top: 6px; }
+        .task-block-title { font-weight: 700; font-size: 10px; color: #334155; margin-bottom: 4px; }
       </style>
     </head>
     <body>
@@ -309,11 +403,34 @@ function buildHtml(input: Input) {
         }
       </div>
 
-      ${renderErrorCounts("Critical errors", restrictedMockTestCriticalErrors, v.critical || {})}
-      ${v.criticalNotes?.trim() ? `<div class="section box-soft pre"><span class="label">Critical notes:</span>\n${escapeHtml(v.criticalNotes.trim())}</div>` : ""}
+      ${renderCategorizedSection("General feedback", v.generalFeedback ?? "")}
+      ${renderCategorizedSection("Improvement needed", v.improvementNeeded ?? "")}
 
-      ${renderErrorCounts("Immediate failure errors", restrictedMockTestImmediateErrors, v.immediate || {})}
-      ${v.immediateNotes?.trim() ? `<div class="section box-soft pre"><span class="label">Immediate notes:</span>\n${escapeHtml(v.immediateNotes.trim())}</div>` : ""}
+      ${
+        showLegacyCritical
+          ? renderErrorCounts("Critical errors (legacy)", restrictedMockTestLegacyCriticalErrors, v.critical || {})
+          : ""
+      }
+      ${
+        showLegacyCritical && v.criticalNotes?.trim()
+          ? `<div class="section box-soft pre"><span class="label">Critical notes (legacy):</span>\n${escapeHtml(v.criticalNotes.trim())}</div>`
+          : ""
+      }
+
+      ${
+        showLegacyImmediate
+          ? renderErrorCounts(
+              "Immediate failure errors (legacy)",
+              restrictedMockTestLegacyImmediateErrors,
+              v.immediate || {},
+            )
+          : ""
+      }
+      ${
+        showLegacyImmediate && v.immediateNotes?.trim()
+          ? `<div class="section box-soft pre"><span class="label">Immediate notes (legacy):</span>\n${escapeHtml(v.immediateNotes.trim())}</div>`
+          : ""
+      }
     </body>
   </html>
   `;

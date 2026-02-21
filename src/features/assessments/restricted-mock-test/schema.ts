@@ -16,6 +16,8 @@ export const restrictedMockTestFormSchema = z.object({
   vehicleInfo: z.string().trim(),
   routeInfo: z.string().trim(),
   preDriveNotes: z.string().trim(),
+  generalFeedback: z.string().trim(),
+  improvementNeeded: z.string().trim(),
   criticalNotes: z.string().trim(),
   immediateNotes: z.string().trim(),
 });
@@ -39,6 +41,8 @@ const faultCountsSchema = z
 const taskStateSchema = z.object({
   items: faultCountsSchema,
   location: z.string().default(""),
+  criticalErrors: z.string().default(""),
+  immediateFailureErrors: z.string().default(""),
   notes: z.string().default(""),
   repetitions: z.number().int().min(0).default(0),
 });
@@ -55,6 +59,11 @@ const stagesStateSchema = z
 const errorCountsSchema = z.record(z.string(), z.number().int().min(0)).optional().default({});
 
 export const restrictedMockTestStoredDataSchema = restrictedMockTestFormSchema.extend({
+  // Backwards compatibility: older stored assessments may not include these fields.
+  generalFeedback: z.string().trim().optional().default(""),
+  improvementNeeded: z.string().trim().optional().default(""),
+  criticalNotes: z.string().trim().optional().default(""),
+  immediateNotes: z.string().trim().optional().default(""),
   version: z.number().int().optional(),
   candidateName: z.string().trim().optional().default(""),
   instructor: z.string().trim().optional().default(""),

@@ -1,6 +1,45 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-21 (Pacific/Auckland)
+- **Task:** Restricted mock test feedback + task errors
+- **Summary:**
+  - Replaced per-task notes with Critical/Immediate error fields (multi-select suggestions) and saved them per task.
+  - Replaced global Critical/Immediate blocks with General feedback/Improvement needed and updated history + PDF output.
+
+---
+
+- **Date:** 2026-02-21 (Pacific/Auckland)
+- **Task:** Notifications test buttons for all roles
+- **Summary:**
+  - Made “Send test notification” buttons visible for owners and instructors (not admin-only).
+
+---
+
+- **Date:** 2026-02-21 (Pacific/Auckland)
+- **Task:** Notifications screen spacing + push button polish
+- **Summary:**
+  - Removed the extra gap between section titles and captions and ensured Upcoming lessons defaults to a 1-hour notify offset.
+  - Made the push "Register this device" button green when this device is not registered and disabled it when already registered.
+
+---
+
+- **Date:** 2026-02-21 (Pacific/Auckland)
+- **Task:** Notifications settings simplify toggles
+- **Summary:**
+  - Simplified notification category settings to On/Off segmented controls only (removed Sound/Vibration UI and defaulted both to On when enabled).
+  - Disabling Downloads/Student reminders now prevents local notifications and clears scheduled reminder alerts on the device.
+
+---
+
+- **Date:** 2026-02-21 (Pacific/Auckland)
+- **Task:** Notifications screen compact toggles
+- **Summary:**
+  - Switched notification settings to larger blue/grey toggle switches and combined section title, enable, sound, and vibration controls into a single row.
+  - Reduced whitespace with a two-column layout: title + enable on the left, sound/vibration controls right-aligned on the right.
+
+---
+
+- **Date:** 2026-02-21 (Pacific/Auckland)
 - **Task:** Notifications screen toggle switches
 - **Summary:**
   - Replaced On/Off segmented controls with right-aligned toggle switches and slightly larger labels.
@@ -117,43 +156,3 @@
 - **Summary:**
   - Tapping a card in `Last 5 Assessments` now opens `StudentAssessmentHistory` inside the Assessments stack with the tapped assessment type tab preselected.
   - Back from that history screen now returns to the Assessments screen rather than switching to the Students area.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Assessments recents card limit, org label, and history navigation
-- **Summary:**
-  - Updated the Assessments picker recents panel to show `Last 5 Assessments` instead of 3 and include each student's organization in brackets.
-  - Made each recent assessment card navigable to that student's `StudentAssessmentHistory` screen.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Assessments screen recent history panel
-- **Summary:**
-  - Added a `Last 3 Assessments` section to the Assessments picker screen with latest entries, student names, assessment types, dates, and result/score summaries.
-  - Added recent-assessments query support with student-name joins in the assessments API/query layer.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Session History button icon and label update
-- **Summary:**
-  - Updated the Session History header action from `Add new` to `New Session`.
-  - Added a leading Lucide session-style clock icon to the `New Session` button.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Session icon and button-label capitalization polish
-- **Summary:**
-  - Replaced the Sessions `New Session` button plus icon with a session-style clock icon.
-  - Updated Lessons and Students list action labels to `New Lesson` and `New Student`.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Sessions button label and icon update
-- **Summary:**
-  - Renamed the Sessions screen header action button from `Add new` to `New Session`.
-  - Added a leading plus icon to the `New Session` button.

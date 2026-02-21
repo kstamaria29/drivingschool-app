@@ -1,6 +1,6 @@
 import {
-  restrictedMockTestCriticalErrors,
-  restrictedMockTestImmediateErrors,
+  restrictedMockTestLegacyCriticalErrors,
+  restrictedMockTestLegacyImmediateErrors,
   restrictedMockTestTaskItems,
   type RestrictedMockTestStageId,
   type RestrictedMockTestTaskItemId,
@@ -9,6 +9,8 @@ import {
 export type RestrictedMockTestTaskState = {
   items: Record<RestrictedMockTestTaskItemId, number>;
   location: string;
+  criticalErrors: string;
+  immediateFailureErrors: string;
   notes: string;
   repetitions: number;
 };
@@ -30,13 +32,22 @@ export type RestrictedMockTestSummary = {
   resultTone: "danger" | "success";
 };
 
+function extractNonEmptyLines(value: string) {
+  return value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
 export function calculateRestrictedMockTestSummary(input: {
   stagesState: RestrictedMockTestStagesState;
-  critical: RestrictedMockTestErrorCounts;
-  immediate: RestrictedMockTestErrorCounts;
+  critical?: RestrictedMockTestErrorCounts | null;
+  immediate?: RestrictedMockTestErrorCounts | null;
 }): RestrictedMockTestSummary {
   let stage1Faults = 0;
   let stage2Faults = 0;
+  const taskCriticalLines: string[] = [];
+  const taskImmediateLines: string[] = [];
 
   (["stage1", "stage2"] as const).forEach((stageId) => {
     const stageTasks = input.stagesState[stageId] ?? {};
@@ -51,22 +62,34 @@ export function calculateRestrictedMockTestSummary(input: {
         if (isStage1) stage1Faults += count;
         else stage2Faults += count;
       });
+
+      taskCriticalLines.push(...extractNonEmptyLines(taskState.criticalErrors ?? ""));
+      taskImmediateLines.push(...extractNonEmptyLines(taskState.immediateFailureErrors ?? ""));
     });
   });
 
-  const criticalTotal = restrictedMockTestCriticalErrors.reduce((sum, label) => {
-    return sum + (input.critical[label] ?? 0);
+  const legacyCriticalTotal = restrictedMockTestLegacyCriticalErrors.reduce((sum, label) => {
+    return sum + (input.critical?.[label] ?? 0);
   }, 0);
 
-  const immediateTotal = restrictedMockTestImmediateErrors.reduce((sum, label) => {
-    return sum + (input.immediate[label] ?? 0);
+  const legacyImmediateTotal = restrictedMockTestLegacyImmediateErrors.reduce((sum, label) => {
+    return sum + (input.immediate?.[label] ?? 0);
   }, 0);
 
-  const immediateList = restrictedMockTestImmediateErrors
-    .map((label) => {
-      const count = input.immediate[label] ?? 0;
-      return count > 0 ? `${label} (${count})` : null;
-    })
+  const criticalTotal = taskCriticalLines.length + legacyCriticalTotal;
+  const immediateTotal = taskImmediateLines.length + legacyImmediateTotal;
+
+  const immediateCounts = new Map<string, number>();
+  taskImmediateLines.forEach((line) => {
+    immediateCounts.set(line, (immediateCounts.get(line) ?? 0) + 1);
+  });
+  restrictedMockTestLegacyImmediateErrors.forEach((label) => {
+    const count = input.immediate?.[label] ?? 0;
+    if (count <= 0) return;
+    immediateCounts.set(label, (immediateCounts.get(label) ?? 0) + count);
+  });
+  const immediateList = Array.from(immediateCounts.entries())
+    .map(([label, count]) => (count > 0 ? `${label} (${count})` : null))
     .filter(Boolean)
     .join("; ");
 
@@ -78,7 +101,7 @@ export function calculateRestrictedMockTestSummary(input: {
       immediateTotal,
       immediateList,
       resultText:
-        "Automatic FAIL (immediate failure error recorded). Use notes for coaching and re-test planning.",
+        "Automatic FAIL (immediate failure error recorded). Use the recorded task faults and feedback to plan coaching and a re-test.",
       resultTone: "danger",
     };
   }
@@ -90,7 +113,7 @@ export function calculateRestrictedMockTestSummary(input: {
     immediateTotal,
     immediateList,
     resultText:
-      "No immediate failure errors recorded. Use Stage 1 & 2 task faults and critical errors to decide readiness for the real test.",
+      "No immediate failure errors recorded. Use Stage 1 & 2 task faults plus feedback to decide readiness for the real test.",
     resultTone: "success",
   };
 }

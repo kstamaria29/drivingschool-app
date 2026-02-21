@@ -60,7 +60,7 @@ export const restrictedMockTestStages = [
 export type RestrictedMockTestStageId = (typeof restrictedMockTestStages)[number]["id"];
 export type RestrictedMockTestTaskId = (typeof restrictedMockTestStages)[number]["tasks"][number]["id"];
 
-export const restrictedMockTestCriticalErrors = [
+export const restrictedMockTestLegacyCriticalErrors = [
   "Too slow",
   "Too fast (minor)",
   "Failing to look",
@@ -72,7 +72,7 @@ export const restrictedMockTestCriticalErrors = [
   "Other illegal action",
 ] as const;
 
-export const restrictedMockTestImmediateErrors = [
+export const restrictedMockTestLegacyImmediateErrors = [
   "Testing officer / support person intervention",
   "Failing to carry out instruction",
   "Collision (kerb, object, vehicle, cyclist, pedestrian)",
@@ -82,3 +82,137 @@ export const restrictedMockTestImmediateErrors = [
   "Failing to stop (Stop sign, red/yellow, rail)",
   "Other dangerous action",
 ] as const;
+
+export type CategorizedSuggestion = {
+  category: string;
+  text: string;
+};
+
+export const restrictedMockTestTaskCriticalErrorSuggestions = [
+  { category: "Kerb", text: "You must not mount the kerb when parking" },
+  {
+    category: "No signal",
+    text: "Before diverging, you must signal your intention to move left or right for at least 3 seconds",
+  },
+  { category: "No signal", text: "You must signal for at least 3 seconds before leaving the kerb" },
+  {
+    category: "No signal",
+    text: "You must signal for at least 3 seconds before pulling up to stop beside a vehicle",
+  },
+  { category: "No signal", text: "You must signal before changing lanes" },
+  {
+    category: "No look",
+    text: "You must check your mirrors and do a head check when joining the traffic flow, merging or diverging",
+  },
+  {
+    category: "Too slow",
+    text: "Ensure you keep up to the posted speed limit so that surrounding traffic is not affected",
+  },
+  {
+    category: "Too slow",
+    text: "You must not remain stationary when you have ample opportunity to proceed safely",
+  },
+  { category: "Too fast", text: "Ensure you do not exceed the posted speed limit" },
+  {
+    category: "Too fast",
+    text: "When passing a stopped marked School Bus, ensure you do not exceed 20 km/h",
+  },
+  {
+    category: "Too fast",
+    text: "When driving through a designated roadworks area, ensure you do not exceed the temporary speed limit",
+  },
+  {
+    category: "Other illegal",
+    text: "When turning, you must not drive partly or wholly on the wrong side of the road",
+  },
+  { category: "Other illegal", text: "You must position the vehicle entirely within the lane" },
+] as const satisfies readonly CategorizedSuggestion[];
+
+export const restrictedMockTestTaskImmediateFailureErrorSuggestions = [
+  { category: "Excessive speed", text: "Ensure you do not exceed the posted speed limit" },
+  {
+    category: "Too fast",
+    text: "When driving through a designated roadworks area, ensure you do not exceed the temporary speed limit",
+  },
+  {
+    category: "Fail to give way",
+    text: "You must obey the Give Way rules so as not to cause other road users to take evasive action to avoid a collision",
+  },
+] as const satisfies readonly CategorizedSuggestion[];
+
+export const restrictedMockTestGeneralFeedbackSuggestions = [
+  { category: "Gap selection", text: "You must choose the first safe gap available" },
+  { category: "Observation", text: "Immediately prior to diverging, you must perform a head check" },
+  { category: "Observation", text: "Immediately prior to merging, you must perform a head check" },
+  { category: "Observation", text: "You must check your relevant mirrors before braking" },
+  { category: "Observation", text: "You must check your mirrors before performing a manoeuvre" },
+  { category: "Observation", text: "Before changing lanes, you must perform a head check" },
+  {
+    category: "Speed",
+    text: "When safe to do so, you should try to maintain a consistent speed that is close to the posted speed limit",
+  },
+  {
+    category: "Signal",
+    text: "You must cancel the signal as necessary when your turn or diverge has completed",
+  },
+  { category: "Signal", text: "You must signal for at least 3 seconds before changing direction" },
+  {
+    category: "Signal",
+    text: "You must signal for at least 3 seconds before pulling up beside a vehicle",
+  },
+  {
+    category: "Parking movement",
+    text: "You must be parallel to kerb and within 300mm when you have parked your vehicle",
+  },
+  {
+    category: "Parking movement",
+    text: "You must not hit or mount the kerb when reverse parallel parking",
+  },
+  {
+    category: "Parking movement",
+    text: "When you have completed parking, you must be between 1\u20132 metres from the vehicle in front",
+  },
+  {
+    category: "Parking observation",
+    text: "When reversing, you must do a head check immediately before moving off",
+  },
+  {
+    category: "Lateral position",
+    text: "You should turn from the correct position within your lane when turning",
+  },
+  { category: "Lateral position", text: "You must keep left of the centre line when turning" },
+  { category: "Leaving park", text: "When reversing, you must do a head check immediately before moving off" },
+  { category: "Other illegal", text: "You must position the vehicle entirely within the lane" },
+] as const satisfies readonly CategorizedSuggestion[];
+
+export const restrictedMockTestImprovementNeededSuggestions = [
+  { category: "Observation", text: "Doing head checks" },
+  { category: "Observation", text: "Using your mirrors" },
+  { category: "Observation", text: "You must look out for conflicting traffic at all times" },
+  {
+    category: "Positioning the car",
+    text: "You should keep to the left-hand side of the road when driving on an unmarked road, if it is safe to do so.",
+  },
+  { category: "Positioning the car", text: "When stopped" },
+  {
+    category: "Positioning the car",
+    text: "When turning left, remain on the left-hand side of your lane. When turning right, stay on the right-hand side of your lane",
+  },
+  {
+    category: "Positioning the car",
+    text: "You should maintain a distance of 1.2 metres on either side of the vehicle",
+  },
+  { category: "Speed choice", text: "Choosing a safe, legal speed for the traffic conditions" },
+  { category: "Gap selection", text: "Judging gaps in traffic" },
+  {
+    category: "Hazard Detection and Response",
+    text: "You must be able to describe your actions in response to identified hazards when asked by the Driver Testing Officer",
+  },
+  { category: "Signalling", text: "When turning" },
+  { category: "Signalling", text: "When diverging" },
+  { category: "Vehicle control", text: "Braking" },
+  { category: "Vehicle control", text: "Acceleration" },
+  { category: "Vehicle control", text: "You should choose the correct gear for the right situation" },
+  { category: "Vehicle control", text: "Steering" },
+  { category: "Low speed manoeuvre", text: "Reverse parallel park" },
+] as const satisfies readonly CategorizedSuggestion[];
