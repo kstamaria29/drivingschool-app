@@ -979,6 +979,7 @@
 
 ---
 
+
 - **Date:** 2026-02-11 (Pacific/Auckland)
 - **Task:** Licence upload width set to 500px
 - **Summary:**
@@ -1549,5 +1550,29 @@
 - **Summary:**
   - Updated all stack and drawer navigator theme option memos to depend on `themeKey` so header/drawer colors refresh when a theme preset is selected.
   - Fixed the top navbar color surface (hamburger/back/avatar row) not updating until scheme changes.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Settings organization/account collapsible sections
+- **Summary:**
+  - Made `Organization` and `Account Settings` cards collapsed by default with top-right `Show` controls.
+  - Added toggle behavior so tapping `Show` expands card actions and switches the control to red `Hide`.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Settings cards keep identity details when collapsed
+- **Summary:**
+  - Updated Settings collapsible behavior so `Organization` and `Account Settings` always show logo/avatar and summary text.
+  - Restricted Show/Hide to control only the action buttons inside each card.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Move themes UI to dedicated screen
+- **Summary:**
+  - Added a new `Themes` screen in Settings stack and moved the full theme selector UI there.
+  - Replaced the Settings page theme block with a top-level `Themes` navigation button above `Organization`.
 
 ---

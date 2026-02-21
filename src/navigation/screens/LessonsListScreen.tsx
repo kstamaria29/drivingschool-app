@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { Pressable, ScrollView, useWindowDimensions, View } from "react-native";
 import { CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react-native";
 
-import { AppBadge } from "../../components/AppBadge";
 import { AppButton } from "../../components/AppButton";
 import { AppCard } from "../../components/AppCard";
 import { CenteredLoadingState } from "../../components/AsyncState";
@@ -28,12 +27,6 @@ function startOfWeekMonday(date: Dayjs) {
   const day = date.day(); // 0 (Sun) - 6 (Sat)
   const offset = (day + 6) % 7; // 0 for Mon ... 6 for Sun
   return date.startOf("day").subtract(offset, "day");
-}
-
-function statusLabel(status: "scheduled" | "completed" | "cancelled") {
-  if (status === "scheduled") return "Scheduled";
-  if (status === "completed") return "Completed";
-  return "Cancelled";
 }
 
 function normalizeTimeHHmm(value: string | null | undefined) {
@@ -172,9 +165,12 @@ export function LessonsListScreen({ navigation }: Props) {
                 <AppText className="flex-1" variant="heading">
                   {studentName}
                 </AppText>
-                <AppBadge variant={lesson.status} label={statusLabel(lesson.status)} />
               </View>
-              {lesson.location ? <AppText variant="caption">{lesson.location}</AppText> : null}
+              {lesson.location ? (
+                <AppText variant="caption" className="text-[16px]">
+                  {lesson.location}
+                </AppText>
+              ) : null}
               {lesson.notes ? (
                 <AppText numberOfLines={2} variant="caption">
                   {lesson.notes}

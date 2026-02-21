@@ -1,6 +1,29 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-21 (Pacific/Auckland)
+- **Task:** Lessons address label + size
+- **Summary:**
+  - Removed the Location label and bumped address text size on New Lesson and Lessons list.
+
+---
+
+- **Date:** 2026-02-21 (Pacific/Auckland)
+- **Task:** New lesson layout refinements
+- **Summary:**
+  - Rendered selected student address directly under the student picker and increased selected student name emphasis.
+  - Moved Start time + Duration into a 2-column row for faster scheduling.
+
+---
+
+- **Date:** 2026-02-21 (Pacific/Auckland)
+- **Task:** Lessons: student picker + location display
+- **Summary:**
+  - Moved the Student block above date/time/duration and reused the assessment-style student dropdown search.
+  - Removed Status + Location inputs; now shows Location from the selected student address and updated lesson cards accordingly.
+
+---
+
+- **Date:** 2026-02-21 (Pacific/Auckland)
 - **Task:** Restricted history feedback ordering
 - **Summary:**
   - Moved General feedback + Improvement(s) needed cards to sit directly under Overview for restricted mock tests.
@@ -131,27 +154,3 @@
 - **Summary:**
   - Replaced the Themes screen style dropdown with an always-visible list of theme presets.
   - Kept selected-theme highlighting and tap-to-select behavior for the active light/dark mode.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Move themes UI to dedicated screen
-- **Summary:**
-  - Added a new `Themes` screen in Settings stack and moved the full theme selector UI there.
-  - Replaced the Settings page theme block with a top-level `Themes` navigation button above `Organization`.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Settings cards keep identity details when collapsed
-- **Summary:**
-  - Updated Settings collapsible behavior so `Organization` and `Account Settings` always show logo/avatar and summary text.
-  - Restricted Show/Hide to control only the action buttons inside each card.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Settings organization/account collapsible sections
-- **Summary:**
-  - Made `Organization` and `Account Settings` cards collapsed by default with top-right `Show` controls.
-  - Added toggle behavior so tapping `Show` expands card actions and switches the control to red `Hide`.

@@ -4,7 +4,7 @@ import { User } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
 import { AppStack } from "../../components/AppStack";
-import { AppText } from "../../components/AppText";
+import { AppText, type AppTextVariant } from "../../components/AppText";
 import type { Student } from "../../features/students/api";
 import { useThemeFonts } from "../../providers/ThemeFontsProvider";
 import { theme } from "../../theme/theme";
@@ -17,6 +17,8 @@ type Props = {
   onSelectStudent: (student: Student) => void;
   disabled?: boolean;
   error?: string;
+  selectedStudentNameVariant?: AppTextVariant;
+  selectedStudentNameClassName?: string;
 };
 
 const MAX_VISIBLE_STUDENT_ROWS = 6;
@@ -50,6 +52,8 @@ export function AssessmentStudentDropdown({
   onSelectStudent,
   disabled = false,
   error,
+  selectedStudentNameVariant = "body",
+  selectedStudentNameClassName,
 }: Props) {
   const { colorScheme } = useColorScheme();
   const { fonts } = useThemeFonts();
@@ -128,7 +132,10 @@ export function AssessmentStudentDropdown({
 
         {selectedStudent && !isChangingStudent ? (
           <View className="mt-1 flex-row items-center justify-between gap-3">
-            <AppText className="flex-1" variant="body">
+            <AppText
+              className={cn("flex-1", selectedStudentNameClassName)}
+              variant={selectedStudentNameVariant}
+            >
               {fullNameOf(selectedStudent)}
             </AppText>
             {selectedStudentId && !disabled ? (
