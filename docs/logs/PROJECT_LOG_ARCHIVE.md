@@ -1584,3 +1584,11 @@
   - Kept selected-theme highlighting and tap-to-select behavior for the active light/dark mode.
 
 ---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Theme selection first-update navbar color fix
+- **Summary:**
+  - Updated theme setter actions to apply theme colors synchronously before state updates so navigation reads fresh palette values immediately.
+  - Fixed first theme selection in `Themes` screen not updating navbar/header colors until a later interaction.
+
+---

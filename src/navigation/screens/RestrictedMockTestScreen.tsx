@@ -23,6 +23,7 @@ import {
 import { Controller, useForm } from "react-hook-form";
 
 import { AppButton } from "../../components/AppButton";
+import { AppBottomSheetModal } from "../../components/AppBottomSheetModal";
 import { AppCard } from "../../components/AppCard";
 import { AppCollapsibleCard } from "../../components/AppCollapsibleCard";
 import { AppDateInput } from "../../components/AppDateInput";
@@ -755,13 +756,17 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     setTaskModalVisible(true);
   }
 
-  function closeTaskModal() {
+  function requestCloseTaskModal() {
     const task = activeTask;
     if (task) {
       const key = taskModalDraftKey(task.stageId, task.taskId);
       setTaskModalDrafts((prev) => ({ ...prev, [key]: taskModalItems }));
     }
+    setOpenTaskSuggestions(null);
     setTaskModalVisible(false);
+  }
+
+  function finalizeCloseTaskModal() {
     setActiveTask(null);
     setOpenTaskSuggestions(null);
   }
@@ -1343,302 +1348,281 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
         }}
       />
 
-      <Modal
+      <AppBottomSheetModal
         visible={taskModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={closeTaskModal}
+        onRequestClose={requestCloseTaskModal}
+        onClosed={finalizeCloseTaskModal}
+        collapsedHeightRatio={0.45}
       >
-        <Pressable
-          className="flex-1 items-stretch justify-center bg-black/40 px-4"
-          onPress={closeTaskModal}
-        >
-          <Pressable
-            className="w-full"
-            onPress={(event) => event.stopPropagation()}
-          >
-            <AppCard
-              className={cn(
-                "gap-3 overflow-hidden rounded-3xl border-slate-900/40 shadow-2xl shadow-black/20 dark:border-slate-50/10 dark:shadow-black/60",
-                isCompact ? "p-3" : "p-4",
-              )}
-              style={{ maxHeight: Math.round(height * 0.9) }}
-            >
-              {activeTask && activeTaskDef && activeTaskState ? (
-                <>
-                  {(() => {
-                    const currentItems = activeTaskState.items as Record<RestrictedMockTestTaskItemId, number>;
-                    const recordedFaults = restrictedMockTestTaskItems.reduce((sum, item) => {
-                      return sum + (currentItems[item.id] ?? 0);
-                    }, 0);
-                    const selectedFaults = restrictedMockTestTaskItems.reduce((sum, item) => {
-                      return taskModalItems[item.id] === "fault" ? sum + 1 : sum;
-                    }, 0);
-                    const previewFaults = recordedFaults + selectedFaults;
+        {activeTask && activeTaskDef && activeTaskState ? (
+          <>
+            {(() => {
+              const currentItems = activeTaskState.items as Record<RestrictedMockTestTaskItemId, number>;
+              const recordedFaults = restrictedMockTestTaskItems.reduce((sum, item) => {
+                return sum + (currentItems[item.id] ?? 0);
+              }, 0);
+              const selectedFaults = restrictedMockTestTaskItems.reduce((sum, item) => {
+                return taskModalItems[item.id] === "fault" ? sum + 1 : sum;
+              }, 0);
+              const previewFaults = recordedFaults + selectedFaults;
 
-                    return (
-                  <View className="flex-row items-start justify-between gap-3">
-                    <View className="flex-1">
-                      <AppText variant="heading">{activeTaskDef.name}</AppText>
-                      <View className="mt-2 flex-row flex-wrap items-center gap-x-4 gap-y-1">
-                        <AppText className="text-xl !text-blue-600 dark:!text-blue-400" variant="body">
-                          Repetitions: {activeTaskState.repetitions ?? 0}
-                        </AppText>
-                        <AppText className="text-xl !text-red-600 dark:!text-red-400" variant="body">
-                          Faults: {previewFaults}
-                        </AppText>
-                      </View>
-                    </View>
-
-                    <View className="items-end gap-2">
-                      <AppButton
-                        width="auto"
-                        variant="primary"
-                        className="bg-green-600 border-green-600 dark:bg-green-500 dark:border-green-500"
-                        label="Record Repetition"
-                        icon={Save}
-                        onPress={() => {
-                          if (openTaskSuggestions) setOpenTaskSuggestions(null);
-                          const stageId = activeTask.stageId;
-                          const taskId = activeTask.taskId;
-                          const taskName = activeTaskDef.name;
-                          const nextCount = (activeTaskState.repetitions ?? 0) + 1;
-                          Alert.alert(
-                            "Record repetition?",
-                            `Save repetition #${nextCount} for "${taskName}"?`,
-                            [
-                              { text: "Cancel", style: "cancel" },
-                               {
-                                 text: "Record",
-                                  onPress: () => {
-                                    Keyboard.dismiss();
-                                    setStagesState((prev) =>
-                                      updateTaskState(prev, stageId, taskId, (task) => {
-                                       const nextItems: Record<RestrictedMockTestTaskItemId, number> = {
-                                         ...task.items,
-                                       };
-
-                                      restrictedMockTestTaskItems.forEach((item) => {
-                                        if (taskModalItems[item.id] === "fault") {
-                                          nextItems[item.id] = (nextItems[item.id] ?? 0) + 1;
-                                        }
-                                      });
-
-                                       return {
-                                         ...task,
-                                         repetitions: (task.repetitions ?? 0) + 1,
-                                         items: nextItems,
-                                         repetitionErrors: [
-                                           ...(task.repetitionErrors ?? []),
-                                           {
-                                             criticalErrors: task.criticalErrors ?? "",
-                                             immediateFailureErrors: task.immediateFailureErrors ?? "",
-                                           },
-                                         ],
-                                         criticalErrors: "",
-                                         immediateFailureErrors: "",
-                                       };
-                                      }),
-                                    );
-                                    const cleared = createEmptyItems();
-                                    setTaskModalItems(cleared);
-                                    setTaskModalDrafts((drafts) => ({
-                                      ...drafts,
-                                      [taskModalDraftKey(stageId, taskId)]: cleared,
-                                    }));
-                                    setOpenTaskSuggestions(null);
-                                  },
-                                },
-                              ],
-                            );
-                         }}
-                      />
+              return (
+                <View className="flex-row items-start justify-between gap-3">
+                  <View className="flex-1">
+                    <AppText variant="heading">{activeTaskDef.name}</AppText>
+                    <View className="mt-2 flex-row flex-wrap items-center gap-x-4 gap-y-1">
+                      <AppText className="text-xl !text-blue-600 dark:!text-blue-400" variant="body">
+                        Repetitions: {activeTaskState.repetitions ?? 0}
+                      </AppText>
+                      <AppText className="text-xl !text-red-600 dark:!text-red-400" variant="body">
+                        Faults: {previewFaults}
+                      </AppText>
                     </View>
                   </View>
+
+                  <View className="items-end gap-2">
+                    <AppButton
+                      width="auto"
+                      variant="primary"
+                      className="bg-green-600 border-green-600 dark:bg-green-500 dark:border-green-500"
+                      label="Record Repetition"
+                      icon={Save}
+                      onPress={() => {
+                        if (openTaskSuggestions) setOpenTaskSuggestions(null);
+                        const stageId = activeTask.stageId;
+                        const taskId = activeTask.taskId;
+                        const taskName = activeTaskDef.name;
+                        const nextCount = (activeTaskState.repetitions ?? 0) + 1;
+                        Alert.alert(
+                          "Record repetition?",
+                          `Save repetition #${nextCount} for "${taskName}"?`,
+                          [
+                            { text: "Cancel", style: "cancel" },
+                            {
+                              text: "Record",
+                              onPress: () => {
+                                Keyboard.dismiss();
+                                setStagesState((prev) =>
+                                  updateTaskState(prev, stageId, taskId, (task) => {
+                                    const nextItems: Record<RestrictedMockTestTaskItemId, number> = {
+                                      ...task.items,
+                                    };
+
+                                    restrictedMockTestTaskItems.forEach((item) => {
+                                      if (taskModalItems[item.id] === "fault") {
+                                        nextItems[item.id] = (nextItems[item.id] ?? 0) + 1;
+                                      }
+                                    });
+
+                                    return {
+                                      ...task,
+                                      repetitions: (task.repetitions ?? 0) + 1,
+                                      items: nextItems,
+                                      repetitionErrors: [
+                                        ...(task.repetitionErrors ?? []),
+                                        {
+                                          criticalErrors: task.criticalErrors ?? "",
+                                          immediateFailureErrors: task.immediateFailureErrors ?? "",
+                                        },
+                                      ],
+                                      criticalErrors: "",
+                                      immediateFailureErrors: "",
+                                    };
+                                  }),
+                                );
+                                const cleared = createEmptyItems();
+                                setTaskModalItems(cleared);
+                                setTaskModalDrafts((drafts) => ({
+                                  ...drafts,
+                                  [taskModalDraftKey(stageId, taskId)]: cleared,
+                                }));
+                                setOpenTaskSuggestions(null);
+                              },
+                            },
+                          ],
+                        );
+                      }}
+                    />
+                  </View>
+                </View>
+              );
+            })()}
+
+            <ScrollView
+              style={{ flexShrink: 1 }}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+              automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+            >
+              <AppStack gap="md" className={cn(isCompact ? "pt-1" : "pt-2")}>
+                <AppInput
+                  label="Location / reference (street, landmark, direction)"
+                  value={activeTaskState.location}
+                  onChangeText={(next) => {
+                    const stageId = activeTask.stageId;
+                    const taskId = activeTask.taskId;
+                    setStagesState((prev) =>
+                      updateTaskState(prev, stageId, taskId, (task) => ({
+                        ...task,
+                        location: next,
+                      })),
                     );
-                  })()}
+                  }}
+                />
 
-                  <ScrollView
-                    style={{ flexShrink: 1 }}
-                    keyboardShouldPersistTaps="handled"
-                    keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
-                    automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
-                  >
-                    <AppStack gap="md" className={cn("relative", isCompact ? "pt-1" : "pt-2")}>
-                      <AppInput
-                        label="Location / reference (street, landmark, direction)"
-                        value={activeTaskState.location}
-                        onChangeText={(next) => {
-                          const stageId = activeTask.stageId;
-                          const taskId = activeTask.taskId;
-                          setStagesState((prev) =>
-                            updateTaskState(prev, stageId, taskId, (task) => ({
-                              ...task,
-                              location: next,
-                            })),
-                          );
-                        }}
-                      />
-
-                      <AppStack gap="sm">
-                        <AppText variant="caption">
-                          Tap a button to mark a Fault (red). Tap again to reset to OK / n/a.
-                        </AppText>
-                        <View className="flex-row flex-wrap gap-2">
-                          {restrictedMockTestTaskItems.map((item) => {
-                            const current = taskModalItems[item.id] as FaultValue;
-                            const isFault = current === "fault";
-                            return (
-                              <Pressable
-                                key={item.id}
-                                accessibilityRole="button"
-                                accessibilityState={{ selected: isFault }}
-                                className={cn(
-                                  "w-[48%] rounded-xl border px-3 py-3",
-                                  isFault
-                                    ? "border-danger bg-danger dark:border-dangerDark dark:bg-dangerDark"
-                                    : "border-border bg-background dark:border-borderDark dark:bg-backgroundDark",
-                                )}
-                                onPress={() => {
-                                  const task = activeTask;
-                                  setTaskModalItems((prev) => {
-                                    const nextValue: FaultValue = prev[item.id] === "fault" ? "" : "fault";
-                                    const next = { ...prev, [item.id]: nextValue };
-                                    if (task) {
-                                      const key = taskModalDraftKey(task.stageId, task.taskId);
-                                      setTaskModalDrafts((drafts) => ({ ...drafts, [key]: next }));
-                                    }
-                                    return next;
-                                  });
-                                }}
-                              >
-                                <AppText className={cn("text-center", isFault && "text-primaryForeground")} variant="button">
-                                  {item.label}
-                                </AppText>
-                              </Pressable>
-                            );
-                          })}
-                        </View>
-                      </AppStack>
-
-                      <AppInput
-                        label="Critical error(s)"
-                        value={activeTaskState.criticalErrors ?? ""}
-                        onChangeText={(next) => {
-                          const stageId = activeTask.stageId;
-                          const taskId = activeTask.taskId;
-                          setStagesState((prev) =>
-                            updateTaskState(prev, stageId, taskId, (task) => ({
-                              ...task,
-                              criticalErrors: next,
-                            })),
-                          );
-                        }}
-                        onPressIn={() => setOpenTaskSuggestions("criticalErrors")}
-                        multiline
-                        numberOfLines={5}
-                        textAlignVertical="top"
-                        inputClassName="h-32 py-3"
-                      />
-
-                      <AppButton
-                        width="auto"
-                        variant="ghost"
-                        label={
-                          openTaskSuggestions === "criticalErrors" ? "Hide suggestions" : "Show suggestions"
-                        }
-                        onPress={() =>
-                          setOpenTaskSuggestions((current) =>
-                            current === "criticalErrors" ? null : "criticalErrors",
-                          )
-                        }
-                      />
-
-                      <SuggestionsPickerModal
-                        visible={openTaskSuggestions === "criticalErrors"}
-                        title="Critical error(s) suggestions"
-                        subtitle="Tap suggestions to add/remove them, then close when done."
-                        suggestions={restrictedMockTestTaskCriticalErrorSuggestions}
-                        value={activeTaskState.criticalErrors ?? ""}
-                        onChangeValue={(next) => {
-                          const stageId = activeTask.stageId;
-                          const taskId = activeTask.taskId;
-                          setStagesState((prev) =>
-                            updateTaskState(prev, stageId, taskId, (task) => ({ ...task, criticalErrors: next })),
-                          );
-                        }}
-                        onClose={() => setOpenTaskSuggestions(null)}
-                      />
-
-                      <AppInput
-                        label="Immediate failure error"
-                        value={activeTaskState.immediateFailureErrors ?? ""}
-                        onChangeText={(next) => {
-                          const stageId = activeTask.stageId;
-                          const taskId = activeTask.taskId;
-                          setStagesState((prev) =>
-                            updateTaskState(prev, stageId, taskId, (task) => ({
-                              ...task,
-                              immediateFailureErrors: next,
-                            })),
-                          );
-                        }}
-                        onPressIn={() => setOpenTaskSuggestions("immediateFailureErrors")}
-                        multiline
-                        numberOfLines={5}
-                        textAlignVertical="top"
-                        inputClassName="h-32 py-3"
-                      />
-
-                      <AppButton
-                        width="auto"
-                        variant="ghost"
-                        label={
-                          openTaskSuggestions === "immediateFailureErrors"
-                            ? "Hide suggestions"
-                            : "Show suggestions"
-                        }
-                        onPress={() =>
-                          setOpenTaskSuggestions((current) =>
-                            current === "immediateFailureErrors" ? null : "immediateFailureErrors",
-                          )
-                        }
-                      />
-
-                      <SuggestionsPickerModal
-                        visible={openTaskSuggestions === "immediateFailureErrors"}
-                        title="Immediate failure error suggestions"
-                        subtitle="Tap suggestions to add/remove them, then close when done."
-                        suggestions={restrictedMockTestTaskImmediateFailureErrorSuggestions}
-                        value={activeTaskState.immediateFailureErrors ?? ""}
-                        selectedVariant="danger"
-                        onChangeValue={(next) => {
-                          const stageId = activeTask.stageId;
-                          const taskId = activeTask.taskId;
-                          setStagesState((prev) =>
-                            updateTaskState(prev, stageId, taskId, (task) => ({
-                              ...task,
-                              immediateFailureErrors: next,
-                            })),
-                          );
-                        }}
-                        onClose={() => setOpenTaskSuggestions(null)}
-                      />
-
-                      <AppButton width="auto" variant="secondary" label="Close" onPress={closeTaskModal} />
-                    </AppStack>
-                  </ScrollView>
-                </>
-              ) : (
                 <AppStack gap="sm">
-                  <AppText variant="heading">No task selected</AppText>
-                  <AppButton width="auto" variant="secondary" label="Close" onPress={closeTaskModal} />
+                  <AppText variant="caption">
+                    Tap a button to mark a Fault (red). Tap again to reset to OK / n/a.
+                  </AppText>
+                  <View className="flex-row flex-wrap gap-2">
+                    {restrictedMockTestTaskItems.map((item) => {
+                      const current = taskModalItems[item.id] as FaultValue;
+                      const isFault = current === "fault";
+                      return (
+                        <Pressable
+                          key={item.id}
+                          accessibilityRole="button"
+                          accessibilityState={{ selected: isFault }}
+                          className={cn(
+                            "w-[48%] rounded-xl border px-3 py-3",
+                            isFault
+                              ? "border-danger bg-danger dark:border-dangerDark dark:bg-dangerDark"
+                              : "border-border bg-background dark:border-borderDark dark:bg-backgroundDark",
+                          )}
+                          onPress={() => {
+                            const task = activeTask;
+                            setTaskModalItems((prev) => {
+                              const nextValue: FaultValue = prev[item.id] === "fault" ? "" : "fault";
+                              const next = { ...prev, [item.id]: nextValue };
+                              if (task) {
+                                const key = taskModalDraftKey(task.stageId, task.taskId);
+                                setTaskModalDrafts((drafts) => ({ ...drafts, [key]: next }));
+                              }
+                              return next;
+                            });
+                          }}
+                        >
+                          <AppText
+                            className={cn("text-center", isFault && "text-primaryForeground")}
+                            variant="button"
+                          >
+                            {item.label}
+                          </AppText>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
                 </AppStack>
-              )}
-            </AppCard>
-          </Pressable>
-        </Pressable>
-      </Modal>
+
+                <AppInput
+                  label="Critical error(s)"
+                  value={activeTaskState.criticalErrors ?? ""}
+                  onChangeText={(next) => {
+                    const stageId = activeTask.stageId;
+                    const taskId = activeTask.taskId;
+                    setStagesState((prev) =>
+                      updateTaskState(prev, stageId, taskId, (task) => ({
+                        ...task,
+                        criticalErrors: next,
+                      })),
+                    );
+                  }}
+                  onPressIn={() => setOpenTaskSuggestions("criticalErrors")}
+                  multiline
+                  numberOfLines={5}
+                  textAlignVertical="top"
+                  inputClassName="h-32 py-3"
+                />
+
+                <AppButton
+                  width="auto"
+                  variant="ghost"
+                  label={openTaskSuggestions === "criticalErrors" ? "Hide suggestions" : "Show suggestions"}
+                  onPress={() =>
+                    setOpenTaskSuggestions((current) => (current === "criticalErrors" ? null : "criticalErrors"))
+                  }
+                />
+
+                <SuggestionsPickerModal
+                  visible={openTaskSuggestions === "criticalErrors"}
+                  title="Critical error(s) suggestions"
+                  subtitle="Tap suggestions to add/remove them, then close when done."
+                  suggestions={restrictedMockTestTaskCriticalErrorSuggestions}
+                  value={activeTaskState.criticalErrors ?? ""}
+                  onChangeValue={(next) => {
+                    const stageId = activeTask.stageId;
+                    const taskId = activeTask.taskId;
+                    setStagesState((prev) =>
+                      updateTaskState(prev, stageId, taskId, (task) => ({ ...task, criticalErrors: next })),
+                    );
+                  }}
+                  onClose={() => setOpenTaskSuggestions(null)}
+                />
+
+                <AppInput
+                  label="Immediate failure error"
+                  value={activeTaskState.immediateFailureErrors ?? ""}
+                  onChangeText={(next) => {
+                    const stageId = activeTask.stageId;
+                    const taskId = activeTask.taskId;
+                    setStagesState((prev) =>
+                      updateTaskState(prev, stageId, taskId, (task) => ({
+                        ...task,
+                        immediateFailureErrors: next,
+                      })),
+                    );
+                  }}
+                  onPressIn={() => setOpenTaskSuggestions("immediateFailureErrors")}
+                  multiline
+                  numberOfLines={5}
+                  textAlignVertical="top"
+                  inputClassName="h-32 py-3"
+                />
+
+                <AppButton
+                  width="auto"
+                  variant="ghost"
+                  label={
+                    openTaskSuggestions === "immediateFailureErrors" ? "Hide suggestions" : "Show suggestions"
+                  }
+                  onPress={() =>
+                    setOpenTaskSuggestions((current) =>
+                      current === "immediateFailureErrors" ? null : "immediateFailureErrors",
+                    )
+                  }
+                />
+
+                <SuggestionsPickerModal
+                  visible={openTaskSuggestions === "immediateFailureErrors"}
+                  title="Immediate failure error suggestions"
+                  subtitle="Tap suggestions to add/remove them, then close when done."
+                  suggestions={restrictedMockTestTaskImmediateFailureErrorSuggestions}
+                  value={activeTaskState.immediateFailureErrors ?? ""}
+                  selectedVariant="danger"
+                  onChangeValue={(next) => {
+                    const stageId = activeTask.stageId;
+                    const taskId = activeTask.taskId;
+                    setStagesState((prev) =>
+                      updateTaskState(prev, stageId, taskId, (task) => ({
+                        ...task,
+                        immediateFailureErrors: next,
+                      })),
+                    );
+                  }}
+                  onClose={() => setOpenTaskSuggestions(null)}
+                />
+
+                <AppButton width="auto" variant="secondary" label="Close" onPress={requestCloseTaskModal} />
+              </AppStack>
+            </ScrollView>
+          </>
+        ) : (
+          <AppStack gap="sm">
+            <AppText variant="heading">No task selected</AppText>
+            <AppButton width="auto" variant="secondary" label="Close" onPress={requestCloseTaskModal} />
+          </AppStack>
+        )}
+      </AppBottomSheetModal>
 
       <Modal
         visible={startTestModalVisible}

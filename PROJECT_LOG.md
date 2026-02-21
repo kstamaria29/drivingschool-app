@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-22 (Pacific/Auckland)
+- **Task:** Restricted task modal bottom sheet
+- **Summary:**
+  - Converted the task repetition modal into an animated bottom sheet with a handle (drag or tap to expand/collapse, tap backdrop to dismiss).
+  - Matched the modal padding to the main screen container paddings.
+
+---
+
+- **Date:** 2026-02-22 (Pacific/Auckland)
 - **Task:** Restricted mock test UX refinements
 - **Summary:**
   - Defaulted pre-drive Time to current time, removed the optional label, and auto-expanded Stage 1 when starting/resuming.
@@ -146,11 +154,3 @@
 - **Summary:**
   - Added 10 new premium theme presets (5 light, 5 dark) and surfaced premium labeling in the Themes list.
   - Added themed backdrop textures/gradients so premium themes feel materially different beyond color alone.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Theme selection first-update navbar color fix
-- **Summary:**
-  - Updated theme setter actions to apply theme colors synchronously before state updates so navigation reads fresh palette values immediately.
-  - Fixed first theme selection in `Themes` screen not updating navbar/header colors until a later interaction.
