@@ -39,7 +39,6 @@ export function AppBottomSheetModal({
   const isCompact = Math.min(width, height) < TABLET_MIN_WIDTH;
   const [mounted, setMounted] = useState(visible);
   const [measuredSheetHeight, setMeasuredSheetHeight] = useState<number | null>(null);
-  const [snap, setSnap] = useState<"expanded" | "collapsed">("expanded");
   const wasVisibleRef = useRef(false);
 
   const maxSheetHeight = Math.round(height * maxHeightRatio);
@@ -78,7 +77,6 @@ export function AppBottomSheetModal({
 
     if (visible && !wasVisible) {
       setMounted(true);
-      setSnap("expanded");
       const hiddenY = sheetHeightRef.current;
       translateY.setValue(hiddenY);
       requestAnimationFrame(() => {
@@ -147,7 +145,6 @@ export function AppBottomSheetModal({
           Math.abs(current - expandedTranslateY) <= Math.abs(current - collapsedTranslateY)
             ? expandedTranslateY
             : collapsedTranslateY;
-        setSnap(target === expandedTranslateY ? "expanded" : "collapsed");
         animateTo(target);
       },
     });
@@ -158,12 +155,6 @@ export function AppBottomSheetModal({
     onRequestClose,
     translateY,
   ]);
-
-  function toggleSnap() {
-    const nextSnap = snap === "expanded" ? "collapsed" : "expanded";
-    setSnap(nextSnap);
-    animateTo(nextSnap === "expanded" ? expandedTranslateY : collapsedTranslateY);
-  }
 
   function onSheetLayout(event: LayoutChangeEvent) {
     const next = Math.min(Math.round(event.nativeEvent.layout.height), maxSheetHeight);
@@ -202,13 +193,13 @@ export function AppBottomSheetModal({
             <View className="items-center">
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={snap === "expanded" ? "Collapse sheet" : "Expand sheet"}
-                onPress={toggleSnap}
+                accessibilityLabel="Dismiss sheet"
+                onPress={onRequestClose}
                 hitSlop={12}
                 {...panResponder.panHandlers}
               >
                 <View className="items-center py-2">
-                  <View className="h-1.5 w-12 rounded-full bg-border/70 dark:bg-borderDark/70" />
+                  <View className="h-1.5 w-14 rounded-full bg-border/70 dark:bg-borderDark/70" />
                 </View>
               </Pressable>
             </View>

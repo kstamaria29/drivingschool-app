@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-22 (Pacific/Auckland)
+- **Task:** Restricted suggestions bottom sheet
+- **Summary:**
+  - Switched the suggestions picker (task errors + feedback) to the same bottom-sheet pattern as the task repetition modal.
+  - Updated suggestions helper copy to reflect handle/backdrop dismissal.
+
+---
+
+- **Date:** 2026-02-22 (Pacific/Auckland)
 - **Task:** Restricted task modal bottom sheet
 - **Summary:**
   - Converted the task repetition modal into an animated bottom sheet with a handle (drag or tap to expand/collapse, tap backdrop to dismiss).
@@ -73,7 +81,7 @@
 - **Date:** 2026-02-21 (Pacific/Auckland)
 - **Task:** Notifications test buttons for all roles
 - **Summary:**
-  - Made “Send test notification” buttons visible for owners and instructors (not admin-only).
+  - Made â€œSend test notificationâ€ buttons visible for owners and instructors (not admin-only).
 
 ---
 
@@ -146,11 +154,3 @@
 - **Summary:**
   - Split Themes screen into collapsible Free vs Premium blocks and auto-collapsed the non-selected group.
   - Added per-premium-theme typography via Google Fonts remote font loading so premium selections update the app font.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Premium themes + textured backdrops
-- **Summary:**
-  - Added 10 new premium theme presets (5 light, 5 dark) and surfaced premium labeling in the Themes list.
-  - Added themed backdrop textures/gradients so premium themes feel materially different beyond color alone.

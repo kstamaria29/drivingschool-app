@@ -1592,3 +1592,11 @@
   - Fixed first theme selection in `Themes` screen not updating navbar/header colors until a later interaction.
 
 ---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Premium themes + textured backdrops
+- **Summary:**
+  - Added 10 new premium theme presets (5 light, 5 dark) and surfaced premium labeling in the Themes list.
+  - Added themed backdrop textures/gradients so premium themes feel materially different beyond color alone.
+
+---

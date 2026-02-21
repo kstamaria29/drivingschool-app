@@ -1131,7 +1131,6 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   label="General feedback"
                   value={value}
                   onChangeText={field.onChange}
-                  onPressIn={() => setOpenFeedbackSuggestions("generalFeedback")}
                   multiline
                   numberOfLines={5}
                   textAlignVertical="top"
@@ -1156,7 +1155,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                 <SuggestionsPickerModal
                   visible={openFeedbackSuggestions === "generalFeedback"}
                   title="General feedback suggestions"
-                  subtitle="Tap suggestions to add/remove them, then close when done."
+                  subtitle="Tap suggestions to add/remove them. Tap the handle or backdrop to dismiss."
                   suggestions={restrictedMockTestGeneralFeedbackSuggestions}
                   value={value}
                   onChangeValue={field.onChange}
@@ -1191,7 +1190,6 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   label="Improvement(s) needed"
                   value={value}
                   onChangeText={field.onChange}
-                  onPressIn={() => setOpenFeedbackSuggestions("improvementNeeded")}
                   multiline
                   numberOfLines={5}
                   textAlignVertical="top"
@@ -1216,7 +1214,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                 <SuggestionsPickerModal
                   visible={openFeedbackSuggestions === "improvementNeeded"}
                   title="Improvement(s) needed suggestions"
-                  subtitle="Tap suggestions to add/remove them, then close when done."
+                  subtitle="Tap suggestions to add/remove them. Tap the handle or backdrop to dismiss."
                   suggestions={restrictedMockTestImprovementNeededSuggestions}
                   value={value}
                   onChangeValue={field.onChange}
@@ -1369,7 +1367,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
               return (
                 <View className="flex-row items-start justify-between gap-3">
                   <View className="flex-1">
-                    <AppText variant="heading">{activeTaskDef.name}</AppText>
+                    <AppText className="!text-[22px]" variant="heading">
+                      {activeTaskDef.name}
+                    </AppText>
                     <View className="mt-2 flex-row flex-wrap items-center gap-x-4 gap-y-1">
                       <AppText className="text-xl !text-blue-600 dark:!text-blue-400" variant="body">
                         Repetitions: {activeTaskState.repetitions ?? 0}
@@ -1472,7 +1472,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
                 <AppStack gap="sm">
                   <AppText variant="caption">
-                    Tap a button to mark a Fault (red). Tap again to reset to OK / n/a.
+                    Tap a button to mark a Fault (red).
                   </AppText>
                   <View className="flex-row flex-wrap gap-2">
                     {restrictedMockTestTaskItems.map((item) => {
@@ -1527,7 +1527,6 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                       })),
                     );
                   }}
-                  onPressIn={() => setOpenTaskSuggestions("criticalErrors")}
                   multiline
                   numberOfLines={5}
                   textAlignVertical="top"
@@ -1546,7 +1545,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                 <SuggestionsPickerModal
                   visible={openTaskSuggestions === "criticalErrors"}
                   title="Critical error(s) suggestions"
-                  subtitle="Tap suggestions to add/remove them, then close when done."
+                  subtitle="Tap suggestions to add/remove them. Tap the handle or backdrop to dismiss."
                   suggestions={restrictedMockTestTaskCriticalErrorSuggestions}
                   value={activeTaskState.criticalErrors ?? ""}
                   onChangeValue={(next) => {
@@ -1572,7 +1571,6 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                       })),
                     );
                   }}
-                  onPressIn={() => setOpenTaskSuggestions("immediateFailureErrors")}
                   multiline
                   numberOfLines={5}
                   textAlignVertical="top"
@@ -1595,7 +1593,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                 <SuggestionsPickerModal
                   visible={openTaskSuggestions === "immediateFailureErrors"}
                   title="Immediate failure error suggestions"
-                  subtitle="Tap suggestions to add/remove them, then close when done."
+                  subtitle="Tap suggestions to add/remove them. Tap the handle or backdrop to dismiss."
                   suggestions={restrictedMockTestTaskImmediateFailureErrorSuggestions}
                   value={activeTaskState.immediateFailureErrors ?? ""}
                   selectedVariant="danger"
@@ -1612,14 +1610,12 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   onClose={() => setOpenTaskSuggestions(null)}
                 />
 
-                <AppButton width="auto" variant="secondary" label="Close" onPress={requestCloseTaskModal} />
               </AppStack>
             </ScrollView>
           </>
         ) : (
           <AppStack gap="sm">
             <AppText variant="heading">No task selected</AppText>
-            <AppButton width="auto" variant="secondary" label="Close" onPress={requestCloseTaskModal} />
           </AppStack>
         )}
       </AppBottomSheetModal>

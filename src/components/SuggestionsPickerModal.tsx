@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useRef } from "react";
-import { Modal, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
+import { ScrollView, View } from "react-native";
 
-import { cn } from "../utils/cn";
-
+import { AppBottomSheetModal } from "./AppBottomSheetModal";
 import { AppButton } from "./AppButton";
-import { AppCard } from "./AppCard";
 import { AppStack } from "./AppStack";
 import { AppText } from "./AppText";
 
@@ -29,7 +27,7 @@ type Props = {
   onClose: () => void;
 };
 
-const TABLET_MIN_WIDTH = 600;
+const NOOP = () => {};
 
 function buildSuggestionLine(option: CategorizedSuggestion) {
   return `${option.category} - ${option.text}`;
@@ -64,10 +62,7 @@ function groupSuggestionsByCategory(options: readonly CategorizedSuggestion[]) {
     categories.set(option.category, list);
   });
 
-  return Array.from(categories.entries()).map(([category, suggestions]) => ({
-    category,
-    suggestions,
-  }));
+  return Array.from(categories.entries()).map(([category, suggestions]) => ({ category, suggestions }));
 }
 
 function countSelectedLines(value: string) {
@@ -87,8 +82,6 @@ export function SuggestionsPickerModal({
   onChangeValue,
   onClose,
 }: Props) {
-  const { width, height } = useWindowDimensions();
-  const isCompact = Math.min(width, height) < TABLET_MIN_WIDTH;
   const suggestionGroups = useMemo(() => groupSuggestionsByCategory(suggestions), [suggestions]);
   const selectedCount = useMemo(() => countSelectedLines(value), [value]);
   const valueRef = useRef(value);
@@ -98,60 +91,56 @@ export function SuggestionsPickerModal({
   }, [value]);
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable
-        className={cn("flex-1 bg-black/40", isCompact ? "px-4 py-6" : "px-6 py-10")}
-        onPress={onClose}
-      >
-        <Pressable className="m-auto w-full max-w-[720px]" onPress={(event) => event.stopPropagation()}>
-          <AppCard className="gap-3" style={{ maxHeight: Math.round(height * 0.9) }}>
-            <View className="flex-row items-start justify-between gap-3">
-              <View className="flex-1">
-                <AppText variant="heading">{title}</AppText>
-                {subtitle ? (
-                  <AppText className="mt-1" variant="caption">
-                    {subtitle}
-                  </AppText>
-                ) : null}
+    <AppBottomSheetModal
+      visible={visible}
+      onRequestClose={onClose}
+      onClosed={NOOP}
+      collapsedHeightRatio={0.45}
+    >
+      <View className="gap-4">
+        <View className="flex-row items-start justify-between gap-3">
+          <View className="flex-1">
+            <AppText variant="heading">{title}</AppText>
+            {subtitle ? (
+              <AppText className="mt-1" variant="caption">
+                {subtitle}
+              </AppText>
+            ) : null}
+          </View>
+          <AppText className="text-right" variant="caption">
+            {selectedCount > 0 ? `${selectedCount} selected` : "\u2014"}
+          </AppText>
+        </View>
+
+        <ScrollView style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled">
+          <AppStack gap="md">
+            {suggestionGroups.map(({ category, suggestions: options }) => (
+              <View key={category} className="gap-2">
+                <AppText variant="label">{category}</AppText>
+                <AppStack gap="sm">
+                  {options.map((option) => {
+                    const line = buildSuggestionLine(option);
+                    const selected = hasSuggestionLine(value, line);
+                    return (
+                      <AppButton
+                        key={line}
+                        width="auto"
+                        variant={selected ? selectedVariant : "secondary"}
+                        label={option.text}
+                        onPress={() => {
+                          const next = toggleSuggestionLine(valueRef.current, line);
+                          valueRef.current = next;
+                          onChangeValue(next);
+                        }}
+                      />
+                    );
+                  })}
+                </AppStack>
               </View>
-              <AppButton width="auto" variant="ghost" label="Close" onPress={onClose} />
-            </View>
-
-            <AppText className="text-right" variant="caption">
-              {selectedCount > 0 ? `${selectedCount} selected` : "—"}
-            </AppText>
-
-            <ScrollView keyboardShouldPersistTaps="handled">
-              <AppStack gap="md">
-                {suggestionGroups.map(({ category, suggestions: options }) => (
-                  <View key={category} className="gap-2">
-                    <AppText variant="label">{category}</AppText>
-                    <AppStack gap="sm">
-                      {options.map((option) => {
-                        const line = buildSuggestionLine(option);
-                        const selected = hasSuggestionLine(value, line);
-                        return (
-                          <AppButton
-                            key={line}
-                            width="auto"
-                            variant={selected ? selectedVariant : "secondary"}
-                            label={option.text}
-                            onPress={() => {
-                              const next = toggleSuggestionLine(valueRef.current, line);
-                              valueRef.current = next;
-                              onChangeValue(next);
-                            }}
-                          />
-                        );
-                      })}
-                    </AppStack>
-                  </View>
-                ))}
-              </AppStack>
-            </ScrollView>
-          </AppCard>
-        </Pressable>
-      </Pressable>
-    </Modal>
+            ))}
+          </AppStack>
+        </ScrollView>
+      </View>
+    </AppBottomSheetModal>
   );
 }
