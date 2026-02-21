@@ -1,5 +1,13 @@
 # PROJECT_LOG.md
 
+- **Date:** 2026-02-22 (Pacific/Auckland)
+- **Task:** Restricted mock test UX refinements
+- **Summary:**
+  - Defaulted pre-drive Time to current time, removed the optional label, and auto-expanded Stage 1 when starting/resuming.
+  - Moved error/feedback suggestions into a dedicated modal and persisted in-progress task repetition selections with dynamic modal height.
+
+---
+
 - **Date:** 2026-02-21 (Pacific/Auckland)
 - **Task:** Lessons address label + size
 - **Summary:**
@@ -146,11 +154,3 @@
 - **Summary:**
   - Updated theme setter actions to apply theme colors synchronously before state updates so navigation reads fresh palette values immediately.
   - Fixed first theme selection in `Themes` screen not updating navbar/header colors until a later interaction.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Themes screen list-style selector
-- **Summary:**
-  - Replaced the Themes screen style dropdown with an always-visible list of theme presets.
-  - Kept selected-theme highlighting and tap-to-select behavior for the active light/dark mode.

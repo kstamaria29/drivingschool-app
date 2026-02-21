@@ -1576,3 +1576,11 @@
   - Replaced the Settings page theme block with a top-level `Themes` navigation button above `Organization`.
 
 ---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Themes screen list-style selector
+- **Summary:**
+  - Replaced the Themes screen style dropdown with an always-visible list of theme presets.
+  - Kept selected-theme highlighting and tap-to-select behavior for the active light/dark mode.
+
+---

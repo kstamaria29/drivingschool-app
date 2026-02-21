@@ -30,6 +30,7 @@ import { AppInput } from "../../components/AppInput";
 import { AppStack } from "../../components/AppStack";
 import { AppText } from "../../components/AppText";
 import { AppTimeInput } from "../../components/AppTimeInput";
+import { SuggestionsPickerModal } from "../../components/SuggestionsPickerModal";
 import { Screen } from "../../components/Screen";
 import { SubmitAssessmentConfirmModal } from "../../components/SubmitAssessmentConfirmModal";
 import { useCurrentUser } from "../../features/auth/current-user";
@@ -42,7 +43,6 @@ import {
   restrictedMockTestTaskCriticalErrorSuggestions,
   restrictedMockTestTaskImmediateFailureErrorSuggestions,
   restrictedMockTestTaskItems,
-  type CategorizedSuggestion,
   type RestrictedMockTestStageId,
   type RestrictedMockTestTaskId,
   type RestrictedMockTestTaskItemId,
@@ -83,6 +83,10 @@ type ActiveTask = { stageId: RestrictedMockTestStageId; taskId: RestrictedMockTe
 type ExclusiveSection = RestrictedMockTestStageId | null;
 
 const DRAFT_VERSION = 1;
+
+function taskModalDraftKey(stageId: RestrictedMockTestStageId, taskId: RestrictedMockTestTaskId) {
+  return `${stageId}:${taskId}`;
+}
 
 function draftKey(userId: string, studentId: string) {
   return `drivingschool.assessments.second_assessment.draft.v${DRAFT_VERSION}:${userId}:${studentId}`;
@@ -163,45 +167,6 @@ function taskFaultCount(task: RestrictedMockTestTaskState) {
   return count;
 }
 
-function buildSuggestionLine(option: CategorizedSuggestion) {
-  return `${option.category} - ${option.text}`;
-}
-
-function hasSuggestionLine(value: string, suggestion: string) {
-  return value
-    .split(/\r?\n/)
-    .some((line) => line.trim().toLowerCase() === suggestion.trim().toLowerCase());
-}
-
-function toggleSuggestionLine(value: string, suggestion: string) {
-  const lines = value.split(/\r?\n/);
-  const index = lines.findIndex(
-    (line) => line.trim().toLowerCase() === suggestion.trim().toLowerCase(),
-  );
-
-  if (index >= 0) {
-    const next = [...lines.slice(0, index), ...lines.slice(index + 1)];
-    return next.join("\n").trimEnd();
-  }
-
-  const trimmed = value.trimEnd();
-  return trimmed ? `${trimmed}\n${suggestion}` : suggestion;
-}
-
-function groupSuggestionsByCategory(options: readonly CategorizedSuggestion[]) {
-  const categories = new Map<string, CategorizedSuggestion[]>();
-  options.forEach((option) => {
-    const list = categories.get(option.category) ?? [];
-    list.push(option);
-    categories.set(option.category, list);
-  });
-
-  return Array.from(categories.entries()).map(([category, suggestions]) => ({
-    category,
-    suggestions,
-  }));
-}
-
 function countSelectedLines(value: string) {
   return value
     .split(/\r?\n/)
@@ -245,6 +210,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   const [openTaskSuggestions, setOpenTaskSuggestions] = useState<
     "criticalErrors" | "immediateFailureErrors" | null
   >(null);
+  const [taskModalDrafts, setTaskModalDrafts] = useState<
+    Record<string, Record<RestrictedMockTestTaskItemId, FaultValue>>
+  >({});
   const [taskModalItems, setTaskModalItems] = useState<
     Record<RestrictedMockTestTaskItemId, FaultValue>
   >(() => createEmptyItems());
@@ -361,7 +329,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     defaultValues: {
       studentId: "",
       date: dayjs().format("DD/MM/YYYY"),
-      time: "",
+      time: dayjs().format("HH:mm"),
       vehicleInfo: "",
       routeInfo: "",
       preDriveNotes: "",
@@ -422,6 +390,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     setTaskModalVisible(false);
     setActiveTask(null);
     setOpenTaskSuggestions(null);
+    setTaskModalDrafts({});
     setOpenFeedbackSuggestions(null);
     setDraftResolvedStudentId(null);
     setSelectedStudentId(studentId);
@@ -430,7 +399,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     form.reset({
       studentId,
       date: dayjs().format("DD/MM/YYYY"),
-      time: "",
+      time: dayjs().format("HH:mm"),
       vehicleInfo: "",
       routeInfo: "",
       preDriveNotes: "",
@@ -450,6 +419,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     setTaskModalVisible(false);
     setActiveTask(null);
     setOpenTaskSuggestions(null);
+    setTaskModalDrafts({});
     setOpenFeedbackSuggestions(null);
     setDraftResolvedStudentId(null);
     setSelectedStudentId(null);
@@ -458,7 +428,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
     form.reset({
       studentId: "",
       date: dayjs().format("DD/MM/YYYY"),
-      time: "",
+      time: dayjs().format("HH:mm"),
       vehicleInfo: "",
       routeInfo: "",
       preDriveNotes: "",
@@ -531,23 +501,6 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
 
   const saving = createAssessment.isPending;
 
-  const taskCriticalSuggestionGroups = useMemo(
-    () => groupSuggestionsByCategory(restrictedMockTestTaskCriticalErrorSuggestions),
-    [],
-  );
-  const taskImmediateSuggestionGroups = useMemo(
-    () => groupSuggestionsByCategory(restrictedMockTestTaskImmediateFailureErrorSuggestions),
-    [],
-  );
-  const generalFeedbackSuggestionGroups = useMemo(
-    () => groupSuggestionsByCategory(restrictedMockTestGeneralFeedbackSuggestions),
-    [],
-  );
-  const improvementNeededSuggestionGroups = useMemo(
-    () => groupSuggestionsByCategory(restrictedMockTestImprovementNeededSuggestions),
-    [],
-  );
-
   const draftHydratedRef = useRef<string | null>(null);
   const draftSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -588,15 +541,16 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             void AsyncStorage.removeItem(key);
             setStage2Enabled(false);
             setStagesState(createEmptyStagesState());
-            setOpenSection(null);
+            setOpenSection("stage1");
             setTaskModalVisible(false);
             setActiveTask(null);
             setOpenTaskSuggestions(null);
+            setTaskModalDrafts({});
             setOpenFeedbackSuggestions(null);
             form.reset({
               studentId,
               date: dayjs().format("DD/MM/YYYY"),
-              time: "",
+              time: dayjs().format("HH:mm"),
               vehicleInfo: "",
               routeInfo: "",
               preDriveNotes: "",
@@ -614,7 +568,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             form.reset({
               studentId,
               date: parsed?.date ?? form.getValues("date"),
-              time: parsed?.time ?? "",
+              time: parsed?.time ?? dayjs().format("HH:mm"),
               vehicleInfo: parsed?.vehicleInfo ?? "",
               routeInfo: parsed?.routeInfo ?? "",
               preDriveNotes: parsed?.preDriveNotes ?? "",
@@ -625,8 +579,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             });
             setStage2Enabled(Boolean(parsed?.stage2Enabled));
             setStagesState(parsed?.stagesState ?? createEmptyStagesState());
-            setOpenSection(null);
+            setOpenSection("stage1");
             setOpenTaskSuggestions(null);
+            setTaskModalDrafts({});
             setOpenFeedbackSuggestions(null);
             setDraftResolvedStudentId(studentId);
           },
@@ -793,16 +748,21 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
   }
 
   function openTaskModal(stageId: RestrictedMockTestStageId, taskId: RestrictedMockTestTaskId) {
+    const key = taskModalDraftKey(stageId, taskId);
     setActiveTask({ stageId, taskId });
-    setTaskModalItems(createEmptyItems());
+    setTaskModalItems(taskModalDrafts[key] ?? createEmptyItems());
     setOpenTaskSuggestions(null);
     setTaskModalVisible(true);
   }
 
   function closeTaskModal() {
+    const task = activeTask;
+    if (task) {
+      const key = taskModalDraftKey(task.stageId, task.taskId);
+      setTaskModalDrafts((prev) => ({ ...prev, [key]: taskModalItems }));
+    }
     setTaskModalVisible(false);
     setActiveTask(null);
-    setTaskModalItems(createEmptyItems());
     setOpenTaskSuggestions(null);
   }
 
@@ -859,6 +819,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
               students={studentsQuery.data ?? []}
               selectedStudentId={selectedStudentId}
               currentUserId={profile.id}
+              selectedStudentNameClassName="!text-[17px]"
               onSelectStudent={(student) => {
                 resetMockTestForStudent(student.id);
               }}
@@ -962,7 +923,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
               name="time"
               render={({ field }) => (
                 <AppTimeInput
-                  label="Time (optional)"
+                  label="Time"
                   value={field.value ?? ""}
                   onChangeText={(next) => field.onChange(next)}
                 />
@@ -1148,13 +1109,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             const value = field.value ?? "";
             const selectedCount = countSelectedLines(value);
             return (
-              <AppCard className="relative gap-4 border-slate-900 dark:border-borderDark">
-                {openFeedbackSuggestions === "generalFeedback" ? (
-                  <Pressable
-                    className="absolute inset-0 z-10"
-                    onPress={() => setOpenFeedbackSuggestions(null)}
-                  />
-                ) : null}
+              <AppCard className="gap-4 border-slate-900 dark:border-borderDark">
                 <View className="flex-row items-start justify-between gap-3">
                   <View className="flex-1">
                     <AppText variant="heading">General feedback</AppText>
@@ -1193,32 +1148,15 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   }
                 />
 
-                {openFeedbackSuggestions === "generalFeedback" ? (
-                  <View className="relative z-20 rounded-2xl border border-border bg-card p-3 shadow-sm shadow-black/5 dark:border-borderDark dark:bg-cardDark dark:shadow-black/30">
-                    <AppStack gap="md">
-                      {generalFeedbackSuggestionGroups.map(({ category, suggestions }) => (
-                        <View key={category} className="gap-2">
-                          <AppText variant="label">{category}</AppText>
-                          <AppStack gap="sm">
-                            {suggestions.map((option) => {
-                              const line = buildSuggestionLine(option);
-                              const selected = hasSuggestionLine(value, line);
-                              return (
-                                <AppButton
-                                  key={line}
-                                  width="auto"
-                                  variant={selected ? "primary" : "secondary"}
-                                  label={option.text}
-                                  onPress={() => field.onChange(toggleSuggestionLine(value, line))}
-                                />
-                              );
-                            })}
-                          </AppStack>
-                        </View>
-                      ))}
-                    </AppStack>
-                  </View>
-                ) : null}
+                <SuggestionsPickerModal
+                  visible={openFeedbackSuggestions === "generalFeedback"}
+                  title="General feedback suggestions"
+                  subtitle="Tap suggestions to add/remove them, then close when done."
+                  suggestions={restrictedMockTestGeneralFeedbackSuggestions}
+                  value={value}
+                  onChangeValue={field.onChange}
+                  onClose={() => setOpenFeedbackSuggestions(null)}
+                />
               </AppCard>
             );
           }}
@@ -1231,13 +1169,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             const value = field.value ?? "";
             const selectedCount = countSelectedLines(value);
             return (
-              <AppCard className="relative gap-4 border-slate-900 dark:border-borderDark">
-                {openFeedbackSuggestions === "improvementNeeded" ? (
-                  <Pressable
-                    className="absolute inset-0 z-10"
-                    onPress={() => setOpenFeedbackSuggestions(null)}
-                  />
-                ) : null}
+              <AppCard className="gap-4 border-slate-900 dark:border-borderDark">
                   <View className="flex-row items-start justify-between gap-3">
                     <View className="flex-1">
                       <AppText variant="heading">Improvement(s) needed</AppText>
@@ -1276,32 +1208,15 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   }
                 />
 
-                {openFeedbackSuggestions === "improvementNeeded" ? (
-                  <View className="relative z-20 rounded-2xl border border-border bg-card p-3 shadow-sm shadow-black/5 dark:border-borderDark dark:bg-cardDark dark:shadow-black/30">
-                    <AppStack gap="md">
-                      {improvementNeededSuggestionGroups.map(({ category, suggestions }) => (
-                        <View key={category} className="gap-2">
-                          <AppText variant="label">{category}</AppText>
-                          <AppStack gap="sm">
-                            {suggestions.map((option) => {
-                              const line = buildSuggestionLine(option);
-                              const selected = hasSuggestionLine(value, line);
-                              return (
-                                <AppButton
-                                  key={line}
-                                  width="auto"
-                                  variant={selected ? "primary" : "secondary"}
-                                  label={option.text}
-                                  onPress={() => field.onChange(toggleSuggestionLine(value, line))}
-                                />
-                              );
-                            })}
-                          </AppStack>
-                        </View>
-                      ))}
-                    </AppStack>
-                  </View>
-                ) : null}
+                <SuggestionsPickerModal
+                  visible={openFeedbackSuggestions === "improvementNeeded"}
+                  title="Improvement(s) needed suggestions"
+                  subtitle="Tap suggestions to add/remove them, then close when done."
+                  suggestions={restrictedMockTestImprovementNeededSuggestions}
+                  value={value}
+                  onChangeValue={field.onChange}
+                  onClose={() => setOpenFeedbackSuggestions(null)}
+                />
               </AppCard>
             );
           }}
@@ -1338,17 +1253,18 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
         <AppText variant="caption">The test auto-saves on this device while you’re in the test screen.</AppText>
         <AppStack gap="sm">
           <AppButton width="auto" variant="secondary" label="Back" onPress={() => setStage("details")} />
-          <AppButton
-            width="auto"
-            label="Start test"
-            onPress={() => {
-              setStage("test");
-              scrollToTop(false);
-            }}
-          />
-          <AppButton width="auto" variant="ghost" label="Cancel" onPress={() => navigation.goBack()} />
-        </AppStack>
-      </AppCard>
+            <AppButton
+              width="auto"
+              label="Start test"
+              onPress={() => {
+                setStage("test");
+                setOpenSection("stage1");
+                scrollToTop(false);
+              }}
+            />
+            <AppButton width="auto" variant="ghost" label="Cancel" onPress={() => navigation.goBack()} />
+          </AppStack>
+        </AppCard>
     ) : (
       <>
         {createAssessment.isError ? (
@@ -1446,7 +1362,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                 "gap-3 overflow-hidden rounded-3xl border-slate-900/40 shadow-2xl shadow-black/20 dark:border-slate-50/10 dark:shadow-black/60",
                 isCompact ? "p-3" : "p-4",
               )}
-              style={{ height: Math.round(height * 0.9) }}
+              style={{ maxHeight: Math.round(height * 0.9) }}
             >
               {activeTask && activeTaskDef && activeTaskState ? (
                 <>
@@ -1522,14 +1438,19 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                                          criticalErrors: "",
                                          immediateFailureErrors: "",
                                        };
-                                     }),
-                                   );
-                                    setTaskModalItems(createEmptyItems());
+                                      }),
+                                    );
+                                    const cleared = createEmptyItems();
+                                    setTaskModalItems(cleared);
+                                    setTaskModalDrafts((drafts) => ({
+                                      ...drafts,
+                                      [taskModalDraftKey(stageId, taskId)]: cleared,
+                                    }));
                                     setOpenTaskSuggestions(null);
-                                 },
-                               },
-                             ],
-                           );
+                                  },
+                                },
+                              ],
+                            );
                          }}
                       />
                     </View>
@@ -1538,18 +1459,12 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   })()}
 
                   <ScrollView
-                    style={{ flex: 1 }}
+                    style={{ flexShrink: 1 }}
                     keyboardShouldPersistTaps="handled"
                     keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
                     automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
                   >
                     <AppStack gap="md" className={cn("relative", isCompact ? "pt-1" : "pt-2")}>
-                      {openTaskSuggestions ? (
-                        <Pressable
-                          className="absolute inset-0 z-10"
-                          onPress={() => setOpenTaskSuggestions(null)}
-                        />
-                      ) : null}
                       <AppInput
                         label="Location / reference (street, landmark, direction)"
                         value={activeTaskState.location}
@@ -1585,10 +1500,16 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                                     : "border-border bg-background dark:border-borderDark dark:bg-backgroundDark",
                                 )}
                                 onPress={() => {
-                                  setTaskModalItems((prev) => ({
-                                    ...prev,
-                                    [item.id]: isFault ? "" : "fault",
-                                  }));
+                                  const task = activeTask;
+                                  setTaskModalItems((prev) => {
+                                    const nextValue: FaultValue = prev[item.id] === "fault" ? "" : "fault";
+                                    const next = { ...prev, [item.id]: nextValue };
+                                    if (task) {
+                                      const key = taskModalDraftKey(task.stageId, task.taskId);
+                                      setTaskModalDrafts((drafts) => ({ ...drafts, [key]: next }));
+                                    }
+                                    return next;
+                                  });
                                 }}
                               >
                                 <AppText className={cn("text-center", isFault && "text-primaryForeground")} variant="button">
@@ -1633,41 +1554,21 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                         }
                       />
 
-                      {openTaskSuggestions === "criticalErrors" ? (
-                        <View className="relative z-20 rounded-2xl border border-border bg-card p-3 shadow-sm shadow-black/5 dark:border-borderDark dark:bg-cardDark dark:shadow-black/30">
-                          <AppStack gap="md">
-                            {taskCriticalSuggestionGroups.map(({ category, suggestions }) => (
-                              <View key={category} className="gap-2">
-                                <AppText variant="label">{category}</AppText>
-                                <AppStack gap="sm">
-                                  {suggestions.map((option) => {
-                                    const line = buildSuggestionLine(option);
-                                    const selected = hasSuggestionLine(activeTaskState.criticalErrors ?? "", line);
-                                    return (
-                                      <AppButton
-                                        key={line}
-                                        width="auto"
-                                        variant={selected ? "primary" : "secondary"}
-                                        label={option.text}
-                                        onPress={() => {
-                                          const stageId = activeTask.stageId;
-                                          const taskId = activeTask.taskId;
-                                          setStagesState((prev) =>
-                                            updateTaskState(prev, stageId, taskId, (task) => ({
-                                              ...task,
-                                              criticalErrors: toggleSuggestionLine(task.criticalErrors ?? "", line),
-                                            })),
-                                          );
-                                        }}
-                                      />
-                                    );
-                                  })}
-                                </AppStack>
-                              </View>
-                            ))}
-                          </AppStack>
-                        </View>
-                      ) : null}
+                      <SuggestionsPickerModal
+                        visible={openTaskSuggestions === "criticalErrors"}
+                        title="Critical error(s) suggestions"
+                        subtitle="Tap suggestions to add/remove them, then close when done."
+                        suggestions={restrictedMockTestTaskCriticalErrorSuggestions}
+                        value={activeTaskState.criticalErrors ?? ""}
+                        onChangeValue={(next) => {
+                          const stageId = activeTask.stageId;
+                          const taskId = activeTask.taskId;
+                          setStagesState((prev) =>
+                            updateTaskState(prev, stageId, taskId, (task) => ({ ...task, criticalErrors: next })),
+                          );
+                        }}
+                        onClose={() => setOpenTaskSuggestions(null)}
+                      />
 
                       <AppInput
                         label="Immediate failure error"
@@ -1704,47 +1605,25 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                         }
                       />
 
-                      {openTaskSuggestions === "immediateFailureErrors" ? (
-                        <View className="relative z-20 rounded-2xl border border-border bg-card p-3 shadow-sm shadow-black/5 dark:border-borderDark dark:bg-cardDark dark:shadow-black/30">
-                          <AppStack gap="md">
-                            {taskImmediateSuggestionGroups.map(({ category, suggestions }) => (
-                              <View key={category} className="gap-2">
-                                <AppText variant="label">{category}</AppText>
-                                <AppStack gap="sm">
-                                  {suggestions.map((option) => {
-                                    const line = buildSuggestionLine(option);
-                                    const selected = hasSuggestionLine(
-                                      activeTaskState.immediateFailureErrors ?? "",
-                                      line,
-                                    );
-                                    return (
-                                      <AppButton
-                                        key={line}
-                                        width="auto"
-                                        variant={selected ? "danger" : "secondary"}
-                                        label={option.text}
-                                        onPress={() => {
-                                          const stageId = activeTask.stageId;
-                                          const taskId = activeTask.taskId;
-                                          setStagesState((prev) =>
-                                            updateTaskState(prev, stageId, taskId, (task) => ({
-                                              ...task,
-                                              immediateFailureErrors: toggleSuggestionLine(
-                                                task.immediateFailureErrors ?? "",
-                                                line,
-                                              ),
-                                            })),
-                                          );
-                                        }}
-                                      />
-                                    );
-                                  })}
-                                </AppStack>
-                              </View>
-                            ))}
-                          </AppStack>
-                        </View>
-                      ) : null}
+                      <SuggestionsPickerModal
+                        visible={openTaskSuggestions === "immediateFailureErrors"}
+                        title="Immediate failure error suggestions"
+                        subtitle="Tap suggestions to add/remove them, then close when done."
+                        suggestions={restrictedMockTestTaskImmediateFailureErrorSuggestions}
+                        value={activeTaskState.immediateFailureErrors ?? ""}
+                        selectedVariant="danger"
+                        onChangeValue={(next) => {
+                          const stageId = activeTask.stageId;
+                          const taskId = activeTask.taskId;
+                          setStagesState((prev) =>
+                            updateTaskState(prev, stageId, taskId, (task) => ({
+                              ...task,
+                              immediateFailureErrors: next,
+                            })),
+                          );
+                        }}
+                        onClose={() => setOpenTaskSuggestions(null)}
+                      />
 
                       <AppButton width="auto" variant="secondary" label="Close" onPress={closeTaskModal} />
                     </AppStack>
@@ -1796,6 +1675,7 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   onPress={() => {
                     setStartTestModalVisible(false);
                     setStage("test");
+                    setOpenSection("stage1");
                     scrollToTop(false);
                   }}
                 />
