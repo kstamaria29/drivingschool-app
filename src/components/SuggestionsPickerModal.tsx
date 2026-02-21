@@ -100,7 +100,9 @@ export function SuggestionsPickerModal({
       <View className="gap-4">
         <View className="flex-row items-start justify-between gap-3">
           <View className="flex-1">
-            <AppText variant="heading">{title}</AppText>
+            <AppText className="!text-[22px]" variant="heading">
+              {title}
+            </AppText>
             {subtitle ? (
               <AppText className="mt-1" variant="caption">
                 {subtitle}
@@ -116,7 +118,9 @@ export function SuggestionsPickerModal({
           <AppStack gap="md">
             {suggestionGroups.map(({ category, suggestions: options }) => (
               <View key={category} className="gap-2">
-                <AppText variant="label">{category}</AppText>
+                <AppText className="!text-[15px]" variant="heading">
+                  {category}
+                </AppText>
                 <AppStack gap="sm">
                   {options.map((option) => {
                     const line = buildSuggestionLine(option);
@@ -124,9 +128,11 @@ export function SuggestionsPickerModal({
                     return (
                       <AppButton
                         key={line}
-                        width="auto"
+                        width="full"
                         variant={selected ? selectedVariant : "secondary"}
                         label={option.text}
+                        contentClassName="w-full justify-start"
+                        labelClassName="flex-1 text-left"
                         onPress={() => {
                           const next = toggleSuggestionLine(valueRef.current, line);
                           valueRef.current = next;

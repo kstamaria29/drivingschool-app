@@ -1615,7 +1615,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
           </>
         ) : (
           <AppStack gap="sm">
-            <AppText variant="heading">No task selected</AppText>
+            <AppText className="!text-[22px]" variant="heading">
+              No task selected
+            </AppText>
           </AppStack>
         )}
       </AppBottomSheetModal>

@@ -187,7 +187,7 @@ export function AppBottomSheetModal({
           <View
             className={cn(
               "w-full max-w-[720px] self-center",
-              isCompact ? "px-4 pt-4" : "px-6 pt-6",
+              isCompact ? "px-4 pt-6 pb-6" : "px-6 pt-8 pb-8",
             )}
           >
             <View className="items-center">
@@ -204,7 +204,7 @@ export function AppBottomSheetModal({
               </Pressable>
             </View>
 
-            <View style={{ paddingBottom: isCompact ? 16 : 20 }}>{children}</View>
+            <View>{children}</View>
           </View>
         </Animated.View>
       </View>

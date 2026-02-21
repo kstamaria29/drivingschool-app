@@ -1594,6 +1594,14 @@
 ---
 
 - **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Themes screen free/premium sections + premium fonts
+- **Summary:**
+  - Split Themes screen into collapsible Free vs Premium blocks and auto-collapsed the non-selected group.
+  - Added per-premium-theme typography via Google Fonts remote font loading so premium selections update the app font.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
 - **Task:** Premium themes + textured backdrops
 - **Summary:**
   - Added 10 new premium theme presets (5 light, 5 dark) and surfaced premium labeling in the Themes list.

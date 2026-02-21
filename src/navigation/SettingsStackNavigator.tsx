@@ -36,13 +36,14 @@ export function SettingsStackNavigator() {
   const baseOptions = useMemo(() => getNativeStackScreenOptions(scheme), [scheme, themeKey]);
 
   return (
-    <Stack.Navigator
-      initialRouteName="SettingsMain"
-      screenOptions={{
-        ...baseOptions,
-        headerLeft: () => <HeaderLeftMenuWithBack />,
-      }}
-    >
+      <Stack.Navigator
+        initialRouteName="SettingsMain"
+        screenOptions={{
+          ...baseOptions,
+          headerTitle: "",
+          headerLeft: () => <HeaderLeftMenuWithBack />,
+        }}
+      >
       <Stack.Screen
         name="SettingsMain"
         component={SettingsScreen}
@@ -54,47 +55,47 @@ export function SettingsStackNavigator() {
       <Stack.Screen
         name="Notifications"
         component={NotificationsScreen}
-        options={{ headerTitle: "Notifications" }}
+        options={{ headerTitle: "" }}
       />
       <Stack.Screen
         name="Themes"
         component={ThemesScreen}
-        options={{ headerTitle: "Themes" }}
+        options={{ headerTitle: "" }}
       />
       <Stack.Screen
         name="EditDetails"
         component={EditDetailsScreen}
-        options={{ headerTitle: "Edit details" }}
+        options={{ headerTitle: "" }}
       />
       <Stack.Screen
         name="ChangePassword"
         component={ChangePasswordScreen}
-        options={{ headerTitle: "Change password" }}
+        options={{ headerTitle: "" }}
       />
       <Stack.Screen
         name="EditOrganizationName"
         component={EditOrganizationNameScreen}
-        options={{ headerTitle: "Change organization name" }}
+        options={{ headerTitle: "" }}
       />
       <Stack.Screen
         name="ViewMembers"
         component={ViewMembersScreen}
-        options={{ headerTitle: "View members" }}
+        options={{ headerTitle: "" }}
       />
       <Stack.Screen
         name="MemberProfile"
         component={MemberProfileScreen}
-        options={{ headerTitle: "Member profile" }}
+        options={{ headerTitle: "" }}
       />
       <Stack.Screen
         name="EditRoleDisplay"
         component={EditRoleDisplayScreen}
-        options={{ headerTitle: "Change role display" }}
+        options={{ headerTitle: "" }}
       />
       <Stack.Screen
         name="AddInstructor"
         component={AddInstructorScreen}
-        options={{ headerTitle: "Add instructor" }}
+        options={{ headerTitle: "" }}
       />
     </Stack.Navigator>
   );

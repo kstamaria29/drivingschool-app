@@ -1,6 +1,14 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-22 (Pacific/Auckland)
+- **Task:** Bottom sheet + navbar polish
+- **Summary:**
+  - Standardized bottom sheet padding/typography (bigger headings, bolder category labels, left-aligned suggestion options).
+  - Updated header buttons so drawer root screens show hamburger only, and all other screens show back only (no navbar titles).
+
+---
+
+- **Date:** 2026-02-22 (Pacific/Auckland)
 - **Task:** Restricted suggestions bottom sheet
 - **Summary:**
   - Switched the suggestions picker (task errors + feedback) to the same bottom-sheet pattern as the task repetition modal.
@@ -146,11 +154,3 @@
 - **Summary:**
   - Removed conditional hook execution in `ThemedBackdrop` by making `useRef` and `useEffect` run on every render.
   - Fixed runtime hook-order errors when switching between themes with and without premium backdrops.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Themes screen free/premium sections + premium fonts
-- **Summary:**
-  - Split Themes screen into collapsible Free vs Premium blocks and auto-collapsed the non-selected group.
-  - Added per-premium-theme typography via Google Fonts remote font loading so premium selections update the app font.
