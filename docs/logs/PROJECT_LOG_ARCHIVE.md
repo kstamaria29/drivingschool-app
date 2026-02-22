@@ -979,7 +979,6 @@
 
 ---
 
-
 - **Date:** 2026-02-11 (Pacific/Auckland)
 - **Task:** Licence upload width set to 500px
 - **Summary:**
@@ -1606,5 +1605,29 @@
 - **Summary:**
   - Added 10 new premium theme presets (5 light, 5 dark) and surfaced premium labeling in the Themes list.
   - Added themed backdrop textures/gradients so premium themes feel materially different beyond color alone.
+
+---
+
+- **Date:** 2026-02-13 (Pacific/Auckland)
+- **Task:** Fix ThemedBackdrop hook order crash
+- **Summary:**
+  - Removed conditional hook execution in `ThemedBackdrop` by making `useRef` and `useEffect` run on every render.
+  - Fixed runtime hook-order errors when switching between themes with and without premium backdrops.
+
+---
+
+- **Date:** 2026-02-19 (Pacific/Auckland)
+- **Task:** Settings notifications screen
+- **Summary:**
+  - Added a `Notifications` button above `Themes` in Settings.
+  - Added a Notifications screen to show permission status and open/request device notification permissions.
+
+---
+
+- **Date:** 2026-02-19 (Pacific/Auckland)
+- **Task:** Notifications preferences + lesson alerts
+- **Summary:**
+  - Added per-category sound/vibration preferences, test notifications, and push-token registration for cross-device alerts.
+  - Added upcoming-lesson offsets + daily digest settings, plus Supabase tables/Edge Functions for scheduled push delivery.
 
 ---

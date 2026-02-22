@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { ScrollView, View } from "react-native";
+import { ScrollView, useWindowDimensions, View } from "react-native";
 
 import { AppBottomSheetModal } from "./AppBottomSheetModal";
 import { AppButton } from "./AppButton";
@@ -82,6 +82,7 @@ export function SuggestionsPickerModal({
   onChangeValue,
   onClose,
 }: Props) {
+  const { height } = useWindowDimensions();
   const suggestionGroups = useMemo(() => groupSuggestionsByCategory(suggestions), [suggestions]);
   const selectedCount = useMemo(() => countSelectedLines(value), [value]);
   const valueRef = useRef(value);
@@ -114,11 +115,19 @@ export function SuggestionsPickerModal({
           </AppText>
         </View>
 
-        <ScrollView style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          style={{ flexShrink: 1, maxHeight: Math.round(height * 0.6) }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+        >
           <AppStack gap="md">
             {suggestionGroups.map(({ category, suggestions: options }) => (
               <View key={category} className="gap-2">
-                <AppText className="!text-[15px]" variant="heading">
+                <AppText
+                  className="!text-[15px] underline !text-blue-600 dark:!text-blue-400"
+                  variant="heading"
+                >
                   {category}
                 </AppText>
                 <AppStack gap="sm">

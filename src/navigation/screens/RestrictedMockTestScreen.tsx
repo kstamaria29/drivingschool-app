@@ -1134,7 +1134,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   multiline
                   numberOfLines={5}
                   textAlignVertical="top"
-                  inputClassName="h-32 py-3"
+                  autoGrow
+                  autoGrowMinHeight={128}
+                  inputClassName="py-3"
                 />
 
                 <AppButton
@@ -1193,7 +1195,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   multiline
                   numberOfLines={5}
                   textAlignVertical="top"
-                  inputClassName="h-32 py-3"
+                  autoGrow
+                  autoGrowMinHeight={128}
+                  inputClassName="py-3"
                 />
 
                 <AppButton
@@ -1303,6 +1307,8 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
             automaticallyAdjustKeyboardInsets={Platform.OS === "ios" && keyboardAwareEnabled}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
             contentContainerClassName={cn(theme.screen.scrollContent, isCompact ? "pb-6" : "pb-8")}
             onScroll={keyboardAwareEnabled ? onScroll : undefined}
             scrollEventThrottle={keyboardAwareEnabled ? 16 : undefined}
@@ -1453,6 +1459,8 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
               automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
             >
               <AppStack gap="md" className={cn(isCompact ? "pt-1" : "pt-2")}>
                 <AppInput
@@ -1530,7 +1538,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   multiline
                   numberOfLines={5}
                   textAlignVertical="top"
-                  inputClassName="h-32 py-3"
+                  autoGrow
+                  autoGrowMinHeight={128}
+                  inputClassName="py-3"
                 />
 
                 <AppButton
@@ -1574,7 +1584,9 @@ export function RestrictedMockTestScreen({ navigation, route }: Props) {
                   multiline
                   numberOfLines={5}
                   textAlignVertical="top"
-                  inputClassName="h-32 py-3"
+                  autoGrow
+                  autoGrowMinHeight={128}
+                  inputClassName="py-3"
                 />
 
                 <AppButton

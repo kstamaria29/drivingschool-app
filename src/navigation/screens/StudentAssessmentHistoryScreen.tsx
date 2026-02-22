@@ -442,6 +442,7 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
+      showsVerticalScrollIndicator={false}
       contentContainerClassName="gap-2"
     >
       {assessmentTypes.map((tab) => (
@@ -1324,11 +1325,21 @@ export function StudentAssessmentHistoryScreen({ route }: Props) {
 
   const content = twoPane ? (
     <View className="flex-1 flex-row gap-4">
-      <ScrollView className="w-80" contentContainerClassName="gap-3 pb-6">
+      <ScrollView
+        className="w-80"
+        contentContainerClassName="gap-3 pb-6"
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+      >
         {listContent}
       </ScrollView>
 
-      <ScrollView className="flex-1" contentContainerClassName="gap-4 pb-6">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-4 pb-6"
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+      >
         {renderDetail(selectedAssessment)}
       </ScrollView>
     </View>

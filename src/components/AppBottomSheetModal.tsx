@@ -187,7 +187,7 @@ export function AppBottomSheetModal({
           <View
             className={cn(
               "w-full max-w-[720px] self-center",
-              isCompact ? "px-4 pt-6 pb-6" : "px-6 pt-8 pb-8",
+              isCompact ? "px-4 pt-4 pb-6" : "px-6 pt-6 pb-8",
             )}
           >
             <View className="items-center">
@@ -198,7 +198,7 @@ export function AppBottomSheetModal({
                 hitSlop={12}
                 {...panResponder.panHandlers}
               >
-                <View className="items-center py-2">
+                <View className="items-center py-2 mb-2">
                   <View className="h-1.5 w-14 rounded-full bg-border/70 dark:bg-borderDark/70" />
                 </View>
               </Pressable>

@@ -1,6 +1,30 @@
 # PROJECT_LOG.md
 
 - **Date:** 2026-02-22 (Pacific/Auckland)
+- **Task:** Restricted PDF stage pagination
+- **Summary:**
+  - Hid Stage 2 section/details in the PDF when Stage 2 was not enabled.
+  - Forced Stage 2 (when enabled) to start on a new PDF page.
+
+---
+
+- **Date:** 2026-02-22 (Pacific/Auckland)
+- **Task:** Suggestions: blue subheadings + auto-grow inputs
+- **Summary:**
+  - Updated suggestion modal category labels to use blue styling.
+  - Made suggestion-linked multiline inputs auto-expand to fit content (no internal scrolling).
+
+---
+
+- **Date:** 2026-02-22 (Pacific/Auckland)
+- **Task:** Bottom sheet spacing + scrollbars
+- **Summary:**
+  - Restored the previous bottom sheet top padding and added extra spacing between the handle and content.
+  - Underlined suggestion subheadings, fixed long suggestions scrolling, and hid scroll indicators across the app.
+
+---
+
+- **Date:** 2026-02-22 (Pacific/Auckland)
 - **Task:** Bottom sheet + navbar polish
 - **Summary:**
   - Standardized bottom sheet padding/typography (bigger headings, bolder category labels, left-aligned suggestion options).
@@ -130,27 +154,3 @@
 - **Summary:**
   - Added Expo Android `googleServicesFile` config so Android devices can register for push notifications.
   - Documented the required Firebase/EAS FCM credential setup steps for Android push delivery.
-
----
-
-- **Date:** 2026-02-19 (Pacific/Auckland)
-- **Task:** Notifications preferences + lesson alerts
-- **Summary:**
-  - Added per-category sound/vibration preferences, test notifications, and push-token registration for cross-device alerts.
-  - Added upcoming-lesson offsets + daily digest settings, plus Supabase tables/Edge Functions for scheduled push delivery.
-
----
-
-- **Date:** 2026-02-19 (Pacific/Auckland)
-- **Task:** Settings notifications screen
-- **Summary:**
-  - Added a `Notifications` button above `Themes` in Settings.
-  - Added a Notifications screen to show permission status and open/request device notification permissions.
-
----
-
-- **Date:** 2026-02-13 (Pacific/Auckland)
-- **Task:** Fix ThemedBackdrop hook order crash
-- **Summary:**
-  - Removed conditional hook execution in `ThemedBackdrop` by making `useRef` and `useEffect` run on every render.
-  - Fixed runtime hook-order errors when switching between themes with and without premium backdrops.
